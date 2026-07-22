@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Palette, Info, Smartphone, Tablet, Monitor, BookOpen, Target, Users, ImageIcon } from "lucide-react";
+import { Settings, Download, Upload, Sun, Palette, Info, Smartphone, Tablet, Monitor, BookOpen, Target, Users, ImageIcon, Cloud, RefreshCw } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages } from "@/lib/storage";
+import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings } from "@/lib/storage";
 
@@ -291,6 +292,17 @@ export default function SettingsPage() {
               {importStatus}
             </p>
           )}
+        </section>
+
+        <section className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Cloud className="w-5 h-5 text-blue-600" />
+            Synchronisation cloud
+          </h2>
+          <p className="text-sm text-gray-600 mb-3">
+            Synchronise tes données avec ton compte pour les retrouver sur tous tes appareils.
+          </p>
+          <SyncButton />
         </section>
 
         <section className="bg-white rounded-xl border border-gray-200 p-6">

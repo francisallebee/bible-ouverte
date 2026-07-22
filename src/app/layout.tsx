@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
-import LayoutClient from "@/lib/pwa/layout-client";
+import { AuthProvider } from "@/contexts/AuthContext";
+import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
   title: "Bible Ouverte",
@@ -24,12 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/icon-192.svg" />
       </head>
       <body className="min-h-screen">
-        <LayoutClient>
-          <Sidebar />
-          <main className="lg:ml-[var(--nav-width)] p-4 sm:p-6 lg:p-8 pt-20 lg:pt-8">
-            {children}
-          </main>
-        </LayoutClient>
+        <AuthProvider>
+          <AppShell>{children}</AppShell>
+        </AuthProvider>
         <Script src="/sw-register.js" strategy="afterInteractive" />
       </body>
     </html>

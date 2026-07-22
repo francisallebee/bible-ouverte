@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, BookPlus, Search, History, BarChart3,
   Tags, BookOpen, Settings, Menu, X, Trophy, Users, LogOut,
 } from "lucide-react";
 import { seedIfNeeded, getCurrentUser } from "@/lib/storage";
 import type { UserProfile } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const links = [
   { href: "/", label: "Tableau de bord", icon: LayoutDashboard },
@@ -25,8 +27,10 @@ const links = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | undefined>();
+  const { user } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -34,6 +38,13 @@ export default function Sidebar() {
       setCurrentUser(await getCurrentUser());
     })();
   }, []);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+    router.refresh();
+  };
 
   return (
     <>
@@ -80,7 +91,7 @@ export default function Sidebar() {
           })}
         </div>
 
-        <div className="pt-4 border-t border-gray-100 mt-auto">
+        <div className="pt-4 border-t border-gray-100">
           <Link
             href="/profiles"
             onClick={() => setOpen(false)}
@@ -98,6 +109,16 @@ export default function Sidebar() {
             <Users className="w-4 h-4 text-gray-400 shrink-0" />
           </Link>
         </div>
+
+        {user && (
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-600 hover:bg-red-50 w-full mt-1"
+          >
+            <LogOut className="w-4 h-4" />
+            Déconnexion ({user.email})
+          </button>
+        )}
 
         <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-100">
           Bible Ouverte v0.1.0
