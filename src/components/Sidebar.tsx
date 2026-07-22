@@ -1,0 +1,108 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard, BookPlus, Search, History, BarChart3,
+  Tags, BookOpen, Settings, Menu, X, Trophy, Users, LogOut,
+} from "lucide-react";
+import { seedIfNeeded, getCurrentUser } from "@/lib/storage";
+import type { UserProfile } from "@/lib/storage";
+
+const links = [
+  { href: "/", label: "Tableau de bord", icon: LayoutDashboard },
+  { href: "/new-reading", label: "Nouvelle lecture", icon: BookPlus },
+  { href: "/plans", label: "Plans de lecture", icon: BookOpen },
+  { href: "/search", label: "Recherche biblique", icon: Search },
+  { href: "/progress", label: "Progression", icon: Trophy },
+  { href: "/history", label: "Historique", icon: History },
+  { href: "/stats", label: "Statistiques", icon: BarChart3 },
+  { href: "/contexts", label: "Contextes", icon: Tags },
+  { href: "/versions", label: "Versions", icon: BookOpen },
+  { href: "/settings", label: "Réglages", icon: Settings },
+];
+
+export default function Sidebar() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | undefined>();
+
+  useEffect(() => {
+    (async () => {
+      await seedIfNeeded();
+      setCurrentUser(await getCurrentUser());
+    })();
+  }, []);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(!open)}
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-white rounded-lg shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-100"
+        aria-label="Menu"
+      >
+        {open ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
+      </button>
+
+      {open && (
+        <div className="lg:hidden fixed inset-0 bg-black/30 z-30" onClick={() => setOpen(false)} />
+      )}
+
+      <nav
+        className={`fixed top-0 left-0 bottom-0 w-[var(--nav-width)] bg-white border-r border-gray-200 flex flex-col p-4 z-40 transition-transform duration-200 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
+      >
+        <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2 text-xl font-bold text-[#1e3a5f] mb-8 no-underline">
+          <BookOpen className="w-6 h-6" />
+          Bible Ouverte
+        </Link>
+
+        <div className="flex flex-col gap-1 flex-1">
+          {links.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                className={`rounded-lg px-3 py-2.5 text-sm transition-colors no-underline flex items-center gap-3 ${
+                  active
+                    ? "bg-[#1e3a5f] text-white"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="pt-4 border-t border-gray-100 mt-auto">
+          <Link
+            href="/profiles"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100 no-underline"
+          >
+            {currentUser ? (
+              <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                style={{ backgroundColor: currentUser.color }}>
+                {currentUser.name[0].toUpperCase()}
+              </div>
+            ) : (
+              <Users className="w-5 h-5 text-gray-400" />
+            )}
+            <span className="flex-1 truncate">{currentUser?.name ?? "Utilisateurs"}</span>
+            <Users className="w-4 h-4 text-gray-400 shrink-0" />
+          </Link>
+        </div>
+
+        <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-100">
+          Bible Ouverte v0.1.0
+        </p>
+      </nav>
+    </>
+  );
+}

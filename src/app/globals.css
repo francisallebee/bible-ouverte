@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --nav-width: 260px;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --nav-width: 0px;
+  }
+}
+
+[data-preset="smartphone"] button,
+[data-preset="smartphone"] .btn,
+[data-preset="smartphone"] input,
+[data-preset="smartphone"] select,
+[data-preset="smartphone"] textarea {
+  min-height: 44px !important;
+  font-size: 16px !important;
+}
+
+[data-preset="smartphone"] label {
+  font-size: 14px !important;
+}
+
+[data-preset="smartphone"] .card-grid > * {
+  max-width: 100% !important;
+}
+
+[data-preset="tablet"] button,
+[data-preset="tablet"] .btn,
+[data-preset="tablet"] input,
+[data-preset="tablet"] select,
+[data-preset="tablet"] textarea {
+  min-height: 40px !important;
+}
