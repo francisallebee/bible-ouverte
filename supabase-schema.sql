@@ -1,6 +1,8 @@
 -- Exécute ce fichier dans Supabase SQL Editor
 
 -- 0. AVANT : créer les buckets Storage via le Dashboard
+--    Une fois les tables créées, pour te définir admin :
+--    UPDATE public.profiles SET is_admin = true WHERE id = auth.uid();
 --    Supabase Dashboard → Storage → Create bucket
 --    - Nom : "photos" (public)
 --    - Nom : "audio" (public)
@@ -13,6 +15,7 @@ create table if not exists public.profiles (
   color text not null default '#1e3a5f',
   reading_goal_type text not null default 'chapters' check (reading_goal_type in ('chapters', 'verses')),
   reading_goal_count int not null default 1,
+  is_admin boolean not null default false,
   created_at timestamptz not null default now()
 );
 

@@ -5,13 +5,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, BookPlus, Search, History, BarChart3,
-  Tags, BookOpen, Settings, Menu, X, Trophy, LogOut,
+  Tags, BookOpen, Settings, Menu, X, Trophy, LogOut, Shield,
 } from "lucide-react";
 import { seedIfNeeded } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-const links = [
+const links: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; adminOnly?: boolean }[] = [
   { href: "/", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/new-reading", label: "Nouvelle lecture", icon: BookPlus },
   { href: "/plans", label: "Plans de lecture", icon: BookOpen },
@@ -22,13 +22,14 @@ const links = [
   { href: "/contexts", label: "Contextes", icon: Tags },
   { href: "/versions", label: "Versions", icon: BookOpen },
   { href: "/settings", label: "Réglages", icon: Settings },
+  { href: "/admin", label: "Administration", icon: Shield, adminOnly: true },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   useEffect(() => { seedIfNeeded() }, []);
 
@@ -64,7 +65,9 @@ export default function Sidebar() {
         </Link>
 
         <div className="flex flex-col gap-1 flex-1">
-          {links.map(({ href, label, icon: Icon }) => {
+          {links
+            .filter(l => !l.adminOnly || isAdmin)
+            .map(({ href, label, icon: Icon }) => {
             const active = pathname === href || (href !== "/" && pathname.startsWith(href));
             return (
               <Link
