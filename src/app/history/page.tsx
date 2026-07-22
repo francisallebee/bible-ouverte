@@ -111,7 +111,7 @@ export default function HistoryPage() {
           placeholder="Rechercher dans les notes ou le texte..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[200px]"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[160px] sm:min-w-[200px] w-full sm:w-auto"
         />
         <select
           value={contextFilter}

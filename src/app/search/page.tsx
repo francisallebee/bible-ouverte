@@ -239,7 +239,7 @@ export default function SearchPage() {
                   placeholder="Entrez un mot ou une phrase..."
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" autoFocus />
               </div>
-              <div className="w-48">
+              <div className="w-full sm:w-48">
                 <label className="block text-xs font-medium text-gray-500 mb-1">Version</label>
                 <select value={kwVersion} onChange={(e) => setKwVersion(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">

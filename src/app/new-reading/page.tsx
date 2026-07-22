@@ -306,7 +306,7 @@ export default function NewReadingPage() {
               </button>
             </div>
             {photos.length > 0 && (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {photos.map((photo, i) => (
                   <div key={i} className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square">
                     <img src={photo} alt="" className="w-full h-full object-cover" />

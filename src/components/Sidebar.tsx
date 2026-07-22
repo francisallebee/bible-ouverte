@@ -44,7 +44,7 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setOpen(!open)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-white rounded-lg shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-100"
+        className="lg:hidden fixed top-4 left-4 z-50 w-11 h-11 bg-white rounded-lg shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-100"
         aria-label="Menu"
       >
         {open ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
@@ -74,7 +74,7 @@ export default function Sidebar() {
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
-                className={`rounded-lg px-3 py-2.5 text-sm transition-colors no-underline flex items-center gap-3 ${
+                className={`rounded-lg px-3 py-3 text-sm transition-colors no-underline flex items-center gap-3 ${
                   active
                     ? "bg-[#1e3a5f] text-white"
                     : "text-gray-600 hover:bg-gray-100"
@@ -89,15 +89,15 @@ export default function Sidebar() {
 
         {user && (
           <div className="pt-4 border-t border-gray-100">
-            <div className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600">
-              <div className="w-6 h-6 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white text-xs font-bold shrink-0">
+            <div className="flex items-center gap-3 px-3 py-3 text-sm text-gray-600">
+              <div className="w-7 h-7 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {(user.email?.[0] ?? "?").toUpperCase()}
               </div>
-              <span className="flex-1 truncate">{user.email}</span>
+              <span className="flex-1 truncate text-sm">{user.email}</span>
             </div>
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 w-full mt-1"
+              className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-red-600 hover:bg-red-50 w-full mt-1"
             >
               <LogOut className="w-4 h-4" />
               Déconnexion
