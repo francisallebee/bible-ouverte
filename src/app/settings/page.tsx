@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Palette, Info, Smartphone, Tablet, Monitor, BookOpen, Target, Users, ImageIcon, Cloud, RefreshCw } from "lucide-react";
+import { Settings, Download, Upload, Sun, Palette, Info, Smartphone, Tablet, Monitor, BookOpen, Target, ImageIcon, Cloud, RefreshCw } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages } from "@/lib/storage";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
@@ -143,20 +143,6 @@ export default function SettingsPage() {
               </button>
             ))}
           </div>
-        </section>
-
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5 text-[#1e3a5f]" />
-            Utilisateurs
-          </h2>
-          <p className="text-sm text-gray-600 mb-3">
-            Gérez les profils pour que chaque personne ait son espace personnel.
-          </p>
-          <a href="/profiles" className="inline-flex items-center gap-1.5 bg-[#1e3a5f] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2a4f7a] no-underline">
-            <Users className="w-4 h-4" />
-            Gérer les utilisateurs
-          </a>
         </section>
 
         <section className="bg-white rounded-xl border border-gray-200 p-6">

@@ -1,6 +1,6 @@
 import { getDB } from './db';
 import type { ReadingPlan, PlanDay } from './types';
-import { getCurrentUserId } from './user-store';
+import { getCurrentUserId } from './user-id';
 
 export async function getAllPlans(): Promise<ReadingPlan[]> {
   const db = await getDB();

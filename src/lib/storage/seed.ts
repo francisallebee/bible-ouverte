@@ -24,22 +24,19 @@ const DEFAULT_SETTINGS: AppSettings = {
   displayPreset: 'desktop',
   offlineModeEnabled: true,
   firstLaunchCompleted: false,
-  currentUserId: 'default',
 };
 
 export async function seedIfNeeded(): Promise<void> {
   const db = await getDB();
-
   const existingSettings = await db.get('settings', 'app');
 
   if (existingSettings?.firstLaunchCompleted) {
-    await ensureDefaultUser(db);
     await ensureVersionsExist(db);
     await importAllBibleData();
     return;
   }
 
-  const tx = db.transaction(['contexts', 'bible_versions', 'settings', 'users'], 'readwrite');
+  const tx = db.transaction(['contexts', 'bible_versions', 'settings'], 'readwrite');
 
   for (const ctx of DEFAULT_CONTEXTS) {
     const existing = await tx.objectStore('contexts').get(ctx.id);
@@ -51,52 +48,25 @@ export async function seedIfNeeded(): Promise<void> {
     if (!existing) await tx.objectStore('bible_versions').add(v);
   }
 
-  const existingUser = await tx.objectStore('users').get('default');
-  if (!existingUser) {
-    await tx.objectStore('users').add({
-      id: 'default',
-      name: 'Utilisateur',
-      color: '#4a90d9',
-      createdAt: new Date().toISOString(),
+  if (!existingSettings) {
+    await tx.objectStore('settings').add({
+      ...DEFAULT_SETTINGS,
+      firstLaunchCompleted: true,
+    });
+  } else {
+    await tx.objectStore('settings').put({
+      ...existingSettings,
+      firstLaunchCompleted: true,
     });
   }
-
-  if (!existingSettings) {
-    await tx.objectStore('settings').add(DEFAULT_SETTINGS);
-  }
-
-  await tx.objectStore('settings').put({
-    ...(existingSettings ?? DEFAULT_SETTINGS),
-    currentUserId: 'default',
-    firstLaunchCompleted: true,
-  });
 
   await tx.done;
-
   await importAllBibleData();
-}
-
-async function ensureDefaultUser(db: Awaited<ReturnType<typeof getDB>>): Promise<void> {
-  const existing = await db.get('users', 'default');
-  if (!existing) {
-    await db.add('users', {
-      id: 'default',
-      name: 'Utilisateur',
-      color: '#4a90d9',
-      createdAt: new Date().toISOString(),
-    });
-  }
-  const settings = await db.get('settings', 'app');
-  if (settings && !settings.currentUserId) {
-    await db.put('settings', { ...settings, currentUserId: 'default' });
-  }
 }
 
 async function ensureVersionsExist(db: Awaited<ReturnType<typeof getDB>>): Promise<void> {
   for (const v of BIBLE_VERSIONS) {
     const existing = await db.get('bible_versions', v.id);
-    if (!existing) {
-      await db.add('bible_versions', v);
-    }
+    if (!existing) await db.add('bible_versions', v);
   }
 }

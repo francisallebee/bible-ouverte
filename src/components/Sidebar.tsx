@@ -5,10 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, BookPlus, Search, History, BarChart3,
-  Tags, BookOpen, Settings, Menu, X, Trophy, Users, LogOut,
+  Tags, BookOpen, Settings, Menu, X, Trophy, LogOut,
 } from "lucide-react";
-import { seedIfNeeded, getCurrentUser } from "@/lib/storage";
-import type { UserProfile } from "@/lib/storage";
+import { seedIfNeeded } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,15 +28,9 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<UserProfile | undefined>();
   const { user } = useAuth();
 
-  useEffect(() => {
-    (async () => {
-      await seedIfNeeded();
-      setCurrentUser(await getCurrentUser());
-    })();
-  }, []);
+  useEffect(() => { seedIfNeeded() }, []);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -91,33 +84,22 @@ export default function Sidebar() {
           })}
         </div>
 
-        <div className="pt-4 border-t border-gray-100">
-          <Link
-            href="/profiles"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100 no-underline"
-          >
-            {currentUser ? (
-              <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                style={{ backgroundColor: currentUser.color }}>
-                {currentUser.name[0].toUpperCase()}
-              </div>
-            ) : (
-              <Users className="w-5 h-5 text-gray-400" />
-            )}
-            <span className="flex-1 truncate">{currentUser?.name ?? "Utilisateurs"}</span>
-            <Users className="w-4 h-4 text-gray-400 shrink-0" />
-          </Link>
-        </div>
-
         {user && (
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-600 hover:bg-red-50 w-full mt-1"
-          >
-            <LogOut className="w-4 h-4" />
-            Déconnexion ({user.email})
-          </button>
+          <div className="pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600">
+              <div className="w-6 h-6 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                {(user.email?.[0] ?? "?").toUpperCase()}
+              </div>
+              <span className="flex-1 truncate">{user.email}</span>
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 w-full mt-1"
+            >
+              <LogOut className="w-4 h-4" />
+              Déconnexion
+            </button>
+          </div>
         )}
 
         <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-100">

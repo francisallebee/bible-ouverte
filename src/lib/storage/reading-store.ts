@@ -1,6 +1,6 @@
 import type { ReadingEntry } from './types';
 import { getDB } from './db';
-import { getCurrentUserId } from './user-store';
+import { getCurrentUserId } from './user-id';
 
 export async function getAllReadings(): Promise<ReadingEntry[]> {
   const db = await getDB();

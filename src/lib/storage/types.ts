@@ -1,13 +1,6 @@
 export type DisplayPreset = "smartphone" | "tablet" | "desktop";
 export type PlanDuration = "1-year" | "6-months" | "3-months" | "1-month" | "custom";
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  color: string;
-  createdAt: string;
-}
-
 export interface ReadingLink {
   url: string;
   title: string;
@@ -100,7 +93,7 @@ export interface AppSettings {
   displayPreset: DisplayPreset;
   offlineModeEnabled: boolean;
   firstLaunchCompleted: boolean;
-  currentUserId: string;
+
   readingGoal?: ReadingGoal;
   unsplashAccessKey?: string;
 }
