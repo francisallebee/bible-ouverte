@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Palette, Info, Smartphone, Tablet, Monitor, BookOpen, Target, ImageIcon, Cloud, RefreshCw } from "lucide-react";
+import { Settings, Download, Upload, Sun, Palette, Info, Smartphone, Tablet, Monitor, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings } from "@/lib/storage";
@@ -13,7 +16,11 @@ export default function SettingsPage() {
   const [loaded, setLoaded] = useState(false);
   const [exportStatus, setExportStatus] = useState("");
   const [importStatus, setImportStatus] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<'initial' | 'confirm' | 'deleting' | 'done'>('initial');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -58,6 +65,24 @@ export default function SettingsPage() {
       }
     } catch {
       setImportStatus("Erreur lors de la lecture du fichier.");
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteStep('deleting')
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/auth/delete-account', { method: 'POST' })
+      const data = await res.json()
+      if (data.error) { alert(data.error); setDeleteStep('initial'); setDeleting(false); return }
+      setDeleteStep('done')
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      setTimeout(() => { router.push('/auth/login'); router.refresh() }, 2000)
+    } catch {
+      alert('Erreur lors de la suppression')
+      setDeleteStep('initial')
+      setDeleting(false)
     }
   }
 
@@ -290,6 +315,58 @@ export default function SettingsPage() {
           </p>
           <SyncButton />
         </section>
+
+        {user && (
+          <section className="bg-white rounded-xl border border-red-200 p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-700">
+              <AlertTriangle className="w-5 h-5" />
+              Supprimer mon compte
+            </h2>
+            {deleteStep === 'initial' && (
+              <>
+                <p className="text-sm text-red-600 mb-3 font-medium">
+                  Cette action est irréversible. Toutes tes données (lectures, plans, contextes,
+                  photos, enregistrements audio) seront définitivement effacées.
+                </p>
+                <button
+                  onClick={() => setDeleteStep('confirm')}
+                  className="bg-red-600 text-white px-4 py-3 rounded-lg text-sm hover:bg-red-700"
+                >
+                  Supprimer mon compte
+                </button>
+              </>
+            )}
+            {deleteStep === 'confirm' && (
+              <div className="space-y-3">
+                <p className="text-sm text-red-700 font-bold bg-red-50 border border-red-200 rounded-lg p-3">
+                  ⚠️ Es-tu sûr ? Tes {settings?.readingGoal?.target || ''} lectures, plans et
+                  fichiers seront perdus à jamais.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setDeleteStep('initial')}
+                    disabled={deleting}
+                    className="border border-gray-300 text-gray-700 px-4 py-3 rounded-lg text-sm hover:bg-gray-50"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="bg-red-600 text-white px-4 py-3 rounded-lg text-sm hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {deleting ? 'Suppression...' : 'Oui, tout supprimer'}
+                  </button>
+                </div>
+              </div>
+            )}
+            {deleteStep === 'done' && (
+              <p className="text-sm text-green-600 font-medium">
+                Compte supprimé. Redirection...
+              </p>
+            )}
+          </section>
+        )}
 
         <section className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
