@@ -31,10 +31,26 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && request.nextUrl.pathname.startsWith('/auth')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/'
-    return NextResponse.redirect(url)
+  if (user) {
+    if (request.nextUrl.pathname.startsWith('/auth')) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+
+    // Check if user is suspended
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('suspended')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.suspended) {
+      await supabase.auth.signOut()
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login?error=suspended'
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse

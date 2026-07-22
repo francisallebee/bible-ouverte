@@ -16,6 +16,7 @@ create table if not exists public.profiles (
   reading_goal_type text not null default 'chapters' check (reading_goal_type in ('chapters', 'verses')),
   reading_goal_count int not null default 1,
   is_admin boolean not null default false,
+  suspended boolean not null default false,
   created_at timestamptz not null default now()
 );
 

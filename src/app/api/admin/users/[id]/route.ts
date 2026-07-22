@@ -22,7 +22,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   const supabaseAdmin = createAdminClient()
 
   try {
-    // Storage
     const { data: photos } = await supabaseAdmin.storage.from('photos').list(targetId)
     if (photos?.length) {
       await supabaseAdmin.storage.from('photos').remove(photos.map(p => `${targetId}/${p.name}`))
@@ -32,14 +31,12 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       await supabaseAdmin.storage.from('audio').remove(audio.map(a => `${targetId}/${a.name}`))
     }
 
-    // Data
     await supabaseAdmin.from('plan_days').delete().eq('user_id', targetId)
     await supabaseAdmin.from('plans').delete().eq('user_id', targetId)
     await supabaseAdmin.from('contexts').delete().eq('user_id', targetId)
     await supabaseAdmin.from('readings').delete().eq('user_id', targetId)
     await supabaseAdmin.from('profiles').delete().eq('id', targetId)
 
-    // Auth user
     const { error } = await supabaseAdmin.auth.admin.deleteUser(targetId)
     if (error) return errorResponse(error.message)
 
@@ -56,11 +53,26 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const targetId = params.id
   const supabaseAdmin = createAdminClient()
   const body = await request.json()
+  const updates: Record<string, any> = {}
 
   if (body.is_admin !== undefined) {
+    updates.is_admin = body.is_admin
+  }
+
+  if (body.suspended !== undefined) {
+    updates.suspended = body.suspended
+    // Ban or unban the auth user
+    if (body.suspended) {
+      await supabaseAdmin.auth.admin.updateUserById(targetId, { ban_duration: '876000h' })
+    } else {
+      await supabaseAdmin.auth.admin.updateUserById(targetId, { ban_duration: 'none' })
+    }
+  }
+
+  if (Object.keys(updates).length > 0) {
     const { error } = await supabaseAdmin
       .from('profiles')
-      .update({ is_admin: body.is_admin })
+      .update(updates)
       .eq('id', targetId)
 
     if (error) return errorResponse(error.message)

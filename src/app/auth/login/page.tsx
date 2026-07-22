@@ -1,13 +1,24 @@
 'use client'
 
-import { useState, useActionState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
-  const [error, setError] = useState('')
+  const searchParams = useSearchParams()
+  const [error, setError] = useState(searchParams.get('error') === 'suspended'
+    ? 'Ton compte a été suspendu par un administrateur.'
+    : '')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
