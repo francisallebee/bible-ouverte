@@ -21,10 +21,9 @@ const links: { href: string; label: string; icon: React.ComponentType<{ classNam
   { href: "/progress", label: "Progression", icon: Trophy },
   { href: "/history", label: "Historique", icon: History },
   { href: "/stats", label: "Statistiques", icon: BarChart3 },
-  { href: "/versions", label: "Versions", icon: BookOpen },
+  { href: "/settings", label: "Réglages", icon: Settings },
   { href: "/roadmap", label: "Feuille de route", icon: Route },
   { href: "/profil", label: "Mon profil", icon: User },
-  { href: "/settings", label: "Réglages", icon: Settings },
   { href: "/admin", label: "Administration", icon: Shield, adminOnly: true },
 ];
 
