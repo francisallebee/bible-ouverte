@@ -30,12 +30,10 @@ export async function toggleReaction(itemId: number, emoji: string): Promise<voi
   if (!item) return;
   const userId = await getCurrentUserId();
   const reactions = item.reactions ?? {};
-  const users = reactions[emoji] ?? [];
-  if (users.includes(userId)) {
-    reactions[emoji] = users.filter(u => u !== userId);
-    if (reactions[emoji].length === 0) delete reactions[emoji];
+  if (reactions[userId] === emoji) {
+    delete reactions[userId];
   } else {
-    reactions[emoji] = [...users, userId];
+    reactions[userId] = emoji;
   }
   await db.put('roadmap', { ...item, reactions });
 }

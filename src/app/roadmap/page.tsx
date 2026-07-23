@@ -5,6 +5,7 @@ import { Route, Plus, Edit3, Trash2, Loader } from 'lucide-react'
 import { getAllRoadmapItems, addRoadmapItem, updateRoadmapItem, deleteRoadmapItem, toggleReaction } from '@/lib/storage/roadmap-store'
 import { useAuth } from '@/contexts/AuthContext'
 import type { RoadmapItem } from '@/lib/storage/types'
+import { getCurrentUserId } from '@/lib/storage/user-id'
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   planned: { label: 'Planifié', color: 'text-gray-500 bg-gray-100' },
@@ -14,12 +15,13 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   cancelled: { label: 'Annulé', color: 'text-red-500 bg-red-50' },
 }
 
-const REACTIONS = ['👍', '❤️', '🎉', '🚀', '👀']
+const REACTIONS = ['👍', '👎', '❤️', '🚀']
 
 export default function RoadmapPage() {
   const { isAdmin } = useAuth()
   const [items, setItems] = useState<RoadmapItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [userId, setUserId] = useState('default')
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [title, setTitle] = useState('')
@@ -29,6 +31,7 @@ export default function RoadmapPage() {
 
   const load = async () => {
     setItems(await getAllRoadmapItems())
+    setUserId(await getCurrentUserId())
     setLoading(false)
   }
 
@@ -153,11 +156,11 @@ export default function RoadmapPage() {
                 </div>
                 <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-[--border]">
                   {REACTIONS.map(emoji => {
-                    const count = item.reactions?.[emoji]?.length ?? 0
+                    const count = Object.values(item.reactions ?? {}).filter(v => v === emoji).length
                     return (
                       <button key={emoji} onClick={() => item.id && handleReaction(item.id, emoji)}
                         className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border transition-all ${
-                          count > 0 ? 'bg-[--primary-light] border-[--primary]/20' : 'border-[--border] hover:border-gray-300'
+                          item.reactions?.[userId] === emoji ? 'bg-[--primary-light] border-[--primary]/20' : 'border-[--border] hover:border-gray-300'
                         }`}>
                         <span className="text-base">{emoji}</span>
                         {count > 0 && <span className="font-medium text-[--primary] text-xs">{count}</span>}
