@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { User, Save, Camera, Loader } from 'lucide-react'
+import { User, Save, Camera } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { resizeImage } from '@/lib/image-utils'
 
@@ -184,7 +184,7 @@ export default function ProfilPage() {
         {/* Save */}
         <button onClick={handleSave} disabled={saving}
           className="w-full bg-[#1e3a5f] text-white py-3 rounded-lg text-sm hover:bg-[#2a4f7a] disabled:opacity-50 flex items-center justify-center gap-2">
-          {saving ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          {saving ? <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" /> : <Save className="w-4 h-4" />}
           {saving ? 'Enregistrement...' : 'Enregistrer'}
         </button>
         {saved && <p className="text-sm text-green-600 text-center">✓ Profil mis à jour</p>}
