@@ -93,6 +93,7 @@ export interface RoadmapItem {
   title: string;
   description: string;
   status: 'planned' | 'in-progress' | 'done' | 'cancelled';
+  reactions?: Record<string, string[]>;
   createdAt: string;
   updatedAt: string;
 }

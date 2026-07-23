@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Route, Plus, Edit3, Trash2, Loader } from 'lucide-react'
-import { getAllRoadmapItems, addRoadmapItem, updateRoadmapItem, deleteRoadmapItem } from '@/lib/storage/roadmap-store'
+import { getAllRoadmapItems, addRoadmapItem, updateRoadmapItem, deleteRoadmapItem, toggleReaction } from '@/lib/storage/roadmap-store'
 import { useAuth } from '@/contexts/AuthContext'
 import type { RoadmapItem } from '@/lib/storage/types'
 
@@ -13,6 +13,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   done: { label: 'Terminé', color: 'text-green-600 bg-green-50' },
   cancelled: { label: 'Annulé', color: 'text-red-500 bg-red-50' },
 }
+
+const REACTIONS = ['👍', '❤️', '🎉', '🚀', '👀']
 
 export default function RoadmapPage() {
   const { isAdmin } = useAuth()
@@ -59,6 +61,11 @@ export default function RoadmapPage() {
     await load()
   }
 
+  const handleReaction = async (itemId: number, emoji: string) => {
+    await toggleReaction(itemId, emoji)
+    await load()
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -75,23 +82,23 @@ export default function RoadmapPage() {
       </div>
 
       {isAdmin && showForm && (
-        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6 space-y-3">
+        <div className="bg-[--surface] rounded-xl border border-[--border] p-5 mb-6 space-y-3 shadow-[--shadow]">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+            <label className="block text-sm font-medium text-[--text] mb-1">Titre</label>
             <input type="text" value={title} onChange={e => setTitle(e.target.value)}
               placeholder="Nom de la fonctionnalité"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" autoFocus />
+              className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]" autoFocus />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-[--text] mb-1">Description</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)}
               rows={3} placeholder="Décris brièvement..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none" />
+              className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] resize-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+            <label className="block text-sm font-medium text-[--text] mb-1">Statut</label>
             <select value={status} onChange={e => setStatus(e.target.value as RoadmapItem['status'])}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
               {Object.entries(STATUS_CONFIG).map(([k, v]) => (
                 <option key={k} value={k}>{v.label}</option>
               ))}
@@ -103,7 +110,7 @@ export default function RoadmapPage() {
               {saving && <Loader className="w-4 h-4 animate-spin" />}
               {editId ? 'Modifier' : 'Ajouter'}
             </button>
-            <button onClick={resetForm} className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-50">Annuler</button>
+            <button onClick={resetForm} className="border border-[--border] text-[--text] px-4 py-2 rounded-lg text-sm hover:bg-gray-50">Annuler</button>
           </div>
         </div>
       )}
@@ -120,14 +127,14 @@ export default function RoadmapPage() {
           {items.map(item => {
             const sc = STATUS_CONFIG[item.status] || STATUS_CONFIG.planned
             return (
-              <div key={item.id} className="bg-white rounded-xl border border-gray-200 p-4">
+              <div key={item.id} className="bg-[--surface] rounded-xl border border-[--border] p-4 shadow-[--shadow]">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${sc.color}`}>{sc.label}</span>
                     </div>
-                    <h3 className="font-medium text-sm">{item.title}</h3>
-                    {item.description && <p className="text-xs text-gray-600 mt-1">{item.description}</p>}
+                    <h3 className="font-medium text-sm text-[--text]">{item.title}</h3>
+                    {item.description && <p className="text-xs text-[--text-secondary] mt-1">{item.description}</p>}
                     <p className="text-xs text-gray-400 mt-2">
                       {new Date(item.createdAt).toLocaleDateString('fr-FR')}
                       {item.updatedAt !== item.createdAt && ` · modifié ${new Date(item.updatedAt).toLocaleDateString('fr-FR')}`}
@@ -143,6 +150,20 @@ export default function RoadmapPage() {
                       </button>
                     </div>
                   )}
+                </div>
+                <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-[--border]">
+                  {REACTIONS.map(emoji => {
+                    const count = item.reactions?.[emoji]?.length ?? 0
+                    return (
+                      <button key={emoji} onClick={() => item.id && handleReaction(item.id, emoji)}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border transition-all ${
+                          count > 0 ? 'bg-[--primary-light] border-[--primary]/20' : 'border-[--border] hover:border-gray-300'
+                        }`}>
+                        <span className="text-base">{emoji}</span>
+                        {count > 0 && <span className="font-medium text-[--primary] text-xs">{count}</span>}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )

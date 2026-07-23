@@ -1,5 +1,6 @@
 import type { RoadmapItem } from './types';
 import { getDB } from './db';
+import { getCurrentUserId } from './user-id';
 
 export async function getAllRoadmapItems(): Promise<RoadmapItem[]> {
   const db = await getDB();
@@ -21,4 +22,20 @@ export async function updateRoadmapItem(id: number, data: Partial<RoadmapItem>):
 export async function deleteRoadmapItem(id: number): Promise<void> {
   const db = await getDB();
   await db.delete('roadmap', id);
+}
+
+export async function toggleReaction(itemId: number, emoji: string): Promise<void> {
+  const db = await getDB();
+  const item = await db.get('roadmap', itemId);
+  if (!item) return;
+  const userId = await getCurrentUserId();
+  const reactions = item.reactions ?? {};
+  const users = reactions[emoji] ?? [];
+  if (users.includes(userId)) {
+    reactions[emoji] = users.filter(u => u !== userId);
+    if (reactions[emoji].length === 0) delete reactions[emoji];
+  } else {
+    reactions[emoji] = [...users, userId];
+  }
+  await db.put('roadmap', { ...item, reactions });
 }
