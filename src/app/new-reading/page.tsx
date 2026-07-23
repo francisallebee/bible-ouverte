@@ -239,18 +239,20 @@ export default function NewReadingPage() {
               <LinkIcon className="w-4 h-4 text-blue-500" />
               Liens
             </label>
-            <div className="flex gap-2 mb-2">
+            <div className="space-y-2 mb-2">
               <input type="text" value={linkTitle}
                 onChange={(e) => setLinkTitle(e.target.value)}
-                placeholder="Titre" className="flex-1 border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
-              <input type="url" value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addLink()}
-                placeholder="https://..." className="flex-[2] border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
-              <button onClick={addLink} disabled={!linkUrl.trim()}
-                className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 disabled:opacity-50 flex items-center gap-1 transition-colors">
-                <Plus className="w-4 h-4" />
-              </button>
+                placeholder="Titre du lien" className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
+              <div className="flex gap-2">
+                <input type="url" value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addLink()}
+                  placeholder="https://..." className="flex-1 border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
+                <button onClick={addLink} disabled={!linkUrl.trim()}
+                  className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 disabled:opacity-50 flex items-center gap-1 transition-colors shrink-0">
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             {links.length > 0 && (
               <div className="space-y-1.5 mt-3">

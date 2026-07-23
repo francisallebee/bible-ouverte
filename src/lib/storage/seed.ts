@@ -37,6 +37,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   id: 'app',
   defaultVersionId: 'ls1910',
   theme: 'light',
+  colorTheme: 'marine',
   displayPreset: 'desktop',
   offlineModeEnabled: true,
   firstLaunchCompleted: false,

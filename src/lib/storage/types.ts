@@ -101,10 +101,12 @@ export interface AppSettings {
   id: string;
   defaultVersionId: string;
   theme: string;
+  colorTheme: string;
   displayPreset: DisplayPreset;
   offlineModeEnabled: boolean;
   firstLaunchCompleted: boolean;
 
   readingGoal?: ReadingGoal;
   unsplashAccessKey?: string;
+  audioSpeed?: number;
 }

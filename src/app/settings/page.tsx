@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle, ChevronRight } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle, Palette } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion } from "@/lib/storage";
+import { COLOR_THEMES, applyColorTheme } from "@/lib/themes";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -53,6 +54,7 @@ export default function SettingsPage() {
       setVerseCount(vc);
       if (s?.theme === 'dark') document.documentElement.classList.add('dark');
       else document.documentElement.classList.remove('dark');
+      if (s?.colorTheme) applyColorTheme(s.colorTheme);
       setLoaded(true);
       await loadVersions();
     })();
@@ -120,6 +122,13 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleColorThemeChange(themeId: string) {
+    await updateSettings({ colorTheme: themeId });
+    const s = await getSettings();
+    setSettings(s ?? null);
+    applyColorTheme(themeId);
+  }
+
   function SectionCard({ icon: Icon, title, children, className = "" }: { icon: React.ComponentType<{ className?: string }>, title: string, children: React.ReactNode, className?: string }) {
     return (
       <section className={`bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow] ${className}`}>
@@ -164,6 +173,38 @@ export default function SettingsPage() {
             <option value="light">☀️ Clair</option>
             <option value="dark">🌙 Sombre</option>
           </select>
+        </SectionCard>
+
+        <SectionCard icon={Palette} title="Charte graphique">
+          <p className="text-sm text-[--text-secondary] mb-3">
+            Change l&apos;ambiance de l&apos;application en un clic.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {COLOR_THEMES.map(t => {
+              const active = (settings?.colorTheme || 'marine') === t.id;
+              return (
+                <button key={t.id} onClick={() => handleColorThemeChange(t.id)}
+                  className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border-2 transition-all ${
+                    active
+                      ? 'border-[--primary] bg-[--primary-light] shadow-sm'
+                      : 'border-[--border] hover:border-gray-300'
+                  }`}>
+                  <div className="flex -space-x-1">
+                    <div className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: t.colors.primary }} />
+                    <div className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: t.colors.accent }} />
+                  </div>
+                  <div className="text-left">
+                    <p className={`text-sm font-medium ${active ? 'text-[--primary]' : 'text-[--text]'}`}>
+                      {t.emoji} {t.name}
+                    </p>
+                  </div>
+                  {active && (
+                    <span className="text-xs bg-[--primary] text-white px-2 py-0.5 rounded-full font-medium">Actif</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </SectionCard>
 
         <SectionCard icon={Target} title="Objectif de lecture">
