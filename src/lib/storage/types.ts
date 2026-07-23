@@ -98,6 +98,25 @@ export interface RoadmapItem {
   updatedAt: string;
 }
 
+export interface SupportTicket {
+  id?: number;
+  userId: string;
+  userName: string;
+  type: 'bug' | 'suggestion';
+  message: string;
+  createdAt: string;
+  replies: SupportReply[];
+}
+
+export interface SupportReply {
+  id: string;
+  userId: string;
+  userName: string;
+  text: string;
+  isAdmin: boolean;
+  createdAt: string;
+}
+
 export interface AppSettings {
   id: string;
   defaultVersionId: string;

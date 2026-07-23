@@ -11,3 +11,4 @@ export * from './plan-generator';
 export * from './plan-export';
 export * from './user-id';
 export * from './roadmap-store';
+export * from './support-store';

@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase, type DBSchema } from 'idb';
-import type { AppSettings, BiblePassage, BibleVersion, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem } from './types';
+import type { AppSettings, BiblePassage, BibleVersion, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket } from './types';
 
 interface BibleOuverteDB extends DBSchema {
   readings: {
@@ -49,13 +49,18 @@ interface BibleOuverteDB extends DBSchema {
     value: RoadmapItem;
     autoIncrement: true;
   };
+  support_tickets: {
+    key: number;
+    value: SupportTicket;
+    autoIncrement: true;
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<BibleOuverteDB>> | null = null;
 
 export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 6, {
+    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 7, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const readingsStore = db.createObjectStore('readings', {
@@ -96,6 +101,13 @@ export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
 
         if (oldVersion < 6) {
           db.createObjectStore('roadmap', {
+            keyPath: 'id',
+            autoIncrement: true,
+          });
+        }
+
+        if (oldVersion < 7) {
+          db.createObjectStore('support_tickets', {
             keyPath: 'id',
             autoIncrement: true,
           });
