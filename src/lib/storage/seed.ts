@@ -86,4 +86,11 @@ async function ensureVersionsExist(db: Awaited<ReturnType<typeof getDB>>): Promi
     const existing = await db.get('bible_versions', v.id);
     if (!existing) await db.add('bible_versions', v);
   }
+  const textIds = new Set(TEXT_VERSIONS.map(v => v.id));
+  const allVersions = await db.getAll('bible_versions');
+  for (const v of allVersions) {
+    if (!textIds.has(v.id)) {
+      await db.delete('bible_versions', v.id);
+    }
+  }
 }
