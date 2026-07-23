@@ -86,6 +86,29 @@ export interface ReadingGoal {
   target: number;
 }
 
+export interface RoadmapItem {
+  id?: number;
+  title: string;
+  description: string;
+  status: 'planned' | 'in-progress' | 'done' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AudioSession {
+  id?: number;
+  versionId: string;
+  book: string;
+  chapter: number;
+  verseStart: number;
+  verseEnd: number;
+  position: number;
+  duration: number;
+  completed: boolean;
+  date: string;
+  createdAt: string;
+}
+
 export interface AppSettings {
   id: string;
   defaultVersionId: string;
@@ -96,4 +119,5 @@ export interface AppSettings {
 
   readingGoal?: ReadingGoal;
   unsplashAccessKey?: string;
+  audioSpeed?: number;
 }

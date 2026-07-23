@@ -10,3 +10,5 @@ export * from './plan-store';
 export * from './plan-generator';
 export * from './plan-export';
 export * from './user-id';
+export * from './audio-store';
+export * from './roadmap-store';

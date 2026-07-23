@@ -3,6 +3,8 @@
 import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import LayoutClient from '@/lib/pwa/layout-client'
+import { AudioPlayerProvider } from '@/contexts/AudioPlayerContext'
+import AudioPlayer from '@/components/AudioPlayer'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -17,11 +19,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <LayoutClient>
-      <Sidebar />
-      <main className="lg:ml-[var(--nav-width)] p-4 sm:p-6 lg:p-8 pt-20 lg:pt-8">
-        {children}
-      </main>
-    </LayoutClient>
+    <AudioPlayerProvider>
+      <LayoutClient>
+        <Sidebar />
+        <main className="lg:ml-[var(--nav-width)] p-4 sm:p-6 lg:p-8 pt-20 lg:pt-8 pb-24">
+          {children}
+        </main>
+        <AudioPlayer />
+      </LayoutClient>
+    </AudioPlayerProvider>
   )
 }

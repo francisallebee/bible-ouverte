@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, BookPlus, Search, History, BarChart3,
-  Tags, BookOpen, Settings, Menu, X, Trophy, LogOut, Shield,
-  User, MessageSquare,
+  BookOpen, Settings, Menu, X, Trophy, LogOut, Shield,
+  User, Headphones, Route,
 } from "lucide-react";
 import { seedIfNeeded } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
@@ -15,15 +15,15 @@ import { useAuth } from "@/contexts/AuthContext";
 const links: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; adminOnly?: boolean }[] = [
   { href: "/", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/new-reading", label: "Nouvelle lecture", icon: BookPlus },
+  { href: "/audio", label: "Audio Bible", icon: Headphones },
   { href: "/plans", label: "Plans de lecture", icon: BookOpen },
   { href: "/search", label: "Recherche biblique", icon: Search },
   { href: "/progress", label: "Progression", icon: Trophy },
   { href: "/history", label: "Historique", icon: History },
   { href: "/stats", label: "Statistiques", icon: BarChart3 },
-  { href: "/contexts", label: "Contextes", icon: Tags },
   { href: "/versions", label: "Versions", icon: BookOpen },
+  { href: "/roadmap", label: "Feuille de route", icon: Route },
   { href: "/profil", label: "Mon profil", icon: User },
-  { href: "/support", label: "Support", icon: MessageSquare },
   { href: "/settings", label: "Réglages", icon: Settings },
   { href: "/admin", label: "Administration", icon: Shield, adminOnly: true },
 ];
@@ -33,8 +33,20 @@ export default function Sidebar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const { user, isAdmin } = useAuth();
+  const [profileName, setProfileName] = useState("");
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
+  const [profileColor, setProfileColor] = useState("#1e3a5f");
 
   useEffect(() => { seedIfNeeded() }, []);
+
+  useEffect(() => {
+    const name = localStorage.getItem("profile_name") || "";
+    const avatar = localStorage.getItem("profile_avatar");
+    const color = localStorage.getItem("profile_color") || "#1e3a5f";
+    setProfileName(name);
+    setProfileAvatar(avatar);
+    setProfileColor(color);
+  }, []);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -93,10 +105,15 @@ export default function Sidebar() {
         {user && (
           <div className="pt-4 border-t border-gray-100">
             <div className="flex items-center gap-3 px-3 py-3 text-sm text-gray-600">
-              <div className="w-7 h-7 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                {(user.email?.[0] ?? "?").toUpperCase()}
-              </div>
-              <span className="flex-1 truncate text-sm">{user.email}</span>
+              {profileAvatar ? (
+                <img src={profileAvatar} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                  style={{ backgroundColor: profileColor }}>
+                  {(profileName?.[0] || user.email?.[0] || "?").toUpperCase()}
+                </div>
+              )}
+              <span className="flex-1 truncate text-sm">{profileName || user.email}</span>
             </div>
             <button
               onClick={handleSignOut}

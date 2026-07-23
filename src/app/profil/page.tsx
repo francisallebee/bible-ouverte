@@ -28,14 +28,18 @@ export default function ProfilPage() {
       const res = await fetch('/api/profile')
       const json = await res.json()
       if (json.data) {
+        const cachedAvatar = localStorage.getItem('profile_avatar')
         setProfile({
           ...json.data,
           social_links: json.data.social_links || {},
-          avatar_url: json.data.avatar_url || null,
+          avatar_url: json.data.avatar_url || cachedAvatar || null,
           birth_date: json.data.birth_date || null,
           phone: json.data.phone || null,
           bio: json.data.bio || null,
         })
+        localStorage.setItem('profile_name', json.data.name || '')
+        localStorage.setItem('profile_color', json.data.color || '#1e3a5f')
+        if (cachedAvatar) localStorage.setItem('profile_avatar', cachedAvatar)
       } else {
         console.error('Profil API error:', json.error)
       }
@@ -56,7 +60,13 @@ export default function ProfilPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }).then(r => r.json())
-    if (res.data) setSaved(true)
+    if (res.data) {
+      setSaved(true)
+      localStorage.setItem('profile_name', profile.name)
+      localStorage.setItem('profile_color', profile.color)
+      if (profile.avatar_url) localStorage.setItem('profile_avatar', profile.avatar_url)
+      else localStorage.removeItem('profile_avatar')
+    }
     setSaving(false)
     setTimeout(() => setSaved(false), 3000)
   }
@@ -66,6 +76,7 @@ export default function ProfilPage() {
     if (!file || !profile) return
     const resized = await resizeImage(file, 400, 400)
     setProfile({ ...profile, avatar_url: resized })
+    localStorage.setItem('profile_avatar', resized)
   }
 
   const updateSocial = (key: string, value: string) => {
@@ -113,6 +124,18 @@ export default function ProfilPage() {
               <Camera className="w-4 h-4 text-white" />
               <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
             </label>
+            {profile.avatar_url && (
+              <button
+                onClick={() => {
+                  setProfile({ ...profile, avatar_url: null })
+                  localStorage.removeItem('profile_avatar')
+                }}
+                className="absolute top-0 right-0 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-red-600"
+                title="Supprimer l'avatar"
+              >
+                ×
+              </button>
+            )}
           </div>
         </div>
 

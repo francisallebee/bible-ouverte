@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase, type DBSchema } from 'idb';
-import type { AppSettings, BiblePassage, BibleVersion, PlanDay, ReadingContext, ReadingEntry, ReadingPlan } from './types';
+import type { AppSettings, AudioSession, BiblePassage, BibleVersion, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem } from './types';
 
 interface BibleOuverteDB extends DBSchema {
   readings: {
@@ -45,13 +45,25 @@ interface BibleOuverteDB extends DBSchema {
       'by-plan-day': [number, number];
     };
   };
+  audio_sessions: {
+    key: number;
+    value: AudioSession;
+    indexes: {
+      'by-date': string;
+    };
+  };
+  roadmap: {
+    key: number;
+    value: RoadmapItem;
+    autoIncrement: true;
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<BibleOuverteDB>> | null = null;
 
 export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 4, {
+    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 6, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const readingsStore = db.createObjectStore('readings', {
@@ -89,6 +101,21 @@ export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
           });
           planDays.createIndex('by-plan-date', ['planId', 'date']);
           planDays.createIndex('by-plan-day', ['planId', 'day']);
+        }
+
+        if (oldVersion < 5) {
+          const audio = db.createObjectStore('audio_sessions', {
+            keyPath: 'id',
+            autoIncrement: true,
+          });
+          audio.createIndex('by-date', 'date');
+        }
+
+        if (oldVersion < 6) {
+          db.createObjectStore('roadmap', {
+            keyPath: 'id',
+            autoIncrement: true,
+          });
         }
       },
     });
