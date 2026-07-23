@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Search, BookOpen, BookPlus, BookText, FileText } from "lucide-react";
-import { seedIfNeeded, getAllVersions, getAllContexts, addReading, getPassages, getPassagesByRange, searchPassages, getSettings } from "@/lib/storage";
-import type { BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
+import { seedIfNeeded, getAllVersions, addReading, getPassages, getPassagesByRange, searchPassages, getSettings } from "@/lib/storage";
+import type { BibleVersion, BiblePassage } from "@/lib/storage";
 
 import { BOOKS, getBookName } from "@/features/bible";
 
@@ -32,7 +32,6 @@ interface AddTarget {
 
 export default function SearchPage() {
   const [versions, setVersions] = useState<BibleVersion[]>([]);
-  const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   const [mode, setMode] = useState<Mode>("reference");
@@ -53,7 +52,6 @@ export default function SearchPage() {
 
   const [addTarget, setAddTarget] = useState<AddTarget | null>(null);
   const [addDate, setAddDate] = useState("");
-  const [addTags, setAddTags] = useState<string[]>([]);
   const [addNotes, setAddNotes] = useState("");
   const [addSaving, setAddSaving] = useState(false);
   const [addDone, setAddDone] = useState("");
@@ -61,16 +59,14 @@ export default function SearchPage() {
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const [vers, ctxs] = await Promise.all([getAllVersions(), getAllContexts()]);
+      const vers = await getAllVersions();
       setVersions(vers);
-      setContexts(ctxs);
       if (vers.length > 0) {
         const s = await getSettings();
         const defId = s?.defaultVersionId || vers[0].id;
         setRefVersion(defId);
         setKwVersion(defId);
       }
-      if (ctxs.length > 0) setAddTags([ctxs[0].id]);
       setLoaded(true);
     })();
   }, []);
@@ -109,7 +105,6 @@ export default function SearchPage() {
   function openAddForm(target: AddTarget) {
     setAddTarget(target);
     setAddDate(new Date().toISOString().slice(0, 10));
-    if (contexts.length > 0) setAddTags([contexts[0].id]);
     setAddNotes("");
     setAddDone("");
   }
@@ -131,7 +126,7 @@ export default function SearchPage() {
       verseEnd: addTarget.verseEnd,
       passageText,
       translationId: addTarget.versionId,
-      tags: addTags,
+      tags: [],
       notes: addNotes,
     });
     setAddSaving(false);
@@ -329,25 +324,6 @@ export default function SearchPage() {
                     <input type="date" value={addDate}
                       onChange={(e) => setAddDate(e.target.value)}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-2">Tags</label>
-                    <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
-                      {contexts.filter(c => c.parentId || c.icon === 'tag' || c.icon === 'more-horizontal').map(t => {
-                        const active = addTags.includes(t.id);
-                        return (
-                          <button key={t.id} type="button" onClick={() => {
-                            setAddTags(prev => active ? prev.filter(x => x !== t.id) : [...prev, t.id])
-                          }}
-                            className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-colors ${
-                              active ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                            }`}>
-                            <span>{t.emoji}</span>
-                            <span>{t.name}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">Notes (optionnel)</label>

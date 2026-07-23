@@ -7,14 +7,13 @@ import { ExternalLink, X, Play, Square } from "lucide-react";
 import {
   seedIfNeeded,
   getReadingById,
-  getAllContexts,
   getAllVersions,
   getPassagesByRange,
   getPassages,
   updateReading,
   deleteReading,
 } from "@/lib/storage";
-import type { ReadingEntry, ReadingContext, BibleVersion, BiblePassage } from "@/lib/storage";
+import type { ReadingEntry, BibleVersion, BiblePassage } from "@/lib/storage";
 
 import { BOOKS, getBookName, getBook } from "@/features/bible";
 
@@ -24,7 +23,6 @@ export default function ReadingDetailPage() {
   const id = Number(params.id);
 
   const [reading, setReading] = useState<ReadingEntry | undefined>();
-  const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [passages, setPassages] = useState<BiblePassage[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -40,15 +38,13 @@ export default function ReadingDetailPage() {
   const [editVerseStart, setEditVerseStart] = useState(1);
   const [editVerseEnd, setEditVerseEnd] = useState<number>(1);
   const [editVersionId, setEditVersionId] = useState("");
-  const [editTags, setEditTags] = useState<string[]>([]);
   const [editNotes, setEditNotes] = useState("");
 
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const [r, ctxs, vers] = await Promise.all([
+      const [r, vers] = await Promise.all([
         getReadingById(id),
-        getAllContexts(),
         getAllVersions(),
       ]);
       if (!r) {
@@ -57,7 +53,6 @@ export default function ReadingDetailPage() {
         return;
       }
       setReading(r);
-      setContexts(ctxs);
       setVersions(vers);
 
       const results: BiblePassage[] = [];
@@ -72,12 +67,6 @@ export default function ReadingDetailPage() {
       setLoaded(true);
     })();
   }, [id]);
-
-  const contextMap = useMemo(() => {
-    const m: Record<string, ReadingContext> = {};
-    for (const c of contexts) m[c.id] = c;
-    return m;
-  }, [contexts]);
 
   const versionMap = useMemo(() => {
     const m: Record<string, BibleVersion> = {};
@@ -94,7 +83,6 @@ export default function ReadingDetailPage() {
     setEditVerseStart(reading.verseStart);
     setEditVerseEnd(reading.verseEnd);
     setEditVersionId(reading.translationId);
-    setEditTags(reading.tags ?? []);
     setEditNotes(reading.notes);
     setIsEditing(true);
   }
@@ -109,7 +97,6 @@ export default function ReadingDetailPage() {
       verseStart: editVerseStart,
       verseEnd: editVerseEnd,
       translationId: editVersionId,
-      tags: editTags,
       notes: editNotes,
     });
     setIsEditing(false);
@@ -148,7 +135,6 @@ export default function ReadingDetailPage() {
     );
   }
 
-  const tagsList = reading.tags?.map(t => contextMap[t]).filter(Boolean) ?? [];
   const version = versionMap[reading.translationId];
   const selectedBook = getBook(editBook);
   const maxChapters = selectedBook?.chapters ?? 150;
@@ -261,25 +247,6 @@ export default function ReadingDetailPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Tags</label>
-            <div className="flex flex-wrap gap-2">
-              {contexts.filter(c => c.parentId || c.icon === 'tag' || c.icon === 'more-horizontal').map(t => {
-                const active = editTags.includes(t.id);
-                return (
-                  <button key={t.id} type="button" onClick={() => {
-                    setEditTags(prev => active ? prev.filter(x => x !== t.id) : [...prev, t.id])
-                  }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                      active ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                    }`}>
-                    <span>{t.emoji}</span>
-                    <span>{t.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div>
             <label className="block text-sm font-medium mb-1">Notes</label>
             <textarea
               value={editNotes}
@@ -315,18 +282,6 @@ export default function ReadingDetailPage() {
                   day: "numeric",
                 })}
               </span>
-              {reading.tags?.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {reading.tags.map(t => {
-                    const ctx = contextMap[t];
-                    return (
-                      <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
-                        {ctx?.emoji} {ctx?.name || t}
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
             </div>
 
             <h2 className="text-xl font-bold text-gray-900 mb-2">

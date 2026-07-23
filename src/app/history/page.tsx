@@ -3,18 +3,16 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { History, BookPlus } from "lucide-react";
-import { seedIfNeeded, getAllReadings, getAllContexts, getAllVersions } from "@/lib/storage";
-import type { ReadingEntry, ReadingContext, BibleVersion } from "@/lib/storage";
+import { seedIfNeeded, getAllReadings, getAllVersions } from "@/lib/storage";
+import type { ReadingEntry, BibleVersion } from "@/lib/storage";
 import { BOOKS, getBookName } from "@/features/bible";
 
 export default function HistoryPage() {
   const [readings, setReadings] = useState<ReadingEntry[]>([]);
-  const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   const [search, setSearch] = useState("");
-  const [contextFilter, setContextFilter] = useState("");
   const [bookFilter, setBookFilter] = useState("");
   const [dateStart, setDateStart] = useState("");
   const [dateEnd, setDateEnd] = useState("");
@@ -22,23 +20,15 @@ export default function HistoryPage() {
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const [all, ctxs, vers] = await Promise.all([
+      const [all, vers] = await Promise.all([
         getAllReadings(),
-        getAllContexts(),
         getAllVersions(),
       ]);
       setReadings(all);
-      setContexts(ctxs);
       setVersions(vers);
       setLoaded(true);
     })();
   }, []);
-
-  const contextMap = useMemo(() => {
-    const m: Record<string, ReadingContext> = {};
-    for (const c of contexts) m[c.id] = c;
-    return m;
-  }, [contexts]);
 
   const versionMap = useMemo(() => {
     const m: Record<string, BibleVersion> = {};
@@ -58,10 +48,6 @@ export default function HistoryPage() {
       );
     }
 
-    if (contextFilter) {
-      result = result.filter((r) => r.tags?.includes(contextFilter));
-    }
-
     if (bookFilter) {
       result = result.filter((r) => r.book === bookFilter);
     }
@@ -75,11 +61,10 @@ export default function HistoryPage() {
     }
 
     return result;
-  }, [readings, search, contextFilter, bookFilter, dateStart, dateEnd]);
+  }, [readings, search, bookFilter, dateStart, dateEnd]);
 
   function resetFilters() {
     setSearch("");
-    setContextFilter("");
     setBookFilter("");
     setDateStart("");
     setDateEnd("");
@@ -113,18 +98,6 @@ export default function HistoryPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[160px] sm:min-w-[200px] w-full sm:w-auto"
         />
-        <select
-          value={contextFilter}
-          onChange={(e) => setContextFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-        >
-          <option value="">Tous les contextes</option>
-          {contexts.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
         <select
           value={bookFilter}
           onChange={(e) => setBookFilter(e.target.value)}
@@ -171,55 +144,37 @@ export default function HistoryPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((r) => {
-            const ctx = r.tags?.length > 0 ? contextMap[r.tags[0]] : undefined;
-            return (
-              <Link
-                key={r.id as number}
-                href={`/reading/${r.id}`}
-                className="block bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-300 transition-colors no-underline"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm text-gray-400">
-                    {new Date(r.date).toLocaleDateString("fr-FR", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </span>
-                  {ctx && (
-                    <span
-                      className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full"
-                      style={{
-                        backgroundColor: ctx.color + "20",
-                        color: ctx.color,
-                      }}
-                    >
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: ctx.color }}
-                      />
-                      {ctx.name}
-                    </span>
-                  )}
-                </div>
-                <p className="text-base font-semibold text-gray-900">
-                  {getBookName(r.book)} {r.chapterStart}
-                  {r.chapterEnd !== r.chapterStart ? `-${r.chapterEnd}` : ""}
-                  :{r.verseStart}
-                  {r.verseEnd !== r.verseStart ? `-${r.verseEnd}` : ""}
+          {filtered.map((r) => (
+            <Link
+              key={r.id as number}
+              href={`/reading/${r.id}`}
+              className="block bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-300 transition-colors no-underline"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm text-gray-400">
+                  {new Date(r.date).toLocaleDateString("fr-FR", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+              <p className="text-base font-semibold text-gray-900">
+                {getBookName(r.book)} {r.chapterStart}
+                {r.chapterEnd !== r.chapterStart ? `-${r.chapterEnd}` : ""}
+                :{r.verseStart}
+                {r.verseEnd !== r.verseStart ? `-${r.verseEnd}` : ""}
+              </p>
+              {r.notes && (
+                <p className="text-sm text-gray-500 mt-1 line-clamp-1">
+                  {r.notes.length > 50
+                    ? r.notes.slice(0, 50) + "…"
+                    : r.notes}
                 </p>
-                {r.notes && (
-                  <p className="text-sm text-gray-500 mt-1 line-clamp-1">
-                    {r.notes.length > 50
-                      ? r.notes.slice(0, 50) + "…"
-                      : r.notes}
-                  </p>
-                )}
-              </Link>
-            );
-          })}
+              )}
+            </Link>
+          ))}
         </div>
       )}
     </div>

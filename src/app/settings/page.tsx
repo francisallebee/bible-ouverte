@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle, Tags, Plus, Headphones, Cpu } from "lucide-react";
-import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllContexts, addContext, updateContext, deleteContext, getAllVersions, updateVersion } from "@/lib/storage";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle } from "lucide-react";
+import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
-import type { AppSettings, ReadingContext, BibleVersion } from "@/lib/storage";
+import type { AppSettings, BibleVersion } from "@/lib/storage";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -21,52 +21,6 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user, isAdmin } = useAuth();
   const router = useRouter();
-
-  const [contexts, setContexts] = useState<ReadingContext[]>([]);
-  const [addingTag, setAddingTag] = useState(false);
-  const [editingTagId, setEditingTagId] = useState<string | null>(null);
-  const [tagFormName, setTagFormName] = useState("");
-  const [tagFormColor, setTagFormColor] = useState("#4a90d9");
-  const [tagFormEmoji, setTagFormEmoji] = useState("📌");
-  const [tagFormParentId, setTagFormParentId] = useState("");
-  const [deleteTagConfirm, setDeleteTagConfirm] = useState<string | null>(null);
-
-  const EMOJIS = ["📺","🎙️","🎧","🚗","✈️","🚆","🚲","🚶","📅","📋","📖","📱","🎯","📚","📌","🏠","💼","🏥","🎓","🛒","✝️","🙏","📝","💡","🎵","🎬","📰","⚽","🎨","🍽️","☕","🌍","🔬","💻","📸","🎮"];
-
-  const TAG_COLORS = [
-    "#4a90d9", "#7b68ee", "#2ecc71", "#e74c3c", "#f39c12",
-    "#95a5a6", "#1e3a5f", "#e91e63", "#00bcd4", "#ff5722",
-  ];
-
-  async function loadContexts() {
-    setContexts(await getAllContexts());
-  }
-
-  function startAddTag() {
-    setTagFormName(""); setTagFormColor("#4a90d9"); setTagFormEmoji("📌"); setTagFormParentId(""); setAddingTag(true); setEditingTagId(null);
-  }
-
-  async function saveAddTag() {
-    if (!tagFormName.trim()) return;
-    const id = tagFormName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    await addContext({ id, name: tagFormName.trim(), slug: id, color: tagFormColor, emoji: tagFormEmoji, parentId: tagFormParentId || undefined, icon: tagFormParentId ? "tag" : "folder", isSystemDefault: false });
-    setAddingTag(false); await loadContexts();
-  }
-
-  function startEditTag(ctx: ReadingContext) {
-    setEditingTagId(ctx.id); setTagFormName(ctx.name); setTagFormColor(ctx.color); setTagFormEmoji(ctx.emoji || "📌"); setAddingTag(false);
-  }
-
-  async function saveEditTag(id: string) {
-    if (!tagFormName.trim()) return;
-    await updateContext(id, { name: tagFormName.trim(), color: tagFormColor, emoji: tagFormEmoji });
-    setEditingTagId(null); await loadContexts();
-  }
-
-  async function handleDeleteTag(id: string) {
-    try { await deleteContext(id); } catch { alert("Impossible de supprimer ce tag : des lectures y sont associées."); }
-    setDeleteTagConfirm(null); await loadContexts();
-  }
 
   const [versions, setVersions] = useState<BibleVersion[]>([]);
 
@@ -100,7 +54,6 @@ export default function SettingsPage() {
       if (s?.theme === 'dark') document.documentElement.classList.add('dark');
       else document.documentElement.classList.remove('dark');
       setLoaded(true);
-      await loadContexts();
       await loadVersions();
     })();
   }, []);
@@ -241,132 +194,6 @@ export default function SettingsPage() {
 
         {isAdmin && (
           <section className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Tags className="w-5 h-5 text-[#1e3a5f]" />
-                Tags
-              </h2>
-              <button onClick={startAddTag} className="bg-[#1e3a5f] text-white px-3 py-1.5 rounded-lg text-xs hover:bg-[#2a4f7a] flex items-center gap-1">
-                <Plus className="w-3.5 h-3.5" /> Ajouter
-              </button>
-            </div>
-
-            {addingTag && (
-              <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 mb-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-xl">{tagFormEmoji}</span>
-                  <input type="text" placeholder="Nom du tag" value={tagFormName}
-                    onChange={e => setTagFormName(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1" autoFocus />
-                </div>
-                <div className="flex items-center gap-2 mb-3">
-                  {TAG_COLORS.map(c => (
-                    <button key={c} onClick={() => setTagFormColor(c)}
-                      className={`w-5 h-5 rounded-full border-2 ${tagFormColor === c ? "border-gray-800 scale-110" : "border-transparent"}`}
-                      style={{ backgroundColor: c }} />
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {EMOJIS.map(e => (
-                    <button key={e} type="button" onClick={() => setTagFormEmoji(e)}
-                      className={`text-lg w-8 h-8 flex items-center justify-center rounded ${tagFormEmoji === e ? 'bg-blue-200 ring-2 ring-blue-500' : 'hover:bg-gray-100'}`}>
-                      {e}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <label className="text-xs text-gray-500">Catégorie :</label>
-                  <select value={tagFormParentId} onChange={e => setTagFormParentId(e.target.value)}
-                    className="border border-gray-300 rounded px-2 py-1 text-xs">
-                    <option value="">Aucune (catégorie racine)</option>
-                    {contexts.filter(c => !c.parentId).map(c => (
-                      <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={saveAddTag} disabled={!tagFormName.trim()}
-                    className="bg-[#1e3a5f] text-white px-4 py-1.5 rounded-lg text-xs hover:bg-[#2a4f7a] disabled:opacity-50">Ajouter</button>
-                  <button onClick={() => setAddingTag(false)} className="text-gray-600 px-4 py-1.5 rounded-lg text-xs hover:bg-gray-200">Annuler</button>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-3">
-              {contexts.filter(c => !c.parentId).map(cat => {
-                const children = contexts.filter(c => c.parentId === cat.id);
-                return (
-                  <div key={cat.id}>
-                    <p className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: cat.color }} />
-                      {cat.emoji && <span>{cat.emoji}</span>}
-                      {cat.name}
-                    </p>
-                    <div className="ml-4 space-y-1">
-                      {children.map(ctx => (
-                        <div key={ctx.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-200">
-                          {editingTagId === ctx.id ? (
-                            <>
-                              <div className="flex items-center gap-2 flex-1">
-                                <span className="text-lg">{tagFormEmoji}</span>
-                                <input type="text" value={tagFormName} onChange={e => setTagFormName(e.target.value)}
-                                  className="border border-gray-300 rounded px-2 py-1 text-sm flex-1" autoFocus />
-                                {TAG_COLORS.map(c => (
-                                  <button key={c} onClick={() => setTagFormColor(c)}
-                                    className={`w-3.5 h-3.5 rounded-full ${tagFormColor === c ? "ring-2 ring-offset-1 ring-gray-800" : ""}`}
-                                    style={{ backgroundColor: c }} />
-                                ))}
-                              </div>
-                              <div className="flex flex-wrap gap-1 max-w-40">
-                                {EMOJIS.map(e => (
-                                  <button key={e} type="button" onClick={() => setTagFormEmoji(e)}
-                                    className={`text-sm w-6 h-6 flex items-center justify-center rounded ${tagFormEmoji === e ? 'bg-blue-200' : 'hover:bg-gray-100'}`}>
-                                    {e}
-                                  </button>
-                                ))}
-                              </div>
-                              <button onClick={() => saveEditTag(ctx.id)} className="text-xs text-green-600 font-medium hover:underline">OK</button>
-                              <button onClick={() => setEditingTagId(null)} className="text-xs text-gray-500 hover:underline">Annuler</button>
-                            </>
-                          ) : (
-                            <>
-                              {ctx.emoji && <span className="text-base">{ctx.emoji}</span>}
-                              <div className="w-3 h-3 rounded-full shrink-0 ring-1 ring-inset ring-black/10" style={{ backgroundColor: ctx.color }} />
-                              <span className="text-sm flex-1">{ctx.name}</span>
-                              {ctx.isSystemDefault && <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Système</span>}
-                              <button onClick={() => startEditTag(ctx)} className="text-xs text-gray-600 hover:text-gray-900">Modifier</button>
-                              <button onClick={() => setDeleteTagConfirm(ctx.id)}
-                                disabled={ctx.isSystemDefault}
-                                className={`text-xs ${ctx.isSystemDefault ? "text-gray-300 cursor-not-allowed" : "text-red-500 hover:text-red-700"}`}>
-                                Supprimer
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {deleteTagConfirm && (
-          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 max-w-sm shadow-xl mx-4">
-              <h3 className="font-semibold mb-2">Supprimer ce tag ?</h3>
-              <p className="text-sm text-gray-500 mb-4">Les lectures associées ne seront pas supprimées.</p>
-              <div className="flex gap-3 justify-end">
-                <button onClick={() => setDeleteTagConfirm(null)} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Annuler</button>
-                <button onClick={() => handleDeleteTag(deleteTagConfirm)} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Supprimer</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {isAdmin && (
-          <section className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <ImageIcon className="w-5 h-5 text-green-600" />
               Unsplash (photos libres)
@@ -422,41 +249,6 @@ export default function SettingsPage() {
             })}
           </div>
 
-          <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-            <Headphones size={15} /> Audio
-          </h3>
-          <div className="space-y-2 mb-6">
-            {versions.filter(v => v.id.startsWith('audio-')).map(v => (
-              <div key={v.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100">
-                <Headphones className="w-4 h-4 text-blue-500 shrink-0" />
-                <span className="text-sm flex-1">{v.name}</span>
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Audio</span>
-                <label className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <input type="checkbox" checked={v.isEnabled}
-                    onChange={() => handleToggleEnabled(v)} className="accent-[#1e3a5f]" />
-                  Activée
-                </label>
-              </div>
-            ))}
-          </div>
-
-          <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-            <Cpu size={15} /> IA
-          </h3>
-          <div className="space-y-2">
-            {versions.filter(v => v.id.startsWith('ai-')).map(v => (
-              <div key={v.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100">
-                <Cpu className="w-4 h-4 text-purple-500 shrink-0" />
-                <span className="text-sm flex-1">{v.name}</span>
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">IA</span>
-                <label className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <input type="checkbox" checked={v.isEnabled}
-                    onChange={() => handleToggleEnabled(v)} className="accent-[#1e3a5f]" />
-                  Activée
-                </label>
-              </div>
-            ))}
-          </div>
         </section>
 
         <section className="bg-white rounded-xl border border-gray-200 p-6">

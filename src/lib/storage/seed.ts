@@ -33,24 +33,6 @@ const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'sacc', name: 'Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
 ];
 
-const REAL_AUDIO_VERSIONS: BibleVersion[] = [
-  { id: 'audio-ls1910', name: 'Audio : Louis Segond 1910', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
-  { id: 'audio-darby', name: 'Audio : Bible Darby 1885', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
-  { id: 'audio-martin1744', name: 'Audio : Bible David Martin 1744', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
-  { id: 'audio-ostervald', name: 'Audio : Bible Ostervald 1996', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
-  { id: 'audio-cramp23', name: 'Audio : Augustin Crampon 1923', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
-  { id: 'audio-sacc', name: 'Audio : Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
-];
-
-const AI_VERSIONS: BibleVersion[] = [
-  { id: 'ai-ls1910', name: 'IA : Louis Segond 1910', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
-  { id: 'ai-darby', name: 'IA : Bible Darby 1885', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
-  { id: 'ai-martin1744', name: 'IA : Bible David Martin 1744', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
-  { id: 'ai-ostervald', name: 'IA : Bible Ostervald 1996', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
-  { id: 'ai-cramp23', name: 'IA : Augustin Crampon 1923', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
-  { id: 'ai-sacc', name: 'IA : Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
-];
-
 const DEFAULT_SETTINGS: AppSettings = {
   id: 'app',
   defaultVersionId: 'ls1910',
@@ -77,7 +59,7 @@ export async function seedIfNeeded(): Promise<void> {
     if (!existing) await tx.objectStore('contexts').add(ctx);
   }
 
-  for (const v of [...TEXT_VERSIONS, ...REAL_AUDIO_VERSIONS, ...AI_VERSIONS]) {
+  for (const v of TEXT_VERSIONS) {
     const existing = await tx.objectStore('bible_versions').get(v.id);
     if (!existing) await tx.objectStore('bible_versions').add(v);
   }
@@ -99,7 +81,7 @@ export async function seedIfNeeded(): Promise<void> {
 }
 
 async function ensureVersionsExist(db: Awaited<ReturnType<typeof getDB>>): Promise<void> {
-  for (const v of [...TEXT_VERSIONS, ...REAL_AUDIO_VERSIONS, ...AI_VERSIONS]) {
+  for (const v of TEXT_VERSIONS) {
     const existing = await db.get('bible_versions', v.id);
     if (!existing) await db.add('bible_versions', v);
   }

@@ -7,9 +7,9 @@ import {
   X, ExternalLink, Plus, Music,
 } from "lucide-react";
 import {
-  seedIfNeeded, getAllContexts, getAllVersions, getPassagesByRange, addReading, getSettings,
+  seedIfNeeded, getAllVersions, getPassagesByRange, addReading, getSettings,
 } from "@/lib/storage";
-import type { ReadingContext, BibleVersion, ReadingLink, BiblePassage } from "@/lib/storage";
+import type { BibleVersion, ReadingLink, BiblePassage } from "@/lib/storage";
 import { BOOKS, getBook, getBookName } from "@/features/bible";
 import type { BibleBook } from "@/features/bible";
 import UnsplashSearch from "@/components/UnsplashSearch";
@@ -18,7 +18,6 @@ import { resizeImage } from "@/lib/image-utils";
 
 export default function NewReadingPage() {
   const router = useRouter();
-  const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -30,7 +29,6 @@ export default function NewReadingPage() {
   const [verseStart, setVerseStart] = useState(1);
   const [verseEnd, setVerseEnd] = useState<number | undefined>();
   const [versionId, setVersionId] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [links, setLinks] = useState<ReadingLink[]>([]);
   const [photos, setPhotos] = useState<string[]>([]);
@@ -81,11 +79,7 @@ export default function NewReadingPage() {
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const [ctxs, vers] = await Promise.all([
-        getAllContexts(),
-        getAllVersions(),
-      ]);
-      setContexts(ctxs);
+      const vers = await getAllVersions();
       setVersions(vers);
       if (vers.length > 0) {
         const s = await getSettings();
@@ -131,7 +125,7 @@ export default function NewReadingPage() {
   }
 
   async function handleSave() {
-    if (!book || !versionId || tags.length === 0) return;
+    if (!book || !versionId) return;
     setSaving(true);
 
     await addReading({
@@ -143,7 +137,7 @@ export default function NewReadingPage() {
       verseEnd: vEnd,
       passageText: "",
       translationId: versionId,
-      tags,
+      tags: [],
       notes,
       links: links.length > 0 ? links : undefined,
       photos: photos.length > 0 ? photos : undefined,
@@ -230,26 +224,6 @@ export default function NewReadingPage() {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
               {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
             </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Tags</label>
-            <div className="flex flex-wrap gap-2">
-              {contexts.filter(c => c.parentId || c.icon === 'tag' || c.icon === 'more-horizontal').map(t => {
-                const active = tags.includes(t.id);
-                return (
-                  <button key={t.id} type="button" onClick={() => {
-                    setTags(prev => active ? prev.filter(x => x !== t.id) : [...prev, t.id])
-                  }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                      active ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                    }`}>
-                    {t.emoji && <span>{t.emoji}</span>}
-                    <span>{t.name}</span>
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           <div>
@@ -347,7 +321,7 @@ export default function NewReadingPage() {
             )}
           </div>
 
-          <button onClick={handleSave} disabled={!book || !versionId || tags.length === 0 || saving}
+          <button onClick={handleSave} disabled={!book || !versionId || saving}
             className="bg-[#1e3a5f] text-white px-6 py-2 rounded-lg text-sm hover:bg-[#2a4f7a] disabled:opacity-50 disabled:cursor-not-allowed">
             {saving ? "Enregistrement..." : "Enregistrer"}
           </button>

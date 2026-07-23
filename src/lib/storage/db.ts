@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase, type DBSchema } from 'idb';
-import type { AppSettings, AudioSession, BiblePassage, BibleVersion, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem } from './types';
+import type { AppSettings, BiblePassage, BibleVersion, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem } from './types';
 
 interface BibleOuverteDB extends DBSchema {
   readings: {
@@ -42,13 +42,6 @@ interface BibleOuverteDB extends DBSchema {
     indexes: {
       'by-plan-date': [number, string];
       'by-plan-day': [number, number];
-    };
-  };
-  audio_sessions: {
-    key: number;
-    value: AudioSession;
-    indexes: {
-      'by-date': string;
     };
   };
   roadmap: {
@@ -99,14 +92,6 @@ export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
           });
           planDays.createIndex('by-plan-date', ['planId', 'date']);
           planDays.createIndex('by-plan-day', ['planId', 'day']);
-        }
-
-        if (oldVersion < 5) {
-          const audio = db.createObjectStore('audio_sessions', {
-            keyPath: 'id',
-            autoIncrement: true,
-          });
-          audio.createIndex('by-date', 'date');
         }
 
         if (oldVersion < 6) {

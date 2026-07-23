@@ -4,18 +4,16 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, BookPlus, Search, History, BarChart3,
+  BookPlus, Search, History, BarChart3,
   BookOpen, Settings, Menu, X, Trophy, LogOut, Shield,
-  User, Headphones, Route,
+  User, Route,
 } from "lucide-react";
 import { seedIfNeeded } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 const links: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; adminOnly?: boolean }[] = [
-  { href: "/", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/new-reading", label: "Nouvelle lecture", icon: BookPlus },
-  { href: "/audio", label: "Audio Bible", icon: Headphones },
   { href: "/plans", label: "Plans de lecture", icon: BookOpen },
   { href: "/search", label: "Recherche biblique", icon: Search },
   { href: "/progress", label: "Progression", icon: Trophy },

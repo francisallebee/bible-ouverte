@@ -97,20 +97,6 @@ export interface RoadmapItem {
   updatedAt: string;
 }
 
-export interface AudioSession {
-  id?: number;
-  versionId: string;
-  book: string;
-  chapter: number;
-  verseStart: number;
-  verseEnd: number;
-  position: number;
-  duration: number;
-  completed: boolean;
-  date: string;
-  createdAt: string;
-}
-
 export interface AppSettings {
   id: string;
   defaultVersionId: string;
@@ -121,5 +107,4 @@ export interface AppSettings {
 
   readingGoal?: ReadingGoal;
   unsplashAccessKey?: string;
-  audioSpeed?: number;
 }

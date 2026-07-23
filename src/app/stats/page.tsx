@@ -3,11 +3,10 @@
 import { useEffect, useState, useMemo } from "react";
 import { BarChart3 } from "lucide-react";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
-import { seedIfNeeded, getAllReadings, getAllContexts, getAllVersions } from "@/lib/storage";
-import type { ReadingEntry, ReadingContext, BibleVersion } from "@/lib/storage";
+import { seedIfNeeded, getAllReadings, getAllVersions } from "@/lib/storage";
+import type { ReadingEntry, BibleVersion } from "@/lib/storage";
 import { getBookName } from "@/features/bible";
 
 const COLORS = ["#1e3a5f", "#4a90d9", "#7b68ee", "#2ecc71", "#e74c3c", "#f39c12", "#95a5a6"];
@@ -42,20 +41,17 @@ function toDateStr(d: Date) {
 
 export default function StatsPage() {
   const [readings, setReadings] = useState<ReadingEntry[]>([]);
-  const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const [all, ctxs, vers] = await Promise.all([
+      const [all, vers] = await Promise.all([
         getAllReadings(),
-        getAllContexts(),
         getAllVersions(),
       ]);
       setReadings(all);
-      setContexts(ctxs);
       setVersions(vers);
       setLoaded(true);
     })();
@@ -95,24 +91,6 @@ export default function StatsPage() {
     }
     return result;
   }, [readings]);
-
-  const ctxMap = useMemo(() => {
-    const m: Record<string, ReadingContext> = {};
-    for (const c of contexts) m[c.id] = c;
-    return m;
-  }, [contexts]);
-
-  const byContext = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const r of readings) {
-      for (const tag of (r.tags || [])) counts[tag] = (counts[tag] || 0) + 1;
-    }
-    return Object.entries(counts).map(([id, value]) => ({
-      name: ctxMap[id]?.name ?? id,
-      value,
-      color: ctxMap[id]?.color ?? "#95a5a6",
-    }));
-  }, [readings, ctxMap]);
 
   const topBooks = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -197,29 +175,6 @@ export default function StatsPage() {
               <Tooltip />
               <Bar dataKey="count" fill="#4a90d9" radius={[4, 4, 0, 0]} />
             </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4">Répartition par contexte</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={byContext}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {byContext.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
           </ResponsiveContainer>
         </div>
 
