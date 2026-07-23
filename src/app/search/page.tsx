@@ -170,16 +170,26 @@ export default function SearchPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Chapitre</label>
-                <input type="number" min={1} value={refChapter}
-                  onChange={(e) => setRefChapter(Number(e.target.value))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <select value={refChapter} onChange={(e) => setRefChapter(Number(e.target.value))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                  <option value="">Tous</option>
+                  {refBook && (() => {
+                    const book = BOOKS.find(b => b.abbreviation === refBook);
+                    return book ? Array.from({ length: book.chapters }, (_, i) => i + 1).map(n => (
+                      <option key={n} value={n}>{n}</option>
+                    )) : null;
+                  })()}
+                </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Verset (optionnel)</label>
-                <input type="number" min={1} value={refVerse ?? ""}
-                  onChange={(e) => setRefVerse(e.target.value ? Number(e.target.value) : undefined)}
-                  placeholder="Tous"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <select value={refVerse ?? ""} onChange={(e) => setRefVerse(e.target.value ? Number(e.target.value) : undefined)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                  <option value="">Tous</option>
+                  {Array.from({ length: 200 }, (_, i) => i + 1).map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Version</label>

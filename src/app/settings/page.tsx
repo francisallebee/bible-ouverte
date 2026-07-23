@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Palette, Info, Smartphone, Tablet, Monitor, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -31,6 +31,8 @@ export default function SettingsPage() {
       ]);
       setSettings(s ?? null);
       setVerseCount(vc);
+      if (s?.theme === 'dark') document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
       setLoaded(true);
     })();
   }, []);
@@ -90,6 +92,11 @@ export default function SettingsPage() {
     await updateSettings({ theme });
     const s = await getSettings();
     setSettings(s ?? null);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }
 
   if (!loaded) {
@@ -115,59 +122,8 @@ export default function SettingsPage() {
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
           >
             <option value="light">Clair</option>
-            <option value="dark">Sombre (bientôt disponible)</option>
+            <option value="dark">Sombre</option>
           </select>
-        </section>
-
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Palette className="w-5 h-5 text-[#1e3a5f]" />
-            Affichage
-          </h2>
-          <p className="text-sm text-gray-600 mb-3">
-            Ajuste l&apos;interface selon votre appareil.
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            {(["smartphone", "tablet", "desktop"] as const).map((preset) => (
-              <button
-                key={preset}
-                onClick={async () => {
-                  await updateSettings({ displayPreset: preset });
-                  const s = await getSettings();
-                  setSettings(s ?? null);
-                }}
-                className={`p-3 rounded-lg border text-sm text-center transition-all ${
-                  (settings?.displayPreset ?? "desktop") === preset
-                    ? "border-[#1e3a5f] bg-[#1e3a5f] text-white"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300"
-                }`}
-              >
-                <div className="mb-1 flex justify-center">
-                  {preset === "smartphone" ? (
-                    <Smartphone className="w-6 h-6" />
-                  ) : preset === "tablet" ? (
-                    <Tablet className="w-6 h-6" />
-                  ) : (
-                    <Monitor className="w-6 h-6" />
-                  )}
-                </div>
-                <div className="font-medium">
-                  {preset === "smartphone"
-                    ? "Smartphone"
-                    : preset === "tablet"
-                      ? "Tablette"
-                      : "Desktop"}
-                </div>
-                <div className="text-xs opacity-70 mt-0.5">
-                  {preset === "smartphone"
-                    ? "< 768px"
-                    : preset === "tablet"
-                      ? "768-1024px"
-                      : "> 1024px"}
-                </div>
-              </button>
-            ))}
-          </div>
         </section>
 
         <section className="bg-white rounded-xl border border-gray-200 p-6">

@@ -208,47 +208,41 @@ export default function ReadingDetailPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Chapitre début</label>
-              <input
-                type="number"
-                min={1}
-                max={maxChapters}
-                value={editChapterStart}
-                onChange={(e) => setEditChapterStart(Number(e.target.value))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              />
+              <select value={editChapterStart} onChange={(e) => setEditChapterStart(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {Array.from({ length: maxChapters }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Chapitre fin</label>
-              <input
-                type="number"
-                min={1}
-                max={maxChapters}
-                value={editChapterEnd}
-                onChange={(e) => setEditChapterEnd(Number(e.target.value))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              />
+              <select value={editChapterEnd} onChange={(e) => setEditChapterEnd(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {Array.from({ length: maxChapters - (editChapterStart - 1) }, (_, i) => i + editChapterStart).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Verset début</label>
-              <input
-                type="number"
-                min={1}
-                value={editVerseStart}
-                onChange={(e) => setEditVerseStart(Number(e.target.value))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              />
+              <select value={editVerseStart} onChange={(e) => setEditVerseStart(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {Array.from({ length: 200 }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Verset fin</label>
-              <input
-                type="number"
-                min={1}
-                value={editVerseEnd}
-                onChange={(e) => setEditVerseEnd(Number(e.target.value))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              />
+              <select value={editVerseEnd} onChange={(e) => setEditVerseEnd(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {Array.from({ length: 200 - (editVerseStart - 1) }, (_, i) => i + editVerseStart).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div>

@@ -182,30 +182,42 @@ export default function NewReadingPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Chapitre début</label>
-              <input type="number" min={1} max={maxChapters} value={chapterStart}
-                onChange={(e) => setChapterStart(Number(e.target.value))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <select value={chapterStart} onChange={(e) => setChapterStart(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {Array.from({ length: maxChapters }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Chapitre fin</label>
-              <input type="number" min={1} max={maxChapters} value={chapterEnd ?? ""}
-                onChange={(e) => setChapterEnd(e.target.value ? Number(e.target.value) : undefined)}
-                placeholder="Même si vide" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <select value={chapterEnd ?? chapterStart} onChange={(e) => setChapterEnd(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {Array.from({ length: maxChapters - (chapterStart - 1) }, (_, i) => i + chapterStart).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Verset début</label>
-              <input type="number" min={1} value={verseStart}
-                onChange={(e) => setVerseStart(Number(e.target.value))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <select value={verseStart} onChange={(e) => setVerseStart(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {Array.from({ length: 200 }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Verset fin</label>
-              <input type="number" min={1} value={verseEnd ?? ""}
-                onChange={(e) => setVerseEnd(e.target.value ? Number(e.target.value) : undefined)}
-                placeholder="Même si vide" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <select value={verseEnd ?? verseStart} onChange={(e) => setVerseEnd(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {Array.from({ length: 200 - (verseStart - 1) }, (_, i) => i + verseStart).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
             </div>
           </div>
 
