@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Search, BookOpen, BookPlus, BookText, FileText } from "lucide-react";
 import { seedIfNeeded, getAllVersions, getAllContexts, addReading, getPassages, getPassagesByRange, searchPassages, getSettings } from "@/lib/storage";
 import type { BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
-import { FLAT_TAGS } from "@/lib/storage/seed";
+
 import { BOOKS, getBookName } from "@/features/bible";
 
 type Mode = "reference" | "keyword";
@@ -333,7 +333,7 @@ export default function SearchPage() {
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-2">Tags</label>
                     <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
-                      {FLAT_TAGS.map(t => {
+                      {contexts.filter(c => c.parentId || c.icon === 'tag' || c.icon === 'more-horizontal').map(t => {
                         const active = addTags.includes(t.id);
                         return (
                           <button key={t.id} type="button" onClick={() => {

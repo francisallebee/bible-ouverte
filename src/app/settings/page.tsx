@@ -9,7 +9,6 @@ import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, ReadingContext, BibleVersion } from "@/lib/storage";
-import { TAG_CATEGORIES } from "@/lib/storage/seed";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -28,7 +27,11 @@ export default function SettingsPage() {
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [tagFormName, setTagFormName] = useState("");
   const [tagFormColor, setTagFormColor] = useState("#4a90d9");
+  const [tagFormEmoji, setTagFormEmoji] = useState("📌");
+  const [tagFormParentId, setTagFormParentId] = useState("");
   const [deleteTagConfirm, setDeleteTagConfirm] = useState<string | null>(null);
+
+  const EMOJIS = ["📺","🎙️","🎧","🚗","✈️","🚆","🚲","🚶","📅","📋","📖","📱","🎯","📚","📌","🏠","💼","🏥","🎓","🛒","✝️","🙏","📝","💡","🎵","🎬","📰","⚽","🎨","🍽️","☕","🌍","🔬","💻","📸","🎮"];
 
   const TAG_COLORS = [
     "#4a90d9", "#7b68ee", "#2ecc71", "#e74c3c", "#f39c12",
@@ -40,23 +43,23 @@ export default function SettingsPage() {
   }
 
   function startAddTag() {
-    setTagFormName(""); setTagFormColor("#4a90d9"); setAddingTag(true); setEditingTagId(null);
+    setTagFormName(""); setTagFormColor("#4a90d9"); setTagFormEmoji("📌"); setTagFormParentId(""); setAddingTag(true); setEditingTagId(null);
   }
 
   async function saveAddTag() {
     if (!tagFormName.trim()) return;
     const id = tagFormName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    await addContext({ id, name: tagFormName.trim(), slug: id, color: tagFormColor, icon: "user", isSystemDefault: false });
+    await addContext({ id, name: tagFormName.trim(), slug: id, color: tagFormColor, emoji: tagFormEmoji, parentId: tagFormParentId || undefined, icon: tagFormParentId ? "tag" : "folder", isSystemDefault: false });
     setAddingTag(false); await loadContexts();
   }
 
   function startEditTag(ctx: ReadingContext) {
-    setEditingTagId(ctx.id); setTagFormName(ctx.name); setTagFormColor(ctx.color); setAddingTag(false);
+    setEditingTagId(ctx.id); setTagFormName(ctx.name); setTagFormColor(ctx.color); setTagFormEmoji(ctx.emoji || "📌"); setAddingTag(false);
   }
 
   async function saveEditTag(id: string) {
     if (!tagFormName.trim()) return;
-    await updateContext(id, { name: tagFormName.trim(), color: tagFormColor });
+    await updateContext(id, { name: tagFormName.trim(), color: tagFormColor, emoji: tagFormEmoji });
     setEditingTagId(null); await loadContexts();
   }
 
@@ -251,7 +254,7 @@ export default function SettingsPage() {
             {addingTag && (
               <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 mb-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-5 h-5 rounded-full shrink-0" style={{ backgroundColor: tagFormColor }} />
+                  <span className="text-xl">{tagFormEmoji}</span>
                   <input type="text" placeholder="Nom du tag" value={tagFormName}
                     onChange={e => setTagFormName(e.target.value)}
                     className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1" autoFocus />
@@ -263,6 +266,24 @@ export default function SettingsPage() {
                       style={{ backgroundColor: c }} />
                   ))}
                 </div>
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {EMOJIS.map(e => (
+                    <button key={e} type="button" onClick={() => setTagFormEmoji(e)}
+                      className={`text-lg w-8 h-8 flex items-center justify-center rounded ${tagFormEmoji === e ? 'bg-blue-200 ring-2 ring-blue-500' : 'hover:bg-gray-100'}`}>
+                      {e}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <label className="text-xs text-gray-500">Catégorie :</label>
+                  <select value={tagFormParentId} onChange={e => setTagFormParentId(e.target.value)}
+                    className="border border-gray-300 rounded px-2 py-1 text-xs">
+                    <option value="">Aucune (catégorie racine)</option>
+                    {contexts.filter(c => !c.parentId).map(c => (
+                      <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex gap-2">
                   <button onClick={saveAddTag} disabled={!tagFormName.trim()}
                     className="bg-[#1e3a5f] text-white px-4 py-1.5 rounded-lg text-xs hover:bg-[#2a4f7a] disabled:opacity-50">Ajouter</button>
@@ -272,23 +293,22 @@ export default function SettingsPage() {
             )}
 
             <div className="space-y-3">
-              {TAG_CATEGORIES.map(cat => {
-                const catCtx = contexts.find(c => c.id === cat.id);
-                const childCtxs = cat.children.map(ch => contexts.find(c => c.id === ch.id)).filter(Boolean) as ReadingContext[];
-                if (!catCtx && childCtxs.length === 0) return null;
+              {contexts.filter(c => !c.parentId).map(cat => {
+                const children = contexts.filter(c => c.parentId === cat.id);
                 return (
                   <div key={cat.id}>
                     <p className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: catCtx?.color || cat.color }} />
+                      <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: cat.color }} />
+                      {cat.emoji && <span>{cat.emoji}</span>}
                       {cat.name}
                     </p>
                     <div className="ml-4 space-y-1">
-                      {childCtxs.map(ctx => (
+                      {children.map(ctx => (
                         <div key={ctx.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-200">
                           {editingTagId === ctx.id ? (
                             <>
                               <div className="flex items-center gap-2 flex-1">
-                                <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: tagFormColor }} />
+                                <span className="text-lg">{tagFormEmoji}</span>
                                 <input type="text" value={tagFormName} onChange={e => setTagFormName(e.target.value)}
                                   className="border border-gray-300 rounded px-2 py-1 text-sm flex-1" autoFocus />
                                 {TAG_COLORS.map(c => (
@@ -297,12 +317,21 @@ export default function SettingsPage() {
                                     style={{ backgroundColor: c }} />
                                 ))}
                               </div>
+                              <div className="flex flex-wrap gap-1 max-w-40">
+                                {EMOJIS.map(e => (
+                                  <button key={e} type="button" onClick={() => setTagFormEmoji(e)}
+                                    className={`text-sm w-6 h-6 flex items-center justify-center rounded ${tagFormEmoji === e ? 'bg-blue-200' : 'hover:bg-gray-100'}`}>
+                                    {e}
+                                  </button>
+                                ))}
+                              </div>
                               <button onClick={() => saveEditTag(ctx.id)} className="text-xs text-green-600 font-medium hover:underline">OK</button>
                               <button onClick={() => setEditingTagId(null)} className="text-xs text-gray-500 hover:underline">Annuler</button>
                             </>
                           ) : (
                             <>
-                              <div className="w-4 h-4 rounded-full shrink-0 ring-1 ring-inset ring-black/10" style={{ backgroundColor: ctx.color }} />
+                              {ctx.emoji && <span className="text-base">{ctx.emoji}</span>}
+                              <div className="w-3 h-3 rounded-full shrink-0 ring-1 ring-inset ring-black/10" style={{ backgroundColor: ctx.color }} />
                               <span className="text-sm flex-1">{ctx.name}</span>
                               {ctx.isSystemDefault && <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Système</span>}
                               <button onClick={() => startEditTag(ctx)} className="text-xs text-gray-600 hover:text-gray-900">Modifier</button>
@@ -319,52 +348,6 @@ export default function SettingsPage() {
                   </div>
                 );
               })}
-
-              {/* Tags hors catégories */}
-              {(() => {
-                const allKnownIds = new Set(TAG_CATEGORIES.flatMap(cat => [cat.id, ...cat.children.map(ch => ch.id)]));
-                const others = contexts.filter(c => !allKnownIds.has(c.id));
-                if (others.length === 0) return null;
-                return (
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Autres</p>
-                    <div className="ml-4 space-y-1">
-                      {others.map(ctx => (
-                        <div key={ctx.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-200">
-                          {editingTagId === ctx.id ? (
-                            <>
-                              <div className="flex items-center gap-2 flex-1">
-                                <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: tagFormColor }} />
-                                <input type="text" value={tagFormName} onChange={e => setTagFormName(e.target.value)}
-                                  className="border border-gray-300 rounded px-2 py-1 text-sm flex-1" autoFocus />
-                                {TAG_COLORS.map(c => (
-                                  <button key={c} onClick={() => setTagFormColor(c)}
-                                    className={`w-3.5 h-3.5 rounded-full ${tagFormColor === c ? "ring-2 ring-offset-1 ring-gray-800" : ""}`}
-                                    style={{ backgroundColor: c }} />
-                                ))}
-                              </div>
-                              <button onClick={() => saveEditTag(ctx.id)} className="text-xs text-green-600 font-medium hover:underline">OK</button>
-                              <button onClick={() => setEditingTagId(null)} className="text-xs text-gray-500 hover:underline">Annuler</button>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-4 h-4 rounded-full shrink-0 ring-1 ring-inset ring-black/10" style={{ backgroundColor: ctx.color }} />
-                              <span className="text-sm flex-1">{ctx.name}</span>
-                              {ctx.isSystemDefault && <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Système</span>}
-                              <button onClick={() => startEditTag(ctx)} className="text-xs text-gray-600 hover:text-gray-900">Modifier</button>
-                              <button onClick={() => setDeleteTagConfirm(ctx.id)}
-                                disabled={ctx.isSystemDefault}
-                                className={`text-xs ${ctx.isSystemDefault ? "text-gray-300 cursor-not-allowed" : "text-red-500 hover:text-red-700"}`}>
-                                Supprimer
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })()}
             </div>
           </section>
         )}

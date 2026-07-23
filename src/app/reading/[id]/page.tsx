@@ -15,7 +15,7 @@ import {
   deleteReading,
 } from "@/lib/storage";
 import type { ReadingEntry, ReadingContext, BibleVersion, BiblePassage } from "@/lib/storage";
-import { FLAT_TAGS } from "@/lib/storage/seed";
+
 import { BOOKS, getBookName, getBook } from "@/features/bible";
 
 export default function ReadingDetailPage() {
@@ -263,7 +263,7 @@ export default function ReadingDetailPage() {
           <div>
             <label className="block text-sm font-medium mb-2">Tags</label>
             <div className="flex flex-wrap gap-2">
-              {FLAT_TAGS.map(t => {
+              {contexts.filter(c => c.parentId || c.icon === 'tag' || c.icon === 'more-horizontal').map(t => {
                 const active = editTags.includes(t.id);
                 return (
                   <button key={t.id} type="button" onClick={() => {
@@ -318,10 +318,10 @@ export default function ReadingDetailPage() {
               {reading.tags?.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {reading.tags.map(t => {
-                    const ft = FLAT_TAGS.find(x => x.id === t);
+                    const ctx = contextMap[t];
                     return (
                       <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
-                        {ft?.emoji} {ft?.name || t}
+                        {ctx?.emoji} {ctx?.name || t}
                       </span>
                     );
                   })}

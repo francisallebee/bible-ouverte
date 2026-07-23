@@ -2,70 +2,27 @@ import type { AppSettings, BibleVersion, ReadingContext } from './types';
 import { getDB } from './db';
 import { importAllBibleData } from '@/features/bible/import';
 
-export interface FlatTag { id: string; name: string; emoji: string; color: string }
-
-export const FLAT_TAGS: FlatTag[] = [
-  { id: 'medias/youtube', name: 'YouTube', emoji: '📺', color: '#e74c3c' },
-  { id: 'medias/podcast', name: 'Podcast', emoji: '🎙️', color: '#e74c3c' },
-  { id: 'medias/livre-audio', name: 'Livre audio', emoji: '🎧', color: '#e74c3c' },
-  { id: 'transports/voiture', name: 'Voiture', emoji: '🚗', color: '#3498db' },
-  { id: 'transports/avion', name: 'Avion', emoji: '✈️', color: '#3498db' },
-  { id: 'transports/train', name: 'Train', emoji: '🚆', color: '#3498db' },
-  { id: 'transports/velo', name: 'Vélo', emoji: '🚲', color: '#3498db' },
-  { id: 'transports/marche', name: 'Marche', emoji: '🚶', color: '#3498db' },
-  { id: 'lecture-personnelle/calendrier', name: 'Calendrier', emoji: '📅', color: '#2ecc71' },
-  { id: 'lecture-personnelle/plan', name: 'Plan', emoji: '📋', color: '#2ecc71' },
-  { id: 'lecture-personnelle/revue', name: 'Revue', emoji: '📖', color: '#2ecc71' },
-  { id: 'lecture-personnelle/ebook', name: 'Ebook', emoji: '📱', color: '#2ecc71' },
-  { id: 'eglise/predication', name: 'Prédication', emoji: '🎯', color: '#7b68ee' },
-  { id: 'eglise/cours-bibliques', name: 'Cours bibliques', emoji: '📚', color: '#7b68ee' },
-  { id: 'autres', name: 'Autres', emoji: '📌', color: '#95a5a6' },
+const DEFAULT_CONTEXTS: ReadingContext[] = [
+  { id: 'medias', name: 'Médias', slug: 'medias', color: '#e74c3c', icon: 'folder', isSystemDefault: true },
+  { id: 'medias/youtube', name: 'YouTube', slug: 'youtube', color: '#e74c3c', icon: 'tag', emoji: '📺', parentId: 'medias', isSystemDefault: true },
+  { id: 'medias/podcast', name: 'Podcast', slug: 'podcast', color: '#e74c3c', icon: 'tag', emoji: '🎙️', parentId: 'medias', isSystemDefault: true },
+  { id: 'medias/livre-audio', name: 'Livre audio', slug: 'livre-audio', color: '#e74c3c', icon: 'tag', emoji: '🎧', parentId: 'medias', isSystemDefault: true },
+  { id: 'transports', name: 'Transports', slug: 'transports', color: '#3498db', icon: 'folder', isSystemDefault: true },
+  { id: 'transports/voiture', name: 'Voiture', slug: 'voiture', color: '#3498db', icon: 'tag', emoji: '🚗', parentId: 'transports', isSystemDefault: true },
+  { id: 'transports/avion', name: 'Avion', slug: 'avion', color: '#3498db', icon: 'tag', emoji: '✈️', parentId: 'transports', isSystemDefault: true },
+  { id: 'transports/train', name: 'Train', slug: 'train', color: '#3498db', icon: 'tag', emoji: '🚆', parentId: 'transports', isSystemDefault: true },
+  { id: 'transports/velo', name: 'Vélo', slug: 'velo', color: '#3498db', icon: 'tag', emoji: '🚲', parentId: 'transports', isSystemDefault: true },
+  { id: 'transports/marche', name: 'Marche', slug: 'marche', color: '#3498db', icon: 'tag', emoji: '🚶', parentId: 'transports', isSystemDefault: true },
+  { id: 'lecture-personnelle', name: 'Lecture personnelle', slug: 'lecture-personnelle', color: '#2ecc71', icon: 'folder', isSystemDefault: true },
+  { id: 'lecture-personnelle/calendrier', name: 'Calendrier', slug: 'calendrier', color: '#2ecc71', icon: 'tag', emoji: '📅', parentId: 'lecture-personnelle', isSystemDefault: true },
+  { id: 'lecture-personnelle/plan', name: 'Plan', slug: 'plan', color: '#2ecc71', icon: 'tag', emoji: '📋', parentId: 'lecture-personnelle', isSystemDefault: true },
+  { id: 'lecture-personnelle/revue', name: 'Revue', slug: 'revue', color: '#2ecc71', icon: 'tag', emoji: '📖', parentId: 'lecture-personnelle', isSystemDefault: true },
+  { id: 'lecture-personnelle/ebook', name: 'Ebook', slug: 'ebook', color: '#2ecc71', icon: 'tag', emoji: '📱', parentId: 'lecture-personnelle', isSystemDefault: true },
+  { id: 'eglise', name: 'Église', slug: 'eglise', color: '#7b68ee', icon: 'folder', isSystemDefault: true },
+  { id: 'eglise/predication', name: 'Prédication', slug: 'predication', color: '#7b68ee', icon: 'tag', emoji: '🎯', parentId: 'eglise', isSystemDefault: true },
+  { id: 'eglise/cours-bibliques', name: 'Cours bibliques', slug: 'cours-bibliques', color: '#7b68ee', icon: 'tag', emoji: '📚', parentId: 'eglise', isSystemDefault: true },
+  { id: 'autres', name: 'Autres', slug: 'autres', color: '#95a5a6', icon: 'more-horizontal', emoji: '📌', isSystemDefault: true },
 ];
-
-export const TAG_CATEGORIES = [
-  {
-    id: 'medias', name: 'Médias', color: '#e74c3c',
-    children: [
-      { id: 'medias/youtube', name: 'YouTube' },
-      { id: 'medias/podcast', name: 'Podcast' },
-      { id: 'medias/livre-audio', name: 'Livre audio' },
-    ],
-  },
-  {
-    id: 'transports', name: 'Transports', color: '#3498db',
-    children: [
-      { id: 'transports/voiture', name: 'Voiture' },
-      { id: 'transports/avion', name: 'Avion' },
-      { id: 'transports/train', name: 'Train' },
-      { id: 'transports/velo', name: 'Vélo' },
-      { id: 'transports/marche', name: 'Marche' },
-    ],
-  },
-  {
-    id: 'lecture-personnelle', name: 'Lecture personnelle', color: '#2ecc71',
-    children: [
-      { id: 'lecture-personnelle/calendrier', name: 'Calendrier' },
-      { id: 'lecture-personnelle/plan', name: 'Plan' },
-      { id: 'lecture-personnelle/revue', name: 'Revue' },
-      { id: 'lecture-personnelle/ebook', name: 'Ebook' },
-    ],
-  },
-  {
-    id: 'eglise', name: 'Église', color: '#7b68ee',
-    children: [
-      { id: 'eglise/predication', name: 'Prédication' },
-      { id: 'eglise/cours-bibliques', name: 'Cours bibliques' },
-    ],
-  },
-  { id: 'autres', name: 'Autres', color: '#95a5a6', children: [] },
-];
-
-const DEFAULT_CONTEXTS: ReadingContext[] = TAG_CATEGORIES.flatMap(cat =>
-  cat.children.length > 0
-    ? [{ id: cat.id, name: cat.name, slug: cat.id, color: cat.color, icon: 'folder', isSystemDefault: true },
-       ...cat.children.map(ch => ({ id: ch.id, name: ch.name, slug: ch.id, color: cat.color, icon: 'tag', isSystemDefault: true }))]
-    : [{ id: cat.id, name: cat.name, slug: cat.id, color: cat.color, icon: 'more-horizontal', isSystemDefault: true }]
-);
 
 const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'ls1910', name: 'Louis Segond 1910', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },

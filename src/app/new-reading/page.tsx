@@ -10,7 +10,6 @@ import {
   seedIfNeeded, getAllContexts, getAllVersions, getPassagesByRange, addReading, getSettings,
 } from "@/lib/storage";
 import type { ReadingContext, BibleVersion, ReadingLink, BiblePassage } from "@/lib/storage";
-import { FLAT_TAGS } from "@/lib/storage/seed";
 import { BOOKS, getBook, getBookName } from "@/features/bible";
 import type { BibleBook } from "@/features/bible";
 import UnsplashSearch from "@/components/UnsplashSearch";
@@ -236,7 +235,7 @@ export default function NewReadingPage() {
           <div>
             <label className="block text-sm font-medium mb-2">Tags</label>
             <div className="flex flex-wrap gap-2">
-              {FLAT_TAGS.map(t => {
+              {contexts.filter(c => c.parentId || c.icon === 'tag' || c.icon === 'more-horizontal').map(t => {
                 const active = tags.includes(t.id);
                 return (
                   <button key={t.id} type="button" onClick={() => {
@@ -245,7 +244,7 @@ export default function NewReadingPage() {
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors ${
                       active ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'
                     }`}>
-                    <span>{t.emoji}</span>
+                    {t.emoji && <span>{t.emoji}</span>}
                     <span>{t.name}</span>
                   </button>
                 );

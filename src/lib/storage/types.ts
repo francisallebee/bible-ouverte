@@ -33,6 +33,8 @@ export interface ReadingContext {
   slug: string;
   color: string;
   icon: string;
+  emoji?: string;
+  parentId?: string;
   isSystemDefault: boolean;
 }
 
