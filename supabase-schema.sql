@@ -17,8 +17,28 @@ create table if not exists public.profiles (
   reading_goal_count int not null default 1,
   is_admin boolean not null default false,
   suspended boolean not null default false,
+  avatar_url text,
+  birth_date text,
+  phone text,
+  bio text,
+  social_links jsonb not null default '{}',
   created_at timestamptz not null default now()
 );
+
+-- Tickets de support
+create table if not exists public.tickets (
+  id text primary key default gen_random_uuid()::text,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  title text not null,
+  description text not null default '',
+  category text not null default 'bug' check (category in ('bug', 'feature', 'question', 'other')),
+  status text not null default 'open' check (status in ('open', 'in_progress', 'resolved', 'closed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index idx_tickets_user on public.tickets(user_id);
+create index idx_tickets_status on public.tickets(status);
 
 create table if not exists public.readings (
   id text primary key,
@@ -90,6 +110,7 @@ alter table public.readings enable row level security;
 alter table public.contexts enable row level security;
 alter table public.plans enable row level security;
 alter table public.plan_days enable row level security;
+alter table public.tickets enable row level security;
 
 -- Profiles policies
 create policy "users can read own profile"
@@ -137,6 +158,28 @@ create policy "users can update own contexts"
 create policy "users can delete own contexts"
   on public.contexts for delete
   using (auth.uid() = user_id);
+
+-- Tickets policies
+create policy "users can read own tickets"
+  on public.tickets for select
+  using (auth.uid() = user_id);
+
+create policy "users can insert own tickets"
+  on public.tickets for insert
+  with check (auth.uid() = user_id);
+
+create policy "users can update own tickets"
+  on public.tickets for update
+  using (auth.uid() = user_id);
+
+-- Admin can read all tickets
+create policy "admins can read all tickets"
+  on public.tickets for select
+  using (exists (select 1 from public.profiles where id = auth.uid() and is_admin = true));
+
+create policy "admins can update any ticket"
+  on public.tickets for update
+  using (exists (select 1 from public.profiles where id = auth.uid() and is_admin = true));
 
 -- Plans policies
 create policy "users can read own plans"
