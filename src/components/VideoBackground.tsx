@@ -10,7 +10,7 @@ export default function VideoBackground() {
         poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Crect fill='%231a2d48' width='100%25' height='100%25'/%3E%3C/svg%3E"
       >
         <source
-          src="/videos/bible.mp4"
+          src="/videos/Bible%20Ouverte.mp4"
           type="video/mp4"
         />
       </video>
