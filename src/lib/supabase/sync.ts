@@ -56,7 +56,8 @@ export async function pushReadings() {
       .from('readings')
       .upsert({ ...reading, user_id: user.id }, { onConflict: 'id', ignoreDuplicates: false })
 
-    if (!error) pushed++
+    if (error) console.warn('sync push reading error:', error.message)
+    else pushed++
   }
 
   return { pushed }
@@ -77,7 +78,8 @@ export async function pushPlans() {
       .from('plans')
       .upsert({ ...plan, user_id: user.id }, { onConflict: 'id', ignoreDuplicates: false })
 
-    if (!error) pushed++
+    if (error) console.warn('sync push plan error:', error.message)
+    else pushed++
   }
 
   return { pushed }
@@ -98,7 +100,8 @@ export async function pushPlanDays() {
       .from('plan_days')
       .upsert({ ...day, user_id: user.id }, { onConflict: 'id', ignoreDuplicates: false })
 
-    if (!error) pushed++
+    if (error) console.warn('sync push planDay error:', error.message)
+    else pushed++
   }
 
   return { pushed }
@@ -119,7 +122,8 @@ export async function pushContexts() {
       .from('contexts')
       .upsert({ ...context, user_id: user.id }, { onConflict: 'id', ignoreDuplicates: false })
 
-    if (!error) pushed++
+    if (error) console.warn('sync push context error:', error.message)
+    else pushed++
   }
 
   return { pushed }
@@ -149,7 +153,10 @@ export async function pullReadings() {
     .select('*')
     .eq('user_id', user.id)
 
-  if (error || !data) return { pulled: 0 }
+  if (error || !data) {
+    if (error) console.warn('sync pull readings error:', error.message)
+    return { pulled: 0 }
+  }
 
   await upsertReadings(data)
   return { pulled: data.length }
@@ -166,7 +173,10 @@ export async function pullPlans() {
     .select('*')
     .eq('user_id', user.id)
 
-  if (error || !data) return { pulled: 0 }
+  if (error || !data) {
+    if (error) console.warn('sync pull plans error:', error.message)
+    return { pulled: 0 }
+  }
 
   await upsertPlans(data)
   return { pulled: data.length }
@@ -183,7 +193,10 @@ export async function pullPlanDays() {
     .select('*')
     .eq('user_id', user.id)
 
-  if (error || !data) return { pulled: 0 }
+  if (error || !data) {
+    if (error) console.warn('sync pull planDays error:', error.message)
+    return { pulled: 0 }
+  }
 
   await upsertPlanDays(data)
   return { pulled: data.length }
@@ -200,7 +213,10 @@ export async function pullContexts() {
     .select('*')
     .eq('user_id', user.id)
 
-  if (error || !data) return { pulled: 0 }
+  if (error || !data) {
+    if (error) console.warn('sync pull contexts error:', error.message)
+    return { pulled: 0 }
+  }
 
   await upsertContexts(data)
   return { pulled: data.length }

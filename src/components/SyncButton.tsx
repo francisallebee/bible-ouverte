@@ -27,7 +27,7 @@ export default function SyncButton() {
       const res = await fullSync()
       setResult(`Synchronisé : ${res.pushed.readings + res.pushed.plans + res.pushed.planDays + res.pushed.contexts} envoyés, ${res.pulled.readings + res.pulled.plans + res.pulled.planDays + res.pulled.contexts} reçus.`)
     } catch (e) {
-      setError('Erreur de synchronisation. Vérifie ta connexion.')
+      setError('Erreur : ' + (e instanceof Error ? e.message : 'Échec de la synchronisation'))
     } finally {
       setSyncing(false)
     }

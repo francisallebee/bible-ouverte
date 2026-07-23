@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Search, BookOpen, BookPlus } from "lucide-react";
+import { Search, BookOpen, BookPlus, BookText, FileText } from "lucide-react";
 import { seedIfNeeded, getAllVersions, getAllContexts, addReading, getPassages, getPassagesByRange, searchPassages, getSettings } from "@/lib/storage";
 import type { BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
 import { BOOKS, getBookName } from "@/features/bible";
@@ -150,11 +150,12 @@ export default function SearchPage() {
       <div className="flex gap-2 mb-6">
         {(["reference", "keyword"] as Mode[]).map((m) => (
           <button key={m} onClick={() => setMode(m)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               mode === m ? "bg-[#1e3a5f] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
-            {m === "reference" ? "Par référence" : "Par mots-clés"}
+            {m === "reference" ? <BookText className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+            {m === "reference" ? "Référence" : "Libre"}
           </button>
         ))}
       </div>
