@@ -15,7 +15,7 @@ import {
   deleteReading,
 } from "@/lib/storage";
 import type { ReadingEntry, ReadingContext, BibleVersion, BiblePassage } from "@/lib/storage";
-import { TAG_CATEGORIES } from "@/lib/storage/seed";
+import { FLAT_TAGS } from "@/lib/storage/seed";
 import { BOOKS, getBookName, getBook } from "@/features/bible";
 
 export default function ReadingDetailPage() {
@@ -261,44 +261,22 @@ export default function ReadingDetailPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Contexte</label>
-            <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
-              {TAG_CATEGORIES.map(cat => (
-                <div key={cat.id} className="w-full">
-                  <p className="text-xs font-semibold text-gray-600 mb-1 ml-1">{cat.name}</p>
-                  <div className="flex flex-wrap gap-1.5 mb-1.5">
-                    {cat.children.map(ch => {
-                      const active = editTags.includes(ch.id);
-                      return (
-                        <button key={ch.id} type="button" onClick={() => {
-                          setEditTags(prev => active ? prev.filter(t => t !== ch.id) : [...prev, ch.id])
-                        }}
-                          className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
-                            active ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                          }`}>
-                          {ch.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-              <div className="w-full">
-                <p className="text-xs font-semibold text-gray-600 mb-1 ml-1">Autres</p>
-                {contexts.filter(c => !TAG_CATEGORIES.some(cat => cat.id === c.id || cat.children.some(ch => ch.id === c.id))).map(c => {
-                  const active = editTags.includes(c.id);
-                  return (
-                    <button key={c.id} type="button" onClick={() => {
-                      setEditTags(prev => active ? prev.filter(t => t !== c.id) : [...prev, c.id])
-                    }}
-                      className={`mr-1.5 mb-1.5 px-2.5 py-1 rounded-full text-xs border transition-colors ${
-                        active ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                      }`}>
-                      {c.name}
-                    </button>
-                  );
-                })}
-              </div>
+            <label className="block text-sm font-medium mb-2">Tags</label>
+            <div className="flex flex-wrap gap-2">
+              {FLAT_TAGS.map(t => {
+                const active = editTags.includes(t.id);
+                return (
+                  <button key={t.id} type="button" onClick={() => {
+                    setEditTags(prev => active ? prev.filter(x => x !== t.id) : [...prev, t.id])
+                  }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors ${
+                      active ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}>
+                    <span>{t.emoji}</span>
+                    <span>{t.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div>
@@ -337,17 +315,16 @@ export default function ReadingDetailPage() {
                   day: "numeric",
                 })}
               </span>
-              {tagsList.length > 0 && (
+              {reading.tags?.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  {tagsList.map(t => (
-                    <span key={t.id}
-                      className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full"
-                      style={{ backgroundColor: t.color + "20", color: t.color }}
-                    >
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }} />
-                      {t.name}
-                    </span>
-                  ))}
+                  {reading.tags.map(t => {
+                    const ft = FLAT_TAGS.find(x => x.id === t);
+                    return (
+                      <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
+                        {ft?.emoji} {ft?.name || t}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>

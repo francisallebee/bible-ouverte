@@ -24,7 +24,7 @@ export default function AudioPage() {
   useEffect(() => {
     (async () => {
       const all = await getAllVersions()
-      const audio = all.filter(v => v.id.startsWith('audio-') && v.isEnabled)
+      const audio = all.filter(v => (v.id.startsWith('audio-') || v.id.startsWith('ai-')) && v.isEnabled)
       setVersions(audio)
       if (audio.length > 0) setVersionId(audio[0].id)
       const h = await getAudioSessions()

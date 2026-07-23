@@ -131,7 +131,8 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
 
   const play = useCallback(async (vId: string, bk: string, ch: number, vs = 1, ve = 999) => {
     try {
-      const textVersionId = vId.startsWith('audio-') ? vId.slice(6) : vId
+      const prefix = vId.startsWith('audio-') ? 'audio-' : vId.startsWith('ai-') ? 'ai-' : '';
+      const textVersionId = prefix ? vId.slice(prefix.length) : vId
       const passages = await getPassagesByRange(textVersionId, bk, ch, vs, ve)
       if (passages.length === 0) return
 

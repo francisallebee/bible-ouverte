@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle, Tags, Plus } from "lucide-react";
-import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllContexts, addContext, updateContext, deleteContext } from "@/lib/storage";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle, Tags, Plus, Headphones, Cpu } from "lucide-react";
+import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllContexts, addContext, updateContext, deleteContext, getAllVersions, updateVersion } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
-import type { AppSettings, ReadingContext } from "@/lib/storage";
+import type { AppSettings, ReadingContext, BibleVersion } from "@/lib/storage";
 import { TAG_CATEGORIES } from "@/lib/storage/seed";
 
 export default function SettingsPage() {
@@ -65,6 +65,26 @@ export default function SettingsPage() {
     setDeleteTagConfirm(null); await loadContexts();
   }
 
+  const [versions, setVersions] = useState<BibleVersion[]>([]);
+
+  async function loadVersions() {
+    setVersions(await getAllVersions());
+  }
+
+  async function handleSetDefault(versionId: string) {
+    await updateSettings({ defaultVersionId: versionId });
+    const s = await getSettings();
+    setSettings(s ?? null);
+  }
+
+  async function handleToggleEnabled(version: BibleVersion) {
+    if (version.id === settings?.defaultVersionId) return;
+    await updateVersion(version.id, { isEnabled: !version.isEnabled });
+    setVersions((prev) =>
+      prev.map((v) => v.id === version.id ? { ...v, isEnabled: !v.isEnabled } : v),
+    );
+  }
+
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
@@ -78,6 +98,7 @@ export default function SettingsPage() {
       else document.documentElement.classList.remove('dark');
       setLoaded(true);
       await loadContexts();
+      await loadVersions();
     })();
   }, []);
 
@@ -393,12 +414,66 @@ export default function SettingsPage() {
         <section className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-[#1e3a5f]" />
-            Version par défaut
+            Versions bibliques
           </h2>
-          <p className="text-sm text-gray-600">{settings?.defaultVersionId ?? "ls1910"}</p>
-          <a href="/versions" className="text-sm text-[#1e3a5f] underline mt-1 inline-block">
-            Modifier dans Versions
-          </a>
+
+          <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+            <BookOpen size={15} /> Texte
+          </h3>
+          <div className="space-y-2 mb-6">
+            {versions.filter(v => !v.id.startsWith('audio-') && !v.id.startsWith('ai-')).map(v => {
+              const isDefault = v.id === settings?.defaultVersionId;
+              return (
+                <div key={v.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100">
+                  <input type="radio" name="defaultVersion" checked={isDefault}
+                    onChange={() => handleSetDefault(v.id)} className="accent-[#1e3a5f]" />
+                  <span className="text-sm flex-1">{v.name}</span>
+                  {isDefault && <span className="text-xs bg-[#1e3a5f] text-white px-2 py-0.5 rounded-full">Par défaut</span>}
+                  <label className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <input type="checkbox" checked={v.isEnabled} disabled={isDefault}
+                      onChange={() => handleToggleEnabled(v)} className="accent-[#1e3a5f]" />
+                    Activée
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+
+          <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+            <Headphones size={15} /> Audio
+          </h3>
+          <div className="space-y-2 mb-6">
+            {versions.filter(v => v.id.startsWith('audio-')).map(v => (
+              <div key={v.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100">
+                <Headphones className="w-4 h-4 text-blue-500 shrink-0" />
+                <span className="text-sm flex-1">{v.name}</span>
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Audio</span>
+                <label className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <input type="checkbox" checked={v.isEnabled}
+                    onChange={() => handleToggleEnabled(v)} className="accent-[#1e3a5f]" />
+                  Activée
+                </label>
+              </div>
+            ))}
+          </div>
+
+          <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+            <Cpu size={15} /> IA
+          </h3>
+          <div className="space-y-2">
+            {versions.filter(v => v.id.startsWith('ai-')).map(v => (
+              <div key={v.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100">
+                <Cpu className="w-4 h-4 text-purple-500 shrink-0" />
+                <span className="text-sm flex-1">{v.name}</span>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">IA</span>
+                <label className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <input type="checkbox" checked={v.isEnabled}
+                    onChange={() => handleToggleEnabled(v)} className="accent-[#1e3a5f]" />
+                  Activée
+                </label>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="bg-white rounded-xl border border-gray-200 p-6">

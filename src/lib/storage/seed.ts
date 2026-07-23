@@ -2,6 +2,26 @@ import type { AppSettings, BibleVersion, ReadingContext } from './types';
 import { getDB } from './db';
 import { importAllBibleData } from '@/features/bible/import';
 
+export interface FlatTag { id: string; name: string; emoji: string; color: string }
+
+export const FLAT_TAGS: FlatTag[] = [
+  { id: 'medias/youtube', name: 'YouTube', emoji: '📺', color: '#e74c3c' },
+  { id: 'medias/podcast', name: 'Podcast', emoji: '🎙️', color: '#e74c3c' },
+  { id: 'medias/livre-audio', name: 'Livre audio', emoji: '🎧', color: '#e74c3c' },
+  { id: 'transports/voiture', name: 'Voiture', emoji: '🚗', color: '#3498db' },
+  { id: 'transports/avion', name: 'Avion', emoji: '✈️', color: '#3498db' },
+  { id: 'transports/train', name: 'Train', emoji: '🚆', color: '#3498db' },
+  { id: 'transports/velo', name: 'Vélo', emoji: '🚲', color: '#3498db' },
+  { id: 'transports/marche', name: 'Marche', emoji: '🚶', color: '#3498db' },
+  { id: 'lecture-personnelle/calendrier', name: 'Calendrier', emoji: '📅', color: '#2ecc71' },
+  { id: 'lecture-personnelle/plan', name: 'Plan', emoji: '📋', color: '#2ecc71' },
+  { id: 'lecture-personnelle/revue', name: 'Revue', emoji: '📖', color: '#2ecc71' },
+  { id: 'lecture-personnelle/ebook', name: 'Ebook', emoji: '📱', color: '#2ecc71' },
+  { id: 'eglise/predication', name: 'Prédication', emoji: '🎯', color: '#7b68ee' },
+  { id: 'eglise/cours-bibliques', name: 'Cours bibliques', emoji: '📚', color: '#7b68ee' },
+  { id: 'autres', name: 'Autres', emoji: '📌', color: '#95a5a6' },
+];
+
 export const TAG_CATEGORIES = [
   {
     id: 'medias', name: 'Médias', color: '#e74c3c',
@@ -56,13 +76,22 @@ const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'sacc', name: 'Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
 ];
 
-const AUDIO_VERSIONS: BibleVersion[] = [
-  { id: 'audio-ls1910', name: 'Audio : Louis Segond 1910', language: 'fr', copyrightStatus: 'public-domain', source: 'tts', isEnabled: true },
-  { id: 'audio-darby', name: 'Audio : Bible Darby 1885', language: 'fr', copyrightStatus: 'public-domain', source: 'tts', isEnabled: true },
-  { id: 'audio-martin1744', name: 'Audio : Bible David Martin 1744', language: 'fr', copyrightStatus: 'public-domain', source: 'tts', isEnabled: true },
-  { id: 'audio-ostervald', name: 'Audio : Bible Ostervald 1996', language: 'fr', copyrightStatus: 'public-domain', source: 'tts', isEnabled: true },
-  { id: 'audio-cramp23', name: 'Audio : Augustin Crampon 1923', language: 'fr', copyrightStatus: 'public-domain', source: 'tts', isEnabled: true },
-  { id: 'audio-sacc', name: 'Audio : Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'tts', isEnabled: true },
+const REAL_AUDIO_VERSIONS: BibleVersion[] = [
+  { id: 'audio-ls1910', name: 'Audio : Louis Segond 1910', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
+  { id: 'audio-darby', name: 'Audio : Bible Darby 1885', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
+  { id: 'audio-martin1744', name: 'Audio : Bible David Martin 1744', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
+  { id: 'audio-ostervald', name: 'Audio : Bible Ostervald 1996', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
+  { id: 'audio-cramp23', name: 'Audio : Augustin Crampon 1923', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
+  { id: 'audio-sacc', name: 'Audio : Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'audio', isEnabled: true },
+];
+
+const AI_VERSIONS: BibleVersion[] = [
+  { id: 'ai-ls1910', name: 'IA : Louis Segond 1910', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
+  { id: 'ai-darby', name: 'IA : Bible Darby 1885', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
+  { id: 'ai-martin1744', name: 'IA : Bible David Martin 1744', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
+  { id: 'ai-ostervald', name: 'IA : Bible Ostervald 1996', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
+  { id: 'ai-cramp23', name: 'IA : Augustin Crampon 1923', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
+  { id: 'ai-sacc', name: 'IA : Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'ai', isEnabled: true },
 ];
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -91,7 +120,7 @@ export async function seedIfNeeded(): Promise<void> {
     if (!existing) await tx.objectStore('contexts').add(ctx);
   }
 
-  for (const v of [...TEXT_VERSIONS, ...AUDIO_VERSIONS]) {
+  for (const v of [...TEXT_VERSIONS, ...REAL_AUDIO_VERSIONS, ...AI_VERSIONS]) {
     const existing = await tx.objectStore('bible_versions').get(v.id);
     if (!existing) await tx.objectStore('bible_versions').add(v);
   }
@@ -113,7 +142,7 @@ export async function seedIfNeeded(): Promise<void> {
 }
 
 async function ensureVersionsExist(db: Awaited<ReturnType<typeof getDB>>): Promise<void> {
-  for (const v of [...TEXT_VERSIONS, ...AUDIO_VERSIONS]) {
+  for (const v of [...TEXT_VERSIONS, ...REAL_AUDIO_VERSIONS, ...AI_VERSIONS]) {
     const existing = await db.get('bible_versions', v.id);
     if (!existing) await db.add('bible_versions', v);
   }
