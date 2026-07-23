@@ -1,5 +1,6 @@
 import { type NextRequest } from 'next/server'
 import { createApiClient, requireUser, errorResponse, successResponse } from '@/lib/supabase/api-client'
+import { randomUUID } from 'crypto'
 
 export async function GET(request: NextRequest) {
   const user = await requireUser(request)
@@ -24,12 +25,18 @@ export async function POST(request: NextRequest) {
   if (!body.title?.trim()) return errorResponse('Le titre est requis')
 
   const supabase = createApiClient(request)
+
+  // Ensure profile exists (foreign key constraint)
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .upsert({ id: user.id, name: user.email?.split('@')[0] || 'User', color: '#1e3a5f' }, { onConflict: 'id' })
+
   const { data, error } = await supabase
     .from('tickets')
-    .insert({ title: body.title, description: body.description || '', category: body.category || 'bug', user_id: user.id })
+    .insert({ id: randomUUID(), title: body.title, description: body.description || '', category: body.category || 'bug', user_id: user.id })
     .select()
     .single()
 
-  if (error) return errorResponse(error.message)
+  if (error) return errorResponse(profileError ? 'Profil : ' + profileError.message + ' | Ticket : ' + error.message : error.message)
   return successResponse(data, 201)
 }

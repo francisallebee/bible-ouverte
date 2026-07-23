@@ -48,20 +48,25 @@ export default function SupportPage() {
     e.preventDefault()
     if (!title.trim()) return
     setSending(true)
-    const res = await fetch('/api/tickets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description, category }),
-    })
-    const json = await res.json()
-    setSending(false)
-    if (!res.ok || json.error) {
-      alert('Erreur : ' + (json.error || 'Impossible de créer le ticket'))
-      return
+    try {
+      const res = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, category }),
+      })
+      const json = await res.json()
+      setSending(false)
+      if (!res.ok || json.error) {
+        alert('Erreur (' + res.status + ') : ' + (json.error || 'Réponse invalide'))
+        return
+      }
+      setShowForm(false)
+      setTitle(''); setDescription(''); setCategory('bug')
+      await loadTickets()
+    } catch (e) {
+      setSending(false)
+      alert('Erreur réseau : ' + (e instanceof Error ? e.message : 'Échec de la requête'))
     }
-    setShowForm(false)
-    setTitle(''); setDescription(''); setCategory('bug')
-    await loadTickets()
   }
 
   const CatIcon = CATEGORIES.find(c => c.value === category)?.icon || Bug
