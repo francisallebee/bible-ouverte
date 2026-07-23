@@ -19,8 +19,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <LayoutClient>
       <Sidebar />
-      <main className="lg:ml-[var(--nav-width)] p-4 sm:p-6 lg:p-8 pt-20 lg:pt-8 pb-24">
-        {children}
+      <main className="lg:ml-[var(--nav-width)] min-h-screen">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pt-24 lg:pt-10">
+          {children}
+        </div>
       </main>
     </LayoutClient>
   )

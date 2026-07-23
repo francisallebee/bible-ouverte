@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle, ChevronRight } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -120,42 +120,57 @@ export default function SettingsPage() {
     }
   }
 
+  function SectionCard({ icon: Icon, title, children, className = "" }: { icon: React.ComponentType<{ className?: string }>, title: string, children: React.ReactNode, className?: string }) {
+    return (
+      <section className={`bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow] ${className}`}>
+        <h2 className="text-base font-semibold mb-4 flex items-center gap-2.5 text-[--text]">
+          <Icon className="w-4 h-4" />
+          {title}
+        </h2>
+        {children}
+      </section>
+    );
+  }
+
   if (!loaded) {
-    return <p className="text-gray-500">Chargement...</p>;
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin w-6 h-6 border-2 border-[--primary] border-t-transparent rounded-full" />
+      </div>
+    );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <Settings className="w-6 h-6 text-[#1e3a5f]" />
-        Réglages
-      </h1>
+      <div className="mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
+          <span className="w-10 h-10 bg-[--primary-light] rounded-xl flex items-center justify-center">
+            <Settings className="w-5 h-5 text-[--primary]" />
+          </span>
+          Réglages
+        </h1>
+        <p className="text-[--text-secondary] text-sm mt-1.5 ml-[3.25rem]">
+          Personnalise ton expérience
+        </p>
+      </div>
 
-      <div className="space-y-6 max-w-2xl">
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Sun className="w-5 h-5 text-[#1e3a5f]" />
-            Thème
-          </h2>
+      <div className="space-y-4">
+        <SectionCard icon={Sun} title="Thème">
           <select
             value={settings?.theme ?? "light"}
             onChange={(e) => handleThemeChange(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] w-full sm:w-auto"
           >
-            <option value="light">Clair</option>
-            <option value="dark">Sombre</option>
+            <option value="light">☀️ Clair</option>
+            <option value="dark">🌙 Sombre</option>
           </select>
-        </section>
+        </SectionCard>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Target className="w-5 h-5 text-green-600" />
-            Objectif de lecture
-          </h2>
-          <p className="text-sm text-gray-600 mb-3">
-            Fixez un objectif quotidien pour suivre votre progression.
+        <SectionCard icon={Target} title="Objectif de lecture">
+          <p className="text-sm text-[--text-secondary] mb-3">
+            Fixe un objectif quotidien pour suivre ta progression.
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <select
               value={settings?.readingGoal?.type ?? "chapters-per-day"}
               onChange={async (e) => {
@@ -165,7 +180,7 @@ export default function SettingsPage() {
                 const s = await getSettings();
                 setSettings(s ?? null);
               }}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
             >
               <option value="chapters-per-day">Chapitres / jour</option>
               <option value="verses-per-day">Versets / jour</option>
@@ -181,28 +196,24 @@ export default function SettingsPage() {
                 const s = await getSettings();
                 setSettings(s ?? null);
               }}
-              className="w-20 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              className="w-20 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
             />
-            <span className="text-sm text-gray-500">par jour</span>
+            <span className="text-sm text-[--text-secondary]">par jour</span>
           </div>
           {settings?.readingGoal && (
-            <p className="text-xs text-gray-400 mt-2">
-              Objectif actuel : {settings.readingGoal.target} {settings.readingGoal.type === "chapters-per-day" ? "chapitres" : "versets"} par jour
+            <p className="text-xs text-[--text-secondary] mt-2">
+              → {settings.readingGoal.target} {settings.readingGoal.type === "chapters-per-day" ? "chapitres" : "versets"} par jour
             </p>
           )}
-        </section>
+        </SectionCard>
 
         {isAdmin && (
-          <section className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-green-600" />
-              Unsplash (photos libres)
-            </h2>
-            <p className="text-sm text-gray-600 mb-3">
-              Clé d&apos;API Unsplash pour rechercher des photos depuis la page de lecture. 
+          <SectionCard icon={ImageIcon} title="Unsplash (photos libres)">
+            <p className="text-sm text-[--text-secondary] mb-3">
+              Clé d&apos;API Unsplash pour rechercher des photos depuis la page de lecture.
               Obtenez-la gratuitement sur{" "}
               <a href="https://unsplash.com/developers" target="_blank" rel="noopener noreferrer"
-                className="text-[#1e3a5f] underline">unsplash.com/developers</a>.
+                className="text-[--primary] underline">unsplash.com/developers</a>.
             </p>
             <input
               type="text"
@@ -213,71 +224,62 @@ export default function SettingsPage() {
                 const s = await getSettings();
                 setSettings(s ?? null);
               }}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
             />
             {settings?.unsplashAccessKey && (
-              <p className="text-xs text-green-600 mt-1">✓ Clé configurée</p>
+              <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Clé configurée
+              </p>
             )}
-          </section>
+          </SectionCard>
         )}
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-[#1e3a5f]" />
-            Versions bibliques
-          </h2>
-
-          <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-            <BookOpen size={15} /> Texte
-          </h3>
-          <div className="space-y-2 mb-6">
+        <SectionCard icon={BookOpen} title="Versions bibliques">
+          <div className="space-y-2">
             {versions.filter(v => !v.id.startsWith('audio-') && !v.id.startsWith('ai-')).map(v => {
               const isDefault = v.id === settings?.defaultVersionId;
               return (
-                <div key={v.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100">
+                <div key={v.id} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg border transition-colors ${
+                  isDefault ? 'border-[--primary] bg-[--primary-light]' : 'border-[--border] hover:border-gray-300'
+                }`}>
                   <input type="radio" name="defaultVersion" checked={isDefault}
-                    onChange={() => handleSetDefault(v.id)} className="accent-[#1e3a5f]" />
-                  <span className="text-sm flex-1">{v.name}</span>
-                  {isDefault && <span className="text-xs bg-[#1e3a5f] text-white px-2 py-0.5 rounded-full">Par défaut</span>}
-                  <label className="flex items-center gap-1.5 text-xs text-gray-500">
+                    onChange={() => handleSetDefault(v.id)}
+                    className="accent-[--primary] w-4 h-4" />
+                  <span className={`text-sm flex-1 ${isDefault ? 'font-medium text-[--primary]' : 'text-[--text]'}`}>{v.name}</span>
+                  {isDefault && <span className="text-xs bg-[--primary] text-white px-2 py-0.5 rounded-full font-medium">Par défaut</span>}
+                  <label className="flex items-center gap-1.5 text-xs text-[--text-secondary] cursor-pointer">
                     <input type="checkbox" checked={v.isEnabled} disabled={isDefault}
-                      onChange={() => handleToggleEnabled(v)} className="accent-[#1e3a5f]" />
+                      onChange={() => handleToggleEnabled(v)}
+                      className="accent-[--primary] w-3.5 h-3.5" />
                     Activée
                   </label>
                 </div>
               );
             })}
           </div>
+        </SectionCard>
 
-        </section>
-
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Download className="w-5 h-5 text-[#1e3a5f]" />
-            Export des données
-          </h2>
-          <p className="text-sm text-gray-600 mb-3">
-            Téléchargez toutes vos données au format JSON.
+        <SectionCard icon={Download} title="Export des données">
+          <p className="text-sm text-[--text-secondary] mb-3">
+            Télécharge toutes tes données au format JSON.
           </p>
           <button
             onClick={handleExport}
-            className="bg-[#1e3a5f] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2a4f7a] flex items-center gap-1.5"
+            className="bg-[--primary] text-white px-4 py-2.5 rounded-lg text-sm hover:bg-[--primary-hover] transition-colors flex items-center gap-1.5 shadow-[--shadow]"
           >
             <Download className="w-4 h-4" />
             Exporter en JSON
           </button>
           {exportStatus && (
-            <p className="text-sm text-green-600 mt-2">{exportStatus}</p>
+            <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> {exportStatus}
+            </p>
           )}
-        </section>
+        </SectionCard>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Upload className="w-5 h-5 text-[#1e3a5f]" />
-            Import des données
-          </h2>
-          <p className="text-sm text-gray-600 mb-3">
-            Importez un fichier JSON précédemment exporté.
+        <SectionCard icon={Upload} title="Import des données">
+          <p className="text-sm text-[--text-secondary] mb-3">
+            Importe un fichier JSON précédemment exporté.
           </p>
           <input
             ref={fileInputRef}
@@ -291,44 +293,40 @@ export default function SettingsPage() {
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="bg-[#1e3a5f] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2a4f7a] flex items-center gap-1.5"
+            className="bg-[--surface] text-[--text] border border-[--border] px-4 py-2.5 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5"
           >
             <Upload className="w-4 h-4" />
             Importer un fichier JSON
           </button>
           {importStatus && (
-            <p className={`text-sm mt-2 ${importStatus.includes("Erreur") ? "text-red-600" : "text-green-600"}`}>
+            <p className={`text-sm mt-2 flex items-center gap-1 ${
+              importStatus.includes("Erreur") ? "text-red-500" : "text-green-600"
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                importStatus.includes("Erreur") ? "bg-red-500" : "bg-green-500"
+              }`} />
               {importStatus}
             </p>
           )}
-        </section>
+        </SectionCard>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Cloud className="w-5 h-5 text-blue-600" />
-            Synchronisation cloud
-          </h2>
-          <p className="text-sm text-gray-600 mb-3">
+        <SectionCard icon={Cloud} title="Synchronisation cloud">
+          <p className="text-sm text-[--text-secondary] mb-3">
             Synchronise tes données avec ton compte pour les retrouver sur tous tes appareils.
           </p>
           <SyncButton />
-        </section>
+        </SectionCard>
 
         {user && (
-          <section className="bg-white rounded-xl border border-red-200 p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-700">
-              <AlertTriangle className="w-5 h-5" />
-              Supprimer mon compte
-            </h2>
+          <SectionCard icon={AlertTriangle} title="Supprimer mon compte" className="border-red-200">
             {deleteStep === 'initial' && (
               <>
                 <p className="text-sm text-red-600 mb-3 font-medium">
-                  Cette action est irréversible. Toutes tes données (lectures, plans, contextes,
-                  photos, enregistrements audio) seront définitivement effacées.
+                  Cette action est irréversible. Toutes tes données seront définitivement effacées.
                 </p>
                 <button
                   onClick={() => setDeleteStep('confirm')}
-                  className="bg-red-600 text-white px-4 py-3 rounded-lg text-sm hover:bg-red-700"
+                  className="bg-red-500 text-white px-4 py-2.5 rounded-lg text-sm hover:bg-red-600 transition-colors"
                 >
                   Supprimer mon compte
                 </button>
@@ -337,21 +335,20 @@ export default function SettingsPage() {
             {deleteStep === 'confirm' && (
               <div className="space-y-3">
                 <p className="text-sm text-red-700 font-bold bg-red-50 border border-red-200 rounded-lg p-3">
-                  ⚠️ Es-tu sûr ? Tes {settings?.readingGoal?.target || ''} lectures, plans et
-                  fichiers seront perdus à jamais.
+                  ⚠️ Es-tu sûr ? Tes lectures, plans et fichiers seront perdus à jamais.
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setDeleteStep('initial')}
                     disabled={deleting}
-                    className="border border-gray-300 text-gray-700 px-4 py-3 rounded-lg text-sm hover:bg-gray-50"
+                    className="border border-[--border] text-[--text] px-4 py-2.5 rounded-lg text-sm hover:bg-gray-50 transition-colors"
                   >
                     Annuler
                   </button>
                   <button
                     onClick={handleDeleteAccount}
                     disabled={deleting}
-                    className="bg-red-600 text-white px-4 py-3 rounded-lg text-sm hover:bg-red-700 disabled:opacity-50"
+                    className="bg-red-500 text-white px-4 py-2.5 rounded-lg text-sm hover:bg-red-600 disabled:opacity-50 transition-colors"
                   >
                     {deleting ? 'Suppression...' : 'Oui, tout supprimer'}
                   </button>
@@ -359,41 +356,35 @@ export default function SettingsPage() {
               </div>
             )}
             {deleteStep === 'done' && (
-              <p className="text-sm text-green-600 font-medium">
-                Compte supprimé. Redirection...
-              </p>
+              <p className="text-sm text-green-600 font-medium">Compte supprimé. Redirection...</p>
             )}
-          </section>
+          </SectionCard>
         )}
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Info className="w-5 h-5 text-[#1e3a5f]" />
-            Informations
-          </h2>
+        <SectionCard icon={Info} title="Informations">
           <dl className="text-sm space-y-2">
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Application</dt>
-              <dd>Bible Ouverte</dd>
+            <div className="flex justify-between py-1">
+              <dt className="text-[--text-secondary]">Application</dt>
+              <dd className="text-[--text] font-medium">Bible Ouverte</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Version</dt>
-              <dd>0.1.0</dd>
+            <div className="flex justify-between py-1 border-t border-[--border]">
+              <dt className="text-[--text-secondary]">Version</dt>
+              <dd className="text-[--text]">0.1.0</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Mode hors ligne</dt>
-              <dd className="text-green-600">Activé</dd>
+            <div className="flex justify-between py-1 border-t border-[--border]">
+              <dt className="text-[--text-secondary]">Mode hors ligne</dt>
+              <dd className="text-green-600 font-medium">Activé</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Stockage</dt>
-              <dd>IndexedDB</dd>
+            <div className="flex justify-between py-1 border-t border-[--border]">
+              <dt className="text-[--text-secondary]">Stockage</dt>
+              <dd className="text-[--text]">IndexedDB</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Versets disponibles</dt>
-              <dd>{verseCount.toLocaleString("fr-FR")}</dd>
+            <div className="flex justify-between py-1 border-t border-[--border]">
+              <dt className="text-[--text-secondary]">Versets disponibles</dt>
+              <dd className="text-[--text]">{verseCount.toLocaleString("fr-FR")}</dd>
             </div>
           </dl>
-        </section>
+        </SectionCard>
       </div>
     </div>
   );

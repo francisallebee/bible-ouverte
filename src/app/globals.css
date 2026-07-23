@@ -4,92 +4,84 @@
 
 :root {
   --nav-width: 260px;
+  --primary: #1e3a5f;
+  --primary-hover: #2a4f7a;
+  --primary-light: #e8eef5;
+  --accent: #7b68ee;
+  --accent-light: #f0eeff;
+  --success: #2ecc71;
+  --success-light: #e8faf0;
+  --warning: #f39c12;
+  --warning-light: #fef9e7;
+  --danger: #e74c3c;
+  --danger-light: #fdecea;
+  --bg: #f8f9fb;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
 }
 
 body {
-  @apply bg-gray-50 text-gray-900 antialiased;
+  @apply bg-[--bg] text-[--text] antialiased;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 @media (max-width: 1023px) {
-  :root {
-    --nav-width: 0px;
-  }
+  :root { --nav-width: 0px; }
 }
 
-/* Mobile touch-friendly sizing — auto, no preset needed */
 @media (max-width: 767px) {
   button, .btn, input, select, textarea, [role="button"], a.btn {
     min-height: 44px !important;
     font-size: 16px !important;
   }
-  label {
-    font-size: 14px !important;
-  }
+  label { font-size: 14px !important; }
 }
 
-[data-preset="smartphone"] button,
-[data-preset="smartphone"] .btn,
-[data-preset="smartphone"] input,
-[data-preset="smartphone"] select,
+[data-preset="smartphone"] button, [data-preset="smartphone"] .btn,
+[data-preset="smartphone"] input, [data-preset="smartphone"] select,
 [data-preset="smartphone"] textarea {
-  min-height: 44px !important;
-  font-size: 16px !important;
+  min-height: 44px !important; font-size: 16px !important;
+}
+[data-preset="smartphone"] label { font-size: 14px !important; }
+[data-preset="tablet"] button, [data-preset="tablet"] .btn,
+[data-preset="tablet"] input, [data-preset="tablet"] select,
+[data-preset="tablet"] textarea { min-height: 40px !important; }
+
+html.dark {
+  --primary-light: #1a2840;
+  --accent-light: #1e1a3a;
+  --success-light: #0a2e1a;
+  --warning-light: #2a2208;
+  --danger-light: #2a0a0a;
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --border: #334155;
+  --text: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.4);
 }
 
-[data-preset="smartphone"] label {
-  font-size: 14px !important;
+html.dark body { @apply bg-[--bg] text-[--text]; }
+html.dark .bg-white { background-color: var(--surface) !important; }
+html.dark .bg-gray-50 { background-color: #0f172a !important; }
+html.dark .bg-gray-100 { background-color: var(--surface) !important; }
+html.dark .border-gray-200 { border-color: var(--border) !important; }
+html.dark .border-gray-300 { border-color: var(--border) !important; }
+html.dark .text-gray-500, html.dark .text-gray-600,
+html.dark .text-gray-700, html.dark .text-gray-900 { color: var(--text) !important; }
+html.dark .text-gray-400 { color: var(--text-secondary) !important; }
+html.dark select, html.dark input, html.dark textarea {
+  background-color: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
 }
-
-[data-preset="tablet"] button,
-[data-preset="tablet"] .btn,
-[data-preset="tablet"] input,
-[data-preset="tablet"] select,
-[data-preset="tablet"] textarea {
-  min-height: 40px !important;
-}
-
-/* Dark mode */
-html.dark body {
-  @apply bg-gray-900 text-gray-100;
-}
-html.dark .bg-white {
-  background-color: #1f2937 !important;
-}
-html.dark .bg-gray-50 {
-  background-color: #111827 !important;
-}
-html.dark .bg-gray-100 {
-  background-color: #1f2937 !important;
-}
-html.dark .border-gray-200 {
-  border-color: #374151 !important;
-}
-html.dark .border-gray-300 {
-  border-color: #4b5563 !important;
-}
-html.dark .text-gray-500,
-html.dark .text-gray-600,
-html.dark .text-gray-700,
-html.dark .text-gray-900 {
-  color: #d1d5db !important;
-}
-html.dark .text-gray-400 {
-  color: #9ca3af !important;
-}
-html.dark select,
-html.dark input,
-html.dark textarea {
-  background-color: #374151 !important;
-  color: #e5e7eb !important;
-  border-color: #4b5563 !important;
-}
-html.dark option {
-  background-color: #1f2937 !important;
-  color: #e5e7eb !important;
-}
-html.dark .bg-amber-50 {
-  background-color: #451a03 !important;
-}
-html.dark .border-amber-200 {
-  border-color: #78350f !important;
-}
+html.dark option { background-color: var(--surface) !important; color: var(--text) !important; }
