@@ -58,7 +58,7 @@ export default function Sidebar() {
       )}
 
       <nav
-        className={`fixed top-0 left-0 bottom-0 w-[var(--nav-width)] bg-white border-r border-gray-200 flex flex-col p-4 z-40 transition-transform duration-200 ${
+        className={`fixed top-0 left-0 bottom-0 w-64 lg:w-[var(--nav-width)] bg-white border-r border-gray-200 flex flex-col p-4 z-40 transition-transform duration-200 ${
           open ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
