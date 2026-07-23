@@ -48,12 +48,17 @@ export default function SupportPage() {
     e.preventDefault()
     if (!title.trim()) return
     setSending(true)
-    await fetch('/api/tickets', {
+    const res = await fetch('/api/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, description, category }),
     })
+    const json = await res.json()
     setSending(false)
+    if (!res.ok || json.error) {
+      alert('Erreur : ' + (json.error || 'Impossible de créer le ticket'))
+      return
+    }
     setShowForm(false)
     setTitle(''); setDescription(''); setCategory('bug')
     await loadTickets()

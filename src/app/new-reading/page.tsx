@@ -7,7 +7,7 @@ import {
   X, ExternalLink, Plus, Music,
 } from "lucide-react";
 import {
-  seedIfNeeded, getAllContexts, getAllVersions, getPassagesByRange, addReading,
+  seedIfNeeded, getAllContexts, getAllVersions, getPassagesByRange, addReading, getSettings,
 } from "@/lib/storage";
 import type { ReadingContext, BibleVersion, ReadingLink, BiblePassage } from "@/lib/storage";
 import { BOOKS, getBook, getBookName } from "@/features/bible";
@@ -87,7 +87,10 @@ export default function NewReadingPage() {
       ]);
       setContexts(ctxs);
       setVersions(vers);
-      if (vers.length > 0) setVersionId(vers[0].id);
+      if (vers.length > 0) {
+        const s = await getSettings();
+        setVersionId(s?.defaultVersionId || vers[0].id);
+      }
       if (ctxs.length > 0) setContextId(ctxs[0].id);
       setLoaded(true);
     })();

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Search, BookOpen, BookPlus } from "lucide-react";
-import { seedIfNeeded, getAllVersions, getAllContexts, addReading, getPassages, getPassagesByRange, searchPassages } from "@/lib/storage";
+import { seedIfNeeded, getAllVersions, getAllContexts, addReading, getPassages, getPassagesByRange, searchPassages, getSettings } from "@/lib/storage";
 import type { BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
 import { BOOKS, getBookName } from "@/features/bible";
 
@@ -63,7 +63,12 @@ export default function SearchPage() {
       const [vers, ctxs] = await Promise.all([getAllVersions(), getAllContexts()]);
       setVersions(vers);
       setContexts(ctxs);
-      if (vers.length > 0) { setRefVersion(vers[0].id); setKwVersion(vers[0].id); }
+      if (vers.length > 0) {
+        const s = await getSettings();
+        const defId = s?.defaultVersionId || vers[0].id;
+        setRefVersion(defId);
+        setKwVersion(defId);
+      }
       if (ctxs.length > 0) setAddContextId(ctxs[0].id);
       setLoaded(true);
     })();
