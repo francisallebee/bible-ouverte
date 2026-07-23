@@ -42,7 +42,7 @@ export default function DashboardPage() {
   const thisMonth = readings.filter((r) => new Date(r.date) >= startOfMonth).length;
 
   const contextCounts: Record<string, number> = {};
-  for (const r of readings) contextCounts[r.contextId] = (contextCounts[r.contextId] || 0) + 1;
+  for (const r of readings) for (const tag of (r.tags || [])) contextCounts[tag] = (contextCounts[tag] || 0) + 1;
   const total = readings.length;
 
   return (

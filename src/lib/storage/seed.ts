@@ -2,13 +2,50 @@ import type { AppSettings, BibleVersion, ReadingContext } from './types';
 import { getDB } from './db';
 import { importAllBibleData } from '@/features/bible/import';
 
-const DEFAULT_CONTEXTS: ReadingContext[] = [
-  { id: 'lecture-personnelle', name: 'Lecture personnelle', slug: 'lecture-personnelle', color: '#4a90d9', icon: 'book', isSystemDefault: true },
-  { id: 'eglise', name: 'Église', slug: 'eglise', color: '#7b68ee', icon: 'church', isSystemDefault: true },
-  { id: 'youtube', name: 'YouTube', slug: 'youtube', color: '#ff0000', icon: 'video', isSystemDefault: true },
-  { id: 'logiciel-biblique', name: 'Logiciel biblique', slug: 'logiciel-biblique', color: '#2ecc71', icon: 'monitor', isSystemDefault: true },
-  { id: 'autres', name: 'Autres', slug: 'autres', color: '#95a5a6', icon: 'more-horizontal', isSystemDefault: true },
+export const TAG_CATEGORIES = [
+  {
+    id: 'medias', name: 'Médias', color: '#e74c3c',
+    children: [
+      { id: 'medias/youtube', name: 'YouTube' },
+      { id: 'medias/podcast', name: 'Podcast' },
+      { id: 'medias/livre-audio', name: 'Livre audio' },
+    ],
+  },
+  {
+    id: 'transports', name: 'Transports', color: '#3498db',
+    children: [
+      { id: 'transports/voiture', name: 'Voiture' },
+      { id: 'transports/avion', name: 'Avion' },
+      { id: 'transports/train', name: 'Train' },
+      { id: 'transports/velo', name: 'Vélo' },
+      { id: 'transports/marche', name: 'Marche' },
+    ],
+  },
+  {
+    id: 'lecture-personnelle', name: 'Lecture personnelle', color: '#2ecc71',
+    children: [
+      { id: 'lecture-personnelle/calendrier', name: 'Calendrier' },
+      { id: 'lecture-personnelle/plan', name: 'Plan' },
+      { id: 'lecture-personnelle/revue', name: 'Revue' },
+      { id: 'lecture-personnelle/ebook', name: 'Ebook' },
+    ],
+  },
+  {
+    id: 'eglise', name: 'Église', color: '#7b68ee',
+    children: [
+      { id: 'eglise/predication', name: 'Prédication' },
+      { id: 'eglise/cours-bibliques', name: 'Cours bibliques' },
+    ],
+  },
+  { id: 'autres', name: 'Autres', color: '#95a5a6', children: [] },
 ];
+
+const DEFAULT_CONTEXTS: ReadingContext[] = TAG_CATEGORIES.flatMap(cat =>
+  cat.children.length > 0
+    ? [{ id: cat.id, name: cat.name, slug: cat.id, color: cat.color, icon: 'folder', isSystemDefault: true },
+       ...cat.children.map(ch => ({ id: ch.id, name: ch.name, slug: ch.id, color: cat.color, icon: 'tag', isSystemDefault: true }))]
+    : [{ id: cat.id, name: cat.name, slug: cat.id, color: cat.color, icon: 'more-horizontal', isSystemDefault: true }]
+);
 
 const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'ls1910', name: 'Louis Segond 1910', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },

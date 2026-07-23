@@ -30,13 +30,11 @@ export async function getReadingsByDateRange(start: string, end: string): Promis
   return readings.filter((r) => !r.userId || r.userId === userId);
 }
 
-export async function getReadingsByContext(contextId: string): Promise<ReadingEntry[]> {
+export async function getReadingsByTag(tagId: string): Promise<ReadingEntry[]> {
   const db = await getDB();
   const userId = await getCurrentUserId();
-  const tx = db.transaction('readings');
-  const index = tx.objectStore('readings').index('by-context');
-  const readings = await index.getAll(contextId);
-  return readings.filter((r) => !r.userId || r.userId === userId);
+  const all = await db.getAll('readings');
+  return all.filter(r => r.tags?.includes(tagId) && (!r.userId || r.userId === userId));
 }
 
 export async function getReadingsByBook(book: string): Promise<ReadingEntry[]> {

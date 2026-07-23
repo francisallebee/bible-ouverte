@@ -90,7 +90,7 @@ export default function PlanDetailPage() {
           verseEnd: 1,
           passageText: "",
           translationId: plan!.versionId,
-          contextId: "general",
+          tags: ["general"],
           notes: `Plan : ${plan!.name} (jour ${day.day})`,
         });
         updatedDay.isRead = true;

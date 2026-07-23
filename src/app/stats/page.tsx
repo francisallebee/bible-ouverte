@@ -105,7 +105,7 @@ export default function StatsPage() {
   const byContext = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const r of readings) {
-      counts[r.contextId] = (counts[r.contextId] || 0) + 1;
+      for (const tag of (r.tags || [])) counts[tag] = (counts[tag] || 0) + 1;
     }
     return Object.entries(counts).map(([id, value]) => ({
       name: ctxMap[id]?.name ?? id,

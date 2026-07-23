@@ -59,7 +59,7 @@ export default function HistoryPage() {
     }
 
     if (contextFilter) {
-      result = result.filter((r) => r.contextId === contextFilter);
+      result = result.filter((r) => r.tags?.includes(contextFilter));
     }
 
     if (bookFilter) {
@@ -172,7 +172,7 @@ export default function HistoryPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((r) => {
-            const ctx = contextMap[r.contextId];
+            const ctx = r.tags?.length > 0 ? contextMap[r.tags[0]] : undefined;
             return (
               <Link
                 key={r.id as number}

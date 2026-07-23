@@ -8,7 +8,6 @@ interface BibleOuverteDB extends DBSchema {
     indexes: {
       'by-date': string;
       'by-book': string;
-      'by-context': string;
     };
   };
   contexts: {
@@ -72,7 +71,6 @@ export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
           });
           readingsStore.createIndex('by-date', 'date');
           readingsStore.createIndex('by-book', 'book');
-          readingsStore.createIndex('by-context', 'contextId');
 
           db.createObjectStore('contexts', { keyPath: 'id' });
           db.createObjectStore('bible_versions', { keyPath: 'id' });

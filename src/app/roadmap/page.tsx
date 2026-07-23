@@ -8,6 +8,7 @@ import type { RoadmapItem } from '@/lib/storage/types'
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   planned: { label: 'Planifié', color: 'text-gray-500 bg-gray-100' },
+  projet: { label: 'Projet', color: 'text-purple-600 bg-purple-50' },
   'in-progress': { label: 'En cours', color: 'text-blue-600 bg-blue-50' },
   done: { label: 'Terminé', color: 'text-green-600 bg-green-50' },
   cancelled: { label: 'Annulé', color: 'text-red-500 bg-red-50' },

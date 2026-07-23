@@ -10,6 +10,7 @@ import {
   seedIfNeeded, getAllContexts, getAllVersions, getPassagesByRange, addReading, getSettings,
 } from "@/lib/storage";
 import type { ReadingContext, BibleVersion, ReadingLink, BiblePassage } from "@/lib/storage";
+import { TAG_CATEGORIES } from "@/lib/storage/seed";
 import { BOOKS, getBook, getBookName } from "@/features/bible";
 import type { BibleBook } from "@/features/bible";
 import UnsplashSearch from "@/components/UnsplashSearch";
@@ -30,7 +31,7 @@ export default function NewReadingPage() {
   const [verseStart, setVerseStart] = useState(1);
   const [verseEnd, setVerseEnd] = useState<number | undefined>();
   const [versionId, setVersionId] = useState("");
-  const [contextId, setContextId] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [links, setLinks] = useState<ReadingLink[]>([]);
   const [photos, setPhotos] = useState<string[]>([]);
@@ -91,7 +92,7 @@ export default function NewReadingPage() {
         const s = await getSettings();
         setVersionId(s?.defaultVersionId || vers[0].id);
       }
-      if (ctxs.length > 0) setContextId(ctxs[0].id);
+
       setLoaded(true);
     })();
   }, []);
@@ -131,7 +132,7 @@ export default function NewReadingPage() {
   }
 
   async function handleSave() {
-    if (!book || !versionId || !contextId) return;
+    if (!book || !versionId || tags.length === 0) return;
     setSaving(true);
 
     await addReading({
@@ -143,7 +144,7 @@ export default function NewReadingPage() {
       verseEnd: vEnd,
       passageText: "",
       translationId: versionId,
-      contextId,
+      tags,
       notes,
       links: links.length > 0 ? links : undefined,
       photos: photos.length > 0 ? photos : undefined,
@@ -234,10 +235,44 @@ export default function NewReadingPage() {
 
           <div>
             <label className="block text-sm font-medium mb-1">Contexte</label>
-            <select value={contextId} onChange={(e) => setContextId(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-              {contexts.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-            </select>
+            <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
+              {TAG_CATEGORIES.map(cat => (
+                <div key={cat.id} className="w-full">
+                  <p className="text-xs font-semibold text-gray-600 mb-1 ml-1">{cat.name}</p>
+                  <div className="flex flex-wrap gap-1.5 mb-1.5">
+                    {cat.children.map(ch => {
+                      const active = tags.includes(ch.id);
+                      return (
+                        <button key={ch.id} type="button" onClick={() => {
+                          setTags(prev => active ? prev.filter(t => t !== ch.id) : [...prev, ch.id])
+                        }}
+                          className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                            active ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                          }`}>
+                          {ch.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              <div className="w-full">
+                <p className="text-xs font-semibold text-gray-600 mb-1 ml-1">Autres</p>
+                {contexts.filter(c => !TAG_CATEGORIES.some(cat => cat.id === c.id || cat.children.some(ch => ch.id === c.id))).map(c => {
+                  const active = tags.includes(c.id);
+                  return (
+                    <button key={c.id} type="button" onClick={() => {
+                      setTags(prev => active ? prev.filter(t => t !== c.id) : [...prev, c.id])
+                    }}
+                      className={`mr-1.5 mb-1.5 px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                        active ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      }`}>
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <div>
@@ -335,7 +370,7 @@ export default function NewReadingPage() {
             )}
           </div>
 
-          <button onClick={handleSave} disabled={!book || !versionId || !contextId || saving}
+          <button onClick={handleSave} disabled={!book || !versionId || tags.length === 0 || saving}
             className="bg-[#1e3a5f] text-white px-6 py-2 rounded-lg text-sm hover:bg-[#2a4f7a] disabled:opacity-50 disabled:cursor-not-allowed">
             {saving ? "Enregistrement..." : "Enregistrer"}
           </button>

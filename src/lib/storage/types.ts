@@ -17,7 +17,7 @@ export interface ReadingEntry {
   verseEnd: number;
   passageText: string;
   translationId: string;
-  contextId: string;
+  tags: string[];
   notes: string;
   userId: string;
   links?: ReadingLink[];

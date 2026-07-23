@@ -34,10 +34,8 @@ export async function deleteContext(id: string): Promise<void> {
   const ctxStore = tx.objectStore('contexts');
   const existing = await ctxStore.get(id);
   if (!existing) return;
-  const readingCount = await tx
-    .objectStore('readings')
-    .index('by-context')
-    .count(id);
+  const all = await tx.objectStore('readings').getAll();
+  const readingCount = all.filter(r => r.tags?.includes(id)).length;
   if (readingCount === 0) {
     await ctxStore.delete(id);
   }
