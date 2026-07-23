@@ -139,7 +139,7 @@ export default function SearchPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <Search className="w-6 h-6 text-[#1e3a5f]" />
+        <Search className="w-6 h-6 text-[--primary]" />
         Recherche biblique
       </h1>
 
@@ -147,7 +147,7 @@ export default function SearchPage() {
         {(["reference", "keyword"] as Mode[]).map((m) => (
           <button key={m} onClick={() => setMode(m)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              mode === m ? "bg-[#1e3a5f] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              mode === m ? "bg-[--primary] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
             {m === "reference" ? <BookText className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
@@ -202,7 +202,7 @@ export default function SearchPage() {
               </div>
             </div>
             <button onClick={searchByReference} disabled={!refBook}
-              className="mt-4 bg-[#1e3a5f] text-white px-5 py-2 rounded-lg text-sm hover:bg-[#2a4f7a] disabled:opacity-50">
+              className="mt-4 bg-[--primary] text-white px-5 py-2 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50">
               Chercher
             </button>
           </div>
@@ -273,7 +273,7 @@ export default function SearchPage() {
                   <div key={`${p.book}-${p.chapter}-${p.verse}`}
                     className="bg-white rounded-lg border border-gray-200 px-4 py-2 text-sm flex items-start gap-2">
                     <div className="flex-1 min-w-0">
-                      <span className="font-medium text-[#1e3a5f]">
+                      <span className="font-medium text-[--primary]">
                         {getBookName(p.book)} {p.chapter}:{p.verse}
                       </span>{" "}
                       <span className="text-gray-700">{highlightText(p.text, kwQuery)}</span>
@@ -338,7 +338,7 @@ export default function SearchPage() {
                     Annuler
                   </button>
                   <button onClick={saveAdd} disabled={addSaving}
-                    className="bg-[#1e3a5f] text-white px-4 py-2 text-sm rounded-lg hover:bg-[#2a4f7a] disabled:opacity-50">
+                    className="bg-[--primary] text-white px-4 py-2 text-sm rounded-lg hover:bg-[--primary-hover] disabled:opacity-50">
                     {addSaving ? "Ajout..." : "Ajouter aux lectures"}
                   </button>
                 </div>

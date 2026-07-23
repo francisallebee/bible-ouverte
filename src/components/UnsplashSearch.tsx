@@ -59,7 +59,7 @@ export default function UnsplashSearch({ onSelect, onClose }: Props) {
             autoFocus
           />
           <button onClick={search} disabled={loading || !query.trim()}
-            className="bg-[#1e3a5f] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2a4f7a] disabled:opacity-50 flex items-center gap-1.5">
+            className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 flex items-center gap-1.5">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
             Chercher
           </button>
@@ -67,7 +67,7 @@ export default function UnsplashSearch({ onSelect, onClose }: Props) {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 overflow-y-auto flex-1">
           {results.map((photo) => (
             <button key={photo.id} onClick={() => { onSelect(photo.urls.regular); onClose(); }}
-              className="group relative rounded-lg overflow-hidden border border-gray-200 aspect-[4/3] hover:ring-2 hover:ring-[#1e3a5f] transition-all">
+              className="group relative rounded-lg overflow-hidden border border-gray-200 aspect-[4/3] hover:ring-2 hover:ring-[--primary] transition-all">
               <img src={photo.urls.small} alt={photo.alt_description ?? ""}
                 className="w-full h-full object-cover" loading="lazy" />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">

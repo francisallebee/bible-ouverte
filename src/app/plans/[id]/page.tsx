@@ -155,7 +155,7 @@ export default function PlanDetailPage() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500 mb-4">Plan introuvable.</p>
-        <Link href="/plans" className="text-[#1e3a5f] underline text-sm">Retour aux plans</Link>
+        <Link href="/plans" className="text-[--primary] underline text-sm">Retour aux plans</Link>
       </div>
     );
   }
@@ -168,7 +168,7 @@ export default function PlanDetailPage() {
 
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <BookOpen className="w-7 h-7 text-[#1e3a5f]" />
+          <BookOpen className="w-7 h-7 text-[--primary]" />
           <div>
             <h1 className="text-2xl font-bold">{plan.name}</h1>
             <p className="text-sm text-gray-500">
@@ -240,13 +240,13 @@ export default function PlanDetailPage() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-2">Livres (laisser vide pour toute la Bible)</label>
               <details className="text-sm">
-                <summary className="cursor-pointer text-[#1e3a5f] hover:underline">
+                <summary className="cursor-pointer text-[--primary] hover:underline">
                   {formBooks.length === 0 ? "Tous les livres" : `${formBooks.length} livre(s) sélectionné(s)`}
                 </summary>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1 mt-2 max-h-60 overflow-y-auto">
                   {BOOKS.map((b) => (
                     <label key={b.abbreviation} className="flex items-center gap-1.5 text-sm cursor-pointer hover:bg-blue-100 rounded px-1 py-0.5">
-                      <input type="checkbox" checked={formBooks.includes(b.abbreviation)} onChange={() => toggleBook(b.abbreviation)} className="accent-[#1e3a5f]" />
+                      <input type="checkbox" checked={formBooks.includes(b.abbreviation)} onChange={() => toggleBook(b.abbreviation)} className="accent-[--primary]" />
                       {b.name}
                     </label>
                   ))}
@@ -255,7 +255,7 @@ export default function PlanDetailPage() {
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <button onClick={handleSaveEdit} disabled={!formName.trim() || saving} className="bg-[#1e3a5f] text-white px-4 py-1.5 rounded-lg text-sm hover:bg-[#2a4f7a] disabled:opacity-50 flex items-center gap-1.5">
+            <button onClick={handleSaveEdit} disabled={!formName.trim() || saving} className="bg-[--primary] text-white px-4 py-1.5 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 flex items-center gap-1.5">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               {saving ? "Enregistrement..." : "Enregistrer"}
             </button>
@@ -266,7 +266,7 @@ export default function PlanDetailPage() {
 
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
         <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full bg-[#1e3a5f] rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-[--primary] rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>
         <p className="text-xs text-gray-400 mt-2">{days.length - readDays} jours restants sur {days.length}</p>
       </div>

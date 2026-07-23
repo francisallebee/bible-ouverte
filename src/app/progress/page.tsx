@@ -213,13 +213,13 @@ export default function ProgressPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <BarChart3 className="w-6 h-6 text-[#1e3a5f]" />
+        <BarChart3 className="w-6 h-6 text-[--primary]" />
         Ma progression
       </h1>
 
       {/* Level + Streak */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-[#1e3a5f] to-[#2a4f7a] text-white rounded-xl p-5">
+        <div className="bg-gradient-to-br from-[--primary] to-[--primary-hover] text-white rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <Trophy className="w-5 h-5 text-yellow-300" />
             <span className="text-xs uppercase tracking-wider opacity-80">Niveau {level.level}</span>
@@ -246,10 +246,10 @@ export default function ProgressPage() {
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-2">
-            <BookOpen className="w-5 h-5 text-[#1e3a5f]" />
+            <BookOpen className="w-5 h-5 text-[--primary]" />
             <span className="text-xs uppercase tracking-wider text-gray-500">Chapitres lus</span>
           </div>
-          <p className="text-3xl font-bold text-[#1e3a5f]">{chapterCount}<span className="text-lg font-normal text-gray-400 ml-1">/ {totalBibleChapters}</span></p>
+          <p className="text-3xl font-bold text-[--primary]">{chapterCount}<span className="text-lg font-normal text-gray-400 ml-1">/ {totalBibleChapters}</span></p>
           <p className="text-xs text-gray-400 mt-1">{uniqueBooks} livre(s) entamé(s)</p>
         </div>
 
@@ -324,7 +324,7 @@ export default function ProgressPage() {
       {/* Categories */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
         <h2 className="font-semibold mb-4 flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-[#1e3a5f]" />
+          <BookOpen className="w-5 h-5 text-[--primary]" />
           Progression par catégorie
         </h2>
         <div className="space-y-3">
@@ -371,7 +371,7 @@ export default function ProgressPage() {
       {/* Books */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h2 className="font-semibold mb-4 flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-[#1e3a5f]" />
+          <BookOpen className="w-5 h-5 text-[--primary]" />
           Détail par livre
         </h2>
         <div className="space-y-2 max-h-96 overflow-y-auto">

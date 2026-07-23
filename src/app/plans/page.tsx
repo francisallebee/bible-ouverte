@@ -86,12 +86,12 @@ export default function PlansPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <BookOpen className="w-6 h-6 text-[#1e3a5f]" />
+          <BookOpen className="w-6 h-6 text-[--primary]" />
           Plans de lecture
         </h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-[#1e3a5f] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2a4f7a] flex items-center gap-1.5"
+          className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] flex items-center gap-1.5"
         >
           <Plus className="w-4 h-4" />
           Nouveau plan
@@ -161,7 +161,7 @@ export default function PlansPage() {
             <button
               onClick={handleCreate}
               disabled={!formName.trim() || formSaving}
-              className="bg-[#1e3a5f] text-white px-4 py-1.5 rounded-lg text-sm hover:bg-[#2a4f7a] disabled:opacity-50"
+              className="bg-[--primary] text-white px-4 py-1.5 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50"
             >
               {formSaving ? "Création..." : "Créer le plan"}
             </button>
@@ -193,7 +193,7 @@ export default function PlansPage() {
                   <div>
                     <Link
                       href={`/plans/${plan.id}`}
-                      className="text-lg font-semibold text-gray-900 hover:text-[#1e3a5f] no-underline"
+                      className="text-lg font-semibold text-gray-900 hover:text-[--primary] no-underline"
                     >
                       {plan.name}
                     </Link>

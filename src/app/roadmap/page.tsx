@@ -63,12 +63,12 @@ export default function RoadmapPage() {
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Route className="w-6 h-6 text-[#1e3a5f]" />
+          <Route className="w-6 h-6 text-[--primary]" />
           Feuille de route
         </h1>
         {isAdmin && (
           <button onClick={() => { resetForm(); setShowForm(true) }}
-            className="bg-[#1e3a5f] text-white px-4 py-3 rounded-lg text-sm hover:bg-[#2a4f7a] flex items-center gap-1.5">
+            className="bg-[--primary] text-white px-4 py-3 rounded-lg text-sm hover:bg-[--primary-hover] flex items-center gap-1.5">
             <Plus className="w-4 h-4" /> Ajouter
           </button>
         )}
@@ -99,7 +99,7 @@ export default function RoadmapPage() {
           </div>
           <div className="flex gap-2">
             <button onClick={handleSave} disabled={saving || !title.trim()}
-              className="bg-[#1e3a5f] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2a4f7a] disabled:opacity-50 flex items-center gap-1.5">
+              className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 flex items-center gap-1.5">
               {saving && <Loader className="w-4 h-4 animate-spin" />}
               {editId ? 'Modifier' : 'Ajouter'}
             </button>

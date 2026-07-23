@@ -44,7 +44,7 @@ function LoginForm() {
 
   return (
     <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl p-8">
-      <h1 className="text-2xl font-bold text-center text-[#1e3a5f] mb-6">Connexion</h1>
+      <h1 className="text-2xl font-bold text-center text-[--primary] mb-6">Connexion</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -52,7 +52,7 @@ function LoginForm() {
             name="email"
             type="email"
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
           />
         </div>
         <div>
@@ -61,21 +61,21 @@ function LoginForm() {
             name="password"
             type="password"
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
           />
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#1e3a5f] text-white py-2 rounded-lg hover:bg-[#2a4f7a] disabled:opacity-50 transition-colors"
+          className="w-full bg-[--primary] text-white py-2 rounded-lg hover:bg-[--primary-hover] disabled:opacity-50 transition-colors"
         >
           {loading ? 'Connexion...' : 'Se connecter'}
         </button>
       </form>
       <p className="text-sm text-center mt-4 text-gray-600">
         Pas encore de compte ?{' '}
-        <Link href="/auth/signup" className="text-[#1e3a5f] font-medium hover:underline">
+        <Link href="/auth/signup" className="text-[--primary] font-medium hover:underline">
           Créer un compte
         </Link>
       </p>

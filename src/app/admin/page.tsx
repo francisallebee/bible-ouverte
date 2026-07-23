@@ -131,10 +131,10 @@ export default function AdminPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Shield className="w-6 h-6 text-[#1e3a5f]" /> Administration
+          <Shield className="w-6 h-6 text-[--primary]" /> Administration
         </h1>
         <button onClick={tab === 'users' ? loadData : loadTickets}
-          className="flex items-center gap-1.5 text-sm text-[#1e3a5f] hover:underline">
+          className="flex items-center gap-1.5 text-sm text-[--primary] hover:underline">
           <RefreshCw className="w-4 h-4" /> Actualiser
         </button>
       </div>
@@ -142,11 +142,11 @@ export default function AdminPage() {
       {/* Tabs */}
       <div className="flex gap-1 mb-6 border-b border-gray-200">
         <button onClick={() => setTab('users')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === 'users' ? 'border-[#1e3a5f] text-[#1e3a5f]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === 'users' ? 'border-[--primary] text-[--primary]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
           <Users className="w-4 h-4 inline mr-1.5" />Utilisateurs
         </button>
         <button onClick={() => { setTab('tickets'); if (tickets.length === 0) loadTickets() }}
-          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === 'tickets' ? 'border-[#1e3a5f] text-[#1e3a5f]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === 'tickets' ? 'border-[--primary] text-[--primary]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
           <MessageSquare className="w-4 h-4 inline mr-1.5" />Tickets{' '}
           {tickets.length > 0 && <span className="text-xs ml-1">({tickets.length})</span>}
         </button>
@@ -158,7 +158,7 @@ export default function AdminPage() {
           {stats && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
               <StatCard icon={<Users className="w-4 h-4" />} label="Utilisateurs" value={stats.totalUsers}
-                sub={`${stats.admins} admin · ${stats.activeUsers} actifs/7j`} color="text-[#1e3a5f]" />
+                sub={`${stats.admins} admin · ${stats.activeUsers} actifs/7j`} color="text-[--primary]" />
               <StatCard icon={<BookOpen className="w-4 h-4" />} label="Lectures" value={stats.totalReadings} color="text-green-600" />
               <StatCard icon={<Ban className="w-4 h-4" />} label="Suspendus" value={users.filter(u => u.suspended).length} color="text-red-600" />
               <StatCard icon={<Users className="w-4 h-4" />} label="Plans" value={stats.totalPlans}
@@ -196,7 +196,7 @@ export default function AdminPage() {
                       <td className="p-3 text-center hidden sm:table-cell">{u.plans}</td>
                       <td className="p-3 text-xs text-gray-500 hidden lg:table-cell">{u.lastSignIn ? new Date(u.lastSignIn).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Jamais'}</td>
                       <td className="p-3"><div className="flex items-center justify-center gap-1">
-                        <button onClick={() => handleToggleAdmin(u.id, u.is_admin)} disabled={actionId === u.id} className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#1e3a5f] disabled:opacity-30" title={u.is_admin ? 'Rétrograder' : 'Promouvoir admin'}><UserCog className="w-4 h-4" /></button>
+                        <button onClick={() => handleToggleAdmin(u.id, u.is_admin)} disabled={actionId === u.id} className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[--primary] disabled:opacity-30" title={u.is_admin ? 'Rétrograder' : 'Promouvoir admin'}><UserCog className="w-4 h-4" /></button>
                         <button onClick={() => handleToggleSuspend(u.id, u.suspended)} disabled={actionId === u.id} className={`p-1.5 rounded hover:bg-gray-100 disabled:opacity-30 ${u.suspended ? 'text-green-500 hover:text-green-700' : 'text-gray-400 hover:text-red-600'}`} title={u.suspended ? 'Réactiver' : 'Suspendre'}>{u.suspended ? <CheckCircle className="w-4 h-4" /> : <Ban className="w-4 h-4" />}</button>
                         <button onClick={() => handleDelete(u.id, u.name)} disabled={actionId === u.id} className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 disabled:opacity-30" title="Supprimer"><Trash2 className="w-4 h-4" /></button>
                       </div></td>
@@ -215,12 +215,12 @@ export default function AdminPage() {
           {/* Filters */}
           <div className="flex flex-wrap gap-2 mb-4">
             <button onClick={() => setStatusFilter('')}
-              className={`px-3 py-1.5 rounded-lg text-xs border ${!statusFilter ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs border ${!statusFilter ? 'border-[--primary] bg-[--primary] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
               Tous ({tickets.length})
             </button>
             {STATUS_OPTIONS.map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-xs border ${statusFilter === s ? 'border-[#1e3a5f] bg-[#1e3a5f] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs border ${statusFilter === s ? 'border-[--primary] bg-[--primary] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
                 {STATUS_BADGE[s] ? s.replace('_', ' ') : s} ({tickets.filter(t => t.status === s).length})
               </button>
             ))}
@@ -266,7 +266,7 @@ export default function AdminPage() {
                         <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[140px] hidden group-hover:block z-10">
                           {STATUS_OPTIONS.map(s => (
                             <button key={s} onClick={() => handleTicketStatus(t.id, s)}
-                              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 ${t.status === s ? 'font-medium text-[#1e3a5f]' : 'text-gray-600'}`}>
+                              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 ${t.status === s ? 'font-medium text-[--primary]' : 'text-gray-600'}`}>
                               {STATUS_BADGE[s] && <span className={`inline-block w-2 h-2 rounded-full mr-2 ${STATUS_BADGE[s].replace('text-', 'bg-').split(' ')[0]}`} />}
                               {s.replace('_', ' ')}
                             </button>

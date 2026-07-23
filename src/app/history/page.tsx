@@ -78,12 +78,12 @@ export default function HistoryPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <History className="w-6 h-6 text-[#1e3a5f]" />
+          <History className="w-6 h-6 text-[--primary]" />
           Historique
         </h1>
         <Link
           href="/new-reading"
-          className="bg-[#1e3a5f] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2a4f7a] no-underline flex items-center gap-1.5"
+          className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] no-underline flex items-center gap-1.5"
         >
           <BookPlus className="w-4 h-4" />
           Nouvelle lecture
@@ -137,7 +137,7 @@ export default function HistoryPage() {
           <p className="text-gray-500 mb-4">Aucune lecture trouvée.</p>
           <Link
             href="/new-reading"
-            className="text-[#1e3a5f] underline text-sm"
+            className="text-[--primary] underline text-sm"
           >
             Nouvelle lecture
           </Link>

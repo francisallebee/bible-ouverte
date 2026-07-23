@@ -99,7 +99,7 @@ export default function AudioRecorder({ value, onChange }: Props) {
           <button onClick={() => {
             if (playing) { audioRef.current?.pause(); setPlaying(false); }
             else { audioRef.current?.play(); setPlaying(true); }
-          }} className="text-[#1e3a5f]">
+          }} className="text-[--primary]">
             {playing ? <Square className="w-5 h-5" /> : <Play className="w-5 h-5" />}
           </button>
           <span className="text-xs text-gray-500 flex-1">

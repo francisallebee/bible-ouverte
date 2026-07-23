@@ -133,7 +133,7 @@ export default function StatsPage() {
     return (
       <div>
         <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <BarChart3 className="w-6 h-6 text-[#1e3a5f]" />
+          <BarChart3 className="w-6 h-6 text-[--primary]" />
           Statistiques
         </h1>
         <div className="text-center py-12">
@@ -146,14 +146,14 @@ export default function StatsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <BarChart3 className="w-6 h-6 text-[#1e3a5f]" />
+        <BarChart3 className="w-6 h-6 text-[--primary]" />
         Statistiques
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <p className="text-sm text-gray-500 mb-1">Total lectures</p>
-          <p className="text-3xl font-bold text-[#1e3a5f]">{total}</p>
+          <p className="text-3xl font-bold text-[--primary]">{total}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <p className="text-sm text-gray-500 mb-1">Cette semaine</p>

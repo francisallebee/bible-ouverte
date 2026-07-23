@@ -104,7 +104,7 @@ export default function ProfilPage() {
   return (
     <div className="max-w-lg mx-auto">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <User className="w-6 h-6 text-[#1e3a5f]" />
+        <User className="w-6 h-6 text-[--primary]" />
         Mon profil
       </h1>
 
@@ -120,7 +120,7 @@ export default function ProfilPage() {
                 {profile.name[0]?.toUpperCase() || '?'}
               </div>
             )}
-            <label className="absolute bottom-0 right-0 w-8 h-8 bg-[#1e3a5f] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#2a4f7a]">
+            <label className="absolute bottom-0 right-0 w-8 h-8 bg-[--primary] rounded-full flex items-center justify-center cursor-pointer hover:bg-[--primary-hover]">
               <Camera className="w-4 h-4 text-white" />
               <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
             </label>
@@ -187,7 +187,7 @@ export default function ProfilPage() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium text-gray-700">Réseaux sociaux</label>
-            <button onClick={addSocial} className="text-xs text-[#1e3a5f] hover:underline">+ Ajouter</button>
+            <button onClick={addSocial} className="text-xs text-[--primary] hover:underline">+ Ajouter</button>
           </div>
           {Object.entries(profile.social_links).map(([key, val]) => (
             <div key={key} className="flex items-center gap-2 mb-2">
@@ -206,7 +206,7 @@ export default function ProfilPage() {
 
         {/* Save */}
         <button onClick={handleSave} disabled={saving}
-          className="w-full bg-[#1e3a5f] text-white py-3 rounded-lg text-sm hover:bg-[#2a4f7a] disabled:opacity-50 flex items-center justify-center gap-2">
+          className="w-full bg-[--primary] text-white py-3 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 flex items-center justify-center gap-2">
           {saving ? <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" /> : <Save className="w-4 h-4" />}
           {saving ? 'Enregistrement...' : 'Enregistrer'}
         </button>

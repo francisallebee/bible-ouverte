@@ -128,7 +128,7 @@ export default function ReadingDetailPage() {
     return (
       <div className="text-center py-12">
         <h1 className="text-2xl font-bold mb-4">Lecture introuvable</h1>
-        <Link href="/history" className="text-[#1e3a5f] underline">
+        <Link href="/history" className="text-[--primary] underline">
           Retour à l&apos;historique
         </Link>
       </div>
@@ -258,7 +258,7 @@ export default function ReadingDetailPage() {
           <div className="flex gap-3">
             <button
               onClick={handleSave}
-              className="bg-[#1e3a5f] text-white px-6 py-2 rounded-lg text-sm hover:bg-[#2a4f7a]"
+              className="bg-[--primary] text-white px-6 py-2 rounded-lg text-sm hover:bg-[--primary-hover]"
             >
               Sauvegarder
             </button>
@@ -387,7 +387,7 @@ export default function ReadingDetailPage() {
         <div className="flex gap-3">
           <button
             onClick={enterEditMode}
-            className="bg-[#1e3a5f] text-white px-6 py-2 rounded-lg text-sm hover:bg-[#2a4f7a]"
+            className="bg-[--primary] text-white px-6 py-2 rounded-lg text-sm hover:bg-[--primary-hover]"
           >
             Modifier
           </button>

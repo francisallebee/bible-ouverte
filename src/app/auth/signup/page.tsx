@@ -40,13 +40,13 @@ export default function SignupPage() {
   if (success) {
     return (
       <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl p-8 text-center">
-        <h1 className="text-2xl font-bold text-[#1e3a5f] mb-4">Compte créé !</h1>
+        <h1 className="text-2xl font-bold text-[--primary] mb-4">Compte créé !</h1>
         <p className="text-gray-600 mb-6">
           Vérifie ta boîte mail pour confirmer ton adresse email.
         </p>
         <Link
           href="/auth/login"
-          className="text-[#1e3a5f] font-medium hover:underline"
+          className="text-[--primary] font-medium hover:underline"
         >
           Aller à la connexion
         </Link>
@@ -56,7 +56,7 @@ export default function SignupPage() {
 
   return (
     <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl p-8">
-      <h1 className="text-2xl font-bold text-center text-[#1e3a5f] mb-6">Créer un compte</h1>
+      <h1 className="text-2xl font-bold text-center text-[--primary] mb-6">Créer un compte</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
@@ -64,7 +64,7 @@ export default function SignupPage() {
             name="name"
             type="text"
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
           />
         </div>
         <div>
@@ -73,7 +73,7 @@ export default function SignupPage() {
             name="email"
             type="email"
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
           />
         </div>
         <div>
@@ -83,21 +83,21 @@ export default function SignupPage() {
             type="password"
             required
             minLength={6}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
           />
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#1e3a5f] text-white py-2 rounded-lg hover:bg-[#2a4f7a] disabled:opacity-50 transition-colors"
+          className="w-full bg-[--primary] text-white py-2 rounded-lg hover:bg-[--primary-hover] disabled:opacity-50 transition-colors"
         >
           {loading ? 'Création...' : 'Créer le compte'}
         </button>
       </form>
       <p className="text-sm text-center mt-4 text-gray-600">
         Déjà un compte ?{' '}
-        <Link href="/auth/login" className="text-[#1e3a5f] font-medium hover:underline">
+        <Link href="/auth/login" className="text-[--primary] font-medium hover:underline">
           Se connecter
         </Link>
       </p>
