@@ -31,6 +31,8 @@ const VERSIONS: { id: string; path: string }[] = [
   { id: 'darby', path: '@/data/bibles/darby.json' },
   { id: 'martin1744', path: '@/data/bibles/martin.json' },
   { id: 'ostervald', path: '@/data/bibles/ostervald.json' },
+  { id: 'cramp23', path: '@/data/bibles/cramp23.json' },
+  { id: 'sacc', path: '@/data/bibles/sacc.json' },
 ];
 
 async function loadData(versionId: string): Promise<SourceBible> {
@@ -43,6 +45,10 @@ async function loadData(versionId: string): Promise<SourceBible> {
       return (await import('@/data/bibles/martin.json')) as unknown as SourceBible;
     case 'ostervald':
       return (await import('@/data/bibles/ostervald.json')) as unknown as SourceBible;
+    case 'cramp23':
+      return (await import('@/data/bibles/cramp23.json')) as unknown as SourceBible;
+    case 'sacc':
+      return (await import('@/data/bibles/sacc.json')) as unknown as SourceBible;
     default:
       throw new Error(`Version inconnue: ${versionId}`);
   }
