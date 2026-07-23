@@ -1,16 +1,28 @@
 'use client'
 
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import LayoutClient from '@/lib/pwa/layout-client'
+import { getSettings } from '@/lib/storage'
+import { applyColorTheme } from '@/lib/themes'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isAuthPage = pathname.startsWith('/auth')
 
+  useEffect(() => {
+    (async () => {
+      const s = await getSettings()
+      if (s?.colorTheme) applyColorTheme(s.colorTheme)
+      if (s?.theme === 'dark') document.documentElement.classList.add('dark')
+      else document.documentElement.classList.remove('dark')
+    })()
+  }, [])
+
   if (isAuthPage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e3a5f] to-[#2a4f7a]">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[--primary] to-[--primary-hover]">
         {children}
       </div>
     )

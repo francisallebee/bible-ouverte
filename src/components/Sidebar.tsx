@@ -71,7 +71,7 @@ export default function Sidebar() {
           open ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[#1e3a5f] mb-8 no-underline pt-2">
+        <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2">
           <BookOpen className="w-6 h-6" />
           <span>Bible Ouverte</span>
         </Link>
@@ -88,7 +88,7 @@ export default function Sidebar() {
                 onClick={() => setOpen(false)}
                 className={`rounded-lg px-3 py-2.5 text-sm transition-all no-underline flex items-center gap-3 ${
                   active
-                    ? "bg-[#1e3a5f] text-white shadow-sm"
+                    ? "bg-[--primary] text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
