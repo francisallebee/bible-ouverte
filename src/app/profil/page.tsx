@@ -24,8 +24,24 @@ export default function ProfilPage() {
   const [saved, setSaved] = useState(false)
 
   const loadProfile = async () => {
-    const res = await fetch('/api/profile').then(r => r.json())
-    if (res.data) setProfile(res.data)
+    try {
+      const res = await fetch('/api/profile')
+      const json = await res.json()
+      if (json.data) {
+        setProfile({
+          ...json.data,
+          social_links: json.data.social_links || {},
+          avatar_url: json.data.avatar_url || null,
+          birth_date: json.data.birth_date || null,
+          phone: json.data.phone || null,
+          bio: json.data.bio || null,
+        })
+      } else {
+        console.error('Profil API error:', json.error)
+      }
+    } catch (e) {
+      console.error('Failed to load profile:', e)
+    }
     setLoading(false)
   }
 
