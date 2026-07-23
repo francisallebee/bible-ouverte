@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import BibleAnimation from '@/components/BibleAnimation'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -40,6 +41,7 @@ export default function SignupPage() {
   if (success) {
     return (
       <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl p-8 text-center">
+        <BibleAnimation />
         <h1 className="text-2xl font-bold text-[--primary] mb-4">Compte créé !</h1>
         <p className="text-gray-600 mb-6">
           Vérifie ta boîte mail pour confirmer ton adresse email.
@@ -56,6 +58,7 @@ export default function SignupPage() {
 
   return (
     <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl p-8">
+      <BibleAnimation />
       <h1 className="text-2xl font-bold text-center text-[--primary] mb-6">Créer un compte</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

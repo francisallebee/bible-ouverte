@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import BibleAnimation from '@/components/BibleAnimation'
 
 export default function LoginPage() {
   return (
@@ -44,6 +45,7 @@ function LoginForm() {
 
   return (
     <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl p-8">
+      <BibleAnimation />
       <h1 className="text-2xl font-bold text-center text-[--primary] mb-6">Connexion</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
