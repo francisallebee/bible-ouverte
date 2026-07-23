@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, ReadingContext } from "@/lib/storage";
+import { TAG_CATEGORIES } from "@/lib/storage/seed";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -249,40 +250,100 @@ export default function SettingsPage() {
               </div>
             )}
 
-            <div className="space-y-1">
-              {contexts.map(ctx => (
-                <div key={ctx.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-200">
-                  {editingTagId === ctx.id ? (
-                    <>
-                      <div className="flex items-center gap-2 flex-1">
-                        <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: tagFormColor }} />
-                        <input type="text" value={tagFormName} onChange={e => setTagFormName(e.target.value)}
-                          className="border border-gray-300 rounded px-2 py-1 text-sm flex-1" autoFocus />
-                        {TAG_COLORS.map(c => (
-                          <button key={c} onClick={() => setTagFormColor(c)}
-                            className={`w-3.5 h-3.5 rounded-full ${tagFormColor === c ? "ring-2 ring-offset-1 ring-gray-800" : ""}`}
-                            style={{ backgroundColor: c }} />
-                        ))}
-                      </div>
-                      <button onClick={() => saveEditTag(ctx.id)} className="text-xs text-green-600 font-medium hover:underline">OK</button>
-                      <button onClick={() => setEditingTagId(null)} className="text-xs text-gray-500 hover:underline">Annuler</button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-4 h-4 rounded-full shrink-0 ring-1 ring-inset ring-black/10" style={{ backgroundColor: ctx.color }} />
-                      <span className="text-sm flex-1">{ctx.name}</span>
-                      {ctx.isSystemDefault && <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Système</span>}
-                      <button onClick={() => startEditTag(ctx)} className="text-xs text-gray-600 hover:text-gray-900">Modifier</button>
-                      <button onClick={() => setDeleteTagConfirm(ctx.id)}
-                        disabled={ctx.isSystemDefault}
-                        className={`text-xs ${ctx.isSystemDefault ? "text-gray-300 cursor-not-allowed" : "text-red-500 hover:text-red-700"}`}>
-                        Supprimer
-                      </button>
-                    </>
-                  )}
-                </div>
-              ))}
-              {contexts.length === 0 && <p className="text-xs text-gray-400 text-center py-4">Aucun tag.</p>}
+            <div className="space-y-3">
+              {TAG_CATEGORIES.map(cat => {
+                const catCtx = contexts.find(c => c.id === cat.id);
+                const childCtxs = cat.children.map(ch => contexts.find(c => c.id === ch.id)).filter(Boolean) as ReadingContext[];
+                if (!catCtx && childCtxs.length === 0) return null;
+                return (
+                  <div key={cat.id}>
+                    <p className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: catCtx?.color || cat.color }} />
+                      {cat.name}
+                    </p>
+                    <div className="ml-4 space-y-1">
+                      {childCtxs.map(ctx => (
+                        <div key={ctx.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-200">
+                          {editingTagId === ctx.id ? (
+                            <>
+                              <div className="flex items-center gap-2 flex-1">
+                                <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: tagFormColor }} />
+                                <input type="text" value={tagFormName} onChange={e => setTagFormName(e.target.value)}
+                                  className="border border-gray-300 rounded px-2 py-1 text-sm flex-1" autoFocus />
+                                {TAG_COLORS.map(c => (
+                                  <button key={c} onClick={() => setTagFormColor(c)}
+                                    className={`w-3.5 h-3.5 rounded-full ${tagFormColor === c ? "ring-2 ring-offset-1 ring-gray-800" : ""}`}
+                                    style={{ backgroundColor: c }} />
+                                ))}
+                              </div>
+                              <button onClick={() => saveEditTag(ctx.id)} className="text-xs text-green-600 font-medium hover:underline">OK</button>
+                              <button onClick={() => setEditingTagId(null)} className="text-xs text-gray-500 hover:underline">Annuler</button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-4 h-4 rounded-full shrink-0 ring-1 ring-inset ring-black/10" style={{ backgroundColor: ctx.color }} />
+                              <span className="text-sm flex-1">{ctx.name}</span>
+                              {ctx.isSystemDefault && <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Système</span>}
+                              <button onClick={() => startEditTag(ctx)} className="text-xs text-gray-600 hover:text-gray-900">Modifier</button>
+                              <button onClick={() => setDeleteTagConfirm(ctx.id)}
+                                disabled={ctx.isSystemDefault}
+                                className={`text-xs ${ctx.isSystemDefault ? "text-gray-300 cursor-not-allowed" : "text-red-500 hover:text-red-700"}`}>
+                                Supprimer
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Tags hors catégories */}
+              {(() => {
+                const allKnownIds = new Set(TAG_CATEGORIES.flatMap(cat => [cat.id, ...cat.children.map(ch => ch.id)]));
+                const others = contexts.filter(c => !allKnownIds.has(c.id));
+                if (others.length === 0) return null;
+                return (
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700 mb-1">Autres</p>
+                    <div className="ml-4 space-y-1">
+                      {others.map(ctx => (
+                        <div key={ctx.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-200">
+                          {editingTagId === ctx.id ? (
+                            <>
+                              <div className="flex items-center gap-2 flex-1">
+                                <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: tagFormColor }} />
+                                <input type="text" value={tagFormName} onChange={e => setTagFormName(e.target.value)}
+                                  className="border border-gray-300 rounded px-2 py-1 text-sm flex-1" autoFocus />
+                                {TAG_COLORS.map(c => (
+                                  <button key={c} onClick={() => setTagFormColor(c)}
+                                    className={`w-3.5 h-3.5 rounded-full ${tagFormColor === c ? "ring-2 ring-offset-1 ring-gray-800" : ""}`}
+                                    style={{ backgroundColor: c }} />
+                                ))}
+                              </div>
+                              <button onClick={() => saveEditTag(ctx.id)} className="text-xs text-green-600 font-medium hover:underline">OK</button>
+                              <button onClick={() => setEditingTagId(null)} className="text-xs text-gray-500 hover:underline">Annuler</button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-4 h-4 rounded-full shrink-0 ring-1 ring-inset ring-black/10" style={{ backgroundColor: ctx.color }} />
+                              <span className="text-sm flex-1">{ctx.name}</span>
+                              {ctx.isSystemDefault && <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Système</span>}
+                              <button onClick={() => startEditTag(ctx)} className="text-xs text-gray-600 hover:text-gray-900">Modifier</button>
+                              <button onClick={() => setDeleteTagConfirm(ctx.id)}
+                                disabled={ctx.isSystemDefault}
+                                className={`text-xs ${ctx.isSystemDefault ? "text-gray-300 cursor-not-allowed" : "text-red-500 hover:text-red-700"}`}>
+                                Supprimer
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </section>
         )}
