@@ -2,38 +2,110 @@ import { getDB } from './db';
 import type { ReadingPlan, PlanDay } from './types';
 import { getCurrentUserId } from './user-id';
 import {
-  upsertPlan as supabaseUpsertPlan,
+  fetchPlans,
+  insertPlan as supabaseInsertPlan,
+  updatePlan as supabaseUpdatePlan,
   deletePlan as supabaseDeletePlan,
-  upsertPlanDay as supabaseUpsertPlanDay,
-  deletePlanDaysByPlan as supabaseDeletePlanDaysByPlan,
-} from '@/lib/supabase/write-through';
+  fetchPlanDays,
+  insertPlanDays as supabaseInsertPlanDays,
+  updatePlanDay as supabaseUpdatePlanDay,
+  deletePlanDaysByPlan as supabaseDeletePlanDays,
+} from '@/lib/supabase/store';
+
+function isOnline() {
+  return typeof navigator !== 'undefined' && navigator.onLine;
+}
+
+async function cachePlans(userId: string): Promise<void> {
+  const rows = await fetchPlans();
+  const db = await getDB();
+  const tx = db.transaction('plans', 'readwrite');
+  for (const r of rows) {
+    await tx.objectStore('plans').put({
+      id: r.id,
+      userId: r.user_id,
+      name: r.name,
+      versionId: r.versionId,
+      duration: r.duration,
+      customDays: r.customDays ?? undefined,
+      books: safeParseArray(r.books),
+      startDate: r.startDate,
+      totalDays: r.totalDays,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    } as ReadingPlan);
+  }
+  await tx.done;
+}
+
+function safeParseArray(val: any): any[] {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try { return JSON.parse(val); } catch { return []; }
+  }
+  return [];
+}
 
 export async function getAllPlans(): Promise<ReadingPlan[]> {
-  const db = await getDB();
   const userId = await getCurrentUserId();
+  const db = await getDB();
   const all = await db.getAll('plans');
-  return all.filter((p) => p.userId === userId);
+  const local = all.filter(p => p.userId === userId);
+  if (local.length === 0 && isOnline()) {
+    await cachePlans(userId);
+    const all2 = await db.getAll('plans');
+    return all2.filter(p => p.userId === userId).sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+  }
+  if (isOnline()) {
+    cachePlans(userId).catch(() => {});
+  }
+  return local.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
 }
 
 export async function getPlan(id: number): Promise<ReadingPlan | undefined> {
   const db = await getDB();
-  const userId = await getCurrentUserId();
-  const plan = await db.get('plans', id);
-  if (plan && plan.userId !== userId) return undefined;
-  return plan;
+  return db.get('plans', id);
 }
 
 export async function addPlan(plan: Omit<ReadingPlan, 'id'>): Promise<number> {
   const db = await getDB();
-  const id = await db.add('plans', plan as ReadingPlan);
-  supabaseUpsertPlan({ id, ...plan }).catch(() => {});
-  return id;
+  const localId = await db.add('plans', plan as ReadingPlan);
+
+  if (isOnline()) {
+    const created = await supabaseInsertPlan({
+      user_id: plan.userId,
+      name: plan.name,
+      versionId: plan.versionId,
+      duration: plan.duration,
+      customDays: plan.customDays ?? null,
+      books: JSON.stringify(plan.books ?? []),
+      startDate: plan.startDate,
+      totalDays: plan.totalDays,
+    } as any);
+    if (created) {
+      const updated = { ...plan, id: created.id } as ReadingPlan;
+      await db.put('plans', updated);
+      return created.id;
+    }
+  }
+  return localId;
 }
 
 export async function updatePlan(plan: ReadingPlan): Promise<void> {
   const db = await getDB();
   await db.put('plans', plan);
-  supabaseUpsertPlan(plan).catch(() => {});
+  if (isOnline() && plan.id) {
+    supabaseUpdatePlan(plan.id, {
+      name: plan.name,
+      versionId: plan.versionId,
+      duration: plan.duration,
+      customDays: plan.customDays ?? null,
+      books: JSON.stringify(plan.books ?? []),
+      startDate: plan.startDate,
+      totalDays: plan.totalDays,
+      updatedAt: new Date().toISOString(),
+    }).catch(() => {});
+  }
 }
 
 export async function deletePlan(id: number): Promise<void> {
@@ -47,8 +119,32 @@ export async function deletePlan(id: number): Promise<void> {
     cursor = await cursor.continue();
   }
   await tx.done;
-  supabaseDeletePlan(id).catch(() => {});
-  supabaseDeletePlanDaysByPlan(id).catch(() => {});
+
+  if (isOnline()) {
+    supabaseDeletePlan(id).catch(() => {});
+    supabaseDeletePlanDays(id).catch(() => {});
+  }
+}
+
+async function cachePlanDays(planId: number): Promise<void> {
+  const rows = await fetchPlanDays(planId);
+  const db = await getDB();
+  const tx = db.transaction('plan_days', 'readwrite');
+  for (const r of rows) {
+    await tx.objectStore('plan_days').put({
+      id: r.id,
+      planId: r.plan_id,
+      userId: r.user_id,
+      day: r.day,
+      date: r.date,
+      book: r.book,
+      chapterStart: r.chapterStart,
+      chapterEnd: r.chapterEnd,
+      isRead: r.isRead,
+      readingId: r.readingId ?? undefined,
+    } as PlanDay);
+  }
+  await tx.done;
 }
 
 export async function getPlanDays(planId: number): Promise<PlanDay[]> {
@@ -59,6 +155,9 @@ export async function getPlanDays(planId: number): Promise<PlanDay[]> {
   while (cursor) {
     days.push(cursor.value);
     cursor = await cursor.continue();
+  }
+  if (isOnline()) {
+    cachePlanDays(planId).catch(() => {});
   }
   return days.sort((a, b) => a.day - b.day);
 }
@@ -78,15 +177,31 @@ export async function addPlanDays(days: Omit<PlanDay, 'id'>[]): Promise<void> {
     await tx.store.add(day as PlanDay);
   }
   await tx.done;
-  for (const day of days) {
-    supabaseUpsertPlanDay(day).catch(() => {});
+
+  if (isOnline()) {
+    supabaseInsertPlanDays(days.map(d => ({
+      plan_id: d.planId,
+      user_id: d.userId,
+      day: d.day,
+      date: d.date,
+      book: d.book,
+      chapterStart: d.chapterStart,
+      chapterEnd: d.chapterEnd,
+      isRead: d.isRead,
+      readingId: d.readingId ?? null,
+    }))).catch(() => {});
   }
 }
 
 export async function updatePlanDay(day: PlanDay): Promise<void> {
   const db = await getDB();
   await db.put('plan_days', day);
-  supabaseUpsertPlanDay(day).catch(() => {});
+  if (isOnline() && day.id) {
+    supabaseUpdatePlanDay(day.id, {
+      isRead: day.isRead,
+      readingId: day.readingId ?? null,
+    }).catch(() => {});
+  }
 }
 
 export async function deletePlanDaysByPlan(planId: number): Promise<void> {
@@ -99,5 +214,7 @@ export async function deletePlanDaysByPlan(planId: number): Promise<void> {
     cursor = await cursor.continue();
   }
   await tx.done;
-  supabaseDeletePlanDaysByPlan(planId).catch(() => {});
+  if (isOnline()) {
+    supabaseDeletePlanDays(planId).catch(() => {});
+  }
 }

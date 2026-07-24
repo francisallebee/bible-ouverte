@@ -11,9 +11,7 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<void> 
   const tx = db.transaction('settings', 'readwrite');
   const store = tx.objectStore('settings');
   const existing = await store.get('app');
-  if (!existing) {
-    throw new Error('Settings not found');
-  }
+  if (!existing) return;
   await store.put({ ...existing, ...data });
   await tx.done;
 }
