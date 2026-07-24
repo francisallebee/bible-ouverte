@@ -1,5 +1,9 @@
 import type { ReadingContext } from './types';
 import { getDB } from './db';
+import {
+  upsertContext as supabaseUpsertContext,
+  deleteContext as supabaseDeleteContext,
+} from '@/lib/supabase/write-through';
 
 export async function getAllContexts(): Promise<ReadingContext[]> {
   const db = await getDB();
@@ -14,6 +18,7 @@ export async function getContextById(id: string): Promise<ReadingContext | undef
 export async function addContext(context: ReadingContext): Promise<void> {
   const db = await getDB();
   await db.add('contexts', context);
+  supabaseUpsertContext(context).catch(() => {});
 }
 
 export async function updateContext(id: string, data: Partial<ReadingContext>): Promise<void> {
@@ -24,8 +29,10 @@ export async function updateContext(id: string, data: Partial<ReadingContext>): 
   if (!existing) {
     throw new Error(`Context with id ${id} not found`);
   }
-  await store.put({ ...existing, ...data });
+  const updated = { ...existing, ...data };
+  await store.put(updated);
   await tx.done;
+  supabaseUpsertContext(updated).catch(() => {});
 }
 
 export async function deleteContext(id: string): Promise<void> {
@@ -40,4 +47,5 @@ export async function deleteContext(id: string): Promise<void> {
     await ctxStore.delete(id);
   }
   await tx.done;
+  supabaseDeleteContext(id).catch(() => {});
 }

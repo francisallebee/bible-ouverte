@@ -1,6 +1,12 @@
 import { getDB } from './db';
 import type { ReadingPlan, PlanDay } from './types';
 import { getCurrentUserId } from './user-id';
+import {
+  upsertPlan as supabaseUpsertPlan,
+  deletePlan as supabaseDeletePlan,
+  upsertPlanDay as supabaseUpsertPlanDay,
+  deletePlanDaysByPlan as supabaseDeletePlanDaysByPlan,
+} from '@/lib/supabase/write-through';
 
 export async function getAllPlans(): Promise<ReadingPlan[]> {
   const db = await getDB();
@@ -19,12 +25,15 @@ export async function getPlan(id: number): Promise<ReadingPlan | undefined> {
 
 export async function addPlan(plan: Omit<ReadingPlan, 'id'>): Promise<number> {
   const db = await getDB();
-  return db.add('plans', plan as ReadingPlan) as Promise<number>;
+  const id = await db.add('plans', plan as ReadingPlan);
+  supabaseUpsertPlan({ id, ...plan }).catch(() => {});
+  return id;
 }
 
 export async function updatePlan(plan: ReadingPlan): Promise<void> {
   const db = await getDB();
   await db.put('plans', plan);
+  supabaseUpsertPlan(plan).catch(() => {});
 }
 
 export async function deletePlan(id: number): Promise<void> {
@@ -38,6 +47,8 @@ export async function deletePlan(id: number): Promise<void> {
     cursor = await cursor.continue();
   }
   await tx.done;
+  supabaseDeletePlan(id).catch(() => {});
+  supabaseDeletePlanDaysByPlan(id).catch(() => {});
 }
 
 export async function getPlanDays(planId: number): Promise<PlanDay[]> {
@@ -67,11 +78,15 @@ export async function addPlanDays(days: Omit<PlanDay, 'id'>[]): Promise<void> {
     await tx.store.add(day as PlanDay);
   }
   await tx.done;
+  for (const day of days) {
+    supabaseUpsertPlanDay(day).catch(() => {});
+  }
 }
 
 export async function updatePlanDay(day: PlanDay): Promise<void> {
   const db = await getDB();
   await db.put('plan_days', day);
+  supabaseUpsertPlanDay(day).catch(() => {});
 }
 
 export async function deletePlanDaysByPlan(planId: number): Promise<void> {
@@ -84,4 +99,5 @@ export async function deletePlanDaysByPlan(planId: number): Promise<void> {
     cursor = await cursor.continue();
   }
   await tx.done;
+  supabaseDeletePlanDaysByPlan(planId).catch(() => {});
 }

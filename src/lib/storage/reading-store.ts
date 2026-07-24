@@ -1,6 +1,7 @@
 import type { ReadingEntry } from './types';
 import { getDB } from './db';
 import { getCurrentUserId } from './user-id';
+import { upsertReading as supabaseUpsertReading, deleteReading as supabaseDeleteReading } from '@/lib/supabase/write-through';
 
 export async function getAllReadings(): Promise<ReadingEntry[]> {
   const db = await getDB();
@@ -58,7 +59,9 @@ export async function addReading(
     createdAt: now,
     updatedAt: now,
   };
-  return db.add('readings', entry);
+  const id = await db.add('readings', entry);
+  supabaseUpsertReading({ id, ...entry }).catch(() => {});
+  return id;
 }
 
 export async function updateReading(id: number, data: Partial<ReadingEntry>): Promise<void> {
@@ -76,11 +79,13 @@ export async function updateReading(id: number, data: Partial<ReadingEntry>): Pr
   };
   await store.put(updated);
   await tx.done;
+  supabaseUpsertReading(updated).catch(() => {});
 }
 
 export async function deleteReading(id: number): Promise<void> {
   const db = await getDB();
   await db.delete('readings', id);
+  supabaseDeleteReading(id).catch(() => {});
 }
 
 export async function getLatestReading(): Promise<ReadingEntry | undefined> {
