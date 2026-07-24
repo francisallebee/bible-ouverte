@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="relative min-h-screen flex flex-col items-center justify-center px-4">
       <VideoBackground />
       <div className="relative z-10 flex flex-col items-center gap-6">
-        <img src="/logo.svg" alt="Logo" className="w-16 h-16 object-contain drop-shadow-lg" />
+        <img src="/logo.svg" alt="Logo" className="w-16 h-16 rounded-full object-cover drop-shadow-lg" />
         <h1 className="text-3xl font-bold tracking-wider text-white drop-shadow-lg">
           BIBLE OUVERTE
         </h1>
