@@ -73,7 +73,7 @@ export default function Sidebar() {
         } lg:translate-x-0`}
       >
         <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2">
-          <BookOpen className="w-6 h-6" />
+          <img src="/logo.svg" alt="Logo" className="w-7 h-7" />
           <span>Bible Ouverte</span>
         </Link>
 
