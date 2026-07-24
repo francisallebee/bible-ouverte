@@ -37,8 +37,8 @@ create table if not exists public.tickets (
   updated_at timestamptz not null default now()
 );
 
-create index idx_tickets_user on public.tickets(user_id);
-create index idx_tickets_status on public.tickets(status);
+create index if not exists idx_tickets_user on public.tickets(user_id);
+create index if not exists idx_tickets_status on public.tickets(status);
 
 create table if not exists public.readings (
   id text primary key,
@@ -57,8 +57,8 @@ create table if not exists public.readings (
   created_at timestamptz not null default now()
 );
 
-create index idx_readings_user_date on public.readings(user_id, date);
-create index idx_readings_user_book on public.readings(user_id, book);
+create index if not exists idx_readings_user_date on public.readings(user_id, date);
+create index if not exists idx_readings_user_book on public.readings(user_id, book);
 
 create table if not exists public.contexts (
   id text primary key,
@@ -69,7 +69,7 @@ create table if not exists public.contexts (
   updated_at timestamptz not null default now()
 );
 
-create index idx_contexts_user on public.contexts(user_id);
+create index if not exists idx_contexts_user on public.contexts(user_id);
 
 create table if not exists public.plans (
   id text primary key,
@@ -84,7 +84,7 @@ create table if not exists public.plans (
   updated_at timestamptz not null default now()
 );
 
-create index idx_plans_user on public.plans(user_id);
+create index if not exists idx_plans_user on public.plans(user_id);
 
 create table if not exists public.plan_days (
   id text primary key,
@@ -101,8 +101,8 @@ create table if not exists public.plan_days (
   created_at timestamptz not null default now()
 );
 
-create index idx_plan_days_plan on public.plan_days(plan_id);
-create index idx_plan_days_user_date on public.plan_days(user_id, date);
+create index if not exists idx_plan_days_plan on public.plan_days(plan_id);
+create index if not exists idx_plan_days_user_date on public.plan_days(user_id, date);
 
 -- 2. Row Level Security
 alter table public.profiles enable row level security;
