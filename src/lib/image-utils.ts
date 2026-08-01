@@ -16,11 +16,3 @@ export function resizeImage(file: File, maxW: number, maxH: number): Promise<str
     img.src = URL.createObjectURL(file);
   });
 }
-
-export async function fetchLinkPreview(url: string): Promise<{ title: string; thumbnail?: string }> {
-  try {
-    const res = await fetch(`/api/og?url=${encodeURIComponent(url)}`);
-    if (res.ok) return await res.json();
-  } catch { /* fallback */ }
-  return { title: url };
-}
