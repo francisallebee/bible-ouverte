@@ -33,17 +33,14 @@ export default function Sidebar() {
   const { user, isAdmin } = useAuth();
   const [profileName, setProfileName] = useState("");
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
-  const [profileColor, setProfileColor] = useState("#1e3a5f");
 
   useEffect(() => { seedIfNeeded() }, []);
 
   useEffect(() => {
     const name = localStorage.getItem("profile_name") || "";
     const avatar = localStorage.getItem("profile_avatar");
-    const color = localStorage.getItem("profile_color") || "#1e3a5f";
     setProfileName(name);
     setProfileAvatar(avatar);
-    setProfileColor(color);
   }, []);
 
   const handleSignOut = async () => {
@@ -107,8 +104,7 @@ export default function Sidebar() {
               {profileAvatar ? (
                 <img src={profileAvatar} alt="" width="32" height="32" className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-gray-100" />
               ) : (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-                  style={{ backgroundColor: profileColor }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-[--primary]">
                   {(profileName?.[0] || user.email?.[0] || "?").toUpperCase()}
                 </div>
               )}

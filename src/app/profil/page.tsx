@@ -8,7 +8,6 @@ import { resizeImage } from '@/lib/image-utils'
 type ProfileData = {
   id: string
   name: string
-  color: string
   avatar_url: string | null
   birth_date: string | null
   phone: string | null
@@ -39,7 +38,6 @@ export default function ProfilPage() {
           bio: json.data.bio || null,
         })
         localStorage.setItem('profile_name', json.data.name || '')
-        localStorage.setItem('profile_color', json.data.color || '#1e3a5f')
         // L'avatar du serveur fait foi (synchronisé entre appareils)
         if (serverAvatar) localStorage.setItem('profile_avatar', serverAvatar)
       } else {
@@ -65,7 +63,8 @@ export default function ProfilPage() {
     if (res.data) {
       setSaved(true)
       localStorage.setItem('profile_name', profile.name)
-      localStorage.setItem('profile_color', profile.color)
+      // La couleur n'est plus modifiable : l'avatar de repli suit le thème.
+      localStorage.removeItem('profile_color')
       if (profile.avatar_url) localStorage.setItem('profile_avatar', profile.avatar_url)
       else localStorage.removeItem('profile_avatar')
     }
@@ -117,8 +116,7 @@ export default function ProfilPage() {
             {profile.avatar_url ? (
               <img src={profile.avatar_url} alt="" className="w-24 h-24 rounded-full object-cover border-4 border-gray-100" />
             ) : (
-              <div className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold"
-                style={{ backgroundColor: profile.color }}>
+              <div className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold bg-[--primary]">
                 {profile.name[0]?.toUpperCase() || '?'}
               </div>
             )}
@@ -153,13 +151,6 @@ export default function ProfilPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
           <input type="email" value={user?.email || ''} disabled
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500" />
-        </div>
-
-        {/* Color */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Couleur</label>
-          <input type="color" value={profile.color} onChange={e => setProfile({ ...profile, color: e.target.value })}
-            className="w-12 h-10 rounded border border-gray-300 cursor-pointer" />
         </div>
 
         {/* Birth date */}
