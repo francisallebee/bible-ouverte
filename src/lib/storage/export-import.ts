@@ -1,4 +1,5 @@
 import { getDB } from './db';
+import { getCurrentUserId } from './user-id';
 import type { ReadingEntry, ReadingContext, BibleVersion, AppSettings } from './types';
 
 export interface ExportData {
@@ -50,11 +51,14 @@ export async function importData(jsonString: string): Promise<ImportResult> {
     let count = 0;
 
     const db = await getDB();
+    const userId = await getCurrentUserId();
 
     if (Array.isArray(data.contexts)) {
       const tx = db.transaction('contexts', 'readwrite');
       for (const ctx of data.contexts) {
-        await tx.objectStore('contexts').put(ctx);
+        // Retire le flag synced : le contexte importé sera re-poussé vers le cloud
+        const { synced: _s, ...rest } = ctx;
+        await tx.objectStore('contexts').put(rest);
         count++;
       }
       await tx.done;
@@ -79,7 +83,10 @@ export async function importData(jsonString: string): Promise<ImportResult> {
     if (Array.isArray(data.readings)) {
       const tx = db.transaction('readings', 'readwrite');
       for (const r of data.readings) {
-        await tx.objectStore('readings').put(r);
+        // Rattache au compte courant et retire le flag synced
+        // pour que la lecture importée soit re-poussée vers le cloud
+        const { synced: _s, ...rest } = r;
+        await tx.objectStore('readings').put({ ...rest, userId });
         count++;
       }
       await tx.done;

@@ -10,6 +10,9 @@ async function getUserId(): Promise<string | null> {
     const supabase = createClient()
     const { data } = await supabase.auth.getUser()
     authedUserId = data.user?.id ?? null
+    // Ne pas mettre en cache un résultat null : réessayer au prochain appel
+    // (sinon un appel avant l'hydratation de la session bloque tout en "non connecté")
+    authPromise = null
     return authedUserId
   })()
   return authPromise
@@ -25,8 +28,10 @@ export function clearUserCache() {
 }
 
 // -- Generic helpers -- //
+// select retourne null en cas d'erreur (à distinguer d'une liste vide,
+// pour ne jamais purger le cache local sur un échec réseau/auth)
 
-async function select<T>(table: string, userId: string): Promise<T[]> {
+async function select<T>(table: string, userId: string): Promise<T[] | null> {
   const supabase = createClient()
   const { data, error } = await supabase
     .from(table)
@@ -35,7 +40,7 @@ async function select<T>(table: string, userId: string): Promise<T[]> {
     .order('id', { ascending: false })
   if (error) {
     console.warn(`supabase select ${table}:`, error.message)
-    return []
+    return null
   }
   return (data as T[]) ?? []
 }
@@ -124,17 +129,17 @@ export interface ReadingRow {
   translationId: string
   tags: string
   notes: string
-  links: any
-  photos: any
-  audio: any
+  links: string
+  photos: string
+  audio: string
   createdAt: string
   updatedAt: string
 }
 
-export async function fetchReadings(): Promise<ReadingRow[]> {
+export async function fetchReadings(): Promise<ReadingRow[] | null> {
   return tryAuthenticated(
     (uid) => select<ReadingRow>('readings', uid),
-    [],
+    null,
   )
 }
 
@@ -175,10 +180,10 @@ export interface PlanRow {
   updatedAt: string
 }
 
-export async function fetchPlans(): Promise<PlanRow[]> {
+export async function fetchPlans(): Promise<PlanRow[] | null> {
   return tryAuthenticated(
     (uid) => select<PlanRow>('plans', uid),
-    [],
+    null,
   )
 }
 
@@ -218,7 +223,7 @@ export interface PlanDayRow {
   readingId: number | null
 }
 
-export async function fetchPlanDays(planId: number): Promise<PlanDayRow[]> {
+export async function fetchPlanDays(planId: number): Promise<PlanDayRow[] | null> {
   const supabase = createClient()
   return tryAuthenticated(async (uid) => {
     const { data, error } = await supabase
@@ -229,10 +234,10 @@ export async function fetchPlanDays(planId: number): Promise<PlanDayRow[]> {
       .order('day', { ascending: true })
     if (error) {
       console.warn('supabase fetchPlanDays:', error.message)
-      return []
+      return null
     }
     return (data as PlanDayRow[]) ?? []
-  }, [])
+  }, null)
 }
 
 export async function insertPlanDays(days: Omit<PlanDayRow, 'id'>[]): Promise<boolean> {
@@ -286,10 +291,10 @@ export interface ContextRow {
   isSystemDefault: boolean
 }
 
-export async function fetchContexts(): Promise<ContextRow[]> {
+export async function fetchContexts(): Promise<ContextRow[] | null> {
   return tryAuthenticated(
     (uid) => select<ContextRow>('contexts', uid),
-    [],
+    null,
   )
 }
 
@@ -298,7 +303,7 @@ export async function upsertContext(context: Omit<ContextRow, 'user_id'>): Promi
     const supabase = createClient()
     const { error } = await supabase
       .from('contexts')
-      .upsert({ ...context, user_id: uid } as any, { onConflict: 'id' })
+      .upsert({ ...context, user_id: uid } as any, { onConflict: 'id,user_id' })
     if (error) {
       console.warn('supabase upsertContext:', error.message)
       return false
@@ -314,18 +319,11 @@ export async function deleteContext(id: string): Promise<boolean> {
   )
 }
 
-// -- Settings store -- //
+// -- Settings store (payload JSON complet dans la colonne jsonb `data`) -- //
 
 export interface SettingsRow {
   user_id: string
-  theme: string
-  fontSize: string
-  fontFamily: string
-  verseDisplay: string
-  dailyGoal: number
-  goalType: string
-  reminder: boolean
-  reminderTime: string
+  data: any
   updatedAt: string
 }
 
@@ -336,21 +334,21 @@ export async function fetchSettings(): Promise<SettingsRow | null> {
       .from('settings')
       .select('*')
       .eq('user_id', uid)
-      .single()
+      .maybeSingle()
     if (error) {
       console.warn('supabase fetchSettings:', error.message)
       return null
     }
-    return data as SettingsRow
+    return data as SettingsRow | null
   }, null)
 }
 
-export async function upsertSettings(settings: Omit<SettingsRow, 'user_id' | 'updatedAt'>): Promise<boolean> {
+export async function upsertSettings(payload: any): Promise<boolean> {
   return tryAuthenticated(async (uid) => {
     const supabase = createClient()
     const { error } = await supabase
       .from('settings')
-      .upsert({ ...settings, user_id: uid, updatedAt: new Date().toISOString() } as any, { onConflict: 'user_id' })
+      .upsert({ user_id: uid, data: payload, updatedAt: new Date().toISOString() } as any, { onConflict: 'user_id' })
     if (error) {
       console.warn('supabase upsertSettings:', error.message)
       return false

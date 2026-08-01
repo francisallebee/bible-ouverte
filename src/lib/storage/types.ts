@@ -25,6 +25,8 @@ export interface ReadingEntry {
   audio?: string;
   createdAt: string;
   updatedAt: string;
+  /** true si la ligne existe dans Supabase (flag local uniquement) */
+  synced?: boolean;
 }
 
 export interface ReadingContext {
@@ -36,6 +38,8 @@ export interface ReadingContext {
   emoji?: string;
   parentId?: string;
   isSystemDefault: boolean;
+  /** true si la ligne existe dans Supabase (flag local uniquement) */
+  synced?: boolean;
 }
 
 export interface BibleVersion {
@@ -68,6 +72,8 @@ export interface ReadingPlan {
   totalDays: number;
   createdAt: string;
   updatedAt: string;
+  /** true si la ligne existe dans Supabase (flag local uniquement) */
+  synced?: boolean;
 }
 
 export interface PlanDay {
@@ -81,6 +87,8 @@ export interface PlanDay {
   chapterEnd: number;
   isRead: boolean;
   readingId?: number;
+  /** true si la ligne existe dans Supabase (flag local uniquement) */
+  synced?: boolean;
 }
 
 export interface ReadingGoal {

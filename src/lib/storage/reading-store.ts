@@ -25,9 +25,10 @@ function rowToEntry(row: ReadingRow): ReadingEntry {
     notes: row.notes,
     links: safeParseArray(row.links),
     photos: safeParseArray(row.photos),
-    audio: row.audio ? (typeof row.audio === 'string' ? row.audio : '') : '',
+    audio: typeof row.audio === 'string' ? row.audio : '',
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    synced: true,
   };
 }
 
@@ -58,34 +59,68 @@ function safeParseArray(val: any): any[] {
   return [];
 }
 
-async function cacheAll(userId: string): Promise<void> {
-  const rows = await fetchReadings();
-  const db = await getDB();
-  const tx = db.transaction('readings', 'readwrite');
-  for (const r of rows) {
-    await tx.objectStore('readings').put(rowToEntry(r));
-  }
-  await tx.done;
-}
-
 function isOnline() {
   return typeof navigator !== 'undefined' && navigator.onLine;
 }
 
-export async function getAllReadings(): Promise<ReadingEntry[]> {
-  const userId = await getCurrentUserId();
+function isMine(r: ReadingEntry, userId: string): boolean {
+  return !r.userId || r.userId === userId;
+}
+
+/**
+ * Pousse vers Supabase les lectures locales jamais synchronisées
+ * (créées hors ligne ou avant la mise en place de la sync).
+ */
+async function pushLocalReadings(userId: string): Promise<void> {
   const db = await getDB();
   const all = await db.getAll('readings');
-  const local = all.filter(r => !r.userId || r.userId === userId);
-  if (local.length === 0 && isOnline()) {
-    await cacheAll(userId);
-    const all2 = await db.getAll('readings');
-    return all2.filter(r => !r.userId || r.userId === userId).sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
+  const unsynced = all.filter(r => isMine(r, userId) && !r.synced);
+  for (const r of unsynced) {
+    const created = await supabaseInsert(entryToRow({ ...r, userId }));
+    if (created) {
+      if (r.id !== undefined && r.id !== created.id) {
+        await db.delete('readings', r.id);
+      }
+      await db.put('readings', rowToEntry(created));
+    }
   }
-  if (isOnline()) {
-    cacheAll(userId).catch(() => {});
+}
+
+/**
+ * Récupère les lectures depuis Supabase et met le cache local à jour
+ * (ajouts + suppressions effectués sur d'autres appareils).
+ */
+async function pullReadings(userId: string): Promise<void> {
+  const rows = await fetchReadings();
+  if (rows === null) return; // hors ligne / non connecté / erreur : ne pas toucher au cache
+  const db = await getDB();
+  const remoteIds = new Set(rows.map(r => r.id));
+  const all = await db.getAll('readings');
+  for (const r of all) {
+    if (r.userId === userId && r.synced && r.id !== undefined && !remoteIds.has(r.id)) {
+      await db.delete('readings', r.id);
+    }
   }
-  return local.sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
+  for (const row of rows) {
+    await db.put('readings', rowToEntry(row));
+  }
+}
+
+async function syncReadings(userId: string): Promise<void> {
+  await pushLocalReadings(userId);
+  await pullReadings(userId);
+}
+
+export async function getAllReadings(): Promise<ReadingEntry[]> {
+  const userId = await getCurrentUserId();
+  if (isOnline() && userId !== 'local') {
+    try { await syncReadings(userId); } catch { /* cache local en secours */ }
+  }
+  const db = await getDB();
+  const all = await db.getAll('readings');
+  return all
+    .filter(r => isMine(r, userId))
+    .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
 }
 
 export async function getReadingById(id: number): Promise<ReadingEntry | undefined> {
@@ -99,14 +134,14 @@ export async function getReadingsByDateRange(start: string, end: string): Promis
   const tx = db.transaction('readings');
   const index = tx.objectStore('readings').index('by-date');
   const readings = await index.getAll(IDBKeyRange.bound(start, end));
-  return readings.filter(r => !r.userId || r.userId === userId);
+  return readings.filter(r => isMine(r, userId));
 }
 
 export async function getReadingsByTag(tagId: string): Promise<ReadingEntry[]> {
   const userId = await getCurrentUserId();
   const db = await getDB();
   const all = await db.getAll('readings');
-  return all.filter(r => r.tags?.includes(tagId) && (!r.userId || r.userId === userId));
+  return all.filter(r => r.tags?.includes(tagId) && isMine(r, userId));
 }
 
 export async function getReadingsByBook(book: string): Promise<ReadingEntry[]> {
@@ -115,7 +150,7 @@ export async function getReadingsByBook(book: string): Promise<ReadingEntry[]> {
   const tx = db.transaction('readings');
   const index = tx.objectStore('readings').index('by-book');
   const readings = await index.getAll(book);
-  return readings.filter(r => !r.userId || r.userId === userId);
+  return readings.filter(r => isMine(r, userId));
 }
 
 export async function addReading(
@@ -132,12 +167,11 @@ export async function addReading(
   const db = await getDB();
   const localId = await db.add('readings', entry);
 
-  if (isOnline()) {
-    const row = entryToRow({ ...entry, id: localId });
-    const created = await supabaseInsert(row);
+  if (isOnline() && userId !== 'local') {
+    const created = await supabaseInsert(entryToRow(entry));
     if (created) {
-      entry.id = created.id;
-      await db.put('readings', entry);
+      await db.delete('readings', localId);
+      await db.put('readings', rowToEntry(created));
       return created.id;
     }
   }
@@ -148,10 +182,11 @@ export async function updateReading(id: number, data: Partial<ReadingEntry>): Pr
   const db = await getDB();
   const existing = await db.get('readings', id);
   if (!existing) return;
-  const updated = { ...existing, ...data, updatedAt: new Date().toISOString() };
+  const updated: ReadingEntry = { ...existing, ...data, updatedAt: new Date().toISOString() };
   await db.put('readings', updated);
 
-  if (isOnline()) {
+  // Si jamais synchronisée, elle sera poussée entière au prochain sync.
+  if (isOnline() && updated.synced) {
     supabaseUpdate(id, {
       date: updated.date,
       book: updated.book,
@@ -163,15 +198,19 @@ export async function updateReading(id: number, data: Partial<ReadingEntry>): Pr
       translationId: updated.translationId,
       tags: JSON.stringify(updated.tags ?? []),
       notes: updated.notes ?? '',
-      updatedAt: new Date().toISOString(),
+      links: JSON.stringify(updated.links ?? []),
+      photos: JSON.stringify(updated.photos ?? []),
+      audio: updated.audio ?? '',
+      updatedAt: updated.updatedAt,
     }).catch(() => {});
   }
 }
 
 export async function deleteReading(id: number): Promise<void> {
   const db = await getDB();
+  const existing = await db.get('readings', id);
   await db.delete('readings', id);
-  if (isOnline()) {
+  if (isOnline() && existing?.synced) {
     supabaseDelete(id).catch(() => {});
   }
 }
@@ -182,6 +221,6 @@ export async function getLatestReading(): Promise<ReadingEntry | undefined> {
   const tx = db.transaction('readings');
   const index = tx.objectStore('readings').index('by-date');
   const cursor = await index.openCursor(null, 'prev');
-  if (cursor && (!cursor.value.userId || cursor.value.userId === userId)) return cursor.value;
+  if (cursor && isMine(cursor.value, userId)) return cursor.value;
   return undefined;
 }
