@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { describePasswordProblems, PASSWORD_MIN_LENGTH } from '@/lib/auth/password'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -19,6 +20,15 @@ export default function SignupPage() {
     const email = form.get('email') as string
     const password = form.get('password') as string
     const name = form.get('name') as string
+
+    // Le serveur applique les mêmes règles ; les vérifier ici évite un
+    // aller-retour et affiche un message en français plutôt que l'erreur brute.
+    const problem = describePasswordProblems(password)
+    if (problem) {
+      setError(problem)
+      setLoading(false)
+      return
+    }
 
     const supabase = createClient()
     const { error } = await supabase.auth.signUp({
@@ -81,15 +91,20 @@ export default function SignupPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
           <input
+            id="password"
             name="password"
             type="password"
             autoComplete="new-password"
             required
-            minLength={6}
+            minLength={PASSWORD_MIN_LENGTH}
+            aria-describedby="password-hint"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
           />
+          <p id="password-hint" className="text-xs text-gray-500 mt-1">
+            {PASSWORD_MIN_LENGTH} caractères minimum, avec une minuscule, une majuscule et un chiffre.
+          </p>
         </div>
         {error && <p aria-live="polite" className="text-red-600 text-sm">{error}</p>}
         <button
