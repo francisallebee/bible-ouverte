@@ -4,17 +4,38 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookPlus, Link as LinkIcon, ImageIcon, Camera, Upload, Search,
-  X, ExternalLink, Plus, Music, ChevronDown,
+  X, ExternalLink, Plus, Music, ChevronDown, Trash2, Layers,
 } from "lucide-react";
 import {
   seedIfNeeded, getAllVersions, getPassagesByRange, addReading, getSettings,
+  getAllContexts,
 } from "@/lib/storage";
-import type { BibleVersion, ReadingLink, BiblePassage } from "@/lib/storage";
+import type { BibleVersion, ReadingLink, BiblePassage, ReadingContext } from "@/lib/storage";
 import { BOOKS, getBook, getBookName } from "@/features/bible";
 import type { BibleBook } from "@/features/bible";
 import UnsplashSearch from "@/components/UnsplashSearch";
 import AudioRecorder from "@/components/AudioRecorder";
+import ContextPicker from "@/components/ContextPicker";
 import { resizeImage } from "@/lib/image-utils";
+
+/** Un passage mis de côté, en attente de l'enregistrement global. */
+interface PendingPassage {
+  book: string;
+  chapterStart: number;
+  chapterEnd: number;
+  verseStart: number;
+  verseEnd: number;
+}
+
+function describePassage(p: PendingPassage): string {
+  const chapters = p.chapterEnd !== p.chapterStart
+    ? `${p.chapterStart}-${p.chapterEnd}`
+    : `${p.chapterStart}`;
+  const verses = p.verseEnd !== p.verseStart
+    ? `${p.verseStart}-${p.verseEnd}`
+    : `${p.verseStart}`;
+  return `${getBookName(p.book)} ${chapters}:${verses}`;
+}
 
 export default function NewReadingPage() {
   const router = useRouter();
@@ -29,6 +50,11 @@ export default function NewReadingPage() {
   const [verseStart, setVerseStart] = useState(1);
   const [verseEnd, setVerseEnd] = useState<number | undefined>();
   const [versionId, setVersionId] = useState("");
+  const [contexts, setContexts] = useState<ReadingContext[]>([]);
+  const [contextId, setContextId] = useState("");
+  // `passages` porte déjà l'aperçu des versets : ce champ-ci est la pile des
+  // passages mis de côté pour être enregistrés ensemble.
+  const [pending, setPending] = useState<PendingPassage[]>([]);
   const [notes, setNotes] = useState("");
   const [links, setLinks] = useState<ReadingLink[]>([]);
   const [photos, setPhotos] = useState<string[]>([]);
@@ -81,8 +107,9 @@ export default function NewReadingPage() {
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const vers = await getAllVersions();
+      const [vers, ctxs] = await Promise.all([getAllVersions(), getAllContexts()]);
       setVersions(vers);
+      setContexts(ctxs);
       if (vers.length > 0) {
         const s = await getSettings();
         setVersionId(s?.defaultVersionId || vers[0].id);
@@ -122,16 +149,62 @@ export default function NewReadingPage() {
     setShowUnsplash(false);
   }
 
+  /** Le passage en cours de saisie, s'il est complet. */
+  function currentPassage(): PendingPassage | null {
+    if (!book) return null;
+    return { book, chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd };
+  }
+
+  function resetPassageFields() {
+    setBook("");
+    setChapterStart(1);
+    setChapterEnd(undefined);
+    setVerseStart(1);
+    setVerseEnd(undefined);
+  }
+
+  /** Met le passage en cours de côté et vide les champs pour le suivant. */
+  function stackPassage() {
+    const p = currentPassage();
+    if (!p) return;
+    setPending((prev) => [...prev, p]);
+    resetPassageFields();
+  }
+
+  function removePending(i: number) {
+    setPending((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+  // Le passage en cours compte dans le total : on n'oblige pas à cliquer
+  // « Ajouter ce passage » avant d'enregistrer une lecture unique.
+  const toSave = [...pending, ...(currentPassage() ? [currentPassage()!] : [])];
+
   async function handleSave() {
-    if (!book || !versionId) return;
+    if (toSave.length === 0 || !versionId) return;
     setSaving(true);
-    await addReading({
-      date, book, chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd,
-      passageText: "", translationId: versionId, tags: [], notes,
-      links: links.length > 0 ? links : undefined,
-      photos: photos.length > 0 ? photos : undefined,
-      audio: audio || undefined,
-    });
+
+    // Une lecture par passage : les statistiques, la progression et les plans
+    // raisonnent tous par lecture, un enregistrement unique portant plusieurs
+    // passages fausserait tous les comptages.
+    for (const p of toSave) {
+      await addReading({
+        date,
+        book: p.book,
+        chapterStart: p.chapterStart,
+        chapterEnd: p.chapterEnd,
+        verseStart: p.verseStart,
+        verseEnd: p.verseEnd,
+        passageText: "",
+        translationId: versionId,
+        tags: [],
+        contextId,
+        notes,
+        links: links.length > 0 ? links : undefined,
+        photos: photos.length > 0 ? photos : undefined,
+        audio: audio || undefined,
+      });
+    }
+
     setSaving(false);
     router.push("/");
   }
@@ -160,9 +233,20 @@ export default function NewReadingPage() {
         <div className="space-y-5">
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow] space-y-5">
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[--text]">Date</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} autoComplete="off"
+              <label htmlFor="reading-date" className="block text-sm font-medium mb-1.5 text-[--text]">Date</label>
+              <input id="reading-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} autoComplete="off"
                 className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
+            </div>
+
+            <div>
+              <label htmlFor="reading-context" className="block text-sm font-medium mb-1.5 text-[--text]">Contexte</label>
+              <ContextPicker
+                id="reading-context"
+                contexts={contexts}
+                value={contextId}
+                onChange={setContextId}
+                onContextAdded={(created) => setContexts((prev) => [...prev, created])}
+              />
             </div>
 
             <div>
@@ -228,7 +312,40 @@ export default function NewReadingPage() {
                 {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
               </select>
             </div>
+
+            <div className="pt-1">
+              <button type="button" onClick={stackPassage} disabled={!book}
+                className="w-full flex items-center justify-center gap-2 border border-dashed border-[--border] rounded-lg px-3 py-2.5 text-sm text-[--text-secondary] hover:border-[--primary] hover:text-[--primary] disabled:opacity-40 disabled:hover:border-[--border] disabled:hover:text-[--text-secondary] transition-colors">
+                <Plus className="w-4 h-4" />
+                Ajouter un autre passage à cette date
+              </button>
+              <p className="text-xs text-[--text-secondary] mt-1.5">
+                La date, le contexte, les notes et les médias sont communs à tous les passages.
+              </p>
+            </div>
           </div>
+
+          {pending.length > 0 && (
+            <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
+              <p className="text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
+                <Layers className="w-4 h-4 text-[--primary]" />
+                Passages à enregistrer ({pending.length}{currentPassage() ? " + celui en cours" : ""})
+              </p>
+              <ul className="space-y-1.5">
+                {pending.map((p, i) => (
+                  <li key={`${p.book}-${p.chapterStart}-${i}`}
+                    className="flex items-center gap-2 bg-gray-50 border border-[--border] rounded-lg px-3 py-2 text-sm">
+                    <span className="flex-1 min-w-0 truncate text-[--text]">{describePassage(p)}</span>
+                    <button type="button" onClick={() => removePending(i)}
+                      aria-label={`Retirer ${describePassage(p)}`}
+                      className="text-[--text-secondary] hover:text-red-600 transition-colors shrink-0">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
             <label className="block text-sm font-medium mb-2 text-[--text]">Notes</label>
@@ -325,14 +442,14 @@ export default function NewReadingPage() {
             )}
           </div>
 
-          <button onClick={handleSave} disabled={!book || !versionId || saving}
+          <button onClick={handleSave} disabled={toSave.length === 0 || !versionId || saving}
             className="w-full bg-[--primary] text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] shadow-[--shadow]">
             {saving ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
                 Enregistrement…
               </span>
-            ) : "Enregistrer la lecture"}
+            ) : toSave.length > 1 ? `Enregistrer les ${toSave.length} lectures` : "Enregistrer la lecture"}
           </button>
         </div>
 
