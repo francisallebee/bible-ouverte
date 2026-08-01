@@ -5,18 +5,28 @@
  * HaveIBeenPwned) n'est disponible qu'à partir du plan Pro. Sur le plan Free,
  * le seul levier est la robustesse intrinsèque du mot de passe.
  *
- * Ces règles doublent celles configurées dans supabase/config.toml. Le serveur
- * reste l'autorité — la validation côté formulaire ne sert qu'à expliquer le
- * refus avant l'aller-retour réseau, avec un message en français plutôt que
- * l'erreur brute de l'API.
+ * Ces règles doivent rester le miroir exact de celles configurées dans le
+ * dashboard Supabase (Authentication → Sign In / Providers → Email), qui fait
+ * autorité. Toute divergence produit le pire des cas : un formulaire qui valide
+ * et un serveur qui refuse ensuite, avec un message brut en anglais.
+ *
+ * Vérifié contre le serveur le 1er août 2026 : longueur minimale 10, minuscule,
+ * majuscule, chiffre et symbole exigés.
  */
 
 export const PASSWORD_MIN_LENGTH = 10;
 
 /**
- * Dix caractères mêlant minuscules, majuscules et chiffres demandent plus de
- * tentatives qu'un mot de passe de huit caractères avec symboles (~2^59 contre
- * ~2^52), tout en restant saisissable sur un clavier de téléphone.
+ * Jeu de symboles accepté par Supabase Auth. Reproduit tel quel : un caractère
+ * hors de cette liste — une lettre accentuée, une espace, un emoji — ne compte
+ * pas comme symbole côté serveur, et le refuser ici évite un formulaire qui
+ * valide puis un serveur qui refuse.
+ */
+const SYMBOLS = /[!@#$%^&*()_+\-=[\]{};'\\:"|<>?,./`~]/;
+
+/**
+ * Ces règles reproduisent celles configurées côté serveur : dix caractères au
+ * minimum, avec une minuscule, une majuscule, un chiffre et un symbole.
  */
 export function validatePassword(password: string): string[] {
   const problems: string[] = [];
@@ -32,6 +42,9 @@ export function validatePassword(password: string): string[] {
   }
   if (!/[0-9]/.test(password)) {
     problems.push('un chiffre');
+  }
+  if (!SYMBOLS.test(password)) {
+    problems.push('un symbole (par exemple ! ? * - .)');
   }
 
   return problems;

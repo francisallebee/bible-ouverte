@@ -103,7 +103,8 @@ export default function SignupPage() {
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
           />
           <p id="password-hint" className="text-xs text-gray-500 mt-1">
-            {PASSWORD_MIN_LENGTH} caractères minimum, avec une minuscule, une majuscule et un chiffre.
+            {PASSWORD_MIN_LENGTH} caractères minimum, avec une minuscule, une majuscule,
+            un chiffre et un symbole.
           </p>
         </div>
         {error && <p aria-live="polite" className="text-red-600 text-sm">{error}</p>}

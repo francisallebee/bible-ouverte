@@ -202,18 +202,18 @@ enable_manual_linking = false
 #
 # La protection contre les mots de passe compromis (HaveIBeenPwned) n'existe
 # qu'à partir du plan Pro ; l'organisation est sur le plan Free. Le seul levier
-# restant est la robustesse intrinsèque. Dix caractères mêlant minuscules,
-# majuscules et chiffres demandent plus de tentatives qu'un mot de passe de huit
-# caractères avec symboles (~2^59 contre ~2^52), tout en restant saisissable sur
-# un clavier de téléphone. Ces valeurs sont doublées côté formulaire dans
-# src/lib/auth/password.ts.
+# restant est la robustesse intrinsèque du mot de passe.
 #
-# Ces deux valeurs sont appliquées en production via le dashboard, pas via
-# `config push` — voir l'avertissement en tête de fichier.
+# Ces valeurs reflètent ce qui est RÉELLEMENT appliqué en production, vérifié
+# contre le serveur le 1er août 2026. Elles y ont été posées via le dashboard,
+# pas via `config push` — voir l'avertissement en tête de fichier.
+#
+# src/lib/auth/password.ts doit en rester le miroir exact : toute divergence
+# donne un formulaire qui valide et un serveur qui refuse ensuite.
 minimum_password_length = 10
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
 # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
-password_requirements = "lower_upper_letters_digits"
+password_requirements = "lower_upper_letters_digits_symbols"
 
 # Configure passkey sign-ins.
 # [auth.passkey]
