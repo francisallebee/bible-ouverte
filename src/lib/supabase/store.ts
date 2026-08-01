@@ -356,3 +356,94 @@ export async function upsertSettings(payload: any): Promise<boolean> {
     return true
   }, false)
 }
+
+// -- Roadmap store (contenu global : lecture pour tous, gestion par les admins) -- //
+
+export interface RoadmapRow {
+  id: number
+  title: string
+  description: string
+  status: string
+  reactions: Record<string, string>
+  createdAt: string
+  updatedAt: string
+}
+
+export async function fetchRoadmapItems(): Promise<RoadmapRow[] | null> {
+  return tryAuthenticated(async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('roadmap_items')
+      .select('*')
+      .order('id', { ascending: true })
+    if (error) {
+      console.warn('supabase fetchRoadmapItems:', error.message)
+      return null
+    }
+    return (data as RoadmapRow[]) ?? []
+  }, null)
+}
+
+export async function insertRoadmapItem(item: Omit<RoadmapRow, 'id' | 'createdAt' | 'updatedAt'>): Promise<RoadmapRow | null> {
+  return tryAuthenticated(
+    () => insert<RoadmapRow>('roadmap_items', item as RoadmapRow),
+    null,
+  )
+}
+
+export async function updateRoadmapItemRemote(id: number, data: Partial<RoadmapRow>): Promise<boolean> {
+  return tryAuthenticated(
+    () => update<RoadmapRow>('roadmap_items', id, data),
+    false,
+  )
+}
+
+export async function deleteRoadmapItemRemote(id: number): Promise<boolean> {
+  return tryAuthenticated(
+    () => remove('roadmap_items', id),
+    false,
+  )
+}
+
+// -- Tickets support (visibles par tous les utilisateurs connectés) -- //
+
+export interface TicketRow {
+  id: number
+  user_id: string
+  userName: string
+  type: string
+  message: string
+  status: string
+  replies: any[]
+  createdAt: string
+  updatedAt: string
+}
+
+export async function fetchTickets(): Promise<TicketRow[] | null> {
+  return tryAuthenticated(async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*')
+      .order('id', { ascending: true })
+    if (error) {
+      console.warn('supabase fetchTickets:', error.message)
+      return null
+    }
+    return (data as TicketRow[]) ?? []
+  }, null)
+}
+
+export async function insertTicket(ticket: Omit<TicketRow, 'id' | 'user_id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<TicketRow | null> {
+  return tryAuthenticated(
+    (uid) => insert<TicketRow>('tickets', { ...ticket, user_id: uid } as TicketRow),
+    null,
+  )
+}
+
+export async function updateTicketRemote(id: number, data: Partial<TicketRow>): Promise<boolean> {
+  return tryAuthenticated(
+    () => update<TicketRow>('tickets', id, data),
+    false,
+  )
+}

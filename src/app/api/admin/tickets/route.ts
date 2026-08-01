@@ -15,16 +15,10 @@ export async function GET(request: NextRequest) {
   const { data: tickets, error } = await admin
     .from('tickets')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('createdAt', { ascending: false })
 
   if (error) return errorResponse(error.message)
-
-  const enriched = await Promise.all((tickets || []).map(async (t: any) => {
-    const { data: p } = await admin.from('profiles').select('name, email, avatar_url').eq('id', t.user_id).single()
-    return { ...t, user_name: (p as any)?.name || 'Inconnu', user_email: (p as any)?.email || null, user_avatar: (p as any)?.avatar_url || null }
-  }))
-
-  return successResponse(enriched)
+  return successResponse(tickets ?? [])
 }
 
 export async function PATCH(request: NextRequest) {
@@ -46,7 +40,7 @@ export async function PATCH(request: NextRequest) {
       return errorResponse('Statut invalide')
     }
     updates.status = body.status
-    updates.updated_at = new Date().toISOString()
+    updates.updatedAt = new Date().toISOString()
   }
 
   const { data, error } = await admin

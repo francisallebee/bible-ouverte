@@ -10,6 +10,15 @@ drop table if exists public.readings cascade;
 drop table if exists public.contexts cascade;
 drop table if exists public.settings cascade;
 drop table if exists public.tickets cascade;
+drop table if exists public.roadmap_items cascade;
+
+-- 0. Colonnes du profil (page Mon profil)
+alter table public.profiles
+  add column if not exists avatar_url text,
+  add column if not exists birth_date text,
+  add column if not exists phone text,
+  add column if not exists bio text,
+  add column if not exists social_links jsonb not null default '{}';
 
 -- 1. Tables (colonnes camelCase quotées pour correspondre aux types TypeScript)
 
@@ -90,20 +99,32 @@ create table public.settings (
   "updatedAt" timestamptz not null default now()
 );
 
--- Tickets (alignés sur les routes /api/tickets : id uuid, created_at snake_case)
+-- Tickets support (page Support : visibles par tous les utilisateurs connectés)
 create table public.tickets (
-  id uuid primary key default gen_random_uuid(),
+  id bigint primary key generated always as identity,
   user_id uuid not null references public.profiles(id) on delete cascade,
-  title text not null,
-  description text not null default '',
-  category text not null default 'bug',
+  "userName" text not null default '',
+  type text not null default 'bug',
+  message text not null default '',
   status text not null default 'open',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  replies jsonb not null default '[]',
+  "createdAt" timestamptz not null default now(),
+  "updatedAt" timestamptz not null default now()
 );
 
 create index idx_tickets_user on public.tickets(user_id);
 create index idx_tickets_status on public.tickets(status);
+
+-- Feuille de route (contenu global : lecture pour tous, gestion par les admins)
+create table public.roadmap_items (
+  id bigint primary key generated always as identity,
+  title text not null,
+  description text not null default '',
+  status text not null default 'planned',
+  reactions jsonb not null default '{}',
+  "createdAt" timestamptz not null default now(),
+  "updatedAt" timestamptz not null default now()
+);
 
 -- 2. Row Level Security
 
@@ -113,6 +134,7 @@ alter table public.plans enable row level security;
 alter table public.plan_days enable row level security;
 alter table public.settings enable row level security;
 alter table public.tickets enable row level security;
+alter table public.roadmap_items enable row level security;
 
 -- Readings policies
 create policy "users can read own readings"
@@ -195,26 +217,38 @@ create policy "users can update own settings"
   on public.settings for update
   using (auth.uid() = user_id);
 
--- Tickets policies
-create policy "users can read own tickets"
+-- Tickets policies (tickets visibles et commentables par tous les connectés)
+create policy "authenticated can read tickets"
   on public.tickets for select
-  using (auth.uid() = user_id);
+  using (auth.uid() is not null);
 
 create policy "users can insert own tickets"
   on public.tickets for insert
   with check (auth.uid() = user_id);
 
-create policy "users can update own tickets"
+create policy "authenticated can update tickets"
   on public.tickets for update
-  using (auth.uid() = user_id);
+  using (auth.uid() is not null);
 
--- Admin policies
-create policy "admins can read all tickets"
-  on public.tickets for select
+create policy "admins can delete tickets"
+  on public.tickets for delete
   using (exists (select 1 from public.profiles where id = auth.uid() and is_admin = true));
 
-create policy "admins can update any ticket"
-  on public.tickets for update
+-- Roadmap policies (lecture + réactions pour tous, gestion admin)
+create policy "authenticated can read roadmap"
+  on public.roadmap_items for select
+  using (auth.uid() is not null);
+
+create policy "admins can insert roadmap"
+  on public.roadmap_items for insert
+  with check (exists (select 1 from public.profiles where id = auth.uid() and is_admin = true));
+
+create policy "authenticated can update roadmap"
+  on public.roadmap_items for update
+  using (auth.uid() is not null);
+
+create policy "admins can delete roadmap"
+  on public.roadmap_items for delete
   using (exists (select 1 from public.profiles where id = auth.uid() and is_admin = true));
 
 -- 3. Trigger : création auto du profil et des settings

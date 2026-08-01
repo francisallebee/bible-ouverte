@@ -29,17 +29,19 @@ export default function ProfilPage() {
       const json = await res.json()
       if (json.data) {
         const cachedAvatar = localStorage.getItem('profile_avatar')
+        const serverAvatar = json.data.avatar_url || null
         setProfile({
           ...json.data,
           social_links: json.data.social_links || {},
-          avatar_url: json.data.avatar_url || cachedAvatar || null,
+          avatar_url: serverAvatar || cachedAvatar || null,
           birth_date: json.data.birth_date || null,
           phone: json.data.phone || null,
           bio: json.data.bio || null,
         })
         localStorage.setItem('profile_name', json.data.name || '')
         localStorage.setItem('profile_color', json.data.color || '#1e3a5f')
-        if (cachedAvatar) localStorage.setItem('profile_avatar', cachedAvatar)
+        // L'avatar du serveur fait foi (synchronisé entre appareils)
+        if (serverAvatar) localStorage.setItem('profile_avatar', serverAvatar)
       } else {
         console.error('Profil API error:', json.error)
       }

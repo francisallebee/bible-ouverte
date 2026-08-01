@@ -100,10 +100,12 @@ export interface RoadmapItem {
   id?: number;
   title: string;
   description: string;
-  status: 'planned' | 'in-progress' | 'done' | 'cancelled';
+  status: 'planned' | 'projet' | 'in-progress' | 'done' | 'cancelled';
   reactions?: Record<string, string>;
   createdAt: string;
   updatedAt: string;
+  /** true si la ligne existe dans Supabase (flag local uniquement) */
+  synced?: boolean;
 }
 
 export interface SupportTicket {
@@ -112,8 +114,11 @@ export interface SupportTicket {
   userName: string;
   type: 'bug' | 'suggestion';
   message: string;
+  status?: string;
   createdAt: string;
   replies: SupportReply[];
+  /** true si la ligne existe dans Supabase (flag local uniquement) */
+  synced?: boolean;
 }
 
 export interface SupportReply {
@@ -137,4 +142,6 @@ export interface AppSettings {
   readingGoal?: ReadingGoal;
   unsplashAccessKey?: string;
   audioSpeed?: number;
+  /** true si une modification locale n'a pas encore été poussée vers le cloud */
+  _dirty?: boolean;
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import {
   Shield, ShieldOff, BookOpen, Tags, Trash2, Users, Ban, CheckCircle,
-  RefreshCw, UserCog, MessageSquare, Bug, Lightbulb, HelpCircle,
+  RefreshCw, UserCog, MessageSquare, Bug, Lightbulb,
   MoreHorizontal, ChevronDown,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -21,16 +21,14 @@ type AdminStats = {
 }
 
 type Ticket = {
-  id: string; user_id: string; title: string; description: string
-  category: string; status: string; created_at: string; updated_at: string
-  user_name: string; user_email: string | null; user_avatar: string | null
+  id: number; user_id: string; userName: string; type: string
+  message: string; status: string; replies: any[]
+  createdAt: string; updatedAt: string
 }
 
 const CATEGORIES: Record<string, { label: string; icon: any }> = {
   bug: { label: 'Bug', icon: Bug },
-  feature: { label: 'Proposition', icon: Lightbulb },
-  question: { label: 'Question', icon: HelpCircle },
-  other: { label: 'Autre', icon: MoreHorizontal },
+  suggestion: { label: 'Suggestion', icon: Lightbulb },
 }
 
 const STATUS_OPTIONS = ['open', 'in_progress', 'resolved', 'closed']
@@ -109,7 +107,7 @@ export default function AdminPage() {
     await loadData(); setActionId(null)
   }
 
-  const handleTicketStatus = async (id: string, status: string) => {
+  const handleTicketStatus = async (id: number, status: string) => {
     await fetch('/api/admin/tickets', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
     await loadTickets()
   }
@@ -233,7 +231,7 @@ export default function AdminPage() {
           ) : (
             <div className="space-y-3">
               {filteredTickets.map(t => {
-                const cat = CATEGORIES[t.category] || { label: t.category, icon: MoreHorizontal }
+                const cat = CATEGORIES[t.type] || { label: t.type, icon: MoreHorizontal }
                 const CatIcon = cat.icon
                 return (
                   <div key={t.id} className="bg-white rounded-xl border border-gray-200 p-4">
@@ -249,12 +247,17 @@ export default function AdminPage() {
                             </span>
                             <span className="text-xs text-gray-400">{cat.label}</span>
                           </div>
-                          <h3 className="font-medium text-sm">{t.title}</h3>
-                          {t.description && <p className="text-xs text-gray-600 mt-1">{t.description}</p>}
+                          <p className="text-sm text-gray-800 whitespace-pre-wrap">{t.message}</p>
                           <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
-                            <span>Par {t.user_name}</span>
+                            <span>Par {t.userName}</span>
                             <span>·</span>
-                            <span>{new Date(t.created_at).toLocaleDateString('fr-FR')}</span>
+                            <span>{new Date(t.createdAt).toLocaleDateString('fr-FR')}</span>
+                            {t.replies?.length > 0 && (
+                              <>
+                                <span>·</span>
+                                <span>{t.replies.length} réponse{t.replies.length > 1 ? 's' : ''}</span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
