@@ -21,8 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr">
       <head>
-        <link rel="icon" href="/logo.svg" />
-        <link rel="apple-touch-icon" href="/logo.svg" />
+        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+        {/* iOS ignore le SVG et la transparence : PNG opaque de 180×180. */}
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
       </head>
       <body className="min-h-screen">
         <AuthProvider>
