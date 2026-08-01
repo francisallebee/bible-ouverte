@@ -41,6 +41,10 @@ export default function PlansPage() {
     setLoaded(true);
   }
 
+  // Chargement au montage uniquement. `load` lit formVersion pour ne pas
+  // écraser un choix déjà fait : l'ajouter aux dépendances relancerait le
+  // chargement à chaque changement de version dans le formulaire.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, []);
 
   async function handleCreate() {
@@ -49,7 +53,12 @@ export default function PlansPage() {
 
     const userId = await getCurrentUserId();
     const duration = formDuration;
-    const totalDays = duration === "custom" ? formCustomDays : (DURATIONS.find(d => d.value === duration)?.days ?? 30);
+
+    // Le plan est généré d'abord : totalDays doit refléter les jours réellement
+    // produits, pas la durée demandée. Un livre ne pouvant pas être lu sur plus
+    // de jours qu'il n'a de chapitres, une durée courte donne un plan plus long
+    // que demandé, et l'écran doit annoncer le bon nombre.
+    const days = generatePlanDays(duration, formStartDate, duration === "custom" ? formCustomDays : undefined);
 
     const planId = await addPlan({
       userId,
@@ -58,12 +67,11 @@ export default function PlansPage() {
       duration,
       customDays: duration === "custom" ? formCustomDays : undefined,
       startDate: formStartDate,
-      totalDays,
+      totalDays: days.length,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
 
-    const days = generatePlanDays(duration, formStartDate, duration === "custom" ? formCustomDays : undefined);
     await addPlanDays(days.map(d => ({ ...d, planId, userId, isRead: false })));
 
     setFormSaving(false);

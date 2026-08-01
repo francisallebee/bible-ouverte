@@ -112,8 +112,9 @@ export default function PlanDetailPage() {
     if (!plan || !formName.trim() || !formVersion) return;
     setSaving(true);
     try {
-      const totalDays = formDuration === "custom" ? formCustomDays
-        : ({ "1-year": 365, "6-months": 182, "3-months": 91, "1-month": 30 } as Record<string, number>)[formDuration];
+      // Généré avant l'enregistrement : totalDays doit refléter les jours
+      // réellement produits et non la durée demandée (voir plan-generator.ts).
+      const rawDays = generatePlanDays(formDuration, formStartDate, formCustomDays, formBooks.length > 0 ? formBooks : undefined);
 
       const updated: ReadingPlan = {
         ...plan,
@@ -123,14 +124,13 @@ export default function PlanDetailPage() {
         books: formBooks.length > 0 ? formBooks : undefined,
         versionId: formVersion,
         startDate: formStartDate,
-        totalDays,
+        totalDays: rawDays.length,
         updatedAt: new Date().toISOString(),
       };
 
       await updatePlan(updated);
       await deletePlanDaysByPlan(planId);
 
-      const rawDays = generatePlanDays(formDuration, formStartDate, formCustomDays, formBooks.length > 0 ? formBooks : undefined);
       const userId = await getCurrentUserId();
       await addPlanDays(rawDays.map((d) => ({ ...d, planId, userId, isRead: false })));
 
