@@ -59,11 +59,14 @@ export default function NewReadingPage() {
       setLoadingPassage(true);
       try {
         const results: BiblePassage[] = [];
+        // Dérivés ici plutôt que repris de cEnd/vEnd : l'effet dépend alors
+        // uniquement d'états bruts, tous listés dans son tableau de dépendances.
         const cStart = chapterStart;
-        const cEndVal = cEnd;
+        const cEndVal = chapterEnd ?? chapterStart;
+        const vEndVal = verseEnd ?? verseStart;
         for (let ch = cStart; ch <= cEndVal; ch++) {
           const vs = ch === cStart ? verseStart : 1;
-          const ve = ch === cEndVal ? vEnd : 999;
+          const ve = ch === cEndVal ? vEndVal : 999;
           const chPassages = await getPassagesByRange(versionId, book, ch, vs, ve);
           results.push(...chPassages);
         }
