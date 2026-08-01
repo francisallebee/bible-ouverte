@@ -1,5 +1,11 @@
 # SPEC.md — Application de suivi des lectures bibliques
 
+> **État du document.** Les sections 1 à 9 décrivent la V1 telle qu'elle avait
+> été cadrée. Le produit a depuis dépassé ce périmètre : il a des comptes
+> distants et une synchronisation multi-appareils, explicitement exclus à
+> l'origine. Les sections marquées **[V2]** décrivent l'application telle
+> qu'elle est aujourd'hui ; les autres restent la trace de l'intention initiale.
+
 ## 1. Vision du produit
 
 Créer une application web progressive (PWA) offline-first permettant d'enregistrer, consulter et analyser des lectures bibliques personnelles ou liées au ministère.
@@ -36,13 +42,21 @@ La V1 doit permettre de :
 - Interface optimisée pour desktop, prioritairement macOS.
 
 ### Exclus pour la V1
-- Compte utilisateur distant.
-- Synchronisation multi-appareils.
+- Compte utilisateur distant. *(livré en V2)*
+- Synchronisation multi-appareils. *(livré en V2)*
 - Partage social.
 - Collaboration en temps réel.
 - Éditeur de notes avancé.
-- Gestion de plans de lecture complexes.
+- Gestion de plans de lecture complexes. *(livré en V2)*
 - Fonctionnalités desktop natives via Tauri.
+
+### [V2] Ajouté depuis
+- Comptes utilisateurs Supabase (inscription, connexion, suppression de compte).
+- Synchronisation multi-appareils, le cloud faisant foi.
+- Plans de lecture avec génération et suivi jour par jour.
+- Back-office d'administration (utilisateurs, tickets).
+- Support et feuille de route partagés entre utilisateurs connectés.
+- Photos, notes audio et liens attachés à une lecture.
 
 ## 4. Public cible
 
@@ -77,6 +91,11 @@ La V1 doit permettre de :
 ### Stockage local
 - IndexedDB via `idb` comme couche d'abstraction.
 
+### [V2] Stockage distant
+- Supabase : authentification, PostgreSQL, Row Level Security, Storage.
+- Supabase fait foi, IndexedDB devient un cache de consultation hors ligne.
+- Schéma et policies versionnés dans `supabase/migrations/`.
+
 ### Données bibliques
 - Fichiers JSON locaux (bundled).
 - Première version centrée sur Louis Segond 1910 (domaine public).
@@ -89,6 +108,10 @@ La V1 doit permettre de :
 
 ### Versions prévues pour la V1
 - Louis Segond 1910.
+
+### [V2] Versions effectivement embarquées
+Six traductions françaises libres de droits, dans `src/data/bibles/` :
+Louis Segond 1910, Darby, Martin 1744, Ostervald, Crampon 1923, Sacy.
 
 ### Règles
 - Ne pas dépendre du réseau pour l'affichage d'un passage déjà disponible localement.
@@ -154,6 +177,17 @@ Champs :
 - `offlineModeEnabled` (boolean)
 - `firstLaunchCompleted` (boolean)
 
+### [V2] Écarts du modèle réel
+Le modèle a grandi avec les comptes. Les champs qui font foi sont ceux de
+`src/lib/storage/types.ts` et des migrations `supabase/migrations/` :
+- toutes les entités personnelles portent un `user_id` et sont cloisonnées par RLS ;
+- `ReadingEntry` a gagné `tags`, `links`, `photos`, `audio` ;
+- `ReadingPlan` et `PlanDay` sont apparus (plans de lecture) ;
+- `AppSettings` est stocké côté serveur en un seul `jsonb`, ce qui évite une
+  migration à chaque nouveau réglage ;
+- `Profile` porte `is_admin` et `suspended` — voir `supabase/README.md` avant
+  d'y toucher.
+
 ## 9. Contextes de lecture
 
 Contextes par défaut :
@@ -188,11 +222,23 @@ Le système doit permettre l'ajout, la modification et la désactivation (sans p
 ### 10.6 Contextes (/contexts)
 - CRUD contextes (suppression logique)
 
-### 10.7 Versions (/versions)
+### 10.7 Versions
 - Activation/désactivation, version par défaut
+- **Jamais livré comme écran distinct** : le choix de la version par défaut a été
+  intégré aux Réglages.
 
 ### 10.8 Réglages (/settings)
 - Thème, export, import, infos app
+
+### [V2] 10.9 Écrans ajoutés
+- `/auth/login`, `/auth/signup`, `/auth/callback` — comptes
+- `/plans` et `/plans/[id]` — plans de lecture
+- `/progress` — avancement dans les plans
+- `/search` — recherche dans le texte biblique
+- `/profil` — profil utilisateur
+- `/roadmap` — feuille de route publique
+- `/support` — tickets partagés
+- `/admin` — back-office (réservé `is_admin`)
 
 ## 11. Statistiques
 
@@ -203,11 +249,14 @@ Indicateurs minimum :
 
 ## 12. Qualité
 
-- Code typé TypeScript.
-- Composants réutilisables.
-- Fonctions pures pour les calculs.
-- Tests unitaires sur les fonctions critiques.
-- Validation offline manuelle.
+- Code typé TypeScript. ✅ `npx tsc --noEmit` passe sans erreur.
+- Composants réutilisables. ✅
+- Fonctions pures pour les calculs. ✅
+- Tests unitaires sur les fonctions critiques. ❌ **Aucun test à ce jour**, et
+  aucun ESLint configuré. La génération de plans et les agrégations de
+  statistiques sont les premières candidates.
+- Validation offline manuelle. ⚠️ À refaire : le service worker ne s'installait
+  pas jusqu'à la correction du précache (`/offline` → `/offline.html`).
 
 ## 13. Plan de livraison
 

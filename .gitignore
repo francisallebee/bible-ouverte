@@ -1,12 +1,12 @@
 node_modules/
 .next/
 out/
-.env
-.env.local
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
-data/
 .vercel
-.env*
 supabase/.temp/
+
+# Secrets : .env* couvre .env, .env.local et les variantes par environnement.
+# Ne jamais versionner la clé service_role.
+.env*
