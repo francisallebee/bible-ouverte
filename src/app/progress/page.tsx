@@ -3,12 +3,12 @@
 import { useEffect, useState, useMemo } from "react";
 import {
   Trophy, Flame, BookOpen, Target, BarChart3, Star, Award,
-  ScrollText, BookMarked, Sparkles, Gem,
+  ScrollText, BookMarked, Sparkles, Gem, Layers,
 } from "lucide-react";
 import {
-  seedIfNeeded, getAllReadings, getSettings,
+  seedIfNeeded, getAllReadings, getSettings, getAllContexts,
 } from "@/lib/storage";
-import type { ReadingEntry, AppSettings } from "@/lib/storage";
+import type { ReadingEntry, AppSettings, ReadingContext } from "@/lib/storage";
 import { BOOKS, getBookName } from "@/features/bible";
 import {
   BIBLE_CATEGORIES, OLD_TESTAMENT, NEW_TESTAMENT,
@@ -106,14 +106,16 @@ function getLevel(totalChapters: number): { level: number; title: string; next: 
 export default function ProgressPage() {
   const [readings, setReadings] = useState<ReadingEntry[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const [r, s] = await Promise.all([getAllReadings(), getSettings()]);
+      const [r, s, ctxs] = await Promise.all([getAllReadings(), getSettings(), getAllContexts()]);
       setReadings(r);
       setSettings(s ?? null);
+      setContexts(ctxs);
       setLoaded(true);
     })();
   }, []);
@@ -193,6 +195,38 @@ export default function ProgressPage() {
   const badges = useMemo(() => getBadges(chapterCount, streaks.longest, categoriesWithReads, categories.length), [chapterCount, streaks.longest, categoriesWithReads, categories.length]);
   const level = useMemo(() => getLevel(chapterCount), [chapterCount]);
   const goal = settings?.readingGoal;
+
+  /**
+   * Chapitres lus par contexte. On compte les chapitres et non les lectures :
+   * c'est l'unité qu'emploient déjà le niveau, les testaments et les objectifs,
+   * et une lecture de dix chapitres ne pèse pas comme une lecture d'un seul.
+   */
+  const byContext = useMemo(() => {
+    const byId: Record<string, ReadingContext> = {};
+    for (const c of contexts) byId[c.id] = c;
+
+    const counts: Record<string, number> = {};
+    for (const r of readings) {
+      const key = r.contextId || "";
+      counts[key] = (counts[key] || 0) + (r.chapterEnd - r.chapterStart + 1);
+    }
+
+    const rows = Object.entries(counts).map(([id, chapters]) => {
+      const ctx = byId[id];
+      return {
+        id,
+        name: id === "" ? "Sans contexte" : ctx?.name ?? id,
+        emoji: id === "" ? "—" : ctx?.emoji ?? "",
+        color: ctx?.color ?? "#95a5a6",
+        chapters,
+      };
+    });
+
+    const max = rows.reduce((m, r) => Math.max(m, r.chapters), 0);
+    return rows
+      .sort((a, b) => b.chapters - a.chapters)
+      .map((r) => ({ ...r, share: max > 0 ? (r.chapters / max) * 100 : 0 }));
+  }, [readings, contexts]);
 
   const goalProgress = useMemo(() => {
     if (!goal) return null;
@@ -320,6 +354,32 @@ export default function ProgressPage() {
           <p className="text-xs text-gray-500 mt-1">{ntChapters} / {ntTotal} chapitres</p>
         </div>
       </div>
+
+      {/* Contextes */}
+      {byContext.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+          <h2 className="font-semibold mb-4 flex items-center gap-2">
+            <Layers className="w-5 h-5 text-[--primary]" />
+            Progression par contexte
+          </h2>
+          <div className="space-y-3">
+            {byContext.map((c) => (
+              <div key={c.id || "none"}>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-medium">
+                    <span aria-hidden="true">{c.emoji} </span>{c.name}
+                  </span>
+                  <span className="text-gray-500">{c.chapters} chapitre{c.chapters > 1 ? "s" : ""}</span>
+                </div>
+                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-[width] duration-500"
+                    style={{ width: `${c.share}%`, backgroundColor: c.color }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Categories */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">

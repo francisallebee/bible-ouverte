@@ -5,8 +5,8 @@ import { BarChart3 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
-import { seedIfNeeded, getAllReadings, getAllVersions } from "@/lib/storage";
-import type { ReadingEntry, BibleVersion } from "@/lib/storage";
+import { seedIfNeeded, getAllReadings, getAllVersions, getAllContexts } from "@/lib/storage";
+import type { ReadingEntry, BibleVersion, ReadingContext } from "@/lib/storage";
 import { getBookName } from "@/features/bible";
 
 const COLORS = ["#1e3a5f", "#4a90d9", "#7b68ee", "#2ecc71", "#e74c3c", "#f39c12", "#95a5a6"];
@@ -42,17 +42,20 @@ function toDateStr(d: Date) {
 export default function StatsPage() {
   const [readings, setReadings] = useState<ReadingEntry[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
+  const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const [all, vers] = await Promise.all([
+      const [all, vers, ctxs] = await Promise.all([
         getAllReadings(),
         getAllVersions(),
+        getAllContexts(),
       ]);
       setReadings(all);
       setVersions(vers);
+      setContexts(ctxs);
       setLoaded(true);
     })();
   }, []);
@@ -106,6 +109,29 @@ export default function StatsPage() {
         fill: COLORS[i % COLORS.length],
       }));
   }, [readings]);
+
+  const byContext = useMemo(() => {
+    const byId: Record<string, ReadingContext> = {};
+    for (const c of contexts) byId[c.id] = c;
+
+    const counts: Record<string, number> = {};
+    for (const r of readings) {
+      counts[r.contextId || ""] = (counts[r.contextId || ""] || 0) + 1;
+    }
+
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([id, count], i) => {
+        const ctx = byId[id];
+        return {
+          // Un contexte supprimé depuis laisse ses lectures orphelines : on
+          // les regroupe plutôt que de les faire disparaître du graphique.
+          name: id === "" ? "Sans contexte" : ctx ? `${ctx.emoji ?? ""} ${ctx.name}`.trim() : id,
+          count,
+          fill: ctx?.color ?? COLORS[i % COLORS.length],
+        };
+      });
+  }, [readings, contexts]);
 
   const versionMap = useMemo(() => {
     const m: Record<string, BibleVersion> = {};
@@ -187,6 +213,22 @@ export default function StatsPage() {
               <Tooltip />
               <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                 {topBooks.map((entry, i) => (
+                  <Cell key={i} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold mb-4">Répartition par contexte</h2>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={byContext} layout="vertical" margin={{ left: 100 }}>
+              <XAxis type="number" allowDecimals={false} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={100} />
+              <Tooltip />
+              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                {byContext.map((entry, i) => (
                   <Cell key={i} fill={entry.fill} />
                 ))}
               </Bar>
