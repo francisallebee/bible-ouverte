@@ -171,7 +171,7 @@ async function downloadFromSourceforge(sourceforgeFile) {
 }
 
 async function main() {
-  const outputDir = path.resolve('src/data/bibles');
+  const outputDir = path.resolve('public/bibles');
   fs.mkdirSync(outputDir, { recursive: true });
 
   for (const version of VERSIONS) {

@@ -6,7 +6,7 @@
 // service worker n'était jamais actif : l'application n'avait pas de mode hors
 // ligne, alors que c'est son premier principe.
 
-const CACHE = "bible-ouverte-v2";
+const CACHE = "bible-ouverte-v3";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE_URLS = ["/", OFFLINE_URL];
 
@@ -51,6 +51,11 @@ function isCacheable(request) {
   // d'un compte au suivant sur le même appareil.
   if (url.pathname.startsWith("/api/")) return false;
   if (url.pathname.startsWith("/auth/")) return false;
+
+  // Les traductions pèsent près de 7 Mo pièce. Elles ne sont téléchargées
+  // qu'une fois, à l'import, puis vivent dans IndexedDB : les dupliquer dans le
+  // Cache Storage remplirait le quota du navigateur pour rien.
+  if (url.pathname.startsWith("/bibles/")) return false;
 
   return true;
 }

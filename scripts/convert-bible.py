@@ -130,7 +130,7 @@ def main():
         )
         print(f'  Books: {len(books)}, Total verses: {total_verses}')
 
-        out_path = f'src/data/bibles/{version_id}.json'
+        out_path = f'public/bibles/{version_id}.json'
         with open(out_path, 'w', encoding='utf-8') as f:
             json.dump(app_data, f, ensure_ascii=False, indent=2)
         print(f'  Saved to {out_path}')

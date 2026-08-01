@@ -79,7 +79,7 @@ async function fetchJson(url) {
 }
 
 async function main() {
-  const outputPath = path.resolve('src/data/bibles/ls1910.json');
+  const outputPath = path.resolve('public/bibles/ls1910.json');
   const books = [];
 
   for (const bookMeta of OSIS_BOOKS) {

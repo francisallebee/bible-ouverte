@@ -26,32 +26,30 @@ interface SourceBible {
   books: SourceBook[];
 }
 
-const VERSIONS: { id: string; path: string }[] = [
-  { id: 'ls1910', path: '@/data/bibles/ls1910.json' },
-  { id: 'darby', path: '@/data/bibles/darby.json' },
-  { id: 'martin1744', path: '@/data/bibles/martin.json' },
-  { id: 'ostervald', path: '@/data/bibles/ostervald.json' },
-  { id: 'cramp23', path: '@/data/bibles/cramp23.json' },
-  { id: 'sacc', path: '@/data/bibles/sacc.json' },
+/**
+ * Les six traductions pèsent 40 Mo. Elles étaient chargées par `import()`, ce
+ * qui les faisait traverser webpack : autant de chunks JavaScript à produire à
+ * chaque build et à parser au chargement. Servies depuis public/, ce sont de
+ * simples fichiers statiques que le navigateur récupère et met en cache.
+ */
+const VERSIONS: { id: string; file: string }[] = [
+  { id: 'ls1910', file: 'ls1910.json' },
+  { id: 'darby', file: 'darby.json' },
+  { id: 'martin1744', file: 'martin.json' },
+  { id: 'ostervald', file: 'ostervald.json' },
+  { id: 'cramp23', file: 'cramp23.json' },
+  { id: 'sacc', file: 'sacc.json' },
 ];
 
 async function loadData(versionId: string): Promise<SourceBible> {
-  switch (versionId) {
-    case 'ls1910':
-      return (await import('@/data/bibles/ls1910.json')) as unknown as SourceBible;
-    case 'darby':
-      return (await import('@/data/bibles/darby.json')) as unknown as SourceBible;
-    case 'martin1744':
-      return (await import('@/data/bibles/martin.json')) as unknown as SourceBible;
-    case 'ostervald':
-      return (await import('@/data/bibles/ostervald.json')) as unknown as SourceBible;
-    case 'cramp23':
-      return (await import('@/data/bibles/cramp23.json')) as unknown as SourceBible;
-    case 'sacc':
-      return (await import('@/data/bibles/sacc.json')) as unknown as SourceBible;
-    default:
-      throw new Error(`Version inconnue: ${versionId}`);
+  const version = VERSIONS.find((v) => v.id === versionId);
+  if (!version) throw new Error(`Version inconnue: ${versionId}`);
+
+  const res = await fetch(`/bibles/${version.file}`);
+  if (!res.ok) {
+    throw new Error(`Téléchargement de ${version.file} impossible (${res.status})`);
   }
+  return (await res.json()) as SourceBible;
 }
 
 export async function importBibleVersion(versionId: string): Promise<number> {
