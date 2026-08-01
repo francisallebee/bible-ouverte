@@ -14,6 +14,7 @@ aucune donnée.
 | `20260801120001_profiles_rls.sql` | Verrouillage de `profiles` : personne ne peut s'attribuer `is_admin` depuis le navigateur |
 | `20260801120002_tickets_roadmap_rls.sql` | Écriture colonne par colonne sur les tickets et la feuille de route |
 | `20260801120003_private_helpers.sql` | Sort les fonctions internes de la surface d'API PostgREST |
+| `20260801120004_storage_policies.sql` | Cloisonne les buckets `photos` et `audio` par utilisateur |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -50,10 +51,43 @@ limitent à `name`, `color`, `avatar_url`, `birth_date`, `phone`, `bio` et
 et les fonctions de trigger ne sont plus appelables en RPC. L'analyseur de
 sécurité Supabase ne signale plus aucun problème de schéma.
 
-Reste un seul avertissement, qui se règle dans le dashboard et non en SQL : la
-**protection contre les mots de passe compromis est désactivée**
-(Authentication → Policies). Activée, Supabase refuse les mots de passe connus
-de HaveIBeenPwned.
+## Mots de passe
+
+L'analyseur signale que la **protection contre les mots de passe compromis**
+(HaveIBeenPwned) est désactivée. Elle ne peut pas être activée : elle est
+réservée au **plan Pro**, et l'organisation ÔAppliday est sur le plan Free. Ce
+n'est donc pas une case oubliée, elle n'apparaît pas dans le dashboard.
+
+À défaut, ce sont les règles de robustesse qui ont été renforcées, dans
+`config.toml` (`minimum_password_length = 10`,
+`password_requirements = "lower_upper_letters_digits"`) et en miroir côté
+formulaire dans `src/lib/auth/password.ts`.
+
+**Ces réglages serveur ne sont pas encore appliqués** : ils demandent
+
+```bash
+supabase login && supabase config push
+```
+
+ou, à la main, Authentication → Sign In / Providers → Email. Tant que ce n'est
+pas fait, seule la validation du formulaire d'inscription s'applique — un client
+qui appellerait l'API directement resterait limité au minimum de 6 caractères.
+
+Les comptes existants ne sont pas affectés : ils continuent de se connecter avec
+leur mot de passe actuel, la règle ne s'applique qu'aux créations et aux
+changements.
+
+## Stockage
+
+Audit du 1er août 2026 : les buckets `photos` et `audio` sont privés, la RLS est
+active sur `storage.objects` — et il n'existait **aucune policy**. Personne ne
+pouvait donc rien y lire ni y écrire : pas de fuite, mais des buckets
+inutilisables (0 objet stocké).
+
+`20260801120004_storage_policies.sql` les cloisonne par préfixe `{user_id}/`,
+la convention déjà employée par la route de suppression de compte, et pose des
+limites de taille et de type qui n'existaient pas (10 Mo pour les images, 25 Mo
+pour l'audio).
 
 ## Vérifier après application
 
