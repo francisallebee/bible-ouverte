@@ -50,10 +50,14 @@ une migration SQL**, pas par un composant.
 3. Vérifier l'impact hors ligne de chaque changement : le cache local ne doit
    jamais être purgé sur un simple échec réseau (voir le commentaire en tête de
    `select()` dans `store.ts`).
-4. Les données bibliques sont volumineuses. Elles se chargent en `import()`
-   dynamique, une version à la fois, jamais au premier rendu.
-5. `npx tsc --noEmit` doit passer avant chaque commit.
+4. Les traductions vivent dans `public/bibles/` et se chargent par `fetch()`,
+   une version à la fois. Ne jamais les faire passer par `import()` : webpack
+   en ferait 40 Mo de chunks.
+5. `npm run typecheck`, `npm run lint` et `npm test` doivent passer avant
+   chaque commit.
 6. Pas de dépendance nouvelle sans raison sérieuse.
+7. Toute ressource servie avant connexion doit être exclue du `matcher` du
+   middleware, sans quoi elle répond une redirection vers `/auth/login`.
 
 ## Commandes
 
@@ -61,17 +65,20 @@ une migration SQL**, pas par un composant.
 npm run dev        # serveur de développement
 npm run build      # build de production
 npm run typecheck  # tsc --noEmit
+npm run lint       # eslint
+npm test           # vitest
 ```
 
 ## Dette connue
 
-- Aucun test automatisé, aucun ESLint configuré, alors que le SPEC demande des
-  tests unitaires sur les fonctions critiques.
 - Les photos sont stockées en base64 dans une colonne `text` : cela gonfle les
   lignes Supabase et le cache IndexedDB. Le passage au Storage Supabase reste à
-  faire (une route d'upload existait, retirée faute d'appelant — voir
-  l'historique git).
-- Le manifeste PWA ne référence qu'un SVG : il manque des PNG 192/512 et une
-  icône `maskable` pour une installation correcte sur mobile.
+  faire, et demande de reprendre les lignes existantes (une route d'upload
+  existait, retirée faute d'appelant — voir l'historique git).
 - Les buckets de stockage `photos` et `audio` sont configurés hors du dépôt et
   leurs policies n'ont pas été auditées.
+- La couverture de tests se limite aux deux modules les plus critiques
+  (génération de plans, classification des livres). Les agrégations de
+  statistiques ne sont pas couvertes.
+- `npm audit` signale deux vulnérabilités dans une dépendance interne de Next
+  14 ; le correctif passe par une montée en version majeure de Next.
