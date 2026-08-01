@@ -127,6 +127,7 @@ export default function SearchPage() {
       passageText,
       translationId: addTarget.versionId,
       tags: [],
+      contextId: "",
       notes: addNotes,
     });
     setAddSaving(false);

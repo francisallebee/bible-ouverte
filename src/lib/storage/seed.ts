@@ -1,28 +1,33 @@
 import type { AppSettings, BibleVersion, ReadingContext } from './types';
 import { getDB } from './db';
 import { importAllBibleData } from '@/features/bible/import';
+import { deleteContext as deleteContextRemote } from '@/lib/supabase/store';
 
+/**
+ * Contextes de lecture proposés par défaut.
+ *
+ * Liste à plat : le menu déroulant du formulaire les trie par nom à
+ * l'affichage, ce qui range aussi les contextes ajoutés par l'utilisateur.
+ * L'ordre de ce tableau n'a donc aucune importance.
+ *
+ * Remplace l'arborescence à deux niveaux d'origine (Médias → YouTube,
+ * Transports → Voiture…), qui n'a jamais été reliée à l'interface : le
+ * formulaire enregistrait `tags: []` et aucune lecture n'y faisait référence.
+ */
 const DEFAULT_CONTEXTS: ReadingContext[] = [
-  { id: 'medias', name: 'Médias', slug: 'medias', color: '#e74c3c', icon: 'folder', isSystemDefault: true },
-  { id: 'medias/youtube', name: 'YouTube', slug: 'youtube', color: '#e74c3c', icon: 'tag', emoji: '📺', parentId: 'medias', isSystemDefault: true },
-  { id: 'medias/podcast', name: 'Podcast', slug: 'podcast', color: '#e74c3c', icon: 'tag', emoji: '🎙️', parentId: 'medias', isSystemDefault: true },
-  { id: 'medias/livre-audio', name: 'Livre audio', slug: 'livre-audio', color: '#e74c3c', icon: 'tag', emoji: '🎧', parentId: 'medias', isSystemDefault: true },
-  { id: 'transports', name: 'Transports', slug: 'transports', color: '#3498db', icon: 'folder', isSystemDefault: true },
-  { id: 'transports/voiture', name: 'Voiture', slug: 'voiture', color: '#3498db', icon: 'tag', emoji: '🚗', parentId: 'transports', isSystemDefault: true },
-  { id: 'transports/avion', name: 'Avion', slug: 'avion', color: '#3498db', icon: 'tag', emoji: '✈️', parentId: 'transports', isSystemDefault: true },
-  { id: 'transports/train', name: 'Train', slug: 'train', color: '#3498db', icon: 'tag', emoji: '🚆', parentId: 'transports', isSystemDefault: true },
-  { id: 'transports/velo', name: 'Vélo', slug: 'velo', color: '#3498db', icon: 'tag', emoji: '🚲', parentId: 'transports', isSystemDefault: true },
-  { id: 'transports/marche', name: 'Marche', slug: 'marche', color: '#3498db', icon: 'tag', emoji: '🚶', parentId: 'transports', isSystemDefault: true },
-  { id: 'lecture-personnelle', name: 'Lecture personnelle', slug: 'lecture-personnelle', color: '#2ecc71', icon: 'folder', isSystemDefault: true },
-  { id: 'lecture-personnelle/calendrier', name: 'Calendrier', slug: 'calendrier', color: '#2ecc71', icon: 'tag', emoji: '📅', parentId: 'lecture-personnelle', isSystemDefault: true },
-  { id: 'lecture-personnelle/plan', name: 'Plan', slug: 'plan', color: '#2ecc71', icon: 'tag', emoji: '📋', parentId: 'lecture-personnelle', isSystemDefault: true },
-  { id: 'lecture-personnelle/revue', name: 'Revue', slug: 'revue', color: '#2ecc71', icon: 'tag', emoji: '📖', parentId: 'lecture-personnelle', isSystemDefault: true },
-  { id: 'lecture-personnelle/ebook', name: 'Ebook', slug: 'ebook', color: '#2ecc71', icon: 'tag', emoji: '📱', parentId: 'lecture-personnelle', isSystemDefault: true },
-  { id: 'eglise', name: 'Église', slug: 'eglise', color: '#7b68ee', icon: 'folder', isSystemDefault: true },
-  { id: 'eglise/predication', name: 'Prédication', slug: 'predication', color: '#7b68ee', icon: 'tag', emoji: '🎯', parentId: 'eglise', isSystemDefault: true },
-  { id: 'eglise/cours-bibliques', name: 'Cours bibliques', slug: 'cours-bibliques', color: '#7b68ee', icon: 'tag', emoji: '📚', parentId: 'eglise', isSystemDefault: true },
-  { id: 'autres', name: 'Autres', slug: 'autres', color: '#95a5a6', icon: 'more-horizontal', emoji: '📌', isSystemDefault: true },
+  { id: 'meditation', name: 'Méditation', slug: 'meditation', color: '#2ecc71', icon: 'tag', emoji: '🧘', isSystemDefault: true },
+  { id: 'eglise', name: 'Église', slug: 'eglise', color: '#7b68ee', icon: 'tag', emoji: '⛪', isSystemDefault: true },
+  { id: 'predication', name: 'Prédication', slug: 'predication', color: '#9b59b6', icon: 'tag', emoji: '🎤', isSystemDefault: true },
+  { id: 'livre', name: 'Livre', slug: 'livre', color: '#e67e22', icon: 'tag', emoji: '📕', isSystemDefault: true },
+  { id: 'livre-audio', name: 'Livre audio', slug: 'livre-audio', color: '#d35400', icon: 'tag', emoji: '🎧', isSystemDefault: true },
+  { id: 'revue', name: 'Revue', slug: 'revue', color: '#16a085', icon: 'tag', emoji: '📰', isSystemDefault: true },
+  { id: 'podcast', name: 'Podcast', slug: 'podcast', color: '#c0392b', icon: 'tag', emoji: '🎙️', isSystemDefault: true },
+  { id: 'radio', name: 'Radio', slug: 'radio', color: '#f39c12', icon: 'tag', emoji: '📻', isSystemDefault: true },
+  { id: 'youtube', name: 'YouTube', slug: 'youtube', color: '#e74c3c', icon: 'tag', emoji: '📺', isSystemDefault: true },
+  { id: 'autre', name: 'Autre', slug: 'autre', color: '#95a5a6', icon: 'tag', emoji: '📌', isSystemDefault: true },
 ];
+
+const DEFAULT_CONTEXT_IDS = new Set(DEFAULT_CONTEXTS.map(c => c.id));
 
 const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'ls1910', name: 'Louis Segond 1910', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
@@ -49,6 +54,7 @@ export async function seedIfNeeded(): Promise<void> {
 
   if (existingSettings?.firstLaunchCompleted) {
     await ensureVersionsExist(db);
+    await ensureContextsExist(db);
     await importAllBibleData();
     return;
   }
@@ -79,6 +85,44 @@ export async function seedIfNeeded(): Promise<void> {
 
   await tx.done;
   await importAllBibleData();
+}
+
+/**
+ * Aligne les contextes d'une installation existante sur la liste par défaut.
+ *
+ * Les appareils déjà utilisés portent l'ancienne arborescence, que
+ * `seedIfNeeded` ne rejouerait jamais puisqu'elle ne s'exécute qu'au premier
+ * lancement. Les anciens contextes système sont donc retirés et les nouveaux
+ * ajoutés.
+ *
+ * Les contextes créés par l'utilisateur (`isSystemDefault` faux) ne sont jamais
+ * touchés, et un contexte système déjà utilisé par une lecture est conservé —
+ * mieux vaut une entrée en trop dans le menu qu'une statistique qui perd sa
+ * catégorie.
+ */
+async function ensureContextsExist(db: Awaited<ReturnType<typeof getDB>>): Promise<void> {
+  const existing = await db.getAll('contexts');
+  const byId = new Map(existing.map(c => [c.id, c]));
+
+  for (const ctx of DEFAULT_CONTEXTS) {
+    if (!byId.has(ctx.id)) await db.add('contexts', ctx);
+  }
+
+  const obsolete = existing.filter(c => c.isSystemDefault && !DEFAULT_CONTEXT_IDS.has(c.id));
+  if (obsolete.length === 0) return;
+
+  const readings = await db.getAll('readings');
+  const used = new Set(readings.map(r => r.contextId).filter(Boolean));
+
+  for (const ctx of obsolete) {
+    if (used.has(ctx.id)) continue;
+    await db.delete('contexts', ctx.id);
+    // Le distant n'est purgé que si la ligne y avait été poussée ; sinon la
+    // prochaine synchronisation la ferait réapparaître.
+    if (ctx.synced && typeof navigator !== 'undefined' && navigator.onLine) {
+      deleteContextRemote(ctx.id).catch(() => {});
+    }
+  }
 }
 
 async function ensureVersionsExist(db: Awaited<ReturnType<typeof getDB>>): Promise<void> {

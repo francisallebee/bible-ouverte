@@ -91,6 +91,10 @@ export default function PlanDetailPage() {
           passageText: "",
           translationId: plan!.versionId,
           tags: ["general"],
+          // Une lecture cochée depuis un plan n'a pas de contexte : elle
+          // apparaîtra sous « Sans contexte » dans les statistiques, plutôt
+          // que dans une catégorie qu'on lui aurait supposée.
+          contextId: "",
           notes: `Plan : ${plan!.name} (jour ${day.day})`,
         });
         updatedDay.isRead = true;

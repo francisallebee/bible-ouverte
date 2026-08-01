@@ -182,6 +182,10 @@ Le modèle a grandi avec les comptes. Les champs qui font foi sont ceux de
 `src/lib/storage/types.ts` et des migrations `supabase/migrations/` :
 - toutes les entités personnelles portent un `user_id` et sont cloisonnées par RLS ;
 - `ReadingEntry` a gagné `tags`, `links`, `photos`, `audio` ;
+- `ReadingEntry.contextId` est enfin relié à l'interface : le champ existait au
+  SPEC mais aucune colonne ne le portait et le formulaire enregistrait
+  `tags: []`. Un seul contexte par lecture, choisi dans un menu déroulant que
+  l'utilisateur peut compléter ;
 - `ReadingPlan` et `PlanDay` sont apparus (plans de lecture) ;
 - `AppSettings` est stocké côté serveur en un seul `jsonb`, ce qui évite une
   migration à chaque nouveau réglage ;

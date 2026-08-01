@@ -18,6 +18,8 @@ export interface ReadingEntry {
   passageText: string;
   translationId: string;
   tags: string[];
+  /** Identifiant du ReadingContext. Chaîne vide = aucun contexte renseigné. */
+  contextId: string;
   notes: string;
   userId: string;
   links?: ReadingLink[];
