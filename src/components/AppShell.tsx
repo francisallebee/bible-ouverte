@@ -30,8 +30,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <LayoutClient>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:bg-white focus:text-[--primary] focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg"
+      >
+        Aller au contenu
+      </a>
       <Sidebar />
-      <main className="lg:ml-[var(--nav-width)] min-h-screen">
+      <main id="main" className="lg:ml-[var(--nav-width)] min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pt-24 lg:pt-10">
           {children}
         </div>

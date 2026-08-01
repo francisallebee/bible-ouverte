@@ -208,7 +208,7 @@ export default function ProgressPage() {
     };
   }, [goal, readings]);
 
-  if (!loaded) return <p className="text-gray-500">Chargement...</p>;
+  if (!loaded) return <p className="text-gray-500">Chargement…</p>;
 
   return (
     <div>
@@ -279,7 +279,7 @@ export default function ProgressPage() {
                 <circle cx="36" cy="36" r="30" fill="none" stroke="#16a34a" strokeWidth="6"
                   strokeDasharray={`${2 * Math.PI * 30}`}
                   strokeDashoffset={`${2 * Math.PI * 30 * (1 - Math.min(1, goalProgress.current / goalProgress.target))}`}
-                  strokeLinecap="round" className="transition-all duration-700" />
+                  strokeLinecap="round" className="transition-[stroke-dashoffset] duration-700" />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 {goalProgress.current >= goalProgress.target ? <Sparkles className="w-6 h-6 text-yellow-500" /> : <Target className="w-6 h-6 text-green-600" />}
@@ -305,7 +305,7 @@ export default function ProgressPage() {
             <h2 className="font-semibold">Ancien Testament</h2>
           </div>
           <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-amber-600 rounded-full transition-all" style={{ width: `${otTotal > 0 ? (otChapters / otTotal) * 100 : 0}%` }} />
+            <div className="h-full bg-amber-600 rounded-full transition-[width]" style={{ width: `${otTotal > 0 ? (otChapters / otTotal) * 100 : 0}%` }} />
           </div>
           <p className="text-xs text-gray-500 mt-1">{otChapters} / {otTotal} chapitres</p>
         </div>
@@ -315,7 +315,7 @@ export default function ProgressPage() {
             <h2 className="font-semibold">Nouveau Testament</h2>
           </div>
           <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-600 rounded-full transition-all" style={{ width: `${ntTotal > 0 ? (ntChapters / ntTotal) * 100 : 0}%` }} />
+            <div className="h-full bg-blue-600 rounded-full transition-[width]" style={{ width: `${ntTotal > 0 ? (ntChapters / ntTotal) * 100 : 0}%` }} />
           </div>
           <p className="text-xs text-gray-500 mt-1">{ntChapters} / {ntTotal} chapitres</p>
         </div>
@@ -335,7 +335,7 @@ export default function ProgressPage() {
                 <span className="text-gray-500">{cat.readChapters} / {cat.totalChapters}</span>
               </div>
               <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-500" style={{
+                <div className="h-full rounded-full transition-[width] duration-500" style={{
                   width: `${cat.totalChapters > 0 ? (cat.readChapters / cat.totalChapters) * 100 : 0}%`,
                   backgroundColor: cat.readChapters >= cat.totalChapters ? "#16a34a" : "#4a90d9",
                 }} />
@@ -356,7 +356,7 @@ export default function ProgressPage() {
           {badges.map((badge) => {
             const Icon = badge.icon;
             return (
-              <div key={badge.id} className={`rounded-xl border p-3 text-center transition-all ${badge.unlocked ? "border-yellow-300 bg-yellow-50" : "border-gray-200 bg-gray-50 opacity-50"}`}>
+              <div key={badge.id} className={`rounded-xl border p-3 text-center transition-colors ${badge.unlocked ? "border-yellow-300 bg-yellow-50" : "border-gray-200 bg-gray-50 opacity-50"}`}>
                 <div className={`flex justify-center mb-1 ${badge.unlocked ? "" : "grayscale"}`}>
                   <Icon className={`w-7 h-7 ${badge.unlocked ? "text-yellow-500" : "text-gray-400"}`} />
                 </div>
@@ -379,7 +379,7 @@ export default function ProgressPage() {
             <div key={b.book} className="flex items-center gap-3">
               <span className="text-sm w-32 shrink-0 truncate font-medium">{b.name}</span>
               <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all ${b.readChapters >= b.totalChapters ? "bg-green-500" : "bg-blue-500"}`}
+                <div className={`h-full rounded-full transition-[width] ${b.readChapters >= b.totalChapters ? "bg-green-500" : "bg-blue-500"}`}
                   style={{ width: `${b.totalChapters > 0 ? (b.readChapters / b.totalChapters) * 100 : 0}%` }} />
               </div>
               <span className="text-xs text-gray-500 w-16 text-right shrink-0">{b.readChapters}/{b.totalChapters}</span>

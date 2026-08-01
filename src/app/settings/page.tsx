@@ -283,10 +283,12 @@ export default function SettingsPage() {
                 <div key={v.id} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg border transition-colors ${
                   isDefault ? 'border-[--primary] bg-[--primary-light]' : 'border-[--border] hover:border-gray-300'
                 }`}>
-                  <input type="radio" name="defaultVersion" checked={isDefault}
-                    onChange={() => handleSetDefault(v.id)}
-                    className="accent-[--primary] w-4 h-4" />
-                  <span className={`text-sm flex-1 ${isDefault ? 'font-medium text-[--primary]' : 'text-[--text]'}`}>{v.name}</span>
+                  <label className={`flex items-center gap-3 flex-1 min-w-0 cursor-pointer ${isDefault ? 'font-medium text-[--primary]' : 'text-[--text]'}`}>
+                    <input type="radio" name="defaultVersion" checked={isDefault}
+                      onChange={() => handleSetDefault(v.id)}
+                      className="accent-[--primary] w-4 h-4 shrink-0" />
+                    <span className="text-sm truncate">{v.name}</span>
+                  </label>
                   {isDefault && <span className="text-xs bg-[--primary] text-white px-2 py-0.5 rounded-full font-medium">Par défaut</span>}
                   <label className="flex items-center gap-1.5 text-xs text-[--text-secondary] cursor-pointer">
                     <input type="checkbox" checked={v.isEnabled} disabled={isDefault}
@@ -391,7 +393,7 @@ export default function SettingsPage() {
                     disabled={deleting}
                     className="bg-red-500 text-white px-4 py-2.5 rounded-lg text-sm hover:bg-red-600 disabled:opacity-50 transition-colors"
                   >
-                    {deleting ? 'Suppression...' : 'Oui, tout supprimer'}
+                    {deleting ? 'Suppression…' : 'Oui, tout supprimer'}
                   </button>
                 </div>
               </div>

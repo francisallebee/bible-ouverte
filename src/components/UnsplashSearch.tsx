@@ -47,7 +47,7 @@ export default function UnsplashSearch({ onSelect, onClose }: Props) {
       <div className="bg-white rounded-xl p-5 max-w-2xl w-full mx-4 shadow-xl max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Unsplash</h3>
-          <button onClick={onClose}><X className="w-5 h-5 text-gray-500" /></button>
+          <button onClick={onClose} aria-label="Fermer la recherche"><X className="w-5 h-5 text-gray-500" /></button>
         </div>
         <div className="flex gap-2 mb-4">
           <input
@@ -56,7 +56,6 @@ export default function UnsplashSearch({ onSelect, onClose }: Props) {
             onKeyDown={(e) => e.key === "Enter" && search()}
             placeholder="Rechercher une image..."
             className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
-            autoFocus
           />
           <button onClick={search} disabled={loading || !query.trim()}
             className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 flex items-center gap-1.5">
@@ -64,7 +63,7 @@ export default function UnsplashSearch({ onSelect, onClose }: Props) {
             Chercher
           </button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 overflow-y-auto flex-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 overflow-y-auto flex-1 overscroll-behavior-contain">
           {results.map((photo) => (
             <button key={photo.id} onClick={() => { onSelect(photo.urls.regular); onClose(); }}
               className="group relative rounded-lg overflow-hidden border border-gray-200 aspect-[4/3] hover:ring-2 hover:ring-[--primary] transition-all">

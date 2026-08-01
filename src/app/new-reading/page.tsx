@@ -158,7 +158,7 @@ export default function NewReadingPage() {
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow] space-y-5">
             <div>
               <label className="block text-sm font-medium mb-1.5 text-[--text]">Date</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} autoComplete="off"
                 className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
             </div>
 
@@ -248,7 +248,7 @@ export default function NewReadingPage() {
                   onChange={(e) => setLinkUrl(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addLink()}
                   placeholder="https://..." className="flex-1 border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
-                <button onClick={addLink} disabled={!linkUrl.trim()}
+                <button onClick={addLink} disabled={!linkUrl.trim()} aria-label="Ajouter le lien"
                   className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 disabled:opacity-50 flex items-center gap-1 transition-colors shrink-0">
                   <Plus className="w-4 h-4" />
                 </button>
@@ -263,11 +263,11 @@ export default function NewReadingPage() {
                       <p className="truncate font-medium text-[--text]">{link.title}</p>
                       <p className="truncate text-xs text-[--text-secondary]">{link.url}</p>
                     </div>
-                    <a href={link.url} target="_blank" rel="noopener noreferrer"
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le lien"
                       className="text-gray-400 hover:text-gray-600 shrink-0 transition-colors">
                       <ExternalLink className="w-4 h-4" />
                     </a>
-                    <button onClick={() => removeLink(i)} className="text-red-400 hover:text-red-600 shrink-0 transition-colors">
+                    <button onClick={() => removeLink(i)} aria-label="Retirer le lien" className="text-red-400 hover:text-red-600 shrink-0 transition-colors">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
@@ -311,8 +311,8 @@ export default function NewReadingPage() {
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {photos.map((photo, i) => (
                   <div key={i} className="relative group rounded-lg overflow-hidden border border-[--border] aspect-square">
-                    <img src={photo} alt="" className="w-full h-full object-cover" />
-                    <button onClick={() => removePhoto(i)}
+                    <img src={photo} alt="" width="640" height="640" className="w-full h-full object-cover" />
+                    <button onClick={() => removePhoto(i)} aria-label="Retirer la photo"
                       className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80">
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -327,7 +327,7 @@ export default function NewReadingPage() {
             {saving ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                Enregistrement...
+                Enregistrement…
               </span>
             ) : "Enregistrer la lecture"}
           </button>

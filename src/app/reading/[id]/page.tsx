@@ -121,7 +121,7 @@ export default function ReadingDetailPage() {
   }
 
   if (!loaded) {
-    return <p className="text-gray-500">Chargement...</p>;
+    return <p className="text-gray-500">Chargement…</p>;
   }
 
   if (notFound || !reading) {
@@ -333,7 +333,7 @@ export default function ReadingDetailPage() {
                   <button onClick={() => {
                     if (audioPlaying) { audioRef.current?.pause(); setAudioPlaying(false); }
                     else { audioRef.current?.play(); setAudioPlaying(true); }
-                  }} className="text-purple-700">
+                  }} aria-label={audioPlaying ? "Mettre en pause" : "Écouter l'audio"} className="text-purple-700">
                     {audioPlaying ? <Square className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                   </button>
                   <span className="text-sm text-gray-600">Audio joint</span>
@@ -349,7 +349,7 @@ export default function ReadingDetailPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {reading.photos.map((photo, i) => (
                     <div key={i} className="rounded-lg overflow-hidden border border-gray-200 aspect-video">
-                      <img src={photo} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <img src={photo} alt="" width="640" height="640" className="w-full h-full object-cover" loading="lazy" />
                     </div>
                   ))}
                 </div>

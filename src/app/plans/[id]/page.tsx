@@ -257,7 +257,7 @@ export default function PlanDetailPage() {
           <div className="flex gap-2 mt-4">
             <button onClick={handleSaveEdit} disabled={!formName.trim() || saving} className="bg-[--primary] text-white px-4 py-1.5 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 flex items-center gap-1.5">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {saving ? "Enregistrement..." : "Enregistrer"}
+              {saving ? "Enregistrement…" : "Enregistrer"}
             </button>
             <button onClick={() => setEditing(false)} className="text-gray-600 px-4 py-1.5 rounded-lg text-sm hover:bg-gray-200">Annuler</button>
           </div>
@@ -266,7 +266,7 @@ export default function PlanDetailPage() {
 
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
         <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full bg-[--primary] rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-[--primary] rounded-full transition-[width] duration-500" style={{ width: `${progress}%` }} />
         </div>
         <p className="text-xs text-gray-400 mt-2">{days.length - readDays} jours restants sur {days.length}</p>
       </div>
@@ -285,15 +285,14 @@ export default function PlanDetailPage() {
 
       <div className="space-y-1">
         {pageDays.map((day) => (
-          <div key={day.day} onClick={() => handleToggleDay(day)}
-            className={`bg-white rounded-xl border px-4 py-3 flex items-center gap-3 transition-all cursor-pointer select-none ${
+          <button key={day.day} onClick={() => handleToggleDay(day)} disabled={togglingDay === day.day}
+            aria-pressed={day.isRead}
+            className={`w-full text-left bg-white rounded-xl border px-4 py-3 flex items-center gap-3 transition-colors select-none ${
               day.isRead ? "border-green-200 bg-green-50/30" : "border-gray-200 hover:border-gray-300"
             } ${togglingDay === day.day ? "opacity-60" : ""}`}>
-            <button disabled={togglingDay === day.day} className="shrink-0" onClick={(e) => { e.stopPropagation(); handleToggleDay(day); }}>
-              {togglingDay === day.day ? <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
-                : day.isRead ? <CheckCircle2 className="w-5 h-5 text-green-600" />
-                : <Circle className="w-5 h-5 text-gray-300 hover:text-gray-400" />}
-            </button>
+            {togglingDay === day.day ? <Loader2 className="w-5 h-5 text-gray-400 animate-spin shrink-0" />
+              : day.isRead ? <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+              : <Circle className="w-5 h-5 text-gray-300 shrink-0" />}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-400 font-mono shrink-0">Jour {day.day}</span>
@@ -303,7 +302,7 @@ export default function PlanDetailPage() {
                 {getBookName(day.book)} {day.chapterStart}{day.chapterEnd !== day.chapterStart ? `-${day.chapterEnd}` : ""}
               </p>
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </div>

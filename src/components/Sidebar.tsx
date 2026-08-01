@@ -57,7 +57,7 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setOpen(!open)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-11 h-11 bg-white rounded-xl shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95"
+        className="lg:hidden fixed top-4 left-4 z-50 w-11 h-11 bg-white rounded-xl shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition active:scale-95"
         aria-label="Menu"
       >
         {open ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
@@ -73,7 +73,7 @@ export default function Sidebar() {
         } lg:translate-x-0`}
       >
         <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2">
-          <img src="/logo.svg" alt="Logo" className="w-7 h-7" />
+          <img src="/logo.svg" alt="Logo" width="28" height="28" className="w-7 h-7" />
           <span>Bible Ouverte</span>
         </Link>
 
@@ -87,7 +87,7 @@ export default function Sidebar() {
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
-                className={`rounded-lg px-3 py-2.5 text-sm transition-all no-underline flex items-center gap-3 ${
+                className={`rounded-lg px-3 py-2.5 text-sm transition no-underline flex items-center gap-3 ${
                   active
                     ? "bg-[--primary] text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-100"
@@ -105,7 +105,7 @@ export default function Sidebar() {
             <Link href="/profil" onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors no-underline">
               {profileAvatar ? (
-                <img src={profileAvatar} alt="" className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-gray-100" />
+                <img src={profileAvatar} alt="" width="32" height="32" className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-gray-100" />
               ) : (
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
                   style={{ backgroundColor: profileColor }}>
