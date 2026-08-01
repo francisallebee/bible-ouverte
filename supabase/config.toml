@@ -1,3 +1,23 @@
+# ⚠️  NE PAS EXÉCUTER `supabase config push` EN L'ÉTAT.
+#
+# Ce fichier a été produit par `supabase init` : sa section [auth] contient les
+# valeurs par défaut du développement local, pas celles de la production. En
+# particulier site_url et additional_redirect_urls pointent sur 127.0.0.1.
+#
+# `config push` est tout ou rien : il enverrait ces valeurs au projet distant.
+# Les e-mails de confirmation d'inscription pointeraient alors vers localhost et
+# les redirections après connexion seraient rejetées — l'authentification
+# cesserait de fonctionner en production.
+#
+# La CLI n'offre pas de `config pull` : il n'y a aucun moyen de récupérer la
+# configuration distante pour la fusionner. Avant tout push, il faudrait donc
+# reconstruire à la main toute la section [auth] à l'identique de ce qui est
+# configuré dans le dashboard (URLs, gabarits d'e-mails, limites de débit,
+# fournisseurs).
+#
+# En attendant, le dashboard fait autorité pour l'authentification. Ce fichier
+# ne sert qu'à la configuration locale et à documenter l'intention.
+#
 # For detailed configuration reference documentation, visit:
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
@@ -187,6 +207,9 @@ enable_manual_linking = false
 # caractères avec symboles (~2^59 contre ~2^52), tout en restant saisissable sur
 # un clavier de téléphone. Ces valeurs sont doublées côté formulaire dans
 # src/lib/auth/password.ts.
+#
+# Ces deux valeurs sont appliquées en production via le dashboard, pas via
+# `config push` — voir l'avertissement en tête de fichier.
 minimum_password_length = 10
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
 # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`

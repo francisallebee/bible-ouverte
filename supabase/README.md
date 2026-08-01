@@ -63,15 +63,29 @@ n'est donc pas une case oubliée, elle n'apparaît pas dans le dashboard.
 `password_requirements = "lower_upper_letters_digits"`) et en miroir côté
 formulaire dans `src/lib/auth/password.ts`.
 
-**Ces réglages serveur ne sont pas encore appliqués** : ils demandent
+Côté serveur, ces deux valeurs se règlent **dans le dashboard**, à
+Authentication → Sign In / Providers → Email :
 
-```bash
-supabase login && supabase config push
-```
+- *Minimum password length* : `10`
+- *Password Requirements* : `Lowercase, uppercase letters and digits`
 
-ou, à la main, Authentication → Sign In / Providers → Email. Tant que ce n'est
-pas fait, seule la validation du formulaire d'inscription s'applique — un client
-qui appellerait l'API directement resterait limité au minimum de 6 caractères.
+### N'utilise pas `supabase config push` pour ça
+
+`config push` est tout ou rien : il enverrait toute la section `[auth]` de
+`config.toml`, produite par `supabase init` avec les valeurs par défaut du
+développement local. `site_url` y vaut `http://127.0.0.1:3000`. Les e-mails de
+confirmation d'inscription pointeraient vers localhost et les redirections après
+connexion seraient rejetées : **l'authentification cesserait de fonctionner en
+production**, pour gagner deux réglages de mot de passe.
+
+La CLI n'a pas de `config pull`, donc aucun moyen de fusionner avec l'existant.
+Rendre `config push` utilisable supposerait de reconstruire à la main toute la
+section `[auth]` à l'identique du dashboard. Tant que ce n'est pas fait, le
+dashboard fait autorité.
+
+Sans le réglage serveur, seule la validation du formulaire d'inscription
+s'applique — un client appelant `/auth/v1/signup` directement, avec la clé anon
+qui est publique par conception, resterait au minimum de 6 caractères.
 
 Les comptes existants ne sont pas affectés : ils continuent de se connecter avec
 leur mot de passe actuel, la règle ne s'applique qu'aux créations et aux

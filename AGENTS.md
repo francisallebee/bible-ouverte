@@ -76,9 +76,10 @@ npm test           # vitest
   prêts et cloisonnés par utilisateur, mais le code ne les utilise pas encore,
   et basculer demande de reprendre les lignes existantes (une route d'upload
   existait, retirée faute d'appelant — voir l'historique git).
-- Les réglages serveur de mot de passe attendent un `supabase config push` :
-  seule la validation du formulaire d'inscription s'applique aujourd'hui.
-  Voir `supabase/README.md`.
+- `supabase/config.toml` n'est pas fidèle à la production : sa section `[auth]`
+  garde les valeurs par défaut de `supabase init`, dont un `site_url` en
+  localhost. **Ne jamais lancer `supabase config push`** avant de l'avoir
+  reconstruite — cela casserait l'authentification. Voir `supabase/README.md`.
 - La couverture de tests se limite aux modules les plus critiques (génération de
   plans, classification des livres, robustesse des mots de passe). Les
   agrégations de statistiques ne sont pas couvertes.
