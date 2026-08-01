@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  BookPlus, Link as LinkIcon, ImageIcon, Camera, Upload, Search,
+  BookPlus, Link as LinkIcon, ImageIcon, Camera, Upload,
   X, ExternalLink, Plus, Music, ChevronDown, Trash2, Layers,
 } from "lucide-react";
 import {
@@ -13,7 +13,6 @@ import {
 import type { BibleVersion, ReadingLink, BiblePassage, ReadingContext } from "@/lib/storage";
 import { BOOKS, getBook, getBookName } from "@/features/bible";
 import type { BibleBook } from "@/features/bible";
-import UnsplashSearch from "@/components/UnsplashSearch";
 import AudioRecorder from "@/components/AudioRecorder";
 import ContextPicker from "@/components/ContextPicker";
 import { resizeImage } from "@/lib/image-utils";
@@ -63,7 +62,6 @@ export default function NewReadingPage() {
 
   const [passages, setPassages] = useState<BiblePassage[]>([]);
   const [loadingPassage, setLoadingPassage] = useState(false);
-  const [showUnsplash, setShowUnsplash] = useState(false);
 
   const [linkUrl, setLinkUrl] = useState("");
   const [linkTitle, setLinkTitle] = useState("");
@@ -142,11 +140,6 @@ export default function NewReadingPage() {
 
   function removePhoto(i: number) {
     setPhotos((prev) => prev.filter((_, idx) => idx !== i));
-  }
-
-  function addPhotoFromUnsplash(url: string) {
-    setPhotos((prev) => [...prev, url]);
-    setShowUnsplash(false);
   }
 
   /** Le passage en cours de saisie, s'il est complet. */
@@ -422,10 +415,6 @@ export default function NewReadingPage() {
                 className="flex items-center gap-1.5 border border-[--border] rounded-lg px-3 py-2 text-sm hover:bg-gray-50 transition-colors">
                 <Upload className="w-4 h-4" /> Galerie
               </button>
-              <button onClick={() => setShowUnsplash(true)}
-                className="flex items-center gap-1.5 border border-[--border] rounded-lg px-3 py-2 text-sm hover:bg-gray-50 transition-colors">
-                <Search className="w-4 h-4" /> Unsplash
-              </button>
             </div>
             {photos.length > 0 && (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -498,13 +487,6 @@ export default function NewReadingPage() {
           )}
         </div>
       </div>
-
-      {showUnsplash && (
-        <UnsplashSearch
-          onSelect={addPhotoFromUnsplash}
-          onClose={() => setShowUnsplash(false)}
-        />
-      )}
     </div>
   );
 }

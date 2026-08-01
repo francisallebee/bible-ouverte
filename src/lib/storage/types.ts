@@ -142,7 +142,6 @@ export interface AppSettings {
   firstLaunchCompleted: boolean;
 
   readingGoal?: ReadingGoal;
-  unsplashAccessKey?: string;
   audioSpeed?: number;
   /** true si une modification locale n'a pas encore été poussée vers le cloud */
   _dirty?: boolean;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, ImageIcon, Cloud, RefreshCw, AlertTriangle, Palette } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -247,33 +247,6 @@ export default function SettingsPage() {
             </p>
           )}
         </SectionCard>
-
-        {isAdmin && (
-          <SectionCard icon={ImageIcon} title="Unsplash (photos libres)">
-            <p className="text-sm text-[--text-secondary] mb-3">
-              Clé d&apos;API Unsplash pour rechercher des photos depuis la page de lecture.
-              Obtenez-la gratuitement sur{" "}
-              <a href="https://unsplash.com/developers" target="_blank" rel="noopener noreferrer"
-                className="text-[--primary] underline">unsplash.com/developers</a>.
-            </p>
-            <input
-              type="text"
-              placeholder="Votre clé d'accès Unsplash"
-              value={settings?.unsplashAccessKey ?? ""}
-              onChange={async (e) => {
-                await updateSettings({ unsplashAccessKey: e.target.value });
-                const s = await getSettings();
-                setSettings(s ?? null);
-              }}
-              className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
-            />
-            {settings?.unsplashAccessKey && (
-              <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Clé configurée
-              </p>
-            )}
-          </SectionCard>
-        )}
 
         <SectionCard icon={BookOpen} title="Versions bibliques">
           <div className="space-y-2">
