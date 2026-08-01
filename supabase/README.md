@@ -13,7 +13,7 @@ aucune donnée.
 | `20260801120000_baseline.sql` | Tables, index, RLS des données personnelles, helper `is_admin()`, trigger d'inscription |
 | `20260801120001_profiles_rls.sql` | Verrouillage de `profiles` : personne ne peut s'attribuer `is_admin` depuis le navigateur |
 | `20260801120002_tickets_roadmap_rls.sql` | Écriture colonne par colonne sur les tickets et la feuille de route |
-| `20260801120003_private_helpers.sql` | Sort les fonctions internes de la surface d'API PostgREST — **pas encore appliquée** |
+| `20260801120003_private_helpers.sql` | Sort les fonctions internes de la surface d'API PostgREST |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -31,8 +31,8 @@ supabase db push
 
 ## État en production
 
-Les migrations `…120000`, `…120001` et `…120002` ont été appliquées le
-1er août 2026. Constat avant application, sur la base réelle :
+Les quatre migrations ont été appliquées le 1er août 2026. Constat avant
+application, sur la base réelle :
 
 - `authenticated` avait le droit `UPDATE` sur `profiles.is_admin`, et la policy
   était `auth.uid() = id` sans restriction de colonne : **tout compte connecté
@@ -46,10 +46,14 @@ Après application, les droits `UPDATE` de `authenticated` sur `profiles` se
 limitent à `name`, `color`, `avatar_url`, `birth_date`, `phone`, `bio` et
 `social_links`. Aucune ligne n'a été perdue.
 
-`…120003` reste à appliquer : elle déplace `is_admin()` dans un schéma `private`
-pour que PostgREST cesse de l'exposer en `/rest/v1/rpc/`, et révoque le droit
-d'exécution des fonctions de trigger. Sans elle, deux avertissements subsistent
-dans l'analyseur de sécurité Supabase.
+`is_admin()` vit désormais dans le schéma `private`, que PostgREST n'expose pas,
+et les fonctions de trigger ne sont plus appelables en RPC. L'analyseur de
+sécurité Supabase ne signale plus aucun problème de schéma.
+
+Reste un seul avertissement, qui se règle dans le dashboard et non en SQL : la
+**protection contre les mots de passe compromis est désactivée**
+(Authentication → Policies). Activée, Supabase refuse les mots de passe connus
+de HaveIBeenPwned.
 
 ## Vérifier après application
 
