@@ -35,7 +35,7 @@ const OSIS_BOOKS = [
   { osis: 'Obad', abbr: 'OBA', name: 'Abdias' },
   { osis: 'Jonah', abbr: 'JON', name: 'Jonas' },
   { osis: 'Mic', abbr: 'MIC', name: 'Michée' },
-  { osis: 'Nah', abbr: 'NAH', name: 'Nahum' },
+  { osis: 'Nah', abbr: 'NAM', name: 'Nahum' },
   { osis: 'Hab', abbr: 'HAB', name: 'Habacuc' },
   { osis: 'Zeph', abbr: 'ZEP', name: 'Sophonie' },
   { osis: 'Hag', abbr: 'HAG', name: 'Aggée' },

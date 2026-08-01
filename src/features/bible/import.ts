@@ -39,6 +39,7 @@ const VERSIONS: { id: string; file: string }[] = [
   { id: 'ostervald', file: 'ostervald.json' },
   { id: 'cramp23', file: 'cramp23.json' },
   { id: 'sacc', file: 'sacc.json' },
+  { id: 'perret', file: 'perret.json' },
 ];
 
 async function loadData(versionId: string): Promise<SourceBible> {

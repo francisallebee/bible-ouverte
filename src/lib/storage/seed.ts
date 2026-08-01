@@ -2,6 +2,7 @@ import type { AppSettings, BibleVersion, ReadingContext } from './types';
 import { getDB } from './db';
 import { importAllBibleData } from '@/features/bible/import';
 import { deleteContext as deleteContextRemote } from '@/lib/supabase/store';
+import { repairNahumAbbreviation } from './passage-store';
 
 /**
  * Contextes de lecture proposés par défaut.
@@ -36,6 +37,7 @@ const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'ostervald', name: 'Bible Ostervald 1996', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
   { id: 'cramp23', name: 'Augustin Crampon 1923', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
   { id: 'sacc', name: 'Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
+  { id: 'perret', name: 'Perret-Gentil et Rilliet 1861', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
 ];
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -55,6 +57,7 @@ export async function seedIfNeeded(): Promise<void> {
   if (existingSettings?.firstLaunchCompleted) {
     await ensureVersionsExist(db);
     await ensureContextsExist(db);
+    await repairNahumAbbreviation();
     await importAllBibleData();
     return;
   }

@@ -66,6 +66,39 @@ export async function countPassages(versionId: string): Promise<number> {
   return index.count(range);
 }
 
+/**
+ * Répare le cache local des versions où Nahum a été importé sous « NAH ».
+ *
+ * Le script de téléchargement produisait l'abréviation OSIS `NAH` alors que
+ * l'application interroge `NAM` : Nahum était donc invisible dans Darby, Martin
+ * et Ostervald. Les fichiers source sont corrigés, mais un appareil déjà
+ * utilisé garde ses versets en cache et `importBibleVersion` ne rejoue rien dès
+ * qu'une version compte au moins un verset. Cette reprise renomme les clés en
+ * place, ce qui évite de réimporter 31 000 versets par version.
+ *
+ * Sans effet une fois passée : elle ne trouve plus aucun `NAH`.
+ */
+export async function repairNahumAbbreviation(): Promise<number> {
+  const db = await getDB();
+  const tx = db.transaction('bible_passages', 'readwrite');
+  const store = tx.objectStore('bible_passages');
+  const index = store.index('by-version-book-chapter-verse');
+
+  const range = IDBKeyRange.bound(
+    ['', 'NAH', 0, 0],
+    ['￿', 'NAH', Infinity, Infinity],
+  );
+
+  let repaired = 0;
+  for (const passage of await index.getAll(range)) {
+    if (passage.book !== 'NAH') continue;
+    await store.put({ ...passage, book: 'NAM' });
+    repaired++;
+  }
+  await tx.done;
+  return repaired;
+}
+
 export async function searchPassages(
   versionId: string,
   query: string,

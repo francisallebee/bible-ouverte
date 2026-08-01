@@ -112,11 +112,20 @@ def convert_osis_to_app(data: dict, version_id: str, version_name: str) -> dict:
 
 
 def main():
+    # Uniquement des traductions du domaine public : soit le fichier source le
+    # déclare, soit l'auteur est mort depuis plus de soixante-dix ans. Les
+    # versions modernes disponibles à la même source (Bible de Jérusalem,
+    # Bible des Peuples, Pirot-Clamer, King James Française, Bovet Bonnet…)
+    # sont volontairement écartées : elles sont sous droits.
+    base = 'https://raw.githubusercontent.com/heb12/gratis.json/master/fr'
     versions = [
-        ('cramp23', 'Augustin Crampon 1923',
-         'https://raw.githubusercontent.com/heb12/gratis.json/master/fr/cramp23.json'),
-        ('sacc', 'Lemaître de Sacy 1667',
-         'https://raw.githubusercontent.com/heb12/gratis.json/master/fr/sacc.json'),
+        ('cramp23', 'Augustin Crampon 1923', f'{base}/cramp23.json'),
+        ('sacc', 'Lemaître de Sacy 1667', f'{base}/sacc.json'),
+        ('perret', 'Perret-Gentil et Rilliet 1861', f'{base}/frepgr.json'),
+        # Écartées après vérification : leurs fichiers source sont amputés.
+        #   fill.json          Ésaïe absent en entier
+        #   bo1877.json        1 Samuel, Ézéchiel et Malachie absents
+        #   vigouroux.json     Actes tronqué à 27 chapitres sur 28
     ]
 
     for version_id, version_name, url in versions:
