@@ -25,30 +25,46 @@ export async function GET(request: NextRequest) {
   const { data: profiles } = await admin.from('profiles').select('*').order('created_at', { ascending: false })
   if (!profiles) return successResponse({ users: [], stats: {} })
 
+  // Les comptages passent par `admin` (clé service_role) et non par `supabase`
+  // (session de l'appelant) : la RLS filtrerait chaque requête sur les lignes de
+  // l'administrateur lui-même, et le tableau afficherait 0 pour tout le monde
+  // sauf lui.
+  const countFor = async (table: string, userId: string) => {
+    const { count } = await admin
+      .from(table).select('*', { count: 'exact', head: true }).eq('user_id', userId)
+    return count ?? 0
+  }
+
   const enriched = await Promise.all((profiles || []).map(async (p) => {
-    const { count: readings } = await supabase
-      .from('readings').select('*', { count: 'exact', head: true }).eq('user_id', p.id)
-    const { count: plans } = await supabase
-      .from('plans').select('*', { count: 'exact', head: true }).eq('user_id', p.id)
-    const { count: contexts } = await supabase
-      .from('contexts').select('*', { count: 'exact', head: true }).eq('user_id', p.id)
+    const [readings, plans, contexts] = await Promise.all([
+      countFor('readings', p.id),
+      countFor('plans', p.id),
+      countFor('contexts', p.id),
+    ])
 
     const authData = authMap.get(p.id)
     return {
       ...p,
       email: authData?.email ?? null,
       lastSignIn: authData?.lastSignIn ?? null,
-      readings: readings ?? 0,
-      plans: plans ?? 0,
-      contexts: contexts ?? 0,
+      readings,
+      plans,
+      contexts,
     }
   }))
 
   // Global stats
-  const { count: totalReadings } = await supabase.from('readings').select('*', { count: 'exact', head: true })
-  const { count: totalPlans } = await supabase.from('plans').select('*', { count: 'exact', head: true })
-  const { count: totalContexts } = await supabase.from('contexts').select('*', { count: 'exact', head: true })
-  const { count: totalPlanDays } = await supabase.from('plan_days').select('*', { count: 'exact', head: true })
+  const countAll = async (table: string) => {
+    const { count } = await admin.from(table).select('*', { count: 'exact', head: true })
+    return count ?? 0
+  }
+
+  const [totalReadings, totalPlans, totalContexts, totalPlanDays] = await Promise.all([
+    countAll('readings'),
+    countAll('plans'),
+    countAll('contexts'),
+    countAll('plan_days'),
+  ])
   const activeUsers = enriched.filter(u => u.lastSignIn && new Date(u.lastSignIn) > new Date(Date.now() - 7 * 86400000)).length
 
   return successResponse({
