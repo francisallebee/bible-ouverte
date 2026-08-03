@@ -92,6 +92,16 @@ npm test           # vitest
   agrégations de statistiques ne sont pas couvertes.
 - `npm audit` signale deux vulnérabilités dans une dépendance interne de Next
   14 ; le correctif passe par une montée en version majeure de Next.
+- **Aucun déploiement de preview ne peut aboutir sur Vercel** : les trois
+  variables Supabase n'existent que dans l'environnement Production. Le build
+  d'une branche échoue sur `/api/admin/users`, que Next exécute pendant la
+  génération statique pour déterminer s'il est dynamique — sans clés,
+  `createAdminClient()` lève une exception. Même une fois ce point passé, le
+  middleware planterait à chaque requête. Rendre les routes `/api/admin`
+  explicitement dynamiques réglerait la moitié du problème ; l'autre moitié
+  demande d'ajouter au moins les deux variables `NEXT_PUBLIC_` à
+  l'environnement Preview. La clé `service_role` n'a rien à y faire : chaque
+  branche poussée y est déployée sur une URL publique.
 - **Le texte de Sacy est amputé** : Genèse 49 chapitres sur 50, Exode 39/40,
   Psaumes 149/150, Cantique 6/8, et d'autres. Le défaut vient du fichier source
   (`heb12/gratis.json`), pas de la conversion. Le corriger suppose de trouver
