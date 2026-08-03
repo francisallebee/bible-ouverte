@@ -85,3 +85,18 @@ npm test           # vitest
   agrégations de statistiques ne sont pas couvertes.
 - `npm audit` signale deux vulnérabilités dans une dépendance interne de Next
   14 ; le correctif passe par une montée en version majeure de Next.
+- **Le texte de Sacy est amputé** : Genèse 49 chapitres sur 50, Exode 39/40,
+  Psaumes 149/150, Cantique 6/8, et d'autres. Le défaut vient du fichier source
+  (`heb12/gratis.json`), pas de la conversion. Le corriger suppose de trouver
+  une meilleure source ou d'écarter cette version. Les six autres traductions
+  ont été vérifiées livre par livre et sont complètes — seul Malachie compte
+  3 chapitres au lieu de 4 dans Crampon et Darby, ce qui est une différence de
+  versification légitime et non un manque.
+- **Toutes les versions sont importées au premier chargement** :
+  `importAllBibleData` ne connaît pas le chargement à la demande. À sept
+  versions, cela représente environ 220 000 versets en IndexedDB par appareil.
+  Tenable aujourd'hui, bloquant au-delà d'une dizaine de versions.
+- Les écrans Nouvelle lecture, Historique, Statistiques, Progression, Profil et
+  Réglages ont été modifiés en profondeur sans **vérification visuelle** : ils
+  sont derrière l'authentification. Typage, lint, tests et build passent, ce
+  qui n'est pas la même chose que de les avoir vus fonctionner.
