@@ -66,7 +66,11 @@ export async function updateSession(request: NextRequest) {
     if (profile?.suspended) {
       await supabase.auth.signOut()
       const url = request.nextUrl.clone()
-      url.pathname = '/auth/login?error=suspended'
+      // Le setter `pathname` échappe le `?` en %3F : la chaîne complète menait
+      // à /auth/login%3Ferror=suspended, une page inexistante. Le motif de la
+      // déconnexion doit passer par `search`.
+      url.pathname = '/auth/login'
+      url.search = '?error=suspended'
       return NextResponse.redirect(url)
     }
   }
