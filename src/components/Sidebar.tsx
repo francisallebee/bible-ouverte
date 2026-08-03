@@ -69,7 +69,7 @@ export default function Sidebar() {
           open ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2">
+        <Link href="/new-reading" onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2">
           <img src="/logo.svg" alt="Logo" width="28" height="28" className="w-7 h-7" />
           <span>Bible Ouverte</span>
         </Link>

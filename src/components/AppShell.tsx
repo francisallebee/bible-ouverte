@@ -10,15 +10,27 @@ import { applyColorTheme } from '@/lib/themes'
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isAuthPage = pathname.startsWith('/auth')
+  const isLanding = pathname === '/'
 
   useEffect(() => {
+    // La page de présentation porte sa propre palette. Lui appliquer le thème
+    // enregistré la repeindrait : les règles `html.dark` de globals.css visent
+    // `.bg-white` et `.text-gray-*` avec des !important.
+    if (isLanding) {
+      document.documentElement.classList.remove('dark')
+      return
+    }
     (async () => {
       const s = await getSettings()
       if (s?.colorTheme) applyColorTheme(s.colorTheme)
       if (s?.theme === 'dark') document.documentElement.classList.add('dark')
       else document.documentElement.classList.remove('dark')
     })()
-  }, [])
+  }, [isLanding])
+
+  // Ni barre latérale ni conteneur centré : la landing gère sa mise en page sur
+  // toute la largeur.
+  if (isLanding) return <>{children}</>
 
   if (isAuthPage) {
     return (

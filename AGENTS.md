@@ -32,6 +32,7 @@ une migration SQL**, pas par un composant.
 | Chemin | Rôle |
 |---|---|
 | `src/app/` | Écrans (App Router) et routes API |
+| `src/components/landing/` | Page de présentation servie sur `/` |
 | `src/lib/supabase/store.ts` | Accès Supabase depuis le navigateur |
 | `src/lib/storage/` | Cache IndexedDB et logique métier par domaine |
 | `src/features/bible/` | Livres, classification, import des versions |
@@ -58,6 +59,12 @@ une migration SQL**, pas par un composant.
 6. Pas de dépendance nouvelle sans raison sérieuse.
 7. Toute ressource servie avant connexion doit être exclue du `matcher` du
    middleware, sans quoi elle répond une redirection vers `/auth/login`.
+8. Deux chemins seulement sont servis sans session : `/` et `/auth`. Ils sont
+   listés dans `isPublicPath` (`src/lib/supabase/middleware.ts`), pas dans le
+   `matcher` — le middleware doit continuer à s'exécuter sur `/` pour renvoyer
+   un utilisateur déjà connecté vers `/new-reading`. C'est cette redirection,
+   et non un contrôle dans `src/app/page.tsx`, qui laisse la page de
+   présentation entièrement prérendue.
 
 ## Commandes
 

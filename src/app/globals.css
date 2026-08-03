@@ -86,6 +86,45 @@ html.dark select, html.dark input, html.dark textarea {
 }
 html.dark option { background-color: var(--surface) !important; color: var(--text) !important; }
 
+/* ---------------------------------------------------------------------------
+ * Page de présentation (route `/`)
+ *
+ * Ces classes ne servent qu'à la landing, qui vit hors de l'AppShell et porte
+ * sa propre palette. Les animations sont purement décoratives : la règle
+ * `prefers-reduced-motion` plus bas les neutralise avec !important, quel que
+ * soit l'ordre des déclarations.
+ * ------------------------------------------------------------------------- */
+
+@keyframes bo-rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes bo-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+@keyframes bo-aurora {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(4%, -6%) scale(1.12); }
+  66%      { transform: translate(-5%, 4%) scale(0.94); }
+}
+
+.bo-rise { animation: bo-rise 900ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.bo-float { animation: bo-float 9s ease-in-out infinite; }
+.bo-aurora { animation: bo-aurora 22s ease-in-out infinite; }
+
+/* Trame de fond du hero : deux jeux de lignes à 1px, atténués vers les bords. */
+.bo-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 40%, transparent 100%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

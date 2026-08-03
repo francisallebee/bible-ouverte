@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -11,6 +11,19 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [email, setEmail] = useState('')
+
+  // La page de présentation envoie l'adresse saisie dans son formulaire par un
+  // GET sur /auth/signup?email=… — la reprendre évite de la retaper.
+  //
+  // Lu depuis `window` plutôt qu'avec `useSearchParams`, qui obligerait à
+  // envelopper la page dans un <Suspense> pour que le build passe. La lecture a
+  // lieu après le montage : le rendu serveur et le premier rendu client restent
+  // identiques.
+  useEffect(() => {
+    const fromLanding = new URLSearchParams(window.location.search).get('email')
+    if (fromLanding) setEmail(fromLanding)
+  }, [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -87,6 +100,8 @@ export default function SignupPage() {
             autoComplete="email"
             spellCheck={false}
             required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
           />
         </div>
