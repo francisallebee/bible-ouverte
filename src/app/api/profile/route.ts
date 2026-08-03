@@ -1,6 +1,10 @@
 import { type NextRequest } from 'next/server'
 import { createApiClient, requireUser, errorResponse, successResponse } from '@/lib/supabase/api-client'
 
+// Voir src/app/api/admin/users/route.ts : cette route lit la session de
+// l'appelant, elle ne doit jamais être évaluée au moment du build.
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   const user = await requireUser(request)
   if (!user) return errorResponse('Non authentifié', 401)

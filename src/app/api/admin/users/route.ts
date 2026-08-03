@@ -2,6 +2,11 @@ import { type NextRequest } from 'next/server'
 import { createApiClient, requireUser, errorResponse, successResponse } from '@/lib/supabase/api-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+// Sans cela, Next exécute le handler pendant `next build` pour décider s'il est
+// statique. `createAdminClient()` lève alors une exception là où les variables
+// Supabase sont absentes (les previews Vercel), et le build échoue.
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   const user = await requireUser(request)
   if (!user) return errorResponse('Non authentifié', 401)
