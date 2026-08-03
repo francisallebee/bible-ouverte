@@ -1,13 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { MailCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { describePasswordProblems, PASSWORD_MIN_LENGTH } from '@/lib/auth/password'
+import AuthCard, {
+  AuthError, authButton, authHint, authInput, authLabel, authLink,
+} from '@/components/auth/AuthCard'
 
 export default function SignupPage() {
-  const router = useRouter()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -62,39 +64,41 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="relative w-full max-w-sm bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 text-center">
-        <h1 className="text-2xl font-bold text-[--primary] mb-4">Compte créé !</h1>
-        <p className="text-gray-600 mb-6">
-          Vérifie ta boîte mail pour confirmer ton adresse email.
-        </p>
-        <Link
-          href="/auth/login"
-          className="text-[--primary] font-medium hover:underline"
-        >
+      <AuthCard title="Compte créé">
+        <div className="flex items-start gap-3.5 rounded-xl bg-[#e8faf0] p-4">
+          <MailCheck className="mt-0.5 w-5 h-5 shrink-0 text-[#1f9254]" />
+          <p className="text-[14px] leading-relaxed text-[#1a6b41]">
+            Un message vient de partir vers{' '}
+            <span className="font-semibold">{email || 'ton adresse'}</span>. Ouvre-le
+            pour confirmer ton adresse, puis reviens te connecter.
+          </p>
+        </div>
+        <Link href="/auth/login" className={`${authButton} mt-5`}>
           Aller à la connexion
         </Link>
-      </div>
+      </AuthCard>
     )
   }
 
   return (
-    <div className="relative w-full max-w-sm bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8">
-      <h1 className="text-2xl font-bold text-center text-[--primary] mb-6">Créer un compte</h1>
+    <AuthCard title="Créer un compte" subtitle="Moins d'une minute, et c'est gratuit.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+          <label htmlFor="signup-name" className={authLabel}>Prénom</label>
           <input
+            id="signup-name"
             name="name"
             type="text"
             autoComplete="name"
             spellCheck={false}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
+            className={authInput}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label htmlFor="signup-email" className={authLabel}>Email</label>
           <input
+            id="signup-email"
             name="email"
             type="email"
             autoComplete="email"
@@ -102,11 +106,11 @@ export default function SignupPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
+            className={authInput}
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+          <label htmlFor="password" className={authLabel}>Mot de passe</label>
           <input
             id="password"
             name="password"
@@ -115,28 +119,23 @@ export default function SignupPage() {
             required
             minLength={PASSWORD_MIN_LENGTH}
             aria-describedby="password-hint"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
+            className={authInput}
           />
-          <p id="password-hint" className="text-xs text-gray-500 mt-1">
+          <p id="password-hint" className={authHint}>
             {PASSWORD_MIN_LENGTH} caractères minimum, avec une minuscule, une majuscule,
             un chiffre et un symbole.
           </p>
         </div>
-        {error && <p aria-live="polite" className="text-red-600 text-sm">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-[--primary] text-white py-2 rounded-lg hover:bg-[--primary-hover] disabled:opacity-50 transition-colors"
-        >
+        {error && <AuthError>{error}</AuthError>}
+        <button type="submit" disabled={loading} className={authButton}>
           {loading ? 'Création…' : 'Créer le compte'}
         </button>
       </form>
-      <p className="text-sm text-center mt-4 text-gray-600">
+
+      <p className="mt-6 border-t border-slate-100 pt-5 text-center text-[14px] text-slate-500">
         Déjà un compte ?{' '}
-        <Link href="/auth/login" className="text-[--primary] font-medium hover:underline">
-          Se connecter
-        </Link>
+        <Link href="/auth/login" className={authLink}>Se connecter</Link>
       </p>
-    </div>
+    </AuthCard>
   )
 }

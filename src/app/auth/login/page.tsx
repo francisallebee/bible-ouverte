@@ -4,6 +4,9 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import AuthCard, {
+  AuthError, authButton, authInput, authLabel, authLink,
+} from '@/components/auth/AuthCard'
 
 export default function LoginPage() {
   return (
@@ -38,50 +41,48 @@ function LoginForm() {
       return
     }
 
-    router.push('/')
+    // Vers /new-reading directement : `/` sert la page de présentation, dont le
+    // middleware renverrait aussitôt quelqu'un de connecté.
+    router.push('/new-reading')
     router.refresh()
   }
 
   return (
-    <div className="relative w-full max-w-sm bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8">
-      <h1 className="text-2xl font-bold text-center text-[--primary] mb-6">Connexion</h1>
+    <AuthCard title="Bon retour" subtitle="Reprends tes lectures là où tu les as laissées.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label htmlFor="login-email" className={authLabel}>Email</label>
           <input
+            id="login-email"
             name="email"
             type="email"
             autoComplete="email"
             spellCheck={false}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
+            className={authInput}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+          <label htmlFor="login-password" className={authLabel}>Mot de passe</label>
           <input
+            id="login-password"
             name="password"
             type="password"
             autoComplete="current-password"
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[--primary]"
+            className={authInput}
           />
         </div>
-        {error && <p aria-live="polite" className="text-red-600 text-sm">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-[--primary] text-white py-2 rounded-lg hover:bg-[--primary-hover] disabled:opacity-50 transition-colors"
-        >
+        {error && <AuthError>{error}</AuthError>}
+        <button type="submit" disabled={loading} className={authButton}>
           {loading ? 'Connexion…' : 'Se connecter'}
         </button>
       </form>
-      <p className="text-sm text-center mt-4 text-gray-600">
+
+      <p className="mt-6 border-t border-slate-100 pt-5 text-center text-[14px] text-slate-500">
         Pas encore de compte ?{' '}
-        <Link href="/auth/signup" className="text-[--primary] font-medium hover:underline">
-          Créer un compte
-        </Link>
+        <Link href="/auth/signup" className={authLink}>Créer un compte</Link>
       </p>
-    </div>
+    </AuthCard>
   )
 }

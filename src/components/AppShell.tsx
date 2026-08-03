@@ -12,11 +12,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isAuthPage = pathname.startsWith('/auth')
   const isLanding = pathname === '/'
 
+  // La page de présentation et les écrans d'authentification portent leur propre
+  // palette et leur propre mise en page. Ils s'affichent donc tels quels, sans
+  // barre latérale, sans conteneur centré et sans le thème enregistré : les
+  // règles `html.dark` de globals.css visent `.bg-white` et `.text-gray-*` avec
+  // des !important, et repeindraient leurs cartes.
+  const isBare = isLanding || isAuthPage
+
   useEffect(() => {
-    // La page de présentation porte sa propre palette. Lui appliquer le thème
-    // enregistré la repeindrait : les règles `html.dark` de globals.css visent
-    // `.bg-white` et `.text-gray-*` avec des !important.
-    if (isLanding) {
+    if (isBare) {
       document.documentElement.classList.remove('dark')
       return
     }
@@ -26,19 +30,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       if (s?.theme === 'dark') document.documentElement.classList.add('dark')
       else document.documentElement.classList.remove('dark')
     })()
-  }, [isLanding])
+  }, [isBare])
 
-  // Ni barre latérale ni conteneur centré : la landing gère sa mise en page sur
-  // toute la largeur.
-  if (isLanding) return <>{children}</>
-
-  if (isAuthPage) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[--primary] to-[--primary-hover]">
-        {children}
-      </div>
-    )
-  }
+  if (isBare) return <>{children}</>
 
   return (
     <LayoutClient>
