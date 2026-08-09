@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { History, BookPlus, ChevronRight, ChevronDown } from "lucide-react";
-import { seedIfNeeded, getAllReadings, getAllVersions, getAllContexts } from "@/lib/storage";
+import { History, BookPlus, ChevronRight, ChevronDown, CheckSquare, Trash2, Tag, Loader } from "lucide-react";
+import { seedIfNeeded, getAllReadings, getAllVersions, getAllContexts, deleteReading, updateReading } from "@/lib/storage";
 import type { ReadingEntry, BibleVersion, ReadingContext } from "@/lib/storage";
+import { sortContexts } from "@/components/ContextPicker";
 import { BOOKS, getBookName } from "@/features/bible";
 
 export default function HistoryPage() {
@@ -14,6 +15,15 @@ export default function HistoryPage() {
   const [loaded, setLoaded] = useState(false);
   /** Dates dépliées. Tout est replié à l'ouverture. */
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  /**
+   * Sélection multiple. Hors de ce mode, une entrée reste un lien vers son
+   * détail : la sélection ne doit pas voler le geste principal de la page.
+   */
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [busy, setBusy] = useState(false);
+  const [bulkContext, setBulkContext] = useState("");
 
   const [search, setSearch] = useState("");
   const [bookFilter, setBookFilter] = useState("");
@@ -108,6 +118,79 @@ export default function HistoryPage() {
     setDateEnd("");
   }
 
+  function toggleSelected(readingId: number) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(readingId)) next.delete(readingId);
+      else next.add(readingId);
+      return next;
+    });
+  }
+
+  function exitSelectMode() {
+    setSelectMode(false);
+    setSelected(new Set());
+    setBulkContext("");
+  }
+
+  /**
+   * Porte sur toutes les entrées que les filtres laissent passer, y compris
+   * celles des jours repliés — d'où le dépliage : sélectionner puis supprimer
+   * des lignes qu'on ne voit pas serait un piège. Le nombre annoncé sur le
+   * bouton correspond ainsi toujours à ce qui est à l'écran.
+   */
+  function selectAllFiltered() {
+    setExpanded(new Set(groups.map((g) => g.date)));
+    setSelected(new Set(filtered.map((r) => r.id as number)));
+  }
+
+  async function handleBulkDelete() {
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    const message = ids.length === 1
+      ? "Supprimer cette lecture ? Cette action est définitive."
+      : `Supprimer ces ${ids.length} lectures ? Cette action est définitive.`;
+    if (!window.confirm(message)) return;
+
+    setBusy(true);
+    for (const readingId of ids) {
+      await deleteReading(readingId);
+    }
+    // L'état local est mis à jour directement, sans repasser par
+    // `getAllReadings()`. Celui-ci resynchronise depuis Supabase, où l'écriture
+    // partie en arrière-plan n'est pas forcément arrivée : la liste se
+    // repeuplait alors avec l'état d'avant. Le cache IndexedDB, lui, est déjà
+    // à jour — `deleteReading` l'écrit avant de pousser vers le cloud.
+    setReadings((prev) => prev.filter((r) => !selected.has(r.id as number)));
+    setBusy(false);
+    exitSelectMode();
+  }
+
+  /**
+   * Seul le contexte est modifiable en bloc. Les autres champs — livre,
+   * chapitres, versets — décrivent un passage précis et n'ont pas de sens
+   * commun à plusieurs entrées.
+   */
+  async function handleBulkContext() {
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+
+    setBusy(true);
+    for (const readingId of ids) {
+      await updateReading(readingId, { contextId: bulkContext });
+    }
+    // Voir `handleBulkDelete` : l'état local plutôt qu'une resynchronisation,
+    // qui rapporterait l'ancienne valeur tant que l'écriture distante est en
+    // vol.
+    setReadings((prev) =>
+      prev.map((r) =>
+        selected.has(r.id as number) ? { ...r, contextId: bulkContext } : r,
+      ),
+    );
+    setBusy(false);
+    exitSelectMode();
+  }
+
   if (!loaded) {
     return <p className="text-gray-500">Chargement...</p>;
   }
@@ -119,14 +202,86 @@ export default function HistoryPage() {
           <History className="w-6 h-6 text-[--primary]" />
           Historique
         </h1>
-        <Link
-          href="/new-reading"
-          className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] no-underline flex items-center gap-1.5"
-        >
-          <BookPlus className="w-4 h-4" />
-          Nouvelle lecture
-        </Link>
+        <div className="flex items-center gap-2">
+          {readings.length > 0 && !selectMode && (
+            <button
+              onClick={() => setSelectMode(true)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 flex items-center gap-1.5"
+            >
+              <CheckSquare className="w-4 h-4" aria-hidden="true" />
+              Sélectionner
+            </button>
+          )}
+          <Link
+            href="/new-reading"
+            className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] no-underline flex items-center gap-1.5"
+          >
+            <BookPlus className="w-4 h-4" />
+            Nouvelle lecture
+          </Link>
+        </div>
       </div>
+
+      {selectMode && (
+        <div className="bg-[--primary-light] border border-[--primary]/20 rounded-xl p-3 mb-4 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium text-[--primary] mr-1">
+            {selected.size} sélectionnée{selected.size > 1 ? "s" : ""}
+          </span>
+
+          <button
+            onClick={selectAllFiltered}
+            disabled={busy || filtered.length === 0}
+            className="border border-gray-300 bg-white rounded-lg px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+          >
+            Tout sélectionner ({filtered.length})
+          </button>
+
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="bulk-context" className="sr-only">Contexte à appliquer</label>
+            <select
+              id="bulk-context"
+              value={bulkContext}
+              onChange={(e) => setBulkContext(e.target.value)}
+              disabled={busy || selected.size === 0}
+              className="border border-gray-300 bg-white rounded-lg px-2 py-1.5 text-xs disabled:opacity-50"
+            >
+              <option value="">— Aucun contexte —</option>
+              {sortContexts(contexts).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.emoji ? `${c.emoji} ` : ""}{c.name}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleBulkContext}
+              disabled={busy || selected.size === 0}
+              className="border border-gray-300 bg-white rounded-lg px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <Tag className="w-3.5 h-3.5" aria-hidden="true" />
+              Appliquer
+            </button>
+          </div>
+
+          <button
+            onClick={handleBulkDelete}
+            disabled={busy || selected.size === 0}
+            className="border border-red-200 bg-white rounded-lg px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50 flex items-center gap-1.5"
+          >
+            {busy
+              ? <Loader className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+              : <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />}
+            Supprimer
+          </button>
+
+          <button
+            onClick={exitSelectMode}
+            disabled={busy}
+            className="text-xs text-gray-500 hover:text-gray-700 ml-auto disabled:opacity-50"
+          >
+            Quitter
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-3 mb-6">
         <input
@@ -224,12 +379,9 @@ export default function HistoryPage() {
                   <div id={panelId} className="border-t border-gray-100 divide-y divide-gray-100">
                     {group.entries.map((r) => {
                       const ctx = r.contextId ? contextMap[r.contextId] : undefined;
-                      return (
-                        <Link
-                          key={r.id as number}
-                          href={`/reading/${r.id}`}
-                          className="block px-4 py-3 hover:bg-gray-50 transition-colors no-underline"
-                        >
+                      const readingId = r.id as number;
+                      const content = (
+                        <>
                           <div className="flex items-center gap-2">
                             <p className="text-base font-semibold text-gray-900">
                               {getBookName(r.book)} {r.chapterStart}
@@ -248,7 +400,38 @@ export default function HistoryPage() {
                               {r.notes.length > 50 ? r.notes.slice(0, 50) + "…" : r.notes}
                             </p>
                           )}
-                        </Link>
+                        </>
+                      );
+
+                      if (!selectMode) {
+                        return (
+                          <Link
+                            key={readingId}
+                            href={`/reading/${readingId}`}
+                            className="block px-4 py-3 hover:bg-gray-50 transition-colors no-underline"
+                          >
+                            {content}
+                          </Link>
+                        );
+                      }
+
+                      const isSelected = selected.has(readingId);
+                      return (
+                        <label
+                          key={readingId}
+                          className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors ${
+                            isSelected ? "bg-[--primary-light]" : "hover:bg-gray-50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelected(readingId)}
+                            disabled={busy}
+                            className="accent-[--primary] w-4 h-4 mt-1 shrink-0"
+                          />
+                          <span className="flex-1 min-w-0">{content}</span>
+                        </label>
                       );
                     })}
                   </div>
