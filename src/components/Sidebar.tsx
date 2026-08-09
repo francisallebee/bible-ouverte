@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BookPlus, Search, History, BarChart3,
   BookOpen, Settings, Menu, X, Trophy, LogOut, Shield,
-  User, Route, MessageCircle,
+  User, Route, MessageCircle, Heart,
 } from "lucide-react";
 import { seedIfNeeded } from "@/lib/storage";
 import { APP_VERSION } from "@/lib/version";
@@ -23,6 +23,7 @@ const links: { href: string; label: string; icon: React.ComponentType<{ classNam
   { href: "/settings", label: "Réglages", icon: Settings },
   { href: "/roadmap", label: "Feuille de route", icon: Route },
   { href: "/support", label: "Support", icon: MessageCircle },
+  { href: "/soutenir", label: "Soutenir le projet", icon: Heart },
   { href: "/profil", label: "Mon profil", icon: User },
   { href: "/admin", label: "Administration", icon: Shield, adminOnly: true },
 ];
