@@ -5,6 +5,7 @@ import {
   fetchTickets,
   insertTicket as supabaseInsert,
   updateTicketRemote as supabaseUpdate,
+  deleteTicketRemote as supabaseDelete,
 } from '@/lib/supabase/store';
 import type { TicketRow } from '@/lib/supabase/store';
 
@@ -101,6 +102,27 @@ export async function addTicket(data: { type: 'bug' | 'suggestion'; message: str
     createdAt: new Date().toISOString(),
     replies: [],
   });
+}
+
+/**
+ * Supprime un ticket, réponses comprises. Réservé aux administrateurs.
+ *
+ * Contrairement aux lectures ou aux plans, le cache n'est pas vidé d'abord :
+ * les tickets sont un contenu partagé dont le cloud fait foi, et `syncTickets`
+ * remplace le cache par l'état distant à chaque lecture. Une suppression
+ * seulement locale serait donc annulée au chargement suivant. Le cache n'est
+ * effacé qu'une fois le distant confirmé.
+ *
+ * Renvoie faux si l'opération n'a pas abouti — hors ligne, ou compte non
+ * administrateur écarté par la RLS.
+ */
+export async function deleteTicket(id: number): Promise<boolean> {
+  if (!isOnline()) return false;
+  const deleted = await supabaseDelete(id);
+  if (!deleted) return false;
+  const db = await getDB();
+  await db.delete('support_tickets', id);
+  return true;
 }
 
 export async function addReply(ticketId: number, text: string, isAdmin: boolean, userName: string): Promise<void> {

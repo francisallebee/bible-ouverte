@@ -448,3 +448,29 @@ export async function updateTicketRemote(id: number, data: Partial<TicketRow>): 
     false,
   )
 }
+
+/**
+ * La policy « admins can delete tickets » est la seule barrière.
+ *
+ * `remove()` ne convient pas ici : sous RLS, un delete qui ne correspond à
+ * aucune ligne visible réussit sans erreur, et renverrait donc vrai pour un
+ * compte ordinaire. Le `.select()` fait remonter les lignes réellement
+ * effacées, seul moyen de distinguer une suppression d'un refus silencieux —
+ * sans quoi le ticket disparaîtrait du cache local pour réapparaître à la
+ * synchronisation suivante.
+ */
+export async function deleteTicketRemote(id: number): Promise<boolean> {
+  return tryAuthenticated(async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('tickets')
+      .delete()
+      .eq('id', id)
+      .select('id')
+    if (error) {
+      console.warn('supabase deleteTicket:', error.message)
+      return false
+    }
+    return (data?.length ?? 0) > 0
+  }, false)
+}

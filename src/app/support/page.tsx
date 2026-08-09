@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MessageCircle, Bug, Lightbulb, Send, ChevronDown, ChevronUp, Loader } from 'lucide-react'
-import { getAllTickets, addTicket, addReply } from '@/lib/storage/support-store'
+import { MessageCircle, Bug, Lightbulb, Send, ChevronDown, ChevronUp, Loader, Trash2 } from 'lucide-react'
+import { getAllTickets, addTicket, addReply, deleteTicket } from '@/lib/storage/support-store'
 import { useAuth } from '@/contexts/AuthContext'
 import { getCurrentUserId } from '@/lib/storage/user-id'
 import type { SupportTicket } from '@/lib/storage/types'
@@ -20,6 +20,7 @@ export default function SupportPage() {
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
   const [replyText, setReplyText] = useState('')
   const [replyTicketId, setReplyTicketId] = useState<number | null>(null)
+  const [deleteError, setDeleteError] = useState('')
 
   const load = async () => {
     setTickets(await getAllTickets())
@@ -44,6 +45,17 @@ export default function SupportPage() {
     setSaving(true)
     await addTicket({ type, message: message.trim(), userName: userName.trim() })
     setSaving(false); setShowForm(false); setMessage('')
+    await load()
+  }
+
+  const handleDelete = async (ticketId: number) => {
+    if (!confirm('Supprimer ce message et ses réponses ? Cette action est définitive.')) return
+    setDeleteError('')
+    const deleted = await deleteTicket(ticketId)
+    if (!deleted) {
+      setDeleteError('Suppression impossible. Vérifie ta connexion — la suppression est réservée aux administrateurs.')
+      return
+    }
     await load()
   }
 
@@ -128,6 +140,12 @@ export default function SupportPage() {
         </div>
       )}
 
+      {deleteError && (
+        <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
+          {deleteError}
+        </p>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-12"><Loader className="w-6 h-6 animate-spin text-[--primary]" /></div>
       ) : tickets.length === 0 ? (
@@ -207,10 +225,19 @@ export default function SupportPage() {
                           className="text-xs text-gray-400 hover:text-gray-600">Annuler</button>
                       </div>
                     ) : (
-                      <button onClick={() => setReplyTicketId(ticket.id!)}
-                        className="text-xs text-[--primary] hover:underline font-medium">
-                        {isAdmin ? '✏️ Répondre' : '💬 Commenter'}
-                      </button>
+                      <div className="flex items-center justify-between gap-3">
+                        <button onClick={() => setReplyTicketId(ticket.id!)}
+                          className="text-xs text-[--primary] hover:underline font-medium">
+                          {isAdmin ? '✏️ Répondre' : '💬 Commenter'}
+                        </button>
+                        {isAdmin && (
+                          <button onClick={() => ticket.id && handleDelete(ticket.id)}
+                            className="text-xs text-red-500 hover:text-red-600 hover:underline font-medium flex items-center gap-1">
+                            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                            Supprimer
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
