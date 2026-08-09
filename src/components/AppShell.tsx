@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar'
 import LayoutClient from '@/lib/pwa/layout-client'
 import { getSettings } from '@/lib/storage'
 import { applyColorTheme } from '@/lib/themes'
+import { APP_VERSION } from '@/lib/version'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -47,6 +48,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pt-24 lg:pt-10">
           {children}
         </div>
+        {/* La barre latérale porte déjà la version, mais elle est repliée sur
+            mobile : cette mention est la seule visible sans ouvrir le menu. */}
+        <footer className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 text-center">
+          <p className="text-xs text-[--text-secondary]">
+            Bible Ouverte v{APP_VERSION}
+          </p>
+        </footer>
       </main>
     </LayoutClient>
   )

@@ -9,6 +9,7 @@ import {
   User, Route, MessageCircle,
 } from "lucide-react";
 import { seedIfNeeded } from "@/lib/storage";
+import { APP_VERSION } from "@/lib/version";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -121,7 +122,7 @@ export default function Sidebar() {
         )}
 
         <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
-          Bible Ouverte v0.1.0
+          Bible Ouverte v{APP_VERSION}
         </p>
       </nav>
     </>
