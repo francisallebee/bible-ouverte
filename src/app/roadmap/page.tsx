@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Route, Plus, Edit3, Trash2, Loader } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Route, Plus, Edit3, Trash2, Loader, ChevronDown, ChevronRight } from 'lucide-react'
 import { getAllRoadmapItems, addRoadmapItem, updateRoadmapItem, deleteRoadmapItem, toggleReaction } from '@/lib/storage/roadmap-store'
 import { useAuth } from '@/contexts/AuthContext'
 import type { RoadmapItem } from '@/lib/storage/types'
@@ -14,6 +14,20 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   done: { label: 'Terminé', color: 'text-green-600 bg-green-50' },
   cancelled: { label: 'Annulé', color: 'text-red-500 bg-red-50' },
 }
+
+/**
+ * Ordre d'affichage des groupes : ce qui avance d'abord, ce qui est clos
+ * ensuite. Il ne suit pas l'ordre de STATUS_CONFIG, qui sert au menu du
+ * formulaire.
+ */
+const STATUS_ORDER = ['in-progress', 'projet', 'planned', 'done', 'cancelled'] as const
+
+/**
+ * Groupes repliés au chargement. Terminé et Annulé n'appellent plus d'action :
+ * les replier par défaut est ce qui « gagne de la place », comme le demandait
+ * la feuille de route.
+ */
+const COLLAPSED_BY_DEFAULT = ['done', 'cancelled']
 
 const REACTIONS = ['👍', '👎', '❤️', '🚀']
 
@@ -28,6 +42,27 @@ export default function RoadmapPage() {
   const [description, setDescription] = useState('')
   const [status, setStatus] = useState<RoadmapItem['status']>('planned')
   const [saving, setSaving] = useState(false)
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set(COLLAPSED_BY_DEFAULT))
+
+  /**
+   * Items regroupés par statut, dans l'ordre d'avancement. Un statut sans
+   * aucun item ne produit pas de groupe : la page ne se remplit pas de
+   * rubriques vides.
+   */
+  const groups = useMemo(() => {
+    return STATUS_ORDER
+      .map(key => ({ key, items: items.filter(i => i.status === key) }))
+      .filter(g => g.items.length > 0)
+  }, [items])
+
+  const toggleGroup = (key: string) => {
+    setCollapsed(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   const load = async () => {
     setItems(await getAllRoadmapItems())
@@ -126,49 +161,72 @@ export default function RoadmapPage() {
           <p>Aucun élément pour le moment</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {items.map(item => {
-            const sc = STATUS_CONFIG[item.status] || STATUS_CONFIG.planned
+        <div className="space-y-5">
+          {groups.map(({ key, items: groupItems }) => {
+            const sc = STATUS_CONFIG[key] || STATUS_CONFIG.planned
+            const isOpen = !collapsed.has(key)
+            const panelId = `statut-${key}`
             return (
-              <div key={item.id} className="bg-[--surface] rounded-xl border border-[--border] p-4 shadow-[--shadow]">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${sc.color}`}>{sc.label}</span>
-                    </div>
-                    <h3 className="font-medium text-sm text-[--text]">{item.title}</h3>
-                    {item.description && <p className="text-xs text-[--text-secondary] mt-1">{item.description}</p>}
-                    <p className="text-xs text-gray-400 mt-2">
-                      {new Date(item.createdAt).toLocaleDateString('fr-FR')}
-                      {item.updatedAt !== item.createdAt && ` · modifié ${new Date(item.updatedAt).toLocaleDateString('fr-FR')}`}
-                    </p>
+              <section key={key}>
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(key)}
+                  aria-expanded={isOpen}
+                  aria-controls={panelId}
+                  className="w-full flex items-center gap-2 mb-2 text-left group"
+                >
+                  {isOpen
+                    ? <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />
+                    : <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />}
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${sc.color}`}>{sc.label}</span>
+                  <span className="text-xs text-[--text-secondary]">
+                    {groupItems.length} élément{groupItems.length > 1 ? 's' : ''}
+                  </span>
+                </button>
+
+                {isOpen && (
+                  <div id={panelId} className="space-y-3">
+                    {groupItems.map(item => (
+                      <div key={item.id} className="bg-[--surface] rounded-xl border border-[--border] p-4 shadow-[--shadow]">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm text-[--text]">{item.title}</h3>
+                            {item.description && <p className="text-xs text-[--text-secondary] mt-1">{item.description}</p>}
+                            <p className="text-xs text-gray-400 mt-2">
+                              {new Date(item.createdAt).toLocaleDateString('fr-FR')}
+                              {item.updatedAt !== item.createdAt && ` · modifié ${new Date(item.updatedAt).toLocaleDateString('fr-FR')}`}
+                            </p>
+                          </div>
+                          {isAdmin && (
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button onClick={() => startEdit(item)} className="p-1.5 rounded hover:bg-gray-100 text-gray-500">
+                                <Edit3 size={14} />
+                              </button>
+                              <button onClick={() => item.id && handleDelete(item.id)} className="p-1.5 rounded hover:bg-red-50 text-red-400">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-[--border]">
+                          {REACTIONS.map(emoji => {
+                            const count = Object.values(item.reactions ?? {}).filter(v => v === emoji).length
+                            return (
+                              <button key={emoji} onClick={() => item.id && handleReaction(item.id, emoji)}
+                                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border transition-all ${
+                                  item.reactions?.[userId] === emoji ? 'bg-[--primary-light] border-[--primary]/20' : 'border-[--border] hover:border-gray-300'
+                                }`}>
+                                <span className="text-base">{emoji}</span>
+                                {count > 0 && <span className="font-medium text-[--primary] text-xs">{count}</span>}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  {isAdmin && (
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button onClick={() => startEdit(item)} className="p-1.5 rounded hover:bg-gray-100 text-gray-500">
-                        <Edit3 size={14} />
-                      </button>
-                      <button onClick={() => item.id && handleDelete(item.id)} className="p-1.5 rounded hover:bg-red-50 text-red-400">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-[--border]">
-                  {REACTIONS.map(emoji => {
-                    const count = Object.values(item.reactions ?? {}).filter(v => v === emoji).length
-                    return (
-                      <button key={emoji} onClick={() => item.id && handleReaction(item.id, emoji)}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border transition-all ${
-                          item.reactions?.[userId] === emoji ? 'bg-[--primary-light] border-[--primary]/20' : 'border-[--border] hover:border-gray-300'
-                        }`}>
-                        <span className="text-base">{emoji}</span>
-                        {count > 0 && <span className="font-medium text-[--primary] text-xs">{count}</span>}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
+                )}
+              </section>
             )
           })}
         </div>
