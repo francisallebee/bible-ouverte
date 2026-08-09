@@ -110,8 +110,12 @@ La V1 doit permettre de :
 - Louis Segond 1910.
 
 ### [V2] Versions effectivement embarquées
-Six traductions françaises libres de droits, dans `src/data/bibles/` :
-Louis Segond 1910, Darby, Martin 1744, Ostervald, Crampon 1923, Sacy.
+Sept traductions françaises libres de droits, dans `public/bibles/` :
+Louis Segond 1910, Darby, Martin 1744, Ostervald, Crampon 1923, Sacy,
+Perret-Gentil et Rilliet 1861.
+
+Seule Louis Segond 1910 est téléchargée à l'installation ; les autres
+s'importent quand l'utilisateur les active dans les réglages.
 
 ### Règles
 - Ne pas dépendre du réseau pour l'affichage d'un passage déjà disponible localement.

@@ -36,7 +36,7 @@ une migration SQL**, pas par un composant.
 | `src/lib/supabase/store.ts` | Accès Supabase depuis le navigateur |
 | `src/lib/storage/` | Cache IndexedDB et logique métier par domaine |
 | `src/features/bible/` | Livres, classification, import des versions |
-| `src/data/bibles/` | 6 versions françaises libres de droits (~40 Mo) |
+| `public/bibles/` | 7 versions françaises libres de droits (47 Mo) |
 | `supabase/migrations/` | Schéma et RLS, appliqués dans l'ordre des noms |
 | `scripts/` | Téléchargement et conversion des textes bibliques |
 
@@ -53,13 +53,23 @@ une migration SQL**, pas par un composant.
    `select()` dans `store.ts`).
 4. Les traductions vivent dans `public/bibles/` et se chargent par `fetch()`,
    une version à la fois. Ne jamais les faire passer par `import()` : webpack
-   en ferait 40 Mo de chunks.
+   en ferait 47 Mo de chunks.
+   Une version n'est téléchargée que si elle est active (`isEnabled`). La case
+   des réglages commande réellement le cache : l'activer importe le texte, la
+   désactiver l'efface. Seule la version par défaut est active à
+   l'installation.
 5. `npm run typecheck`, `npm run lint` et `npm test` doivent passer avant
    chaque commit.
 6. Pas de dépendance nouvelle sans raison sérieuse.
 7. Toute ressource servie avant connexion doit être exclue du `matcher` du
    middleware, sans quoi elle répond une redirection vers `/auth/login`.
-8. Deux chemins seulement sont servis sans session : `/` et `/auth`. Ils sont
+8. `seedIfNeeded` partage une exécution unique entre tous ses appelants
+   simultanés, et un échec de l'import des traductions n'y remonte jamais. Ces
+   deux garde-fous ne sont pas décoratifs : la barre latérale et le `useEffect`
+   de chaque écran appellent la fonction en parallèle à chaque montage, et
+   l'écran restait bloqué sur « Chargement… » quand l'un des deux échouait.
+   `src/lib/storage/seed.test.ts` les couvre.
+9. Deux chemins seulement sont servis sans session : `/` et `/auth`. Ils sont
    listés dans `isPublicPath` (`src/lib/supabase/middleware.ts`), pas dans le
    `matcher` — le middleware doit continuer à s'exécuter sur `/` pour renvoyer
    un utilisateur déjà connecté vers `/new-reading`. C'est cette redirection,
@@ -88,20 +98,26 @@ npm test           # vitest
   localhost. **Ne jamais lancer `supabase config push`** avant de l'avoir
   reconstruite — cela casserait l'authentification. Voir `supabase/README.md`.
 - La couverture de tests se limite aux modules les plus critiques (génération de
-  plans, classification des livres, robustesse des mots de passe). Les
+  plans, classification des livres, robustesse des mots de passe, amorçage). Les
   agrégations de statistiques ne sont pas couvertes.
-- `npm audit` signale deux vulnérabilités dans une dépendance interne de Next
-  14 ; le correctif passe par une montée en version majeure de Next.
-- **Aucun déploiement de preview ne peut aboutir sur Vercel** : les trois
-  variables Supabase n'existent que dans l'environnement Production. Le build
-  d'une branche échoue sur `/api/admin/users`, que Next exécute pendant la
-  génération statique pour déterminer s'il est dynamique — sans clés,
-  `createAdminClient()` lève une exception. Même une fois ce point passé, le
-  middleware planterait à chaque requête. Rendre les routes `/api/admin`
-  explicitement dynamiques réglerait la moitié du problème ; l'autre moitié
-  demande d'ajouter au moins les deux variables `NEXT_PUBLIC_` à
-  l'environnement Preview. La clé `service_role` n'a rien à y faire : chaque
-  branche poussée y est déployée sur une URL publique.
+- `npm audit` signale **7 vulnérabilités** (1 modérée, 6 hautes) : `dompurify`
+  et `nanoid` se corrigent par un simple `npm audit fix` ; `glob`, `postcss` et
+  `next` lui-même demandent un `--force`, donc une montée en version majeure.
+- **Le temps de chargement tient désormais aux appels Supabase**, plus à
+  l'import des traductions. Une session de navigation ordinaire déclenche une
+  soixantaine d'appels pour une dizaine de secondes cumulées, dont un
+  `auth/user` d'environ 200 ms à chaque `tryAuthenticated` — c'est-à-dire à
+  chaque opération. Mettre cette identité en cache est le prochain levier.
+- **Les déploiements de preview Vercel restent bloqués, à moitié.** Les cinq
+  routes API portent désormais `export const dynamic = 'force-dynamic'` : Next
+  ne les exécute plus pendant la génération statique, et `createAdminClient()`
+  ne lève donc plus d'exception faute de clés. Reste l'autre moitié, qui ne se
+  règle pas dans le dépôt : les variables Supabase n'existent que dans
+  l'environnement Production, et le middleware planterait à chaque requête sans
+  elles. Il faut ajouter `NEXT_PUBLIC_SUPABASE_URL` et
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY` à l'environnement Preview depuis le tableau
+  de bord. La clé `service_role` n'a rien à y faire : chaque branche poussée y
+  est déployée sur une URL publique.
 - **Le texte de Sacy est amputé** : Genèse 49 chapitres sur 50, Exode 39/40,
   Psaumes 149/150, Cantique 6/8, et d'autres. Le défaut vient du fichier source
   (`heb12/gratis.json`), pas de la conversion. Le corriger suppose de trouver
@@ -109,11 +125,17 @@ npm test           # vitest
   ont été vérifiées livre par livre et sont complètes — seul Malachie compte
   3 chapitres au lieu de 4 dans Crampon et Darby, ce qui est une différence de
   versification légitime et non un manque.
-- **Toutes les versions sont importées au premier chargement** :
-  `importAllBibleData` ne connaît pas le chargement à la demande. À sept
-  versions, cela représente environ 220 000 versets en IndexedDB par appareil.
-  Tenable aujourd'hui, bloquant au-delà d'une dizaine de versions.
-- Les écrans Nouvelle lecture, Historique, Statistiques, Progression, Profil et
-  Réglages ont été modifiés en profondeur sans **vérification visuelle** : ils
-  sont derrière l'authentification. Typage, lint, tests et build passent, ce
-  qui n'est pas la même chose que de les avoir vus fonctionner.
+- Un appareil qui active les sept versions garde environ 216 000 versets et
+  42 Mo en cache. C'est désormais un choix de l'utilisateur et non plus le
+  comportement par défaut, mais rien ne l'avertit du volume au-delà de la
+  mention « environ 6 Mo chacune » dans les réglages.
+- **L'espace n'est pas rendu tout de suite** quand une version est désactivée.
+  Les lignes sont bien supprimées — vérifiable au compteur — mais le navigateur
+  ne récupère les octets qu'à sa prochaine compaction, qu'on ne peut ni
+  déclencher ni observer. Ne pas promettre à l'utilisateur un gain immédiat.
+- Les écrans **Plans de lecture**, **Détail d'un plan**, **Détail d'une
+  lecture** et **Administration** n'ont toujours jamais été vus fonctionner :
+  typage, lint, tests et build passent, ce qui n'est pas la même chose. Les
+  autres écrans (Nouvelle lecture, Recherche, Historique, Statistiques,
+  Progression, Réglages, Profil, Support, Feuille de route, Soutenir) ont été
+  vérifiés au navigateur le 9 août 2026.
