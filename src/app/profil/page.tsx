@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { User, Save, Camera } from 'lucide-react'
+import { User, Save, Camera, KeyRound } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { resizeImage } from '@/lib/image-utils'
+import { createClient } from '@/lib/supabase/client'
+import { describePasswordProblems, PASSWORD_MIN_LENGTH } from '@/lib/auth/password'
 
 type ProfileData = {
   id: string
@@ -21,6 +23,13 @@ export default function ProfilPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwError, setPwError] = useState('')
+  const [pwSaved, setPwSaved] = useState(false)
 
   const loadProfile = async () => {
     try {
@@ -70,6 +79,65 @@ export default function ProfilPage() {
     }
     setSaving(false)
     setTimeout(() => setSaved(false), 3000)
+  }
+
+  /**
+   * Le mot de passe actuel est exigé, alors que Supabase ne le réclame pas :
+   * `updateUser` accepte un nouveau mot de passe sur la seule foi de la session.
+   * Sans cette vérification, quiconque accède à un appareil déverrouillé
+   * pourrait changer le mot de passe et évincer le propriétaire du compte.
+   *
+   * La vérification passe par une reconnexion : c'est le seul moyen, avec la
+   * clé anon, de confirmer un mot de passe. Elle porte sur le même compte, la
+   * session est simplement renouvelée.
+   */
+  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setPwError('')
+    setPwSaved(false)
+
+    if (newPassword !== confirmPassword) {
+      setPwError('Les deux saisies du nouveau mot de passe ne correspondent pas.')
+      return
+    }
+    if (newPassword === currentPassword) {
+      setPwError('Le nouveau mot de passe doit être différent de l\'actuel.')
+      return
+    }
+    // Mêmes règles que le serveur : les vérifier ici affiche un message en
+    // français plutôt que l'erreur brute de Supabase.
+    const problem = describePasswordProblems(newPassword)
+    if (problem) {
+      setPwError(problem)
+      return
+    }
+
+    setPwSaving(true)
+    const supabase = createClient()
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user?.email ?? '',
+      password: currentPassword,
+    })
+    if (signInError) {
+      setPwError('Mot de passe actuel incorrect.')
+      setPwSaving(false)
+      return
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
+    if (updateError) {
+      setPwError(updateError.message)
+      setPwSaving(false)
+      return
+    }
+
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setPwSaved(true)
+    setPwSaving(false)
+    setTimeout(() => setPwSaved(false), 5000)
   }
 
   const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,6 +273,65 @@ export default function ProfilPage() {
         </button>
         {saved && <p className="text-sm text-green-600 text-center">✓ Profil mis à jour</p>}
       </div>
+
+      <form onSubmit={handleChangePassword} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 mt-6">
+        <h2 className="text-base font-semibold flex items-center gap-2 text-gray-900">
+          <KeyRound className="w-4 h-4 text-[--primary]" />
+          Mot de passe
+        </h2>
+
+        <div>
+          <label htmlFor="current-password" className="block text-sm font-medium text-gray-700 mb-1">
+            Mot de passe actuel
+          </label>
+          <input id="current-password" type="password" autoComplete="current-password"
+            value={currentPassword} onChange={e => setCurrentPassword(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+        </div>
+
+        <div>
+          <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">
+            Nouveau mot de passe
+          </label>
+          <input id="new-password" type="password" autoComplete="new-password"
+            value={newPassword} onChange={e => setNewPassword(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+          <p className="text-xs text-gray-400 mt-1">
+            {PASSWORD_MIN_LENGTH} caractères minimum, avec une minuscule, une majuscule,
+            un chiffre et un symbole.
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
+            Confirmer le nouveau mot de passe
+          </label>
+          <input id="confirm-password" type="password" autoComplete="new-password"
+            value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+        </div>
+
+        {pwError && (
+          <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            {pwError}
+          </p>
+        )}
+
+        <button type="submit"
+          disabled={pwSaving || !currentPassword || !newPassword || !confirmPassword}
+          className="w-full bg-[--primary] text-white py-3 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 flex items-center justify-center gap-2">
+          {pwSaving
+            ? <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            : <KeyRound className="w-4 h-4" />}
+          {pwSaving ? 'Modification...' : 'Changer le mot de passe'}
+        </button>
+
+        {pwSaved && (
+          <p className="text-sm text-green-600 text-center">
+            ✓ Mot de passe modifié. Il servira à ta prochaine connexion.
+          </p>
+        )}
+      </form>
     </div>
   )
 }
