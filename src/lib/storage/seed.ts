@@ -50,7 +50,25 @@ const DEFAULT_SETTINGS: AppSettings = {
   firstLaunchCompleted: false,
 };
 
-export async function seedIfNeeded(): Promise<void> {
+/**
+ * Amorçage en cours, partagé par tous les appelants simultanés.
+ *
+ * `seedIfNeeded` est appelé à la fois par la barre latérale et par le
+ * `useEffect` de chaque écran : les deux s'exécutent donc systématiquement en
+ * parallèle au montage. Sans ce verrou, ils lisaient le même état, y
+ * constataient tous les deux la même absence et écrivaient tous les deux —
+ * `ConstraintError`, puis `AbortError` sur la transaction. La promesse rejetée
+ * remontait dans le `await seedIfNeeded()` de la page, dont le `setLoaded(true)`
+ * n'était jamais atteint : l'écran restait sur « Chargement… » indéfiniment.
+ */
+let seeding: Promise<void> | null = null;
+
+export function seedIfNeeded(): Promise<void> {
+  seeding ??= runSeed().finally(() => { seeding = null; });
+  return seeding;
+}
+
+async function runSeed(): Promise<void> {
   const db = await getDB();
   const existingSettings = await db.get('settings', 'app');
 
@@ -58,7 +76,7 @@ export async function seedIfNeeded(): Promise<void> {
     await ensureVersionsExist(db);
     await ensureContextsExist(db);
     await repairNahumAbbreviation();
-    await importAllBibleData();
+    await importTexts();
     return;
   }
 
@@ -87,7 +105,25 @@ export async function seedIfNeeded(): Promise<void> {
   }
 
   await tx.done;
-  await importAllBibleData();
+  await importTexts();
+}
+
+/**
+ * Télécharge les traductions manquantes, sans jamais faire échouer l'amorçage.
+ *
+ * C'est 40 Mo à récupérer et environ 220 000 versets à écrire : l'opération la
+ * plus fragile du démarrage, en particulier sur une connexion mobile. Aucun
+ * écran n'a besoin du texte biblique pour s'afficher — l'Historique, les
+ * Statistiques ou la Progression ne lisent que les lectures enregistrées. Un
+ * échec ici ne doit donc pas les priver de contenu ; la tentative sera reprise
+ * au chargement suivant.
+ */
+async function importTexts(): Promise<void> {
+  try {
+    await importAllBibleData();
+  } catch (err) {
+    console.warn('Import des traductions incomplet, reprise au prochain chargement :', err);
+  }
 }
 
 /**
@@ -107,8 +143,11 @@ async function ensureContextsExist(db: Awaited<ReturnType<typeof getDB>>): Promi
   const existing = await db.getAll('contexts');
   const byId = new Map(existing.map(c => [c.id, c]));
 
+  // `put` et non `add` : la lecture ci-dessus et cette écriture sont deux
+  // transactions distinctes. Un autre onglet peut avoir inséré le contexte
+  // entre les deux, et un `add` échouerait alors sur une clé déjà prise.
   for (const ctx of DEFAULT_CONTEXTS) {
-    if (!byId.has(ctx.id)) await db.add('contexts', ctx);
+    if (!byId.has(ctx.id)) await db.put('contexts', ctx);
   }
 
   const obsolete = existing.filter(c => c.isSystemDefault && !DEFAULT_CONTEXT_IDS.has(c.id));
@@ -129,9 +168,10 @@ async function ensureContextsExist(db: Awaited<ReturnType<typeof getDB>>): Promi
 }
 
 async function ensureVersionsExist(db: Awaited<ReturnType<typeof getDB>>): Promise<void> {
+  // `put` et non `add`, pour la même raison que dans `ensureContextsExist`.
   for (const v of TEXT_VERSIONS) {
     const existing = await db.get('bible_versions', v.id);
-    if (!existing) await db.add('bible_versions', v);
+    if (!existing) await db.put('bible_versions', v);
   }
   const textIds = new Set(TEXT_VERSIONS.map(v => v.id));
   const allVersions = await db.getAll('bible_versions');
