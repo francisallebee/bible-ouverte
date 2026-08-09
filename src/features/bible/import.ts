@@ -1,4 +1,5 @@
 import { bulkAddPassages, countPassages } from '@/lib/storage/passage-store';
+import { getEnabledVersions } from '@/lib/storage/version-store';
 import type { BiblePassage } from '@/lib/storage/types';
 
 interface SourceVerse {
@@ -53,9 +54,30 @@ async function loadData(versionId: string): Promise<SourceBible> {
   return (await res.json()) as SourceBible;
 }
 
+/**
+ * Versions dont la présence en cache a déjà été constatée dans cette session.
+ *
+ * `countPassages` parcourt un index de plus de 200 000 entrées : compter les
+ * sept versions coûtait près d'une seconde, et `seedIfNeeded` le refaisait à
+ * chaque chargement de page pour aboutir invariablement à « rien à importer ».
+ * Le module survit aux navigations côté client, donc ce constat n'est fait
+ * qu'une fois.
+ */
+const present = new Set<string>();
+
+/** À appeler quand les versets d'une version sont effacés du cache. */
+export function forgetImportedVersion(versionId: string): void {
+  present.delete(versionId);
+}
+
 export async function importBibleVersion(versionId: string): Promise<number> {
+  if (present.has(versionId)) return 0;
+
   const existingCount = await countPassages(versionId);
-  if (existingCount > 0) return existingCount;
+  if (existingCount > 0) {
+    present.add(versionId);
+    return existingCount;
+  }
 
   const data = await loadData(versionId);
   const passages: BiblePassage[] = [];
@@ -75,12 +97,24 @@ export async function importBibleVersion(versionId: string): Promise<number> {
   }
 
   await bulkAddPassages(passages);
+  present.add(versionId);
   return passages.length;
 }
 
-export async function importAllBibleData(): Promise<Record<string, number>> {
+/**
+ * Importe les seules versions actives.
+ *
+ * Auparavant les sept étaient importées sans condition : 47 Mo à télécharger
+ * et 42 Mo en cache par appareil, quel que soit l'usage réel. La case à cocher
+ * des réglages, elle, ne servait à rien — aucun code ne lisait `isEnabled`.
+ * C'est désormais elle qui commande ce qui est téléchargé.
+ */
+export async function importEnabledBibleData(): Promise<Record<string, number>> {
+  const enabled = await getEnabledVersions();
+  const known = new Set(VERSIONS.map(v => v.id));
   const results: Record<string, number> = {};
-  for (const version of VERSIONS) {
+  for (const version of enabled) {
+    if (!known.has(version.id)) continue;
     results[version.id] = await importBibleVersion(version.id);
   }
   return results;

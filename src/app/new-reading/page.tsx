@@ -7,7 +7,7 @@ import {
   X, ExternalLink, Plus, Music, ChevronDown, Trash2, Layers,
 } from "lucide-react";
 import {
-  seedIfNeeded, getAllVersions, getPassagesByRange, addReading, getSettings,
+  seedIfNeeded, getEnabledVersions, getPassagesByRange, addReading, getSettings,
   getAllContexts,
 } from "@/lib/storage";
 import type { BibleVersion, ReadingLink, BiblePassage, ReadingContext } from "@/lib/storage";
@@ -105,7 +105,7 @@ export default function NewReadingPage() {
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const [vers, ctxs] = await Promise.all([getAllVersions(), getAllContexts()]);
+      const [vers, ctxs] = await Promise.all([getEnabledVersions(), getAllContexts()]);
       setVersions(vers);
       setContexts(ctxs);
       if (vers.length > 0) {

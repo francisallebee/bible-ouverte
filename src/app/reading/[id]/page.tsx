@@ -74,6 +74,18 @@ export default function ReadingDetailPage() {
     return m;
   }, [versions]);
 
+  /**
+   * Versions proposées à l'édition : les versions actives, plus celle de la
+   * lecture si elle a été désactivée depuis. Sans quoi le menu s'ouvrirait sur
+   * un choix vide et changerait la version à l'insu de l'utilisateur.
+   */
+  const selectableVersions = useMemo(() => {
+    const enabled = versions.filter((v) => v.isEnabled);
+    if (!editVersionId || enabled.some((v) => v.id === editVersionId)) return enabled;
+    const current = versions.find((v) => v.id === editVersionId);
+    return current ? [current, ...enabled] : enabled;
+  }, [versions, editVersionId]);
+
   function enterEditMode() {
     if (!reading) return;
     setEditDate(reading.date.slice(0, 10));
@@ -239,7 +251,7 @@ export default function ReadingDetailPage() {
               onChange={(e) => setEditVersionId(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             >
-              {versions.map((v) => (
+              {selectableVersions.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.name}
                 </option>

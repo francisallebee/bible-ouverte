@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Search, BookOpen, BookPlus, BookText, FileText } from "lucide-react";
-import { seedIfNeeded, getAllVersions, addReading, getPassages, getPassagesByRange, searchPassages, getSettings } from "@/lib/storage";
+import { seedIfNeeded, getEnabledVersions, addReading, getPassages, getPassagesByRange, searchPassages, getSettings } from "@/lib/storage";
 import type { BibleVersion, BiblePassage } from "@/lib/storage";
 
 import { BOOKS, getBookName } from "@/features/bible";
@@ -59,7 +59,7 @@ export default function SearchPage() {
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const vers = await getAllVersions();
+      const vers = await getEnabledVersions();
       setVersions(vers);
       if (vers.length > 0) {
         const s = await getSettings();

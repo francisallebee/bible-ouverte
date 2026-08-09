@@ -55,6 +55,34 @@ export async function bulkAddPassages(passages: BiblePassage[]): Promise<void> {
   await tx.done;
 }
 
+/**
+ * Efface les versets d'une version, pour rendre l'espace qu'ils occupent.
+ *
+ * Une version pèse environ 6 Mo en cache. Sur un téléphone à court d'espace,
+ * c'est ce qui donne un sens à la case à cocher des réglages. Le texte est
+ * réimportable à tout moment depuis `public/bibles/`, aucune donnée
+ * personnelle n'est en jeu : les lectures enregistrées gardent leur propre
+ * copie du passage dans `passageText`.
+ */
+export async function deletePassagesForVersion(versionId: string): Promise<number> {
+  const db = await getDB();
+  const tx = db.transaction('bible_passages', 'readwrite');
+  const index = tx.objectStore('bible_passages').index('by-version-book-chapter-verse');
+  const range = IDBKeyRange.bound(
+    [versionId, '', 0, 0],
+    [versionId, '￿', Infinity, Infinity],
+  );
+  let deleted = 0;
+  let cursor = await index.openCursor(range);
+  while (cursor) {
+    await cursor.delete();
+    deleted++;
+    cursor = await cursor.continue();
+  }
+  await tx.done;
+  return deleted;
+}
+
 export async function countPassages(versionId: string): Promise<number> {
   const db = await getDB();
   const tx = db.transaction('bible_passages');

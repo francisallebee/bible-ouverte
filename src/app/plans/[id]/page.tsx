@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -70,6 +70,18 @@ export default function PlanDetailPage() {
       setLoaded(true);
     })();
   }, [planId]);
+
+  /**
+   * Versions proposées à l'édition : les versions actives, plus celle du plan
+   * si elle a été désactivée depuis. Sans quoi le menu s'ouvrirait sur un
+   * choix vide et changerait la version du plan sans qu'on l'ait demandé.
+   */
+  const selectableVersions = useMemo(() => {
+    const enabled = versions.filter((v) => v.isEnabled);
+    if (!formVersion || enabled.some((v) => v.id === formVersion)) return enabled;
+    const current = versions.find((v) => v.id === formVersion);
+    return current ? [current, ...enabled] : enabled;
+  }, [versions, formVersion]);
 
   const readDays = days.filter((d) => d.isRead).length;
   const progress = days.length > 0 ? Math.round((readDays / days.length) * 100) : 0;
@@ -233,7 +245,7 @@ export default function PlanDetailPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Version</label>
                 <select value={formVersion} onChange={(e) => setFormVersion(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  {versions.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                  {selectableVersions.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                 </select>
               </div>
               <div>

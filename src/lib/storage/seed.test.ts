@@ -6,11 +6,11 @@ import { seedIfNeeded } from './seed';
  * qui restait sur « Chargement… » indéfiniment, de façon intermittente.
  */
 
-const importAllBibleData = vi.fn(async () => ({}));
+const importEnabledBibleData = vi.fn(async () => ({}));
 const repairNahumAbbreviation = vi.fn(async () => {});
 
 vi.mock('@/features/bible/import', () => ({
-  importAllBibleData: () => importAllBibleData(),
+  importEnabledBibleData: () => importEnabledBibleData(),
 }));
 vi.mock('./passage-store', () => ({
   repairNahumAbbreviation: () => repairNahumAbbreviation(),
@@ -49,8 +49,8 @@ beforeEach(() => {
   stores.contexts = new Map();
   stores.bible_versions = new Map();
   stores.readings = new Map();
-  importAllBibleData.mockClear();
-  importAllBibleData.mockImplementation(async () => ({}));
+  importEnabledBibleData.mockClear();
+  importEnabledBibleData.mockImplementation(async () => ({}));
   repairNahumAbbreviation.mockClear();
 });
 
@@ -65,14 +65,14 @@ describe('seedIfNeeded', () => {
     // absence et écrivait : ConstraintError sur la seconde écriture.
     await Promise.all([seedIfNeeded(), seedIfNeeded(), seedIfNeeded()]);
 
-    expect(importAllBibleData).toHaveBeenCalledTimes(1);
+    expect(importEnabledBibleData).toHaveBeenCalledTimes(1);
   });
 
   it('rend la main aux appelants suivants une fois terminé', async () => {
     await seedIfNeeded();
     await seedIfNeeded();
 
-    expect(importAllBibleData).toHaveBeenCalledTimes(2);
+    expect(importEnabledBibleData).toHaveBeenCalledTimes(2);
   });
 
   it("n'échoue pas quand l'import des traductions échoue", async () => {
@@ -80,18 +80,18 @@ describe('seedIfNeeded', () => {
     // laissait la page sur « Chargement… » : setLoaded(true) n'était jamais
     // atteint.
     vi.spyOn(console, 'warn').mockImplementation(() => {});
-    importAllBibleData.mockRejectedValue(new Error('réseau indisponible'));
+    importEnabledBibleData.mockRejectedValue(new Error('réseau indisponible'));
 
     await expect(seedIfNeeded()).resolves.toBeUndefined();
   });
 
   it('reste utilisable après un échec', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
-    importAllBibleData.mockRejectedValueOnce(new Error('réseau indisponible'));
+    importEnabledBibleData.mockRejectedValueOnce(new Error('réseau indisponible'));
 
     await seedIfNeeded();
     await expect(seedIfNeeded()).resolves.toBeUndefined();
-    expect(importAllBibleData).toHaveBeenCalledTimes(2);
+    expect(importEnabledBibleData).toHaveBeenCalledTimes(2);
   });
 
   it('sème les contextes et les versions par défaut', async () => {
@@ -99,5 +99,18 @@ describe('seedIfNeeded', () => {
 
     expect(stores.contexts.get('meditation')).toMatchObject({ emoji: '🕊️' });
     expect(stores.bible_versions.size).toBe(7);
+  });
+
+  it("n'active que la version par défaut à l'installation", async () => {
+    // Les sept étaient importées d'emblée : 47 Mo à télécharger avant la
+    // première lecture. Les autres s'activent depuis les réglages.
+    await seedIfNeeded();
+
+    const versions = Array.from(stores.bible_versions.values()) as unknown as {
+      id: string; isEnabled: boolean;
+    }[];
+    const actives = versions.filter(v => v.isEnabled).map(v => v.id);
+
+    expect(actives).toEqual(['ls1910']);
   });
 });

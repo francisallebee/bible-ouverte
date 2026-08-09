@@ -1,4 +1,4 @@
-export { importBibleVersion, importAllBibleData } from './import';
+export { importBibleVersion, importEnabledBibleData, forgetImportedVersion } from './import';
 export { BOOKS, getBook, getBookName } from './books';
 export type { BibleBook } from './books';
 export {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, Plus, Calendar, Trash2 } from "lucide-react";
-import { seedIfNeeded, getAllVersions, getAllPlans, addPlan, deletePlan, generatePlanDays, addPlanDays, getCurrentUserId, getSettings } from "@/lib/storage";
+import { seedIfNeeded, getEnabledVersions, getAllPlans, addPlan, deletePlan, generatePlanDays, addPlanDays, getCurrentUserId, getSettings } from "@/lib/storage";
 import type { BibleVersion, ReadingPlan, PlanDuration } from "@/lib/storage";
 
 const DURATIONS: { value: PlanDuration; label: string; days?: number }[] = [
@@ -31,7 +31,7 @@ export default function PlansPage() {
 
   async function load() {
     await seedIfNeeded();
-    const [p, v] = await Promise.all([getAllPlans(), getAllVersions()]);
+    const [p, v] = await Promise.all([getAllPlans(), getEnabledVersions()]);
     setPlans(p);
     setVersions(v);
     if (v.length > 0 && !formVersion) {

@@ -6,6 +6,20 @@ export async function getAllVersions(): Promise<BibleVersion[]> {
   return db.getAll('bible_versions');
 }
 
+/**
+ * Versions proposées à la sélection.
+ *
+ * À distinguer de `getAllVersions`, que l'Historique et les Statistiques
+ * doivent continuer d'utiliser : une lecture enregistrée dans une version
+ * depuis désactivée doit garder son nom, faute de quoi elle s'afficherait
+ * avec un identifiant brut.
+ */
+export async function getEnabledVersions(): Promise<BibleVersion[]> {
+  const db = await getDB();
+  const all = await db.getAll('bible_versions');
+  return all.filter(v => v.isEnabled);
+}
+
 export async function getVersionById(id: string): Promise<BibleVersion | undefined> {
   const db = await getDB();
   return db.get('bible_versions', id);

@@ -1,6 +1,6 @@
 import type { AppSettings, BibleVersion, ReadingContext } from './types';
 import { getDB } from './db';
-import { importAllBibleData } from '@/features/bible/import';
+import { importEnabledBibleData } from '@/features/bible/import';
 import { deleteContext as deleteContextRemote } from '@/lib/supabase/store';
 import { repairNahumAbbreviation } from './passage-store';
 
@@ -30,14 +30,25 @@ const DEFAULT_CONTEXTS: ReadingContext[] = [
 
 const DEFAULT_CONTEXT_IDS = new Set(DEFAULT_CONTEXTS.map(c => c.id));
 
+/**
+ * Seule la version par défaut est active à l'installation.
+ *
+ * Les sept étaient importées d'emblée : 47 Mo à télécharger et 42 Mo en cache
+ * avant même la première lecture. Les six autres s'importent maintenant quand
+ * l'utilisateur les coche dans les réglages.
+ *
+ * Les installations existantes ne sont pas touchées : `ensureVersionsExist`
+ * n'ajoute que les versions absentes et ne réécrit jamais une ligne présente.
+ * Un appareil déjà utilisé conserve donc ses sept versions actives.
+ */
 const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'ls1910', name: 'Louis Segond 1910', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
-  { id: 'darby', name: 'Bible Darby 1885', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
-  { id: 'martin1744', name: 'Bible David Martin 1744', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
-  { id: 'ostervald', name: 'Bible Ostervald 1996', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
-  { id: 'cramp23', name: 'Augustin Crampon 1923', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
-  { id: 'sacc', name: 'Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
-  { id: 'perret', name: 'Perret-Gentil et Rilliet 1861', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
+  { id: 'darby', name: 'Bible Darby 1885', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'martin1744', name: 'Bible David Martin 1744', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'ostervald', name: 'Bible Ostervald 1996', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'cramp23', name: 'Augustin Crampon 1923', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'sacc', name: 'Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'perret', name: 'Perret-Gentil et Rilliet 1861', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
 ];
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -120,7 +131,7 @@ async function runSeed(): Promise<void> {
  */
 async function importTexts(): Promise<void> {
   try {
-    await importAllBibleData();
+    await importEnabledBibleData();
   } catch (err) {
     console.warn('Import des traductions incomplet, reprise au prochain chargement :', err);
   }

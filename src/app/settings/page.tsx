@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette } from "lucide-react";
-import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion } from "@/lib/storage";
+import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion } from "@/lib/storage";
+import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -24,6 +25,8 @@ export default function SettingsPage() {
   const router = useRouter();
 
   const [versions, setVersions] = useState<BibleVersion[]>([]);
+  const [busyVersion, setBusyVersion] = useState<string | null>(null);
+  const [versionError, setVersionError] = useState("");
 
   async function loadVersions() {
     setVersions(await getAllVersions());
@@ -35,12 +38,45 @@ export default function SettingsPage() {
     setSettings(s ?? null);
   }
 
+  /**
+   * La case commande réellement le contenu du cache.
+   *
+   * Elle ne servait à rien : `isEnabled` n'était lu par personne, et les sept
+   * versions restaient téléchargées et proposées quoi qu'on coche. Activer
+   * importe désormais le texte — environ 6 Mo et 31 000 versets, d'où
+   * l'indicateur d'attente — et désactiver l'efface pour rendre la place.
+   */
   async function handleToggleEnabled(version: BibleVersion) {
     if (version.id === settings?.defaultVersionId) return;
-    await updateVersion(version.id, { isEnabled: !version.isEnabled });
-    setVersions((prev) =>
-      prev.map((v) => v.id === version.id ? { ...v, isEnabled: !v.isEnabled } : v),
-    );
+    if (busyVersion) return;
+
+    const enabling = !version.isEnabled;
+    setBusyVersion(version.id);
+    setVersionError("");
+    try {
+      if (enabling) {
+        await updateVersion(version.id, { isEnabled: true });
+        await importBibleVersion(version.id);
+      } else {
+        await updateVersion(version.id, { isEnabled: false });
+        await deletePassagesForVersion(version.id);
+        forgetImportedVersion(version.id);
+      }
+      setVersions((prev) =>
+        prev.map((v) => v.id === version.id ? { ...v, isEnabled: enabling } : v),
+      );
+      setVerseCount(await countPassages(settings?.defaultVersionId || "ls1910"));
+    } catch {
+      // L'import a échoué : remettre la case dans son état réel plutôt que de
+      // laisser croire à une version disponible hors ligne.
+      await updateVersion(version.id, { isEnabled: !enabling });
+      setVersionError(
+        enabling
+          ? `Téléchargement de « ${version.name} » impossible. Vérifie ta connexion.`
+          : `Suppression de « ${version.name} » impossible.`,
+      );
+    }
+    setBusyVersion(null);
   }
 
   useEffect(() => {
@@ -249,6 +285,15 @@ export default function SettingsPage() {
         </SectionCard>
 
         <SectionCard icon={BookOpen} title="Versions bibliques">
+          <p className="text-sm text-[--text-secondary] mb-3">
+            Une version activée est téléchargée sur cet appareil pour la lecture
+            hors ligne — environ 6 Mo chacune. La désactiver libère cette place.
+          </p>
+          {versionError && (
+            <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">
+              {versionError}
+            </p>
+          )}
           <div className="space-y-2">
             {versions.filter(v => !v.id.startsWith('audio-') && !v.id.startsWith('ai-')).map(v => {
               const isDefault = v.id === settings?.defaultVersionId;
@@ -263,11 +308,19 @@ export default function SettingsPage() {
                     <span className="text-sm truncate">{v.name}</span>
                   </label>
                   {isDefault && <span className="text-xs bg-[--primary] text-white px-2 py-0.5 rounded-full font-medium">Par défaut</span>}
-                  <label className="flex items-center gap-1.5 text-xs text-[--text-secondary] cursor-pointer">
-                    <input type="checkbox" checked={v.isEnabled} disabled={isDefault}
-                      onChange={() => handleToggleEnabled(v)}
-                      className="accent-[--primary] w-3.5 h-3.5" />
-                    Activée
+                  <label className={`flex items-center gap-1.5 text-xs text-[--text-secondary] shrink-0 ${
+                    isDefault || busyVersion ? 'cursor-default' : 'cursor-pointer'
+                  }`}>
+                    {busyVersion === v.id ? (
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-[--primary] border-t-transparent animate-spin" />
+                    ) : (
+                      <input type="checkbox" checked={v.isEnabled} disabled={isDefault || busyVersion !== null}
+                        onChange={() => handleToggleEnabled(v)}
+                        className="accent-[--primary] w-3.5 h-3.5" />
+                    )}
+                    {busyVersion === v.id
+                      ? (v.isEnabled ? 'Suppression…' : 'Téléchargement…')
+                      : 'Activée'}
                   </label>
                 </div>
               );
