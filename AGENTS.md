@@ -104,10 +104,13 @@ npm test           # vitest
   et `nanoid` se corrigent par un simple `npm audit fix` ; `glob`, `postcss` et
   `next` lui-même demandent un `--force`, donc une montée en version majeure.
 - **Le temps de chargement tient désormais aux appels Supabase**, plus à
-  l'import des traductions. Une session de navigation ordinaire déclenche une
-  soixantaine d'appels pour une dizaine de secondes cumulées, dont un
-  `auth/user` d'environ 200 ms à chaque `tryAuthenticated` — c'est-à-dire à
-  chaque opération. Mettre cette identité en cache est le prochain levier.
+  l'import des traductions. L'identité du compte est mémorisée pour la session
+  (`getUserId` dans `lib/supabase/store.ts`, sur lequel s'appuie
+  `getCurrentUserId`) : ne pas réintroduire d'appel direct à `auth.getUser()`
+  ailleurs, c'était la cause de quatre allers-retours par ouverture d'écran.
+  Reste à traiter : chaque écran resynchronise contextes, lectures et réglages
+  à son ouverture sans mémoire de ce qui vient d'être récupéré — une vingtaine
+  d'appels pour environ cinq secondes cumulées sur trois navigations.
 - **Les déploiements de preview Vercel restent bloqués, à moitié.** Les cinq
   routes API portent désormais `export const dynamic = 'force-dynamic'` : Next
   ne les exécute plus pendant la génération statique, et `createAdminClient()`

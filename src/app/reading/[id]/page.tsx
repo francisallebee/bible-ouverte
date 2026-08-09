@@ -8,14 +8,16 @@ import {
   seedIfNeeded,
   getReadingById,
   getAllVersions,
+  getAllContexts,
   getPassagesByRange,
   getPassages,
   updateReading,
   deleteReading,
 } from "@/lib/storage";
-import type { ReadingEntry, BibleVersion, BiblePassage } from "@/lib/storage";
+import type { ReadingEntry, BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
 
 import { BOOKS, getBookName, getBook } from "@/features/bible";
+import ContextPicker from "@/components/ContextPicker";
 
 export default function ReadingDetailPage() {
   const params = useParams();
@@ -24,6 +26,7 @@ export default function ReadingDetailPage() {
 
   const [reading, setReading] = useState<ReadingEntry | undefined>();
   const [versions, setVersions] = useState<BibleVersion[]>([]);
+  const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [passages, setPassages] = useState<BiblePassage[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -38,14 +41,16 @@ export default function ReadingDetailPage() {
   const [editVerseStart, setEditVerseStart] = useState(1);
   const [editVerseEnd, setEditVerseEnd] = useState<number>(1);
   const [editVersionId, setEditVersionId] = useState("");
+  const [editContextId, setEditContextId] = useState("");
   const [editNotes, setEditNotes] = useState("");
 
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const [r, vers] = await Promise.all([
+      const [r, vers, ctxs] = await Promise.all([
         getReadingById(id),
         getAllVersions(),
+        getAllContexts(),
       ]);
       if (!r) {
         setNotFound(true);
@@ -54,6 +59,7 @@ export default function ReadingDetailPage() {
       }
       setReading(r);
       setVersions(vers);
+      setContexts(ctxs);
 
       const results: BiblePassage[] = [];
       for (let ch = r.chapterStart; ch <= r.chapterEnd; ch++) {
@@ -95,6 +101,7 @@ export default function ReadingDetailPage() {
     setEditVerseStart(reading.verseStart);
     setEditVerseEnd(reading.verseEnd);
     setEditVersionId(reading.translationId);
+    setEditContextId(reading.contextId ?? "");
     setEditNotes(reading.notes);
     setIsEditing(true);
   }
@@ -109,6 +116,7 @@ export default function ReadingDetailPage() {
       verseStart: editVerseStart,
       verseEnd: editVerseEnd,
       translationId: editVersionId,
+      contextId: editContextId,
       notes: editNotes,
     });
     setIsEditing(false);
@@ -148,6 +156,9 @@ export default function ReadingDetailPage() {
   }
 
   const version = versionMap[reading.translationId];
+  const context = reading.contextId
+    ? contexts.find((c) => c.id === reading.contextId)
+    : undefined;
   const selectedBook = getBook(editBook);
   const maxChapters = selectedBook?.chapters ?? 150;
 
@@ -259,6 +270,16 @@ export default function ReadingDetailPage() {
             </select>
           </div>
           <div>
+            <label htmlFor="edit-context" className="block text-sm font-medium mb-1">Contexte</label>
+            <ContextPicker
+              id="edit-context"
+              contexts={contexts}
+              value={editContextId}
+              onChange={setEditContextId}
+              onContextAdded={(created) => setContexts((prev) => [...prev, created])}
+            />
+          </div>
+          <div>
             <label className="block text-sm font-medium mb-1">Notes</label>
             <textarea
               value={editNotes}
@@ -306,8 +327,13 @@ export default function ReadingDetailPage() {
               )}
             </h2>
 
-            <div className="text-sm text-gray-500 mb-4">
-              Version : {version?.name ?? reading.translationId}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-gray-500 mb-4">
+              <span>Version : {version?.name ?? reading.translationId}</span>
+              {context && (
+                <span className="text-xs text-gray-500 border border-gray-200 rounded-full px-2 py-0.5">
+                  <span aria-hidden="true">{context.emoji} </span>{context.name}
+                </span>
+              )}
             </div>
 
             {reading.notes && (

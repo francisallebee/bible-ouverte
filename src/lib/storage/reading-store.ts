@@ -198,6 +198,11 @@ export async function updateReading(id: number, data: Partial<ReadingEntry>): Pr
       verseEnd: updated.verseEnd,
       passageText: updated.passageText,
       translationId: updated.translationId,
+      // `contextId` manquait ici alors qu'il figure dans `toRemote` et dans
+      // `rowToReading` : une modification du contexte restait donc locale, et
+      // la synchronisation suivante la remplaçait par l'ancienne valeur du
+      // cloud, qui fait foi.
+      contextId: updated.contextId ?? '',
       tags: JSON.stringify(updated.tags ?? []),
       notes: updated.notes ?? '',
       links: JSON.stringify(updated.links ?? []),
