@@ -244,7 +244,7 @@ export default function SearchPage() {
       ) : (
         <div>
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-            <div className="flex gap-3 items-end">
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
               <div className="flex-1">
                 <label className="block text-xs font-medium text-gray-500 mb-1">Mot-clé</label>
                 <input type="text" value={kwQuery}
