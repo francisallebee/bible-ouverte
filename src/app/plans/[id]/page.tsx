@@ -10,7 +10,7 @@ import {
 import {
   seedIfNeeded, getPlan, getPlanDays, updatePlanDay, updatePlan,
   addReading, deleteReading, getAllVersions, generatePlanDays, deletePlanDaysByPlan, addPlanDays,
-  getCurrentUserId,
+  getCurrentUserId, PLAN_CONTEXT_ID,
   exportPlanCSV, exportPlanMarkdown, exportPlanJSON, exportPlanHTML, exportPlanPDF,
 } from "@/lib/storage";
 import { getBookName, BOOKS } from "@/features/bible";
@@ -103,10 +103,10 @@ export default function PlanDetailPage() {
           passageText: "",
           translationId: plan!.versionId,
           tags: ["general"],
-          // Une lecture cochée depuis un plan n'a pas de contexte : elle
-          // apparaîtra sous « Sans contexte » dans les statistiques, plutôt
-          // que dans une catégorie qu'on lui aurait supposée.
-          contextId: "",
+          // Rattachée au contexte « Plan de lecture » : sans lui, ces lectures
+          // s'accumulaient sous « Sans contexte » et y représentaient
+          // l'essentiel du total, ce qui rendait la répartition illisible.
+          contextId: PLAN_CONTEXT_ID,
           notes: `Plan : ${plan!.name} (jour ${day.day})`,
         });
         updatedDay.isRead = true;

@@ -15,7 +15,17 @@ import { repairNahumAbbreviation } from './passage-store';
  * Transports → Voiture…), qui n'a jamais été reliée à l'interface : le
  * formulaire enregistrait `tags: []` et aucune lecture n'y faisait référence.
  */
+/**
+ * Contexte attribué aux lectures cochées depuis un plan.
+ *
+ * Un seul pour tous les plans : le nom du plan figure déjà dans les notes de
+ * chaque lecture, un contexte par plan ferait gonfler le menu et laisserait
+ * des orphelins à la suppression d'un plan.
+ */
+export const PLAN_CONTEXT_ID = 'plan-lecture';
+
 const DEFAULT_CONTEXTS: ReadingContext[] = [
+  { id: PLAN_CONTEXT_ID, name: 'Plan de lecture', slug: 'plan-lecture', color: '#3498db', icon: 'tag', emoji: '📅', isSystemDefault: true },
   { id: 'meditation', name: 'Méditation', slug: 'meditation', color: '#2ecc71', icon: 'tag', emoji: '🕊️', isSystemDefault: true },
   { id: 'eglise', name: 'Église', slug: 'eglise', color: '#7b68ee', icon: 'tag', emoji: '⛪', isSystemDefault: true },
   { id: 'predication', name: 'Prédication', slug: 'predication', color: '#9b59b6', icon: 'tag', emoji: '🎤', isSystemDefault: true },

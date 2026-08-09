@@ -17,6 +17,7 @@ aucune donnée.
 | `20260801120004_storage_policies.sql` | Cloisonne les buckets `photos` et `audio` par utilisateur |
 | `20260801130000_reading_context.sql` | Colonne `contextId` sur `readings` et son index |
 | `20260809100000_meditation_emoji.sql` | Emoji du contexte « Méditation » : 🧘 → 🕊️ |
+| `20260809140000_plan_reading_context.sql` | Contexte « Plan de lecture » et rattachement des lectures issues d'un plan |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
