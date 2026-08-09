@@ -83,13 +83,13 @@ function getBadges(totalChapters: number, streak: number, categoriesDone: number
     { id: "hundred", name: "Lecteur assidu", description: "Lire 100 chapitres", icon: Award, unlocked: totalChapters >= 100 },
     { id: "two-fifty", name: "Scribe", description: "Lire 250 chapitres", icon: Award, unlocked: totalChapters >= 250 },
     { id: "five-hundred", name: "Docteur de la Loi", description: "Lire 500 chapitres", icon: Trophy, unlocked: totalChapters >= 500 },
-    { id: "thousand", name: "Prophète", description: "Lire 1000 chapitres", icon: Trophy, unlocked: totalChapters >= 1000 },
+    { id: "thousand", name: "Veilleur", description: "Lire 1000 chapitres", icon: Trophy, unlocked: totalChapters >= 1000 },
     { id: "streak-3", name: "Régulier", description: "3 jours d'affilée", icon: Flame, unlocked: streak >= 3 },
     { id: "streak-7", name: "Persévérant", description: "7 jours d'affilée", icon: Flame, unlocked: streak >= 7 },
     { id: "streak-30", name: "Inarrêtable", description: "30 jours d'affilée", icon: Flame, unlocked: streak >= 30 },
     { id: "streak-100", name: "Légende vivante", description: "100 jours d'affilée", icon: Flame, unlocked: streak >= 100 },
     { id: "category-all", name: "Canon complet", description: "Lire dans toutes les catégories", icon: Gem, unlocked: categoriesDone >= totalCategories },
-    { id: "category-half", name: "Œcuménique", description: "Lire dans la moitié des catégories", icon: Gem, unlocked: categoriesDone >= Math.ceil(totalCategories / 2) },
+    { id: "category-half", name: "À mi-parcours", description: "Lire dans la moitié des catégories", icon: Gem, unlocked: categoriesDone >= Math.ceil(totalCategories / 2) },
   ];
 }
 
