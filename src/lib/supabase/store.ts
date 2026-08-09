@@ -3,7 +3,15 @@ import { createClient } from './client'
 let authedUserId: string | null = null
 let authPromise: Promise<string | null> | null = null
 
-async function getUserId(): Promise<string | null> {
+/**
+ * Identité du compte connecté, mémorisée pour toute la session.
+ *
+ * Exportée pour que `lib/storage/user-id.ts` s'appuie dessus : il appelait
+ * `auth.getUser()` de son côté, sans cache, depuis vingt-neuf endroits — un
+ * aller-retour réseau d'environ 200 ms à chaque lecture de données.
+ * `clearUserCache()` gouverne désormais les deux chemins.
+ */
+export async function getUserId(): Promise<string | null> {
   if (authedUserId) return authedUserId
   if (authPromise) return authPromise
   authPromise = (async () => {
