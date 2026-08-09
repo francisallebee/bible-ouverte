@@ -16,7 +16,7 @@ import { repairNahumAbbreviation } from './passage-store';
  * formulaire enregistrait `tags: []` et aucune lecture n'y faisait référence.
  */
 const DEFAULT_CONTEXTS: ReadingContext[] = [
-  { id: 'meditation', name: 'Méditation', slug: 'meditation', color: '#2ecc71', icon: 'tag', emoji: '🧘', isSystemDefault: true },
+  { id: 'meditation', name: 'Méditation', slug: 'meditation', color: '#2ecc71', icon: 'tag', emoji: '🕊️', isSystemDefault: true },
   { id: 'eglise', name: 'Église', slug: 'eglise', color: '#7b68ee', icon: 'tag', emoji: '⛪', isSystemDefault: true },
   { id: 'predication', name: 'Prédication', slug: 'predication', color: '#9b59b6', icon: 'tag', emoji: '🎤', isSystemDefault: true },
   { id: 'livre', name: 'Livre', slug: 'livre', color: '#e67e22', icon: 'tag', emoji: '📕', isSystemDefault: true },

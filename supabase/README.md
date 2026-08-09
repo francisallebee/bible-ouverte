@@ -15,6 +15,8 @@ aucune donnée.
 | `20260801120002_tickets_roadmap_rls.sql` | Écriture colonne par colonne sur les tickets et la feuille de route |
 | `20260801120003_private_helpers.sql` | Sort les fonctions internes de la surface d'API PostgREST |
 | `20260801120004_storage_policies.sql` | Cloisonne les buckets `photos` et `audio` par utilisateur |
+| `20260801130000_reading_context.sql` | Colonne `contextId` sur `readings` et son index |
+| `20260809100000_meditation_emoji.sql` | Emoji du contexte « Méditation » : 🧘 → 🕊️ |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -32,8 +34,9 @@ supabase db push
 
 ## État en production
 
-Les quatre migrations ont été appliquées le 1er août 2026. Constat avant
-application, sur la base réelle :
+Les cinq premières migrations ont été appliquées le 1er août 2026,
+`20260809100000_meditation_emoji.sql` le 9 août. Constat avant application des
+premières, sur la base réelle :
 
 - `authenticated` avait le droit `UPDATE` sur `profiles.is_admin`, et la policy
   était `auth.uid() = id` sans restriction de colonne : **tout compte connecté
