@@ -1,6 +1,7 @@
 node_modules/
 .next/
 out/
+.claude/
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
@@ -10,3 +11,23 @@ supabase/.temp/
 # Secrets : .env* couvre .env, .env.local et les variantes par environnement.
 # Ne jamais versionner la clé service_role.
 .env*
+
+# Emplacements d'où les traductions ont été déplacées vers public/bibles/.
+# Des copies périmées y sont réapparues et y pesaient 46 Mo, dont une version
+# de Darby antérieure à la correction de Nahum.
+/data/
+/src/data/
+
+# L'ancien schéma, remplacé par supabase/migrations/. Il commence par sept
+# « drop table … cascade » : le rejouer efface toutes les données utilisateurs.
+# Voir supabase/README.md.
+/supabase-schema.sql
+
+# Routes API supprimées par 6d3f533, réapparues depuis sur le disque.
+# L'architecture veut que le navigateur écrive directement dans Supabase pour
+# ces données ; seule la RLS fait barrière. Voir AGENTS.md.
+/src/app/api/readings/
+/src/app/api/plans/
+/src/app/api/plan-days/
+/src/app/api/contexts/
+/src/app/api/media/
