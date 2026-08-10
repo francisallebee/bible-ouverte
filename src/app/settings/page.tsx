@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion } from "@/lib/storage";
 import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion } from "@/lib/storage";
 import { COLOR_THEMES, applyColorTheme, applyTheme } from "@/lib/themes";
+import { AUTO_LOGOUT_CHOICES } from "@/lib/auto-logout";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -151,6 +152,12 @@ export default function SettingsPage() {
     const s = await getSettings();
     setSettings(s ?? null);
     applyTheme(theme);
+  }
+
+  async function handleAutoLogoutChange(minutes: number) {
+    await updateSettings({ autoLogoutMinutes: minutes });
+    const s = await getSettings();
+    setSettings(s ?? null);
   }
 
   async function handleColorThemeChange(themeId: string) {
@@ -377,6 +384,28 @@ export default function SettingsPage() {
                 importStatus.includes("Erreur") ? "bg-red-500" : "bg-green-500"
               }`} />
               {importStatus}
+            </p>
+          )}
+        </SectionCard>
+
+        <SectionCard icon={Clock} title="Déconnexion automatique">
+          <p className="text-sm text-[--text-secondary] mb-3">
+            Ferme la session après une période sans activité. Utile si tu lis
+            depuis un appareil partagé.
+          </p>
+          <select
+            value={settings?.autoLogoutMinutes ?? 0}
+            onChange={(e) => handleAutoLogoutChange(Number(e.target.value))}
+            className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] w-full sm:w-auto"
+          >
+            {AUTO_LOGOUT_CHOICES.map((c) => (
+              <option key={c.minutes} value={c.minutes}>{c.label}</option>
+            ))}
+          </select>
+          {(settings?.autoLogoutMinutes ?? 0) > 0 && (
+            <p className="text-sm text-[--text-secondary] mt-3">
+              Une fenêtre te préviendra une minute avant la coupure, pour que
+              rien de ce que tu es en train de saisir ne soit perdu.
             </p>
           )}
         </SectionCard>

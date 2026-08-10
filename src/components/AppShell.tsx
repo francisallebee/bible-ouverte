@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
+import AutoLogout from '@/components/AutoLogout'
 import LayoutClient from '@/lib/pwa/layout-client'
-import { getSettings } from '@/lib/storage'
+import { getSettings, SETTINGS_CHANGED } from '@/lib/storage'
 import { applyColorTheme, applyTheme, watchSystemTheme } from '@/lib/themes'
 import { APP_VERSION } from '@/lib/version'
 
@@ -20,6 +21,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // des !important, et repeindraient leurs cartes.
   const isBare = isLanding || isAuthPage
 
+  const [autoLogoutMinutes, setAutoLogoutMinutes] = useState(0)
+
   useEffect(() => {
     if (isBare) {
       // `applyTheme` plutôt qu'un retrait direct de la classe : c'est lui qui
@@ -28,11 +31,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       applyTheme('light')
       return
     }
-    (async () => {
+    let cancelled = false
+    const load = async () => {
       const s = await getSettings()
+      if (cancelled) return
       if (s?.colorTheme) applyColorTheme(s.colorTheme)
       applyTheme(s?.theme)
-    })()
+      setAutoLogoutMinutes(s?.autoLogoutMinutes ?? 0)
+    }
+    load()
+    // Un réglage modifié doit prendre effet tout de suite, et non au prochain
+    // chargement complet.
+    window.addEventListener(SETTINGS_CHANGED, load)
+    return () => {
+      cancelled = true
+      window.removeEventListener(SETTINGS_CHANGED, load)
+    }
   }, [isBare])
 
   // Le système peut basculer jour/nuit pendant que l'application est ouverte.
@@ -49,6 +63,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         Aller au contenu
       </a>
       <Sidebar />
+      <AutoLogout minutes={autoLogoutMinutes} />
       <main id="main" className="lg:ml-[var(--nav-width)] min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pt-24 lg:pt-10">
           {children}
