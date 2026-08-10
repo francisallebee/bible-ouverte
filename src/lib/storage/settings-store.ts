@@ -14,6 +14,14 @@ function stripDirty(s: AppSettings): AppSettings {
 let syncedThisSession = false;
 
 /**
+ * Émis après chaque écriture, pour ce qui vit hors des écrans de réglage —
+ * la déconnexion automatique, dont le délai est armé par `AppShell`. Sans cet
+ * avertissement, un changement de délai n'entrerait en vigueur qu'au prochain
+ * chargement complet de l'application.
+ */
+export const SETTINGS_CHANGED = 'bo:settings-changed';
+
+/**
  * Réglages : cache local + cloud.
  * - Premier accès de la session (en ligne) : si une modification locale est en
  *   attente (_dirty) elle est poussée, sinon les réglages distants font foi.
@@ -67,5 +75,9 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<void> 
   }
   if (!pushed) {
     await db.put('settings', { ...merged, _dirty: true });
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(SETTINGS_CHANGED));
   }
 }

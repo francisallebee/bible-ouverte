@@ -143,6 +143,12 @@ export interface AppSettings {
 
   readingGoal?: ReadingGoal;
   audioSpeed?: number;
+  /**
+   * Minutes d'inactivité avant déconnexion. 0 ou absent : jamais — c'est la
+   * valeur des comptes qui n'ont rien réglé, dont le comportement ne doit pas
+   * changer du jour au lendemain.
+   */
+  autoLogoutMinutes?: number;
   /** true si une modification locale n'a pas encore été poussée vers le cloud */
   _dirty?: boolean;
 }
