@@ -1,7 +1,9 @@
 # AGENTS.md — Bible Ouverte
 
 Guide de travail sur le dépôt. Pour le produit et le périmètre, voir
-[spec/SPEC.md](spec/SPEC.md) ; pour la base de données, [supabase/README.md](supabase/README.md).
+[spec/SPEC.md](spec/SPEC.md) ; pour la base de données, [supabase/README.md](supabase/README.md) ;
+pour l'état des travaux en cours et les mesures déjà faites,
+[spec/REPRISE.md](spec/REPRISE.md).
 
 ## Ce qu'est l'application
 
