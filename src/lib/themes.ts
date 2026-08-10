@@ -82,3 +82,49 @@ export function applyColorTheme(themeId: string) {
     root.style.setProperty(`--${key}`, val)
   })
 }
+
+/** Mode d'apparence enregistré dans les réglages (`AppSettings.theme`). */
+export type ThemeMode = 'light' | 'dark' | 'system'
+
+const DARK_QUERY = '(prefers-color-scheme: dark)'
+
+/**
+ * Dernier mode appliqué. C'est `watchSystemTheme` qui le relit : sans lui, il
+ * faudrait faire redescendre les réglages jusqu'à l'écouteur, qui se
+ * retrouverait avec une valeur figée au montage.
+ */
+let currentMode: string | undefined
+
+function prefersDark(): boolean {
+  return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(DARK_QUERY).matches
+}
+
+/**
+ * Pose ou retire la classe `dark` sur `<html>`. En mode « système », suit la
+ * préférence du système d'exploitation. Tout endroit qui change l'apparence
+ * doit passer par ici, sinon `watchSystemTheme` travaille sur un mode périmé.
+ */
+export function applyTheme(theme: string | undefined) {
+  currentMode = theme
+  const dark = theme === 'dark' || (theme === 'system' && prefersDark())
+  document.documentElement.classList.toggle('dark', dark)
+}
+
+/**
+ * Réapplique le thème quand le système bascule jour/nuit pendant que
+ * l'application est ouverte. Sans effet hors du mode « système ».
+ * Renvoie la fonction de désabonnement.
+ */
+export function watchSystemTheme(): () => void {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return () => {}
+  }
+  const media = window.matchMedia(DARK_QUERY)
+  const onChange = () => {
+    if (currentMode === 'system') applyTheme('system')
+  }
+  media.addEventListener('change', onChange)
+  return () => media.removeEventListener('change', onChange)
+}

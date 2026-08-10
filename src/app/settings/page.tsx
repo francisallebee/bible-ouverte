@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion } from "@/lib/storage";
-import { COLOR_THEMES, applyColorTheme } from "@/lib/themes";
+import { COLOR_THEMES, applyColorTheme, applyTheme } from "@/lib/themes";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -88,8 +88,7 @@ export default function SettingsPage() {
       ]);
       setSettings(s ?? null);
       setVerseCount(vc);
-      if (s?.theme === 'dark') document.documentElement.classList.add('dark');
-      else document.documentElement.classList.remove('dark');
+      applyTheme(s?.theme);
       if (s?.colorTheme) applyColorTheme(s.colorTheme);
       setLoaded(true);
       await loadVersions();
@@ -151,11 +150,7 @@ export default function SettingsPage() {
     await updateSettings({ theme });
     const s = await getSettings();
     setSettings(s ?? null);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    applyTheme(theme);
   }
 
   async function handleColorThemeChange(themeId: string) {
@@ -208,7 +203,14 @@ export default function SettingsPage() {
           >
             <option value="light">☀️ Clair</option>
             <option value="dark">🌙 Sombre</option>
+            <option value="system">🖥️ Système</option>
           </select>
+          {settings?.theme === 'system' && (
+            <p className="text-sm text-[--text-secondary] mt-3">
+              L&apos;application suit le réglage jour/nuit de ton appareil et
+              bascule dès qu&apos;il change.
+            </p>
+          )}
         </SectionCard>
 
         <SectionCard icon={Palette} title="Charte graphique">

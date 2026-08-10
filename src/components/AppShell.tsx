@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import LayoutClient from '@/lib/pwa/layout-client'
 import { getSettings } from '@/lib/storage'
-import { applyColorTheme } from '@/lib/themes'
+import { applyColorTheme, applyTheme, watchSystemTheme } from '@/lib/themes'
 import { APP_VERSION } from '@/lib/version'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -22,16 +22,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isBare) {
-      document.documentElement.classList.remove('dark')
+      // `applyTheme` plutôt qu'un retrait direct de la classe : c'est lui qui
+      // mémorise le mode courant, et l'écouteur système repeindrait sinon une
+      // page nue restée en mode « système ».
+      applyTheme('light')
       return
     }
     (async () => {
       const s = await getSettings()
       if (s?.colorTheme) applyColorTheme(s.colorTheme)
-      if (s?.theme === 'dark') document.documentElement.classList.add('dark')
-      else document.documentElement.classList.remove('dark')
+      applyTheme(s?.theme)
     })()
   }, [isBare])
+
+  // Le système peut basculer jour/nuit pendant que l'application est ouverte.
+  useEffect(() => watchSystemTheme(), [])
 
   if (isBare) return <>{children}</>
 
