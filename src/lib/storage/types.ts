@@ -1,6 +1,14 @@
 export type DisplayPreset = "smartphone" | "tablet" | "desktop";
 export type PlanDuration = "1-year" | "6-months" | "3-months" | "1-month" | "custom";
 
+/**
+ * `scheduled` : les jours sont produits à partir d'une durée et d'une date de
+ * début. `free` : une liste de passages sans date, cochés un à un à la date de
+ * son choix. Absent sur les plans créés avant la migration `free_plans`, qui
+ * sont tous datés — d'où le repli sur `scheduled` partout où on le lit.
+ */
+export type PlanKind = "scheduled" | "free";
+
 export interface ReadingLink {
   url: string;
   title: string;
@@ -67,6 +75,7 @@ export interface ReadingPlan {
   userId: string;
   name: string;
   versionId: string;
+  kind?: PlanKind;
   duration: PlanDuration;
   customDays?: number;
   books?: string[];
@@ -83,10 +92,17 @@ export interface PlanDay {
   planId: number;
   userId: string;
   day: number;
+  /**
+   * Plan daté : le jour prévu. Plan libre : chaîne vide tant que l'entrée n'est
+   * pas cochée, puis la date de lecture choisie.
+   */
   date: string;
   book: string;
   chapterStart: number;
   chapterEnd: number;
+  /** 1 sur les plans datés, qui raisonnent au chapitre. */
+  verseStart: number;
+  verseEnd: number;
   isRead: boolean;
   readingId?: number;
   /** true si la ligne existe dans Supabase (flag local uniquement) */
