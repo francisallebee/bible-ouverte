@@ -10,6 +10,7 @@ import {
   insertPlanDays as supabaseInsertPlanDays,
   updatePlanDay as supabaseUpdatePlanDay,
   deletePlanDaysByPlan as supabaseDeletePlanDays,
+  deletePlanDay as supabaseDeletePlanDay,
 } from '@/lib/supabase/store';
 import type { PlanRow, PlanDayRow } from '@/lib/supabase/store';
 
@@ -31,6 +32,8 @@ function rowToPlan(r: PlanRow): ReadingPlan {
     userId: r.user_id,
     name: r.name,
     versionId: r.versionId,
+    // Les plans antérieurs à la migration `free_plans` sont tous datés.
+    kind: (r.kind as ReadingPlan['kind']) ?? 'scheduled',
     duration: r.duration as ReadingPlan['duration'],
     customDays: r.customDays ?? undefined,
     books: safeParseArray(r.books),
@@ -47,6 +50,7 @@ function planToRow(p: ReadingPlan, userId: string): Omit<PlanRow, 'id' | 'create
     user_id: userId,
     name: p.name,
     versionId: p.versionId,
+    kind: p.kind ?? 'scheduled',
     duration: p.duration,
     customDays: p.customDays ?? null,
     books: JSON.stringify(p.books ?? []),
@@ -65,6 +69,8 @@ function rowToDay(r: PlanDayRow): PlanDay {
     book: r.book,
     chapterStart: r.chapterStart,
     chapterEnd: r.chapterEnd,
+    verseStart: r.verseStart ?? 1,
+    verseEnd: r.verseEnd ?? 1,
     isRead: r.isRead,
     readingId: r.readingId ?? undefined,
     synced: true,
@@ -80,6 +86,8 @@ function dayToRow(d: PlanDay, userId: string): Omit<PlanDayRow, 'id'> {
     book: d.book,
     chapterStart: d.chapterStart,
     chapterEnd: d.chapterEnd,
+    verseStart: d.verseStart ?? 1,
+    verseEnd: d.verseEnd ?? 1,
     isRead: d.isRead,
     readingId: d.readingId ?? null,
   };
@@ -210,6 +218,7 @@ export async function updatePlan(plan: ReadingPlan): Promise<void> {
     supabaseUpdatePlan(plan.id, {
       name: plan.name,
       versionId: plan.versionId,
+      kind: plan.kind ?? 'scheduled',
       duration: plan.duration,
       customDays: plan.customDays ?? null,
       books: JSON.stringify(plan.books ?? []),
@@ -301,6 +310,10 @@ export async function updatePlanDay(day: PlanDay): Promise<void> {
   await db.put('plan_days', day);
   if (isOnline() && day.id && day.synced) {
     supabaseUpdatePlanDay(day.id, {
+      // `date` fait partie de la mise à jour depuis les plans libres : c'est au
+      // moment de cocher qu'on choisit la date de lecture. L'omettre rendait
+      // toute date éphémère, perdue à la première resynchronisation.
+      date: day.date,
       isRead: day.isRead,
       readingId: day.readingId ?? null,
     }).catch(() => {});
@@ -311,5 +324,30 @@ export async function deletePlanDaysByPlan(planId: number): Promise<void> {
   await deleteLocalDays(planId);
   if (isOnline()) {
     supabaseDeletePlanDays(planId).catch(() => {});
+  }
+}
+
+/**
+ * Ajoute un passage à la fin d'un plan libre.
+ *
+ * Le numéro d'entrée est celui qui suit le plus grand déjà attribué, et non le
+ * nombre d'entrées : une suppression au milieu de la liste referait sinon un
+ * numéro déjà pris, et l'index `by-plan-day` confondrait les deux.
+ */
+export async function addPlanEntry(
+  entry: Omit<PlanDay, 'id' | 'day'>,
+): Promise<void> {
+  const existing = await getLocalDays(entry.planId);
+  const day = existing.reduce((max, d) => Math.max(max, d.day), 0) + 1;
+  await addPlanDays([{ ...entry, day }]);
+}
+
+/** Retire une entrée d'un plan libre. */
+export async function deletePlanDay(id: number): Promise<void> {
+  const db = await getDB();
+  const existing = await db.get('plan_days', id);
+  await db.delete('plan_days', id);
+  if (isOnline() && existing?.synced) {
+    supabaseDeletePlanDay(id).catch(() => {});
   }
 }

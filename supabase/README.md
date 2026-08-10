@@ -18,6 +18,7 @@ aucune donnée.
 | `20260801130000_reading_context.sql` | Colonne `contextId` sur `readings` et son index |
 | `20260809100000_meditation_emoji.sql` | Emoji du contexte « Méditation » : 🧘 → 🕊️ |
 | `20260809140000_plan_reading_context.sql` | Contexte « Plan de lecture » et rattachement des lectures issues d'un plan |
+| `20260810120000_free_plans.sql` | `plans.kind` et les versets de `plan_days` : les plans de lecture libres |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -36,8 +37,14 @@ supabase db push
 ## État en production
 
 Les cinq premières migrations ont été appliquées le 1er août 2026,
-`20260809100000_meditation_emoji.sql` le 9 août. Constat avant application des
-premières, sur la base réelle :
+`20260809100000_meditation_emoji.sql` le 9 août, `20260810120000_free_plans.sql`
+le 10 août. Cette dernière est la première à figurer dans la table
+`supabase_migrations` — elle y porte l'horodatage de son application
+(`20260810173352`) et non le nom de son fichier. Les deux migrations du 9 août
+ont été passées par exécution SQL directe et n'y figurent toujours pas ; leurs
+fichiers sont au dépôt et rejouables sans dégât.
+
+Constat avant application des premières, sur la base réelle :
 
 - `authenticated` avait le droit `UPDATE` sur `profiles.is_admin`, et la policy
   était `auth.uid() = id` sans restriction de colonne : **tout compte connecté

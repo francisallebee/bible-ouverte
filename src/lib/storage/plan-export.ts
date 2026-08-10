@@ -14,6 +14,17 @@ function getDurationLabel(plan: ReadingPlan): string {
   return labels[plan.duration] ?? `${plan.totalDays} jours`;
 }
 
+/**
+ * L'en-tête d'un export. Un plan libre n'a ni durée ni date de début : les
+ * annoncer quand même produisait un « Durée : 0 jours — Début : <date de
+ * création> » que rien ne justifie.
+ */
+function getHeaderLine(plan: ReadingPlan): string {
+  return plan.kind === 'free'
+    ? 'Plan libre — sans date'
+    : `Durée : ${getDurationLabel(plan)} — Début : ${plan.startDate}`;
+}
+
 function downloadBlob(content: string, filename: string, mime: string) {
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -27,7 +38,7 @@ function downloadBlob(content: string, filename: string, mime: string) {
 export function exportPlanCSV(plan: ReadingPlan, days: PlanDay[]) {
   const lines = [
     `# ${plan.name}`,
-    `# Durée: ${getDurationLabel(plan)} - Début: ${plan.startDate}`,
+    `# ${getHeaderLine(plan)}`,
     "# Jour;Date;Livre;Chapitre début;Chapitre fin;Lu",
   ];
   for (const d of days) {
@@ -42,8 +53,7 @@ export function exportPlanMarkdown(plan: ReadingPlan, days: PlanDay[]) {
   const lines: string[] = [
     `# ${plan.name}`,
     "",
-    `**Durée :** ${getDurationLabel(plan)}`,
-    `**Début :** ${plan.startDate}`,
+    `**${getHeaderLine(plan)}**`,
     `**Progression :** ${days.filter((d) => d.isRead).length}/${days.length}`,
     "",
     "## Jours de lecture",
@@ -80,7 +90,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:8px 12px;border:1px soli
 th{background:#1e3a5f;color:#fff}h1{color:#1e3a5f}.progress{height:20px;background:#eee;border-radius:10px;overflow:hidden;margin:1rem 0}
 .progress-bar{height:100%;background:#1e3a5f;border-radius:10px;transition:width .5s}</style></head>
 <body><h1>${plan.name}</h1>
-<p><strong>Durée :</strong> ${getDurationLabel(plan)} — <strong>Début :</strong> ${plan.startDate}</p>
+<p><strong>${getHeaderLine(plan)}</strong></p>
 <p><strong>Progression :</strong> ${days.filter(d => d.isRead).length}/${days.length}</p>
 <div class="progress"><div class="progress-bar" style="width:${days.length > 0 ? (days.filter(d => d.isRead).length / days.length * 100) : 0}%"></div></div>
 <table><thead><tr><th>Jour</th><th>Date</th><th>Livre</th><th>Chapitres</th><th>Lu</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
@@ -98,7 +108,7 @@ export function exportPlanPDF(plan: ReadingPlan, days: PlanDay[]) {
 
   doc.setFontSize(10);
   doc.setTextColor(100);
-  doc.text(`Durée : ${getDurationLabel(plan)} — Début : ${plan.startDate}`, 14, 30);
+  doc.text(getHeaderLine(plan), 14, 30);
   const readCount = days.filter((d) => d.isRead).length;
   doc.text(`Progression : ${readCount}/${days.length} (${days.length > 0 ? Math.round((readCount / days.length) * 100) : 0}%)`, 14, 36);
 

@@ -180,6 +180,7 @@ export interface PlanRow {
   user_id: string
   name: string
   versionId: string
+  kind: string
   duration: string
   customDays: number | null
   books: any
@@ -228,6 +229,8 @@ export interface PlanDayRow {
   book: string
   chapterStart: number
   chapterEnd: number
+  verseStart: number
+  verseEnd: number
   isRead: boolean
   readingId: number | null
 }
@@ -284,6 +287,17 @@ export async function deletePlanDaysByPlan(planId: number): Promise<boolean> {
     }
     return true
   }, false)
+}
+
+/**
+ * Retire une entrée de plan. Utile aux plans libres, dont la liste se corrige à
+ * l'unité — les plans datés, eux, sont toujours régénérés en bloc.
+ */
+export async function deletePlanDay(id: number): Promise<boolean> {
+  return tryAuthenticated(
+    () => remove('plan_days', id),
+    false,
+  )
 }
 
 // -- Context store -- //
