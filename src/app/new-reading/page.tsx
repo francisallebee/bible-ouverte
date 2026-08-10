@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookPlus, Link as LinkIcon, ImageIcon, Camera, Upload,
-  X, ExternalLink, Plus, Music, ChevronDown, Trash2, Layers,
+  X, ExternalLink, Plus, Music, ChevronDown, Trash2, Layers, SlidersHorizontal,
 } from "lucide-react";
 import {
   seedIfNeeded, getEnabledVersions, getPassagesByRange, addReading, getSettings,
@@ -15,6 +15,7 @@ import { BOOKS, getBook, getBookName } from "@/features/bible";
 import type { BibleBook } from "@/features/bible";
 import AudioRecorder from "@/components/AudioRecorder";
 import ContextPicker from "@/components/ContextPicker";
+import PassagePicker, { describeRange } from "@/components/PassagePicker";
 import { resizeImage } from "@/lib/image-utils";
 
 /** Un passage mis de côté, en attente de l'enregistrement global. */
@@ -62,6 +63,7 @@ export default function NewReadingPage() {
 
   const [passages, setPassages] = useState<BiblePassage[]>([]);
   const [loadingPassage, setLoadingPassage] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const [linkUrl, setLinkUrl] = useState("");
   const [linkTitle, setLinkTitle] = useState("");
@@ -156,6 +158,21 @@ export default function NewReadingPage() {
     setVerseEnd(undefined);
   }
 
+  /**
+   * Changer de livre remet la référence à zéro — les versets aussi, qui
+   * restaient sur leur valeur précédente et faisaient passer d'un Jean 3:16 à
+   * un Abdias 1:16 que personne n'avait demandé — puis ouvre la fenêtre de
+   * sélection dans la foulée.
+   */
+  function selectBook(abbreviation: string) {
+    setBook(abbreviation);
+    setChapterStart(1);
+    setChapterEnd(undefined);
+    setVerseStart(1);
+    setVerseEnd(undefined);
+    if (abbreviation) setPickerOpen(true);
+  }
+
   /** Met le passage en cours de côté et vide les champs pour le suivant. */
   function stackPassage() {
     const p = currentPassage();
@@ -245,7 +262,7 @@ export default function NewReadingPage() {
             <div>
               <label className="block text-sm font-medium mb-1.5 text-[--text]">Livre</label>
               <div className="relative">
-                <select value={book} onChange={(e) => { setBook(e.target.value); setChapterStart(1); setChapterEnd(undefined); }}
+                <select value={book} onChange={(e) => selectBook(e.target.value)}
                   className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] appearance-none cursor-pointer">
                   <option value="">Sélectionner un livre</option>
                   {BOOKS.map((b) => (
@@ -256,46 +273,17 @@ export default function NewReadingPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1.5 text-[--text]">Chapitre début</label>
-                <select value={chapterStart} onChange={(e) => setChapterStart(Number(e.target.value))}
-                  className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
-                  {Array.from({ length: maxChapters }, (_, i) => i + 1).map(n => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5 text-[--text]">Chapitre fin</label>
-                <select value={chapterEnd ?? chapterStart} onChange={(e) => setChapterEnd(Number(e.target.value))}
-                  className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
-                  {Array.from({ length: maxChapters - (chapterStart - 1) }, (_, i) => i + chapterStart).map(n => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1.5 text-[--text]">Verset début</label>
-                <select value={verseStart} onChange={(e) => setVerseStart(Number(e.target.value))}
-                  className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
-                  {Array.from({ length: 200 }, (_, i) => i + 1).map(n => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5 text-[--text]">Verset fin</label>
-                <select value={verseEnd ?? verseStart} onChange={(e) => setVerseEnd(Number(e.target.value))}
-                  className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
-                  {Array.from({ length: 200 - (verseStart - 1) }, (_, i) => i + verseStart).map(n => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-[--text]">Chapitres et versets</label>
+              <button type="button" onClick={() => setPickerOpen(true)} disabled={!book}
+                className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
+                <span className="truncate">
+                  {book
+                    ? describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })
+                    : "Sélectionne d'abord un livre"}
+                </span>
+                <SlidersHorizontal className="w-4 h-4 text-[--text-secondary] shrink-0" />
+              </button>
             </div>
 
             <div>
@@ -461,9 +449,9 @@ export default function NewReadingPage() {
             <>
               <div className="bg-[--surface] rounded-xl border border-[--border] p-5 text-sm leading-relaxed shadow-[--shadow]">
                 <p className="font-semibold mb-3 text-[--primary] border-b border-[--border] pb-2">
-                  {getBookName(book)} {chapterStart}
-                  {cEnd !== chapterStart ? `-${cEnd}` : ""}
-                  {verseStart}:{vEnd}
+                  {/* Les deux-points manquaient entre le chapitre et le verset,
+                      et l'aperçu de Jean 3:16-18 s'annonçait « Jean 316:18 ». */}
+                  {describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
                   <span className="text-[--text-secondary] font-normal ml-2">— {versions.find(v => v.id === versionId)?.name || versionId}</span>
                 </p>
                 <div className="space-y-1">
@@ -487,6 +475,26 @@ export default function NewReadingPage() {
           )}
         </div>
       </div>
+
+      <PassagePicker
+        open={pickerOpen && !!book}
+        book={book}
+        bookName={getBookName(book)}
+        versionId={versionId}
+        maxChapters={maxChapters}
+        chapterStart={chapterStart}
+        chapterEnd={cEnd}
+        verseStart={verseStart}
+        verseEnd={vEnd}
+        onClose={() => setPickerOpen(false)}
+        onValidate={(r) => {
+          setChapterStart(r.chapterStart);
+          setChapterEnd(r.chapterEnd);
+          setVerseStart(r.verseStart);
+          setVerseEnd(r.verseEnd);
+          setPickerOpen(false);
+        }}
+      />
     </div>
   );
 }
