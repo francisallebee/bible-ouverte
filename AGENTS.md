@@ -143,10 +143,16 @@ npm test           # vitest
   écrans ont été vérifiés au navigateur — les dix premiers le 9 août 2026, les
   trois écrans de plans le 13 août. Le détail est dans `spec/REPRISE.md`, qui
   fait foi sur ce point.
-- **Aucune notification push n'a jamais été reçue sur un appareil.** La base est
-  prête et la fonction `send-notifications` est déployée et répond, mais ses
-  trois secrets ne sont pas déposés et le planificateur n'existe pas. Sur
-  `send-notifications`, `verify_jwt` doit rester à `false` : `pg_cron` n'envoie
-  pas d'en-tête `Authorization`, et la passerelle rejetterait l'appel par un
-  `401` impossible à distinguer d'un mauvais secret. `config.toml` fige le
-  réglage.
+- **Aucune notification push n'est jamais apparue sur un appareil.** Tout le
+  reste est en place et mesuré : secrets déposés, fonction déployée,
+  planificateur actif, et un iPhone réellement abonné via `web.push.apple.com`.
+  Deux envois ont été acceptés par Apple et tracés en base sans que rien
+  n'arrive à l'écran. Le détail et les pistes sont dans `spec/REPRISE.md`,
+  section « Le mur du 13 août ».
+- **`envoyes` n'est pas un accusé de réception.** Ce compteur ne dit que
+  l'acceptation du message par le service de push. Ce qui suit — remise,
+  réveil du service worker, réglages iOS — n'y figure pas.
+- Sur `send-notifications`, **`verify_jwt` doit rester à `false`** : `pg_cron`
+  n'envoie pas d'en-tête `Authorization`, et la passerelle rejetterait l'appel
+  par un `401` impossible à distinguer d'un mauvais secret. `config.toml` fige
+  le réglage.
