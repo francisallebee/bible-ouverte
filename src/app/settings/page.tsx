@@ -15,6 +15,7 @@ import { AUTO_LOGOUT_CHOICES } from "@/lib/auto-logout";
 import {
   notificationStatus, readDeviceState, requestNotificationPermission, showTestNotification,
   NOTIFICATION_TRIGGERS, resolveTriggers, readTimeZone, DEFAULT_REMINDER_TIME,
+  subscribeDevice, unsubscribeDevice,
 } from "@/lib/notifications";
 import type { DeviceNotificationState } from "@/lib/notifications";
 
@@ -183,6 +184,8 @@ export default function SettingsPage() {
   }
 
   async function handleNotificationsToggle(enabled: boolean) {
+    setNotifBusy(true);
+    setNotifTest("");
     // Le fuseau est relevé à l'activation, et non demandé : le navigateur le
     // connaît, et sans lui « à 7 h » n'a pas de sens côté serveur.
     await updateSettings(enabled
@@ -190,6 +193,21 @@ export default function SettingsPage() {
       : { notificationsEnabled: false });
     const s = await getSettings();
     setSettings(s ?? null);
+
+    // L'abonnement de l'appareil suit le réglage du compte. Sans lui, activer
+    // les notifications n'enregistrerait rien et le serveur n'aurait personne
+    // à qui écrire.
+    if (enabled) {
+      const result = await subscribeDevice();
+      if (result !== "subscribed") {
+        setNotifTest(result === "no-permission"
+          ? "La permission n'est pas accordée sur cet appareil."
+          : "Cet appareil n'a pas pu être abonné. Les réglages sont enregistrés, mais rien n'y sera envoyé.");
+      }
+    } else {
+      await unsubscribeDevice();
+    }
+    setNotifBusy(false);
   }
 
   async function handleTriggerToggle(id: string, on: boolean) {

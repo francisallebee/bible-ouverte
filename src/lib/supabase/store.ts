@@ -300,6 +300,59 @@ export async function deletePlanDay(id: number): Promise<boolean> {
   )
 }
 
+// -- Push subscriptions -- //
+
+export interface PushSubscriptionRow {
+  endpoint: string
+  p256dh: string
+  auth: string
+  userAgent: string | null
+}
+
+/**
+ * Enregistre l'abonnement de cet appareil.
+ *
+ * `upsert` sur l'`endpoint` plutôt qu'un `insert` : le navigateur rend le même
+ * endpoint tant que l'abonnement n'a pas été révoqué, et une réinstallation
+ * ferait sinon échouer l'insertion sur la contrainte d'unicité.
+ */
+export async function savePushSubscription(sub: PushSubscriptionRow): Promise<boolean> {
+  return tryAuthenticated(async (uid) => {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('push_subscriptions')
+      .upsert(
+        { ...sub, user_id: uid, lastSeenAt: new Date().toISOString() } as any,
+        { onConflict: 'endpoint' },
+      )
+    if (error) {
+      console.warn('supabase savePushSubscription:', error.message)
+      return false
+    }
+    return true
+  }, false)
+}
+
+/** Retire l'abonnement de cet appareil, sans toucher aux autres. */
+export async function deletePushSubscription(endpoint: string): Promise<boolean> {
+  return tryAuthenticated(async (uid) => {
+    const supabase = createClient()
+    // `.select()` pour distinguer une suppression d'un refus silencieux : sous
+    // RLS, un delete qui ne correspond à rien réussit sans erreur.
+    const { data, error } = await supabase
+      .from('push_subscriptions')
+      .delete()
+      .eq('endpoint', endpoint)
+      .eq('user_id', uid)
+      .select()
+    if (error) {
+      console.warn('supabase deletePushSubscription:', error.message)
+      return false
+    }
+    return (data?.length ?? 0) > 0
+  }, false)
+}
+
 // -- Context store -- //
 
 export interface ContextRow {
