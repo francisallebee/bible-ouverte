@@ -127,6 +127,76 @@ await supabase.from('profiles').update({ is_admin: true }).eq('id', (await supab
 La réponse doit contenir une erreur (`permission denied for column is_admin`).
 Si la ligne passe, la migration `20260801120001` n'a pas été appliquée.
 
+## Notifications push
+
+La fonction `functions/send-notifications` envoie les rappels. Sa logique de
+sélection — qui reçoit quoi, à quelle heure locale — vit dans `schedule.ts`,
+sans dépendance, et est couverte par dix-huit tests exécutés par `npm test`.
+Seul le point d'entrée `index.ts` est écarté de `tsc` : il tourne sous Deno.
+
+### Ce qui doit être fait à la main, une fois
+
+Trois secrets, à déposer sur la fonction. La **clé privée VAPID ne doit jamais
+entrer dans le dépôt** : seule la clé publique y figure, en clair, dans
+`src/lib/notifications.ts` et dans `index.ts`.
+
+```bash
+supabase secrets set \
+  VAPID_PRIVATE_KEY="…" \
+  VAPID_SUBJECT="mailto:…" \
+  NOTIFY_CRON_SECRET="…" \
+  --project-ref nttasjckcmoqvjchxbzf
+```
+
+`NOTIFY_CRON_SECRET` est une chaîne aléatoire de votre choix. Elle évite
+d'exposer la clé `service_role` au planificateur : la fonction n'accepte que
+les appels qui la portent dans l'en-tête `x-cron-secret`.
+
+Puis le déploiement :
+
+```bash
+supabase functions deploy send-notifications --project-ref nttasjckcmoqvjchxbzf
+```
+
+### La cadence
+
+Un quart d'heure, et non une heure. Certains fuseaux sont décalés d'une
+demi-heure ou d'un quart d'heure — l'Inde, le Népal — et un passage horaire
+servirait tous leurs habitants à côté de l'heure demandée.
+
+Le planificateur n'est **pas** une migration : il contient le secret, qui n'a
+rien à faire dans le dépôt. À passer une fois dans le SQL Editor, en
+remplaçant les deux valeurs :
+
+```sql
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+select cron.schedule(
+  'notifications-quart-dheure',
+  '*/15 * * * *',
+  $$
+  select net.http_post(
+    url := 'https://nttasjckcmoqvjchxbzf.supabase.co/functions/v1/send-notifications',
+    headers := '{"Content-Type":"application/json","x-cron-secret":"LE_SECRET"}'::jsonb
+  );
+  $$
+);
+```
+
+Pour vérifier ou retirer : `select * from cron.job;` et
+`select cron.unschedule('notifications-quart-dheure');`.
+
+### Pourquoi la trace est écrite avant l'envoi
+
+`notification_log` reçoit la ligne **avant** que la notification parte. Un
+doublon est pire qu'un manque : recevoir deux fois le même rappel donne envie
+de tout couper, alors qu'un rappel manqué passe inaperçu. Un conflit sur
+l'unicité `(user_id, kind, ref)` vaut donc « déjà envoyé ».
+
+Un abonnement qui répond 404 ou 410 est retiré : le service de push ne le
+connaît plus, et le garder ferait échouer chaque envoi à jamais.
+
 ## Ce qui reste hors du dépôt
 
 Les buckets de stockage `photos` et `audio` sont créés depuis le dashboard et ne
