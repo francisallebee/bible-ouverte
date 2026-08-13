@@ -165,6 +165,12 @@ export interface AppSettings {
    * changer du jour au lendemain.
    */
   autoLogoutMinutes?: number;
+  /**
+   * Choix de l'utilisateur pour son compte. Ne dit rien de l'appareil : la
+   * permission du navigateur peut avoir été révoquée depuis, et c'est elle qui
+   * tranche (voir `notificationStatus` dans `lib/notifications.ts`).
+   */
+  notificationsEnabled?: boolean;
   /** true si une modification locale n'a pas encore été poussée vers le cloud */
   _dirty?: boolean;
 }
