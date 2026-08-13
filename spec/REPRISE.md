@@ -28,8 +28,19 @@ maintenant traitées : les routes API portent `export const dynamic =
 'force-dynamic'`, et `NEXT_PUBLIC_SUPABASE_URL` et
 `NEXT_PUBLIC_SUPABASE_ANON_KEY` ont été ajoutées à l'environnement **Preview**.
 
-`SUPABASE_SERVICE_ROLE_KEY` reste sur le seul environnement Production, et doit
-y rester : chaque branche poussée est déployée sur une URL publique.
+Vérifié sur la première preview (PR #6) : `/`, `/auth/login` et `/new-reading`
+répondent toutes `200`. Le middleware ne plante donc plus.
+
+**Les URL de preview sont protégées par la protection de déploiement Vercel** :
+le contenu servi est la page de connexion Vercel (`<title>Login – Vercel</title>`)
+tant qu'on n'est pas authentifié sur le compte. Pour ouvrir une preview depuis un
+téléphone, il faut y être connecté à Vercel. C'est mesuré, et cela contredit ce
+que ce document affirmait jusqu'ici.
+
+`SUPABASE_SERVICE_ROLE_KEY` reste malgré tout sur le seul environnement
+Production, et doit y rester. La protection de déploiement est un réglage, pas
+une garantie : si elle est levée un jour — c'est une case du tableau de bord —
+chaque branche poussée devient lisible de tous.
 
 Ne pas essayer de déployer une preview par `vercel deploy` depuis le poste : le
 dépôt représente 62,5 Mo à téléverser à cause des traductions, et l'envoi est

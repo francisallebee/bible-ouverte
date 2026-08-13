@@ -116,11 +116,13 @@ npm test           # vitest
 - Les déploiements de preview Vercel ont été débloqués le 13 août 2026 :
   `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` sont désormais
   dans l'environnement Preview, en plus du `export const dynamic =
-  'force-dynamic'` des cinq routes API. La clé `service_role` reste sur le seul
-  environnement Production et doit y rester : chaque branche poussée est
-  déployée sur une URL publique. Ne pas déployer une preview par
-  `vercel deploy` depuis le poste — 62,5 Mo à téléverser, l'envoi n'aboutit
-  pas ; les previews passent par git.
+  'force-dynamic'` des cinq routes API. Les URL de preview sont derrière la
+  protection de déploiement Vercel : il faut être connecté au compte pour les
+  ouvrir. La clé `service_role` reste malgré tout sur le seul environnement
+  Production et doit y rester — cette protection est un réglage du tableau de
+  bord, pas une garantie. Ne pas déployer une preview par `vercel deploy`
+  depuis le poste : 62,5 Mo à téléverser, l'envoi n'aboutit pas ; les previews
+  passent par git.
 - **Le texte de Sacy est amputé** : Genèse 49 chapitres sur 50, Exode 39/40,
   Psaumes 149/150, Cantique 6/8, et d'autres. Le défaut vient du fichier source
   (`heb12/gratis.json`), pas de la conversion. Le corriger suppose de trouver
