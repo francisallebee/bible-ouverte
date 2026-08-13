@@ -172,7 +172,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
  * réabonner, faute de quoi ils ne recevront plus rien.
  */
 export const VAPID_PUBLIC_KEY =
-  'BBGF1rFwRWmV0kUgIogT9fMBH9YRYvn-mLtSgieywW2KpOL_zi6rjH7cEjtM_03iJGFr86gtLMaUURfqtNCi9sE'
+  'BMaCrMZf8hSSWSaQiuETdk7ly0TIM3ctGziuH4XxBV1GH2dYMSn7rlm1RIVHtTmUmNEhneRZ5iDTy_AmnTxpb00'
 
 /**
  * `applicationServerKey` n'accepte pas le base64url : il lui faut les octets.

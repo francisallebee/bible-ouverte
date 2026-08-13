@@ -22,7 +22,7 @@ import type { CollectInput } from './schedule.ts'
  * dans les secrets de cette fonction — voir `supabase/README.md`.
  */
 const VAPID_PUBLIC_KEY =
-  'BBGF1rFwRWmV0kUgIogT9fMBH9YRYvn-mLtSgieywW2KpOL_zi6rjH7cEjtM_03iJGFr86gtLMaUURfqtNCi9sE'
+  'BMaCrMZf8hSSWSaQiuETdk7ly0TIM3ctGziuH4XxBV1GH2dYMSn7rlm1RIVHtTmUmNEhneRZ5iDTy_AmnTxpb00'
 
 /**
  * Fenêtre de fraîcheur des événements. Large au regard de la cadence : un
