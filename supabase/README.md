@@ -19,6 +19,7 @@ aucune donnée.
 | `20260809100000_meditation_emoji.sql` | Emoji du contexte « Méditation » : 🧘 → 🕊️ |
 | `20260809140000_plan_reading_context.sql` | Contexte « Plan de lecture » et rattachement des lectures issues d'un plan |
 | `20260810120000_free_plans.sql` | `plans.kind` et les versets de `plan_days` : les plans de lecture libres |
+| `20260813120000_push_notifications.sql` | `push_subscriptions` et `notification_log`, avec leur RLS |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.

@@ -14,6 +14,7 @@ import { COLOR_THEMES, applyColorTheme, applyTheme } from "@/lib/themes";
 import { AUTO_LOGOUT_CHOICES } from "@/lib/auto-logout";
 import {
   notificationStatus, readDeviceState, requestNotificationPermission, showTestNotification,
+  NOTIFICATION_TRIGGERS, resolveTriggers, readTimeZone, DEFAULT_REMINDER_TIME,
 } from "@/lib/notifications";
 import type { DeviceNotificationState } from "@/lib/notifications";
 
@@ -182,7 +183,24 @@ export default function SettingsPage() {
   }
 
   async function handleNotificationsToggle(enabled: boolean) {
-    await updateSettings({ notificationsEnabled: enabled });
+    // Le fuseau est relevé à l'activation, et non demandé : le navigateur le
+    // connaît, et sans lui « à 7 h » n'a pas de sens côté serveur.
+    await updateSettings(enabled
+      ? { notificationsEnabled: true, timeZone: readTimeZone() }
+      : { notificationsEnabled: false });
+    const s = await getSettings();
+    setSettings(s ?? null);
+  }
+
+  async function handleTriggerToggle(id: string, on: boolean) {
+    const current = resolveTriggers(settings?.notificationTriggers);
+    await updateSettings({ notificationTriggers: { ...current, [id]: on } });
+    const s = await getSettings();
+    setSettings(s ?? null);
+  }
+
+  async function handleReminderTimeChange(time: string) {
+    await updateSettings({ dailyReminderTime: time, timeZone: readTimeZone() });
     const s = await getSettings();
     setSettings(s ?? null);
   }
@@ -497,9 +515,44 @@ export default function SettingsPage() {
                     Recevoir des notifications sur cet appareil
                   </span>
                 </label>
-                <p className="text-sm text-[--text-secondary] mt-3">
-                  L&apos;autorisation est accordée. Rien n&apos;est encore envoyé :
-                  le choix des rappels et leur envoi restent à venir.
+                {status.enabled && (() => {
+                  const triggers = resolveTriggers(settings?.notificationTriggers);
+                  return (
+                    <div className="mt-4 pt-4 border-t border-[--border] space-y-3">
+                      <p className="text-sm font-medium text-[--text]">Ce qui déclenche une notification</p>
+                      {NOTIFICATION_TRIGGERS.map((t) => (
+                        <div key={t.id}>
+                          <label className="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" checked={triggers[t.id]}
+                              onChange={(e) => handleTriggerToggle(t.id, e.target.checked)}
+                              className="accent-[--primary] w-4 h-4 mt-0.5" />
+                            <span className="min-w-0">
+                              <span className="block text-sm text-[--text]">{t.label}</span>
+                              <span className="block text-xs text-[--text-secondary]">{t.hint}</span>
+                            </span>
+                          </label>
+                          {t.id === "daily" && triggers.daily && (
+                            <div className="flex items-center gap-2 mt-2 ml-7">
+                              <label htmlFor="reminder-time" className="text-xs text-[--text-secondary]">
+                                À
+                              </label>
+                              <input id="reminder-time" type="time"
+                                value={settings?.dailyReminderTime ?? DEFAULT_REMINDER_TIME}
+                                onChange={(e) => handleReminderTimeChange(e.target.value)}
+                                className="border border-[--border] rounded-lg px-2.5 py-1.5 text-sm bg-[--surface] text-[--text]" />
+                              <span className="text-xs text-[--text-secondary]">
+                                heure de {settings?.timeZone ?? readTimeZone()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+                <p className="text-sm text-[--text-secondary] mt-4">
+                  L&apos;autorisation est accordée et tes choix sont enregistrés.
+                  Rien n&apos;est encore envoyé : l&apos;envoi lui-même reste à venir.
                 </p>
                 <button type="button" onClick={handleTestNotification}
                   className="mt-3 border border-[--border] rounded-lg px-4 py-2 text-sm text-[--text] hover:bg-gray-50 transition-colors">
