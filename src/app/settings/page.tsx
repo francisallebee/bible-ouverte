@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion } from "@/lib/storage";
 import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,10 @@ import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion } from "@/lib/storage";
 import { COLOR_THEMES, applyColorTheme, applyTheme } from "@/lib/themes";
 import { AUTO_LOGOUT_CHOICES } from "@/lib/auto-logout";
+import {
+  notificationStatus, readDeviceState, requestNotificationPermission, showTestNotification,
+} from "@/lib/notifications";
+import type { DeviceNotificationState } from "@/lib/notifications";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -28,6 +32,12 @@ export default function SettingsPage() {
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [busyVersion, setBusyVersion] = useState<string | null>(null);
   const [versionError, setVersionError] = useState("");
+
+  // Lu au montage seulement : `Notification.permission` n'existe pas au rendu
+  // serveur, et l'état de départ doit donc être neutre.
+  const [deviceNotif, setDeviceNotif] = useState<DeviceNotificationState | null>(null);
+  const [notifBusy, setNotifBusy] = useState(false);
+  const [notifTest, setNotifTest] = useState("");
 
   async function loadVersions() {
     setVersions(await getAllVersions());
@@ -91,6 +101,7 @@ export default function SettingsPage() {
       setVerseCount(vc);
       applyTheme(s?.theme);
       if (s?.colorTheme) applyColorTheme(s.colorTheme);
+      setDeviceNotif(readDeviceState());
       setLoaded(true);
       await loadVersions();
     })();
@@ -152,6 +163,34 @@ export default function SettingsPage() {
     const s = await getSettings();
     setSettings(s ?? null);
     applyTheme(theme);
+  }
+
+  async function refreshDeviceNotifications() {
+    setDeviceNotif(readDeviceState());
+  }
+
+  async function handleAskPermission() {
+    setNotifBusy(true);
+    const result = await requestNotificationPermission();
+    await refreshDeviceNotifications();
+    // Accorder la permission vaut activation : personne ne la donne pour la
+    // laisser inactive, et un second geste au même endroit serait un piège.
+    if (result === "granted" && !settings?.notificationsEnabled) {
+      await handleNotificationsToggle(true);
+    }
+    setNotifBusy(false);
+  }
+
+  async function handleNotificationsToggle(enabled: boolean) {
+    await updateSettings({ notificationsEnabled: enabled });
+    const s = await getSettings();
+    setSettings(s ?? null);
+  }
+
+  function handleTestNotification() {
+    setNotifTest(showTestNotification()
+      ? "Notification envoyée. Si tu ne la vois pas, vérifie les réglages de ton appareil."
+      : "Envoi impossible : la permission n'est pas accordée sur cet appareil.");
   }
 
   async function handleAutoLogoutChange(minutes: number) {
@@ -386,6 +425,87 @@ export default function SettingsPage() {
               {importStatus}
             </p>
           )}
+        </SectionCard>
+
+        <SectionCard icon={Bell} title="Notifications">
+          {(() => {
+            // Tant que l'état de l'appareil n'est pas lu, ne rien affirmer :
+            // afficher « non géré » puis se dédire au montage serait pire que
+            // d'attendre une fraction de seconde.
+            if (!deviceNotif) {
+              return <p className="text-sm text-[--text-secondary]">Lecture de l&apos;appareil…</p>;
+            }
+            const status = notificationStatus(deviceNotif, settings?.notificationsEnabled ?? false);
+
+            if (status.kind === "ios-not-installed") {
+              return (
+                <p className="text-sm text-[--text-secondary]">
+                  Sur iPhone et iPad, les notifications ne sont délivrées qu&apos;aux
+                  applications installées. Ouvre le menu de partage de Safari, puis
+                  « Sur l&apos;écran d&apos;accueil », et reviens ici depuis
+                  l&apos;application ainsi installée.
+                </p>
+              );
+            }
+
+            if (status.kind === "unsupported") {
+              return (
+                <p className="text-sm text-[--text-secondary]">
+                  Ce navigateur ne gère pas les notifications. Le réglage reste
+                  disponible depuis un appareil qui les prend en charge.
+                </p>
+              );
+            }
+
+            if (status.kind === "denied") {
+              return (
+                <p className="text-sm text-[--text-secondary]">
+                  Les notifications ont été refusées pour ce site. Une application
+                  ne peut pas revenir sur ce choix : il faut le rouvrir dans les
+                  réglages de ton navigateur.
+                </p>
+              );
+            }
+
+            if (status.kind === "needs-permission") {
+              return (
+                <>
+                  <p className="text-sm text-[--text-secondary] mb-3">
+                    Reçois un rappel de lecture sur cet appareil. Ton navigateur
+                    va te demander ton accord.
+                  </p>
+                  <button type="button" onClick={handleAskPermission} disabled={notifBusy}
+                    className="bg-[--primary] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-50 transition-colors">
+                    {notifBusy ? "En attente de ta réponse…" : "Autoriser les notifications"}
+                  </button>
+                </>
+              );
+            }
+
+            return (
+              <>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={status.enabled}
+                    onChange={(e) => handleNotificationsToggle(e.target.checked)}
+                    className="accent-[--primary] w-4 h-4" />
+                  <span className="text-sm text-[--text]">
+                    Recevoir des notifications sur cet appareil
+                  </span>
+                </label>
+                <p className="text-sm text-[--text-secondary] mt-3">
+                  L&apos;autorisation est accordée. Rien n&apos;est encore envoyé :
+                  le choix des rappels et leur envoi restent à venir.
+                </p>
+                <button type="button" onClick={handleTestNotification}
+                  className="mt-3 border border-[--border] rounded-lg px-4 py-2 text-sm text-[--text] hover:bg-gray-50 transition-colors">
+                  Envoyer une notification de test
+                </button>
+                {notifTest && (
+                  <p className="text-sm text-[--text-secondary] mt-2">{notifTest}</p>
+                )}
+              </>
+            );
+          })()}
         </SectionCard>
 
         <SectionCard icon={Clock} title="Déconnexion automatique">
