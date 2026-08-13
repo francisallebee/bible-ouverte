@@ -20,6 +20,7 @@ aucune donnée.
 | `20260809140000_plan_reading_context.sql` | Contexte « Plan de lecture » et rattachement des lectures issues d'un plan |
 | `20260810120000_free_plans.sql` | `plans.kind` et les versets de `plan_days` : les plans de lecture libres |
 | `20260813120000_push_notifications.sql` | `push_subscriptions` et `notification_log`, avec leur RLS |
+| `20260813160000_notification_data.sql` | `notification_data()` : les agrégats des cinq déclencheurs |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -131,8 +132,33 @@ Si la ligne passe, la migration `20260801120001` n'a pas été appliquée.
 
 La fonction `functions/send-notifications` envoie les rappels. Sa logique de
 sélection — qui reçoit quoi, à quelle heure locale — vit dans `schedule.ts`,
-sans dépendance, et est couverte par dix-huit tests exécutés par `npm test`.
-Seul le point d'entrée `index.ts` est écarté de `tsc` : il tourne sous Deno.
+sans dépendance, et est couverte par les tests de `npm test`. Seul le point
+d'entrée `index.ts` est écarté de `tsc` : il tourne sous Deno.
+
+### Les cinq déclencheurs
+
+| Motif | Quand | Référence anti-doublon |
+|---|---|---|
+| `daily` | à l'heure choisie | la date locale |
+| `plan-late` | à l'heure choisie | le plan **et** son plus ancien jour non coché |
+| `inactive` | à l'heure choisie, après 7 jours sans lecture | la date de la dernière lecture |
+| `support-reply` | dès la plage de veille (8 h–22 h) | le ticket **et** la réponse |
+| `roadmap-done` | dès la plage de veille | l'item |
+
+Les trois premiers ne pressent pas : ils attendent le créneau choisi. Les deux
+autres perdent leur sens s'ils attendent, mais n'ont rien à faire à 3 h du
+matin — d'où la plage de veille.
+
+Le choix des références n'est pas cosmétique. Celle de `plan-late` est le plan
+et son plus ancien jour en retard : tant que rien n'est rattrapé, ce jour ne
+bouge pas, la référence non plus, et l'unicité bloque la relance. Rattraper une
+partie du retard fait avancer ce jour, donc autorise une relance, une seule.
+Même principe pour `inactive`, dont la référence est la dernière lecture : une
+relance par période d'absence, et non chaque jour où l'absence dure.
+
+`notification_data()` fournit les agrégats en une requête. `security invoker` :
+la clé service_role voit tout, un compte ordinaire qui l'appellerait depuis son
+navigateur ne verrait que ses propres lignes.
 
 ### Ce qui doit être fait à la main, une fois
 
