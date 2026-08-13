@@ -113,16 +113,14 @@ npm test           # vitest
   Reste à traiter : chaque écran resynchronise contextes, lectures et réglages
   à son ouverture sans mémoire de ce qui vient d'être récupéré — une vingtaine
   d'appels pour environ cinq secondes cumulées sur trois navigations.
-- **Les déploiements de preview Vercel restent bloqués, à moitié.** Les cinq
-  routes API portent désormais `export const dynamic = 'force-dynamic'` : Next
-  ne les exécute plus pendant la génération statique, et `createAdminClient()`
-  ne lève donc plus d'exception faute de clés. Reste l'autre moitié, qui ne se
-  règle pas dans le dépôt : les variables Supabase n'existent que dans
-  l'environnement Production, et le middleware planterait à chaque requête sans
-  elles. Il faut ajouter `NEXT_PUBLIC_SUPABASE_URL` et
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY` à l'environnement Preview depuis le tableau
-  de bord. La clé `service_role` n'a rien à y faire : chaque branche poussée y
-  est déployée sur une URL publique.
+- Les déploiements de preview Vercel ont été débloqués le 13 août 2026 :
+  `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` sont désormais
+  dans l'environnement Preview, en plus du `export const dynamic =
+  'force-dynamic'` des cinq routes API. La clé `service_role` reste sur le seul
+  environnement Production et doit y rester : chaque branche poussée est
+  déployée sur une URL publique. Ne pas déployer une preview par
+  `vercel deploy` depuis le poste — 62,5 Mo à téléverser, l'envoi n'aboutit
+  pas ; les previews passent par git.
 - **Le texte de Sacy est amputé** : Genèse 49 chapitres sur 50, Exode 39/40,
   Psaumes 149/150, Cantique 6/8, et d'autres. Le défaut vient du fichier source
   (`heb12/gratis.json`), pas de la conversion. Le corriger suppose de trouver
