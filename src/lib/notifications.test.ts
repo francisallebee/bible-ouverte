@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { notificationStatus } from './notifications'
+import { notificationStatus, resolveTriggers, DEFAULT_TRIGGERS, NOTIFICATION_TRIGGERS } from './notifications'
 import type { DeviceNotificationState } from './notifications'
 
 /**
@@ -73,5 +73,55 @@ describe('notificationStatus', () => {
       .toEqual({ kind: 'denied' })
     expect(notificationStatus(device({ supported: false, permission: 'unsupported' }), true))
       .toEqual({ kind: 'unsupported' })
+  })
+})
+
+describe('resolveTriggers', () => {
+  it('rend les valeurs par défaut quand rien n\'est enregistré', () => {
+    expect(resolveTriggers(undefined)).toEqual(DEFAULT_TRIGGERS)
+    expect(resolveTriggers({})).toEqual(DEFAULT_TRIGGERS)
+  })
+
+  it('n\'active pas le rappel quotidien d\'office', () => {
+    // Il suppose une heure : en choisir une à la place de l'utilisateur
+    // reviendrait à le réveiller à une heure qu'il n'a pas demandée.
+    expect(resolveTriggers(undefined).daily).toBe(false)
+  })
+
+  it('respecte un refus enregistré', () => {
+    const r = resolveTriggers({ 'support-reply': false })
+    expect(r['support-reply']).toBe(false)
+    // Les autres gardent leur défaut.
+    expect(r['plan-late']).toBe(true)
+  })
+
+  it('respecte une activation enregistrée', () => {
+    expect(resolveTriggers({ daily: true }).daily).toBe(true)
+  })
+
+  it('complète un compte réglé avant l\'ajout d\'un déclencheur', () => {
+    // Le cas qui compte : sans complément, une clé absente serait lue comme un
+    // refus, et le déclencheur nouvellement ajouté n'arriverait jamais.
+    const ancien = { daily: true, 'plan-late': false }
+    const r = resolveTriggers(ancien)
+    expect(r.daily).toBe(true)
+    expect(r['plan-late']).toBe(false)
+    expect(r['roadmap-done']).toBe(DEFAULT_TRIGGERS['roadmap-done'])
+    expect(r.inactive).toBe(DEFAULT_TRIGGERS.inactive)
+  })
+
+  it('écarte les clés inconnues et les valeurs qui ne sont pas des booléens', () => {
+    const r = resolveTriggers({ inconnu: true, daily: 'oui' as unknown as boolean })
+    expect(r).toEqual(DEFAULT_TRIGGERS)
+    expect('inconnu' in r).toBe(false)
+  })
+
+  it('couvre exactement les cinq déclencheurs annoncés', () => {
+    expect(NOTIFICATION_TRIGGERS.map((t) => t.id).sort()).toEqual(
+      ['daily', 'inactive', 'plan-late', 'roadmap-done', 'support-reply'],
+    )
+    expect(Object.keys(DEFAULT_TRIGGERS).sort()).toEqual(
+      NOTIFICATION_TRIGGERS.map((t) => t.id).sort(),
+    )
   })
 })

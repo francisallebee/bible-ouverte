@@ -8,6 +8,84 @@
  * `notifications.test.ts` les couvre.
  */
 
+/**
+ * Ce qui déclenche une notification. Les identifiants sont ceux de la colonne
+ * `kind` de `notification_log` : les changer suppose de changer sa contrainte.
+ */
+export const NOTIFICATION_TRIGGERS = [
+  {
+    id: 'daily',
+    label: 'Rappel quotidien',
+    hint: "À l'heure de ton choix, pour ne pas oublier ta lecture.",
+  },
+  {
+    id: 'plan-late',
+    label: 'Plan de lecture en retard',
+    hint: "Quand un jour prévu n'a pas été coché.",
+  },
+  {
+    id: 'support-reply',
+    label: 'Réponse à un message de support',
+    hint: 'Quand quelqu’un répond à un de tes tickets.',
+  },
+  {
+    id: 'roadmap-done',
+    label: 'Feuille de route',
+    hint: "Quand une fonctionnalité attendue passe à « Terminé ».",
+  },
+  {
+    id: 'inactive',
+    label: 'Longue absence',
+    hint: "Une relance après plusieurs jours sans lecture.",
+  },
+] as const
+
+export type NotificationTrigger = typeof NOTIFICATION_TRIGGERS[number]['id']
+
+/**
+ * Le rappel quotidien est le seul à ne pas être actif d'emblée : il suppose une
+ * heure, et en choisir une à la place de l'utilisateur reviendrait à le
+ * réveiller à une heure qu'il n'a pas demandée.
+ */
+export const DEFAULT_TRIGGERS: Record<NotificationTrigger, boolean> = {
+  daily: false,
+  'plan-late': true,
+  'support-reply': true,
+  'roadmap-done': true,
+  inactive: true,
+}
+
+/**
+ * Complète les préférences enregistrées par les valeurs par défaut, et écarte
+ * les clés inconnues. Un compte réglé avant l'ajout d'un déclencheur n'a pas sa
+ * clé : sans ce complément, le déclencheur serait lu comme refusé.
+ */
+export function resolveTriggers(
+  saved: Partial<Record<string, boolean>> | undefined,
+): Record<NotificationTrigger, boolean> {
+  const resolved = { ...DEFAULT_TRIGGERS }
+  if (!saved) return resolved
+  for (const { id } of NOTIFICATION_TRIGGERS) {
+    if (typeof saved[id] === 'boolean') resolved[id] = saved[id] as boolean
+  }
+  return resolved
+}
+
+/** Heure du rappel quotidien, quand l'utilisateur n'en a pas choisi. */
+export const DEFAULT_REMINDER_TIME = '07:00'
+
+/**
+ * Le fuseau de l'appareil, en identifiant IANA. Sans lui, « à 7 h » n'a pas de
+ * sens côté serveur : les dates de l'application sont des `YYYY-MM-DD` nus.
+ */
+export function readTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Paris'
+  } catch {
+    return 'Europe/Paris'
+  }
+}
+
 export interface DeviceNotificationState {
   /** L'API `Notification` existe dans ce navigateur. */
   supported: boolean

@@ -171,6 +171,19 @@ export interface AppSettings {
    * tranche (voir `notificationStatus` dans `lib/notifications.ts`).
    */
   notificationsEnabled?: boolean;
+  /**
+   * Un interrupteur par déclencheur, par identifiant. Une clé absente prend sa
+   * valeur par défaut : voir `resolveTriggers` dans `lib/notifications.ts`, sans
+   * quoi un déclencheur ajouté plus tard serait lu comme refusé.
+   */
+  notificationTriggers?: Record<string, boolean>;
+  /** Heure du rappel quotidien, au format `HH:MM`. */
+  dailyReminderTime?: string;
+  /**
+   * Fuseau de l'appareil, en identifiant IANA. Sans lui, « à 7 h » n'a pas de
+   * sens côté serveur : les dates de l'application sont des `YYYY-MM-DD` nus.
+   */
+  timeZone?: string;
   /** true si une modification locale n'a pas encore été poussée vers le cloud */
   _dirty?: boolean;
 }
