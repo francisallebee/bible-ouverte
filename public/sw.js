@@ -92,6 +92,86 @@ async function networkFirst(request) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+const NOTIFICATION_DEFAULTS = {
+  title: "Bible Ouverte",
+  body: "",
+  url: "/new-reading",
+};
+
+// Le service de push peut livrer un message sans corps, ou avec un corps qui
+// n'est pas du JSON. Une exception dans le gestionnaire "push" ferait taire la
+// notification entière : mieux vaut un message générique qu'aucun message.
+function readPayload(event) {
+  if (!event.data) return { ...NOTIFICATION_DEFAULTS };
+  try {
+    const data = event.data.json();
+    return {
+      title: data.title || NOTIFICATION_DEFAULTS.title,
+      body: data.body || NOTIFICATION_DEFAULTS.body,
+      url: data.url || NOTIFICATION_DEFAULTS.url,
+      tag: data.tag,
+      kind: data.kind,
+    };
+  } catch {
+    return { ...NOTIFICATION_DEFAULTS, body: event.data.text() };
+  }
+}
+
+self.addEventListener("push", (event) => {
+  const payload = readPayload(event);
+
+  // waitUntil est obligatoire : sans lui le navigateur peut arrêter le service
+  // worker avant que la notification soit affichée. Sur certains systèmes, une
+  // notification promise et non tenue coupe le droit d'en envoyer d'autres.
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      // Deux notifications de même motif se remplacent au lieu de s'empiler :
+      // un plan en retard n'a pas à occuper cinq lignes du centre de
+      // notifications parce que le cron est passé cinq fois.
+      tag: payload.tag || payload.kind || "bible-ouverte",
+      data: { url: payload.url },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || "/";
+
+  event.waitUntil(
+    (async () => {
+      const clientList = await self.clients.matchAll({
+        type: "window",
+        // Sans cette option, un onglet non contrôlé par ce service worker est
+        // invisible : on rouvrirait une fenêtre alors que l'application est
+        // déjà ouverte à côté.
+        includeUncontrolled: true,
+      });
+
+      const url = new URL(target, self.location.origin);
+      for (const client of clientList) {
+        if (new URL(client.url).origin !== url.origin) continue;
+        await client.focus();
+        // `navigate` n'existe pas partout, et échoue sur un client non
+        // contrôlé : le focus seul vaut mieux que rien.
+        if ("navigate" in client) {
+          try { await client.navigate(url.href); } catch { /* focus déjà donné */ }
+        }
+        return;
+      }
+
+      await self.clients.openWindow(url.href);
+    })()
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (!isCacheable(request)) return;
