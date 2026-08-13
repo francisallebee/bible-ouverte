@@ -150,20 +150,25 @@ Relevé sur le projet réel, pas déduit du dépôt.
 | `notification_data()` | en place (migration `20260813092636`) |
 | `pg_net` 0.20.4, `pg_cron` 1.6.4 | installées |
 | Fonction `send-notifications` | déployée, version 1, `verify_jwt: false` |
-| Les trois secrets | **absents** — c'est ce qui reste |
-| Planificateur `cron.schedule` | **absent** — à créer une fois les secrets déposés |
+| `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NOTIFY_CRON_SECRET` | déposés |
+| Planificateur `cron.schedule` | **absent** — c'est ce qui reste |
 | Abonnements, journal | 0 ligne l'un et l'autre |
 
-La fonction déployée a été appelée depuis la base, avec un `x-cron-secret`
-volontairement faux : elle répond `401` et le corps `unauthorized`. Cette
-chaîne est celle de `index.ts` et non un JSON d'erreur de la passerelle — la
-preuve que l'appel sans `Authorization` traverse bien, et que le contrôle du
-secret s'exécute. Tant que `NOTIFY_CRON_SECRET` n'est pas déposé, tout appel
-reçoit ce même `401` : c'est le comportement attendu, pas une panne.
+Appelée avec le bon secret, la fonction rend `200` et
+`{"candidats":0,"envoyes":0,"deja":0,"purges":0,"parMotif":{}}` ; avec un
+mauvais, `401` et le corps `unauthorized`.
 
-Le planificateur est délibérément créé **après** les secrets. L'inverse ferait
-tourner un cron à vide toutes les quinze minutes, dont les échecs
-ressembleraient à ceux d'un secret mal recopié.
+Ces deux réponses valent bien plus qu'un aller-retour. Le `200` prouve que les
+clés VAPID sont chargées — sans elles la fonction rendrait `500` —, que le
+client service_role fonctionne et que la RPC `notification_data()` répond. Le
+`401` porte la chaîne de `index.ts`, et non un JSON d'erreur de la passerelle :
+c'est la preuve qu'un appel dépourvu d'`Authorization` traverse bien, donc que
+`verify_jwt` est effectivement à `false`. `candidats:0` est l'attendu tant que
+personne n'a activé les notifications.
+
+Le planificateur se crée **après** les secrets. L'inverse ferait tourner un cron
+à vide toutes les quinze minutes, dont les échecs ressembleraient à ceux d'un
+secret mal recopié.
 
 ### Les cinq déclencheurs
 

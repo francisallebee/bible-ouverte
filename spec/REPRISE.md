@@ -10,14 +10,13 @@ action hors du dépôt.
 
 ## Ce qui attend une action hors du dépôt
 
-1. **Le poste ne joint plus github.com, supabase.com ni vercel.com.** C'est le
-   blocage à lever en premier : il empêche `git push`, la CLI Supabase et le
-   tableau de bord Vercel. Voir la section dédiée plus bas — la cause est
-   identifiée et la mesure faite.
-2. **Les trois secrets de la fonction d'envoi ne sont pas déposés**, et le
-   planificateur n'existe pas. C'est tout ce qui manque pour que les
-   notifications partent ; le reste est en production. Commandes et ordre exact
-   dans `supabase/README.md`, section « Notifications push ».
+1. **Le réseau domestique filtre github, supabase et vercel.** Tant que ce n'est
+   pas réglé sur la box, travailler en **partage de connexion iPhone** : c'est
+   mesuré, tout repasse. Voir la section dédiée plus bas.
+2. **Le planificateur `cron.schedule` reste à créer.** Le SQL est prêt, secret
+   substitué, dans `~/bible-ouverte-planificateur.sql` (mode `600`, hors du
+   dépôt) — à coller une fois dans le SQL Editor. Il ne passe pas par un outil
+   d'agent parce qu'il porte le secret partagé.
 3. **Aucune notification n'a jamais été reçue sur un appareil réel.** Tant que
    ce n'est pas fait, l'item 17 n'est pas terminé, quoi qu'en disent le typage
    et les tests.
@@ -59,9 +58,16 @@ poste, sur `feat/notifications-abonnement-appareil` :
 
 **Ce qui est en production côté base**, relevé et non déduit : les deux
 migrations sont appliquées, `notification_data()` existe, `pg_net` et `pg_cron`
-sont installées, et la fonction `send-notifications` est déployée en version 1
-avec `verify_jwt: false`. Il manque les trois secrets et le planificateur.
-`push_subscriptions` et `notification_log` comptent zéro ligne.
+sont installées, la fonction `send-notifications` est déployée en version 1 avec
+`verify_jwt: false`, et **les trois secrets sont déposés**. Appelée avec le bon
+secret, elle rend `200` et `{"candidats":0,"envoyes":0,"deja":0,"purges":0}` ;
+sans lui, `401`. Un `200` vaut mieux qu'un aller-retour : il prouve que les clés
+VAPID sont chargées — sinon la fonction rendrait `500` —, que le client
+service_role fonctionne et que la RPC `notification_data()` répond.
+
+Il ne manque que le **planificateur**. `push_subscriptions` et
+`notification_log` comptent zéro ligne : `candidats:0` est donc l'attendu, pas
+un symptôme.
 
 ### La clé privée VAPID a été perdue, puis regénérée
 
@@ -79,29 +85,50 @@ rien à faire dans un répertoire temporaire.
 
 ## Réseau et déploiement
 
-### Le poste ne joint plus github, supabase ni vercel
+### Le réseau domestique filtre github, supabase et vercel
 
-Mesuré le 13 août au soir, et non supposé :
+**La cause est la box, pas le Mac.** Établi le 13 août au soir par le seul essai
+qui tranche : basculer le Mac sur le partage de connexion de l'iPhone. Sur la
+box (`192.168.1.46`, passerelle `192.168.1.254`), tout échoue ; sur le partage
+de connexion (`172.20.10.6`), `github.com` répond `200` en 124 ms et le `git
+push` passe du premier coup.
+
+La forme du blocage, relevée depuis la box :
 
 | Épreuve | Résultat |
 |---|---|
-| DNS `github.com`, `supabase.com` | résolvent normalement |
-| `/etc/hosts` | ne contient rien d'ajouté |
-| `example.com:443` (témoin) | connecté en 50 ms |
-| `github.com:443`, y compris par IP directe | échec en 0 à 4 ms |
-| `github.com:22` | *No route to host* |
-| `vercel.com:443` | échec en 41 ms |
-| `nttasjckcmoqvjchxbzf.supabase.co:443` | expiration au bout de 8 s |
+| DNS, `/etc/hosts`, `scutil --proxy`, règles `pf` | tous normaux ou vides |
+| `example.com`, `apple.com`, `google.com`, `cloudflare.com` | passent |
+| `registry.npmjs.org`, **`gitlab.com`**, `anthropic.com` | passent |
+| `github.com:443`, `api.github.com:443` | refusés |
+| `supabase.com:443`, `vercel.com:443` | refusés |
+| **`github.com:80`** | **`301`, passe** |
+| `github.com:22` | *No route to host* (ICMP de rejet) |
 
-Le DNS répond, le témoin passe, l'échec est instantané et vise certains hôtes :
-ce n'est ni une panne de réseau ni une résolution faussée, c'est une
-interception. `systemextensionsctl list` donne le coupable —
-`com.surfshark.vpnclient.macos.TransparentProxy` (4.28.1), `activated enabled`,
-active application fermée.
+Deux détails désignent un filtrage amont par liste d'hôtes : le **même hôte, la
+même IP** répond sur le port 80 et se voit refuser le 443 ; et GitLab passe
+quand GitHub est bloqué. Aucun réglage du Mac ne produit ça.
 
-**À désactiver dans Réglages Système → Général → Ouverture et extensions →
-Extensions réseau.** Deux autres extensions réseau, TripMode et AdLock, sont
-présentes mais `activated disabled` : elles ne sont pas en cause.
+Pour travailler quand la box filtre : **partage de connexion iPhone**. Pour
+régler durablement, c'est le contrôle parental ou le filtrage de la box, sur
+`http://192.168.1.254`.
+
+### Une fausse piste coûteuse : les extensions Surfshark
+
+Elle a occupé plusieurs échanges, elle est consignée pour ne pas être reprise.
+
+L'application Surfshark avait été désinstallée, mais ses **deux extensions
+système sont restées enregistrées et actives** —
+`com.surfshark.vpnclient.macos.TransparentProxy` et `…direct.Antivirus`, cette
+dernière tournant en root et consommant du CPU en continu. C'est un vrai défaut
+de nettoyage, qui mérite d'être réglé (Réglages Système → Général → Ouverture et
+extensions), mais **ce n'est pas la cause du blocage réseau** : celui-ci
+persistait extensions actives, et a disparu sans y toucher, par simple
+changement de réseau.
+
+Ce qui aurait dû mettre la puce à l'oreille plus tôt : un proxy transparent de
+VPN n'ouvre pas le port 80 d'un hôte dont il ferme le 443, et ne laisse pas
+passer GitLab en bloquant GitHub.
 
 ### Le MCP Supabase, lui, passe
 
@@ -155,8 +182,9 @@ interrompu avant la fin. Les previews passent par git.
 | Appels `/auth/v1/user` | ramenés de 17 à 3 par session | 9 août |
 | Carte de saisie de Nouvelle lecture, sur 375 px | 686 → 596 px, sept listes déroulantes ramenées à trois | 13 août |
 | Apostrophes doublées dans Louis Segond 1910 | 48 028 occurrences, dans le fichier source et non à l'affichage | 13 août |
-| Blocage réseau du poste | github et vercel refusés en 0-41 ms, témoin à 50 ms, DNS intact | 13 août |
-| Fonction `send-notifications` déployée | `401` / `unauthorized` sur secret faux, appelée depuis la base | 13 août |
+| Filtrage de la box | github/supabase/vercel refusés sur 443, github:80 et gitlab:443 passent | 13 août |
+| Le même Mac en partage de connexion | `github.com` à `200` en 124 ms, `git push` immédiat | 13 août |
+| Fonction `send-notifications` | `200` et `{"candidats":0,…}` avec le bon secret, `401` sans | 13 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -231,6 +259,16 @@ supabase.com, ce dont il aurait été facile de conclure que rien n'était possi
 côté base. Le MCP Supabase passait par ailleurs, et a permis de déployer et de
 vérifier la fonction d'envoi pendant que la CLI restait muette. Avant de
 déclarer une tâche bloquée, chercher si un autre chemin y mène.
+
+**Un coupable plausible n'est pas un coupable mesuré.** Une extension Surfshark
+orpheline, `activated enabled` alors que son application était désinstallée, a
+été désignée comme la cause du blocage réseau : c'était cohérent, vérifiable
+d'une commande, et faux. Plusieurs échanges y sont passés. Le diagnostic n'a
+tenu que jusqu'à ce qu'on élargisse la mesure — le port 80 ouvert quand le 443
+est fermé, GitLab qui passe quand GitHub est bloqué — et il est tombé
+définitivement au premier changement de réseau. **Quand une hypothèse désigne un
+composant, chercher d'abord l'essai qui l'éliminerait** : ici, basculer de
+réseau coûtait trente secondes et aurait tranché d'emblée.
 
 ## Vérification visuelle
 
