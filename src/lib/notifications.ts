@@ -84,22 +84,56 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   }
 }
 
+export type TestNotificationResult =
+  | 'sent'
+  | 'no-permission'
+  | 'unsupported'
+  | 'failed'
+
+const TEST_TITLE = 'Bible Ouverte'
+const TEST_OPTIONS = {
+  body: 'Les notifications fonctionnent sur cet appareil.',
+  icon: '/icon-192.png',
+  badge: '/icon-192.png',
+}
+
+/** `serviceWorker.ready` n'a pas de délai : sans garde, l'attente est infinie. */
+function readyRegistration(timeoutMs = 3000): Promise<ServiceWorkerRegistration | null> {
+  if (!('serviceWorker' in navigator)) return Promise.resolve(null)
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
+  ]).catch(() => null)
+}
+
 /**
  * Affiche une notification de test, localement — sans serveur ni abonnement.
- * C'est ce qui permet de vérifier que l'appareil les délivre vraiment avant
+ * C'est ce qui permet de vérifier qu'un appareil les délivre vraiment avant
  * d'écrire quoi que ce soit côté envoi.
+ *
+ * Passe d'abord par le service worker. **iOS n'implémente pas le constructeur
+ * `Notification`**, même dans une application installée : l'appeler ne fait
+ * rien ou lève, et c'est la seule voie qui marche sur iPhone. Le constructeur
+ * ne sert plus que de recours pour un navigateur sans service worker.
  */
-export function showTestNotification(): boolean {
-  if (typeof window === 'undefined' || !('Notification' in window)) return false
-  if (Notification.permission !== 'granted') return false
+export async function showTestNotification(): Promise<TestNotificationResult> {
+  if (typeof window === 'undefined' || !('Notification' in window)) return 'unsupported'
+  if (Notification.permission !== 'granted') return 'no-permission'
+
+  const registration = await readyRegistration()
+  if (registration) {
+    try {
+      await registration.showNotification(TEST_TITLE, TEST_OPTIONS)
+      return 'sent'
+    } catch {
+      // On retombe sur le constructeur plutôt que d'abandonner.
+    }
+  }
+
   try {
-    new Notification('Bible Ouverte', {
-      body: 'Les notifications fonctionnent sur cet appareil.',
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-    })
-    return true
+    new Notification(TEST_TITLE, TEST_OPTIONS)
+    return 'sent'
   } catch {
-    return false
+    return 'failed'
   }
 }

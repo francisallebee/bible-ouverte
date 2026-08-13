@@ -187,10 +187,15 @@ export default function SettingsPage() {
     setSettings(s ?? null);
   }
 
-  function handleTestNotification() {
-    setNotifTest(showTestNotification()
-      ? "Notification envoyée. Si tu ne la vois pas, vérifie les réglages de ton appareil."
-      : "Envoi impossible : la permission n'est pas accordée sur cet appareil.");
+  async function handleTestNotification() {
+    setNotifTest("Envoi…");
+    const messages: Record<string, string> = {
+      sent: "Notification envoyée. Si tu ne la vois pas apparaître, c'est que ton appareil la retient — vérifie ses réglages de notifications pour Bible Ouverte.",
+      "no-permission": "La permission n'est pas accordée sur cet appareil.",
+      unsupported: "Ce navigateur ne gère pas les notifications.",
+      failed: "L'appareil a refusé l'envoi. Sur iPhone, l'application doit être ouverte depuis l'écran d'accueil et non depuis Safari.",
+    };
+    setNotifTest(messages[await showTestNotification()]);
   }
 
   async function handleAutoLogoutChange(minutes: number) {
