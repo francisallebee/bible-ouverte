@@ -138,9 +138,15 @@ npm test           # vitest
   Les lignes sont bien supprimées — vérifiable au compteur — mais le navigateur
   ne récupère les octets qu'à sa prochaine compaction, qu'on ne peut ni
   déclencher ni observer. Ne pas promettre à l'utilisateur un gain immédiat.
-- Les écrans **Plans de lecture**, **Détail d'un plan**, **Détail d'une
-  lecture** et **Administration** n'ont toujours jamais été vus fonctionner :
-  typage, lint, tests et build passent, ce qui n'est pas la même chose. Les
-  autres écrans (Nouvelle lecture, Recherche, Historique, Statistiques,
-  Progression, Réglages, Profil, Support, Feuille de route, Soutenir) ont été
-  vérifiés au navigateur le 9 août 2026.
+- L'écran **Administration** n'a toujours jamais été vu fonctionner : typage,
+  lint, tests et build passent, ce qui n'est pas la même chose. Tous les autres
+  écrans ont été vérifiés au navigateur — les dix premiers le 9 août 2026, les
+  trois écrans de plans le 13 août. Le détail est dans `spec/REPRISE.md`, qui
+  fait foi sur ce point.
+- **Aucune notification push n'a jamais été reçue sur un appareil.** La base est
+  prête et la fonction `send-notifications` est déployée et répond, mais ses
+  trois secrets ne sont pas déposés et le planificateur n'existe pas. Sur
+  `send-notifications`, `verify_jwt` doit rester à `false` : `pg_cron` n'envoie
+  pas d'en-tête `Authorization`, et la passerelle rejetterait l'appel par un
+  `401` impossible à distinguer d'un mauvais secret. `config.toml` fige le
+  réglage.

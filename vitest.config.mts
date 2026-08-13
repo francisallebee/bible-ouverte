@@ -7,6 +7,9 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    // Les fonctions Edge tournent sous Deno, mais leur logique pure — qui doit
+    // recevoir quoi et quand — se teste ici comme le reste plutôt qu'en
+    // production, où il faudrait attendre le lendemain pour la voir échouer.
+    include: ['src/**/*.test.ts', 'supabase/functions/**/*.test.ts'],
   },
 });

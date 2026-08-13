@@ -162,6 +162,120 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   }
 }
 
+/**
+ * Clé publique VAPID. Elle est publique par construction : le navigateur la
+ * transmet au service de push, et elle part donc dans chaque page. La clé
+ * privée qui lui correspond ne vit que dans les secrets de la fonction d'envoi,
+ * jamais ici.
+ *
+ * La changer invalide tous les abonnements existants : les appareils devront se
+ * réabonner, faute de quoi ils ne recevront plus rien.
+ */
+export const VAPID_PUBLIC_KEY =
+  'BMaCrMZf8hSSWSaQiuETdk7ly0TIM3ctGziuH4XxBV1GH2dYMSn7rlm1RIVHtTmUmNEhneRZ5iDTy_AmnTxpb00'
+
+/**
+ * `applicationServerKey` n'accepte pas le base64url : il lui faut les octets.
+ *
+ * Le tampon est alloué explicitement : un `Uint8Array` construit à partir d'une
+ * longueur porte un `ArrayBufferLike`, que le typage de `applicationServerKey`
+ * refuse — il exige un `ArrayBuffer` et non un `SharedArrayBuffer`.
+ */
+function base64UrlToBytes(value: string): Uint8Array<ArrayBuffer> {
+  const padding = '='.repeat((4 - (value.length % 4)) % 4)
+  const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const raw = atob(base64)
+  const bytes = new Uint8Array(new ArrayBuffer(raw.length))
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i)
+  return bytes
+}
+
+export type SubscribeResult = 'subscribed' | 'unsupported' | 'no-permission' | 'failed'
+
+/**
+ * Abonne cet appareil et enregistre l'abonnement côté compte.
+ *
+ * Un abonnement vaut pour un appareil, pas pour un compte : le téléphone et
+ * l'ordinateur en ont chacun un, et se désabonnent séparément.
+ */
+export async function subscribeDevice(): Promise<SubscribeResult> {
+  if (typeof window === 'undefined' || !('Notification' in window)) return 'unsupported'
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return 'unsupported'
+  if (Notification.permission !== 'granted') return 'no-permission'
+
+  try {
+    const registration = await navigator.serviceWorker.ready
+    // Un abonnement déjà en place est réutilisé : en créer un second laisserait
+    // le premier vivant côté service de push, et l'appareil recevrait deux fois.
+    const existing = await registration.pushManager.getSubscription()
+    const subscription = existing ?? await registration.pushManager.subscribe({
+      // Obligatoire : les navigateurs refusent un abonnement silencieux.
+      userVisibleOnly: true,
+      applicationServerKey: base64UrlToBytes(VAPID_PUBLIC_KEY),
+    })
+
+    const json = subscription.toJSON() as { endpoint?: string; keys?: Record<string, string> }
+    if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return 'failed'
+
+    const { savePushSubscription } = await import('@/lib/supabase/store')
+    const saved = await savePushSubscription({
+      endpoint: json.endpoint,
+      p256dh: json.keys.p256dh,
+      auth: json.keys.auth,
+      userAgent: navigator.userAgent.slice(0, 255),
+    })
+    return saved ? 'subscribed' : 'failed'
+  } catch {
+    return 'failed'
+  }
+}
+
+let deviceSyncedThisSession = false
+
+/**
+ * Rattrape l'abonnement d'un appareil que le serveur ne connaît pas encore.
+ *
+ * L'abonnement ne pouvait naître que du basculement de la case des réglages.
+ * C'était insuffisant dans deux situations, dont la seconde est permanente :
+ * un compte ayant activé les notifications avant l'existence de ce code n'a
+ * plus rien à basculer, et surtout un **deuxième appareil** — nouveau
+ * téléphone, ordinateur — trouve la case déjà cochée et ne s'abonne jamais.
+ * L'abonnement vaut par appareil, son déclencheur ne pouvait pas être un
+ * changement d'état par compte.
+ *
+ * Sans effet si les notifications sont désactivées ou la permission absente.
+ * `subscribeDevice` réutilise l'abonnement en place et enregistre par `upsert`
+ * sur l'`endpoint` : rappeler cette fonction ne crée jamais de doublon.
+ */
+export async function syncDeviceSubscription(enabled: boolean): Promise<void> {
+  if (deviceSyncedThisSession || !enabled) return
+  if (typeof window === 'undefined' || !('Notification' in window)) return
+  if (Notification.permission !== 'granted') return
+
+  // Le drapeau n'est posé qu'en cas de succès : un échec réseau doit pouvoir
+  // être rattrapé à la session suivante.
+  if (await subscribeDevice() === 'subscribed') deviceSyncedThisSession = true
+}
+
+/** Désabonne cet appareil, côté navigateur et côté compte. */
+export async function unsubscribeDevice(): Promise<boolean> {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return false
+  try {
+    const registration = await navigator.serviceWorker.ready
+    const subscription = await registration.pushManager.getSubscription()
+    if (!subscription) return true
+
+    const endpoint = subscription.endpoint
+    // La ligne est retirée d'abord : si le navigateur se désabonne mais que la
+    // ligne survit, la fonction d'envoi continuerait de viser un endpoint mort.
+    const { deletePushSubscription } = await import('@/lib/supabase/store')
+    await deletePushSubscription(endpoint)
+    return await subscription.unsubscribe()
+  } catch {
+    return false
+  }
+}
+
 export type TestNotificationResult =
   | 'sent'
   | 'no-permission'

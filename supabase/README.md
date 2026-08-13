@@ -20,6 +20,7 @@ aucune donnée.
 | `20260809140000_plan_reading_context.sql` | Contexte « Plan de lecture » et rattachement des lectures issues d'un plan |
 | `20260810120000_free_plans.sql` | `plans.kind` et les versets de `plan_days` : les plans de lecture libres |
 | `20260813120000_push_notifications.sql` | `push_subscriptions` et `notification_log`, avec leur RLS |
+| `20260813160000_notification_data.sql` | `notification_data()` : les agrégats des cinq déclencheurs |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -44,6 +45,11 @@ le 10 août. Cette dernière est la première à figurer dans la table
 (`20260810173352`) et non le nom de son fichier. Les deux migrations du 9 août
 ont été passées par exécution SQL directe et n'y figurent toujours pas ; leurs
 fichiers sont au dépôt et rejouables sans dégât.
+
+Les deux migrations des notifications sont appliquées, et figurent dans
+`supabase_migrations` sous `20260813043957` (`push_notifications`) et
+`20260813092636` (`notification_data`). Relevé le 13 août 2026 par
+`list_migrations`, et non déduit de la présence des fichiers.
 
 Constat avant application des premières, sur la base réelle :
 
@@ -126,6 +132,146 @@ await supabase.from('profiles').update({ is_admin: true }).eq('id', (await supab
 
 La réponse doit contenir une erreur (`permission denied for column is_admin`).
 Si la ligne passe, la migration `20260801120001` n'a pas été appliquée.
+
+## Notifications push
+
+La fonction `functions/send-notifications` envoie les rappels. Sa logique de
+sélection — qui reçoit quoi, à quelle heure locale — vit dans `schedule.ts`,
+sans dépendance, et est couverte par les tests de `npm test`. Seul le point
+d'entrée `index.ts` est écarté de `tsc` : il tourne sous Deno.
+
+### État au 13 août 2026
+
+Relevé sur le projet réel, pas déduit du dépôt.
+
+| Élément | État |
+|---|---|
+| `push_subscriptions`, `notification_log` | en place (migration `20260813043957`) |
+| `notification_data()` | en place (migration `20260813092636`) |
+| `pg_net` 0.20.4, `pg_cron` 1.6.4 | installées |
+| Fonction `send-notifications` | déployée, version 1, `verify_jwt: false` |
+| `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NOTIFY_CRON_SECRET` | déposés |
+| Planificateur `cron.schedule` | **absent** — c'est ce qui reste |
+| Abonnements, journal | 0 ligne l'un et l'autre |
+
+Appelée avec le bon secret, la fonction rend `200` et
+`{"candidats":0,"envoyes":0,"deja":0,"purges":0,"parMotif":{}}` ; avec un
+mauvais, `401` et le corps `unauthorized`.
+
+Ces deux réponses valent bien plus qu'un aller-retour. Le `200` prouve que les
+clés VAPID sont chargées — sans elles la fonction rendrait `500` —, que le
+client service_role fonctionne et que la RPC `notification_data()` répond. Le
+`401` porte la chaîne de `index.ts`, et non un JSON d'erreur de la passerelle :
+c'est la preuve qu'un appel dépourvu d'`Authorization` traverse bien, donc que
+`verify_jwt` est effectivement à `false`. `candidats:0` est l'attendu tant que
+personne n'a activé les notifications.
+
+Le planificateur se crée **après** les secrets. L'inverse ferait tourner un cron
+à vide toutes les quinze minutes, dont les échecs ressembleraient à ceux d'un
+secret mal recopié.
+
+### Les cinq déclencheurs
+
+| Motif | Quand | Référence anti-doublon |
+|---|---|---|
+| `daily` | à l'heure choisie | la date locale |
+| `plan-late` | à l'heure choisie | le plan **et** son plus ancien jour non coché |
+| `inactive` | à l'heure choisie, après 7 jours sans lecture | la date de la dernière lecture |
+| `support-reply` | dès la plage de veille (8 h–22 h) | le ticket **et** la réponse |
+| `roadmap-done` | dès la plage de veille | l'item |
+
+Les trois premiers ne pressent pas : ils attendent le créneau choisi. Les deux
+autres perdent leur sens s'ils attendent, mais n'ont rien à faire à 3 h du
+matin — d'où la plage de veille.
+
+Le choix des références n'est pas cosmétique. Celle de `plan-late` est le plan
+et son plus ancien jour en retard : tant que rien n'est rattrapé, ce jour ne
+bouge pas, la référence non plus, et l'unicité bloque la relance. Rattraper une
+partie du retard fait avancer ce jour, donc autorise une relance, une seule.
+Même principe pour `inactive`, dont la référence est la dernière lecture : une
+relance par période d'absence, et non chaque jour où l'absence dure.
+
+`notification_data()` fournit les agrégats en une requête. `security invoker` :
+la clé service_role voit tout, un compte ordinaire qui l'appellerait depuis son
+navigateur ne verrait que ses propres lignes.
+
+### Ce qui doit être fait à la main, une fois
+
+Trois secrets, à déposer sur la fonction. La **clé privée VAPID ne doit jamais
+entrer dans le dépôt** : seule la clé publique y figure, en clair, dans
+`src/lib/notifications.ts` et dans `index.ts`.
+
+La paire a été **regénérée le 13 août 2026** : la première clé privée n'avait
+jamais été affichée, et le répertoire temporaire qui la portait n'a pas survécu
+à la séance. Cela n'a rien coûté — `push_subscriptions` était vide, donc aucun
+abonnement à invalider. Ce ne serait plus vrai après le premier appareil
+abonné : changer la clé publique force alors chaque appareil à se réabonner,
+faute de quoi il ne reçoit plus rien sans que rien ne le signale.
+
+```bash
+supabase secrets set \
+  VAPID_PRIVATE_KEY="…" \
+  VAPID_SUBJECT="mailto:…" \
+  NOTIFY_CRON_SECRET="…" \
+  --project-ref nttasjckcmoqvjchxbzf
+```
+
+`NOTIFY_CRON_SECRET` est une chaîne aléatoire de votre choix. Elle évite
+d'exposer la clé `service_role` au planificateur : la fonction n'accepte que
+les appels qui la portent dans l'en-tête `x-cron-secret`.
+
+Puis le déploiement :
+
+```bash
+supabase functions deploy send-notifications --project-ref nttasjckcmoqvjchxbzf
+```
+
+**`verify_jwt` doit rester à `false`**, ce que `[functions.send-notifications]`
+de `config.toml` impose désormais. C'est un piège coûteux : `pg_cron` n'envoie
+aucun en-tête `Authorization`, et la valeur par défaut ferait rejeter l'appel
+par la passerelle **avant** que le corps de la fonction s'exécute. Le rejet est
+un `401`, exactement comme celui d'un mauvais `x-cron-secret` : on chercherait
+l'erreur du côté du secret pendant des heures. Le déploiement du 13 août, passé
+par l'outil MCP, a été fait avec `verify_jwt: false` et vérifié.
+
+### La cadence
+
+Un quart d'heure, et non une heure. Certains fuseaux sont décalés d'une
+demi-heure ou d'un quart d'heure — l'Inde, le Népal — et un passage horaire
+servirait tous leurs habitants à côté de l'heure demandée.
+
+Le planificateur n'est **pas** une migration : il contient le secret, qui n'a
+rien à faire dans le dépôt. À passer une fois dans le SQL Editor, en
+remplaçant les deux valeurs :
+
+```sql
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+select cron.schedule(
+  'notifications-quart-dheure',
+  '*/15 * * * *',
+  $$
+  select net.http_post(
+    url := 'https://nttasjckcmoqvjchxbzf.supabase.co/functions/v1/send-notifications',
+    headers := '{"Content-Type":"application/json","x-cron-secret":"LE_SECRET"}'::jsonb
+  );
+  $$
+);
+```
+
+Pour vérifier ou retirer : `select * from cron.job;` et
+`select cron.unschedule('notifications-quart-dheure');`.
+
+### Pourquoi la trace est écrite avant l'envoi
+
+`notification_log` reçoit la ligne **avant** que la notification parte. Un
+doublon est pire qu'un manque : recevoir deux fois le même rappel donne envie
+de tout couper, alors qu'un rappel manqué passe inaperçu. Un conflit sur
+l'unicité `(user_id, kind, ref)` vaut donc « déjà envoyé ».
+
+Un abonnement qui répond 404 ou 410 est retiré : le service de push ne le
+connaît plus, et le garder ferait échouer chaque envoi à jamais.
 
 ## Ce qui reste hors du dépôt
 
