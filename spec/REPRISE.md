@@ -1,4 +1,4 @@
-# Reprise des travaux — état au 13 août 2026
+# Reprise des travaux — état au 13 août 2026 (soir)
 
 Ce document ne liste pas les fonctionnalités à venir : **la feuille de route
 fait foi**, et elle vit dans l'application (`/roadmap`, table `roadmap_items`).
@@ -10,16 +10,113 @@ action hors du dépôt.
 
 ## Ce qui attend une action hors du dépôt
 
-1. **Trois chemins n'ont jamais été exécutés sur des données réelles** : la
+1. **Le poste ne joint plus github.com, supabase.com ni vercel.com.** C'est le
+   blocage à lever en premier : il empêche `git push`, la CLI Supabase et le
+   tableau de bord Vercel. Voir la section dédiée plus bas — la cause est
+   identifiée et la mesure faite.
+2. **Les trois secrets de la fonction d'envoi ne sont pas déposés**, et le
+   planificateur n'existe pas. C'est tout ce qui manque pour que les
+   notifications partent ; le reste est en production. Commandes et ordre exact
+   dans `supabase/README.md`, section « Notifications push ».
+3. **Aucune notification n'a jamais été reçue sur un appareil réel.** Tant que
+   ce n'est pas fait, l'item 17 n'est pas terminé, quoi qu'en disent le typage
+   et les tests.
+4. **Trois chemins n'ont jamais été exécutés sur des données réelles** : la
    suppression d'un ticket support, le changement de mot de passe, et la
    suppression en bloc dans l'historique. Le code est en place et le reste a été
    vérifié, mais ces trois-là attendent un premier essai.
-2. **Deux migrations ont été appliquées par exécution SQL directe**, l'outil de
+5. **Deux migrations ont été appliquées par exécution SQL directe**, l'outil de
    migration ayant été refusé à l'époque : `20260809100000_meditation_emoji.sql`
    et `20260809140000_plan_reading_context.sql`. Elles ne figurent donc pas dans
    la table `supabase_migrations` du projet. Les fichiers sont au dépôt et
    rejouables sans dégât. `20260810120000_free_plans.sql`, elle, est bien passée
    par l'outil et y figure sous l'horodatage de son application.
+
+## La vague 3 et les notifications
+
+La **vague 3 est terminée côté code** : thème système (item 18), modale de
+sélection (8), déconnexion automatique (7), plans de lecture libres (15) sont en
+production. Reste l'item 17, les notifications push, découpé en cinq morceaux.
+
+| Morceau | Code | En production |
+|---|---|---|
+| Réglages et demande de permission | fait | oui |
+| Table d'abonnements et préférences | fait | oui |
+| Gestionnaires `push` et `notificationclick` | fait | oui |
+| Abonnement de l'appareil au service de push | fait | **non poussé** |
+| Fonction d'envoi et les cinq déclencheurs | fait | **non poussé** |
+
+Les deux derniers morceaux tiennent en trois commits qui n'ont pas pu quitter le
+poste, sur `feat/notifications-abonnement-appareil` :
+
+* `5603523` — un appareil déjà connu du compte s'abonne enfin. L'abonnement ne
+  pouvait naître que du basculement de la case des réglages, ce qui laissait un
+  **deuxième appareil** sans abonnement pour toujours : il trouve la case déjà
+  cochée et n'a rien à basculer. L'abonnement vaut par appareil, son déclencheur
+  ne pouvait pas être un changement d'état par compte.
+* `5b9d30b` — la fonction Edge et le rappel quotidien.
+* `bf7cb12` — les quatre autres déclencheurs.
+
+**Ce qui est en production côté base**, relevé et non déduit : les deux
+migrations sont appliquées, `notification_data()` existe, `pg_net` et `pg_cron`
+sont installées, et la fonction `send-notifications` est déployée en version 1
+avec `verify_jwt: false`. Il manque les trois secrets et le planificateur.
+`push_subscriptions` et `notification_log` comptent zéro ligne.
+
+### La clé privée VAPID a été perdue, puis regénérée
+
+Elle avait été produite sans jamais être affichée, et rangée en `600` dans le
+répertoire temporaire d'une séance. Ce répertoire n'a pas survécu. Une paire
+neuve a été générée le 13 août au soir, vérifiée — la publique se redéduit de la
+privée, une signature se vérifie — et la clé publique remplacée dans
+`src/lib/notifications.ts` et dans `index.ts`.
+
+Cela n'a rien coûté cette fois : zéro abonnement à invalider. **Ce ne sera plus
+vrai après le premier appareil abonné.** Changer la clé publique force alors
+chaque appareil à se réabonner, et rien ne signale à celui qui ne le fait pas
+qu'il ne recevra plus rien. Une clé privée qui doit survivre à une séance n'a
+rien à faire dans un répertoire temporaire.
+
+## Réseau et déploiement
+
+### Le poste ne joint plus github, supabase ni vercel
+
+Mesuré le 13 août au soir, et non supposé :
+
+| Épreuve | Résultat |
+|---|---|
+| DNS `github.com`, `supabase.com` | résolvent normalement |
+| `/etc/hosts` | ne contient rien d'ajouté |
+| `example.com:443` (témoin) | connecté en 50 ms |
+| `github.com:443`, y compris par IP directe | échec en 0 à 4 ms |
+| `github.com:22` | *No route to host* |
+| `vercel.com:443` | échec en 41 ms |
+| `nttasjckcmoqvjchxbzf.supabase.co:443` | expiration au bout de 8 s |
+
+Le DNS répond, le témoin passe, l'échec est instantané et vise certains hôtes :
+ce n'est ni une panne de réseau ni une résolution faussée, c'est une
+interception. `systemextensionsctl list` donne le coupable —
+`com.surfshark.vpnclient.macos.TransparentProxy` (4.28.1), `activated enabled`,
+active application fermée.
+
+**À désactiver dans Réglages Système → Général → Ouverture et extensions →
+Extensions réseau.** Deux autres extensions réseau, TripMode et AdLock, sont
+présentes mais `activated disabled` : elles ne sont pas en cause.
+
+### Le MCP Supabase, lui, passe
+
+Découvert le 13 août au soir, et c'est ce qui a permis d'avancer malgré le
+blocage : les outils MCP de Supabase ne transitent pas par le réseau du poste.
+Migrations, SQL, déploiement de fonction Edge restent accessibles quand la CLI
+et le tableau de bord ne le sont pas.
+
+Ce que le MCP **ne** sait pas faire : déposer un secret de fonction. Il n'existe
+pas d'outil pour cela. Les trois secrets passeront donc par le tableau de bord
+ou par la CLI, une fois le réseau rétabli.
+
+Pour appeler une fonction Edge sans réseau depuis le poste, la base sert de
+relais : `select net.http_post(...)` puis lecture de `net._http_response`. C'est
+ainsi que le déploiement a été vérifié.
 
 ### Réglé le 13 août 2026 : les previews Vercel
 
@@ -58,6 +155,8 @@ interrompu avant la fin. Les previews passent par git.
 | Appels `/auth/v1/user` | ramenés de 17 à 3 par session | 9 août |
 | Carte de saisie de Nouvelle lecture, sur 375 px | 686 → 596 px, sept listes déroulantes ramenées à trois | 13 août |
 | Apostrophes doublées dans Louis Segond 1910 | 48 028 occurrences, dans le fichier source et non à l'affichage | 13 août |
+| Blocage réseau du poste | github et vercel refusés en 0-41 ms, témoin à 50 ms, DNS intact | 13 août |
+| Fonction `send-notifications` déployée | `401` / `unauthorized` sur secret faux, appelée depuis la base | 13 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -66,6 +165,14 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
 
 ## Pièges vérifiés, à ne pas réintroduire
 
+- **`verify_jwt` doit rester à `false` sur `send-notifications`.** `pg_cron`
+  n'envoie aucun en-tête `Authorization` : la valeur par défaut ferait rejeter
+  l'appel par la passerelle **avant** que la fonction s'exécute. Et le rejet est
+  un `401`, comme celui d'un mauvais `x-cron-secret` — on chercherait l'erreur
+  du côté du secret. Ce qui distingue les deux est le corps de la réponse :
+  `unauthorized` vient de la fonction, un JSON d'erreur vient de la passerelle.
+  `[functions.send-notifications]` de `config.toml` fige désormais le réglage,
+  que la commande de déploiement du README ne portait pas.
 - **Ne pas appeler `auth.getUser()` directement.** L'identité est mémorisée par
   `getUserId()` dans `lib/supabase/store.ts`, sur lequel s'appuie
   `getCurrentUserId()`. Un second chemin sans cache avait fait quatre
@@ -119,6 +226,12 @@ la mesure échoue, le dire plutôt que d'inventer une explication plausible.
 par le propriétaire du dépôt, pas par l'agent. C'est consigné sur la PR #5, et
 ce n'est pas la même chose qu'un écran vu fonctionner soi-même.
 
+**Un chemin bloqué n'est pas toute la carte.** Le poste ne joignait plus
+supabase.com, ce dont il aurait été facile de conclure que rien n'était possible
+côté base. Le MCP Supabase passait par ailleurs, et a permis de déployer et de
+vérifier la fonction d'envoi pendant que la CLI restait muette. Avant de
+déclarer une tâche bloquée, chercher si un autre chemin y mène.
+
 ## Vérification visuelle
 
 Vus fonctionner : Nouvelle lecture, Recherche, Historique, Statistiques,
@@ -127,3 +240,10 @@ lecture, Détail d'un plan, Détail d'une lecture.
 
 **Jamais vu fonctionner : Administration.** Typage, lint, tests et build
 passent, ce qui n'est pas la même chose.
+
+**Jamais vue arriver : une notification push.** Les cinq déclencheurs sont
+couverts par des tests déterministes, la fonction est déployée et répond, mais
+aucun appareil n'a jamais reçu quoi que ce soit. Sur iPhone, l'essai suppose que
+l'application soit installée sur l'écran d'accueil — iOS ne délivre rien depuis
+un onglet Safari — et se contrôle par l'apparition d'une ligne dans
+`push_subscriptions` au lancement.

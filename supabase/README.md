@@ -46,6 +46,11 @@ le 10 août. Cette dernière est la première à figurer dans la table
 ont été passées par exécution SQL directe et n'y figurent toujours pas ; leurs
 fichiers sont au dépôt et rejouables sans dégât.
 
+Les deux migrations des notifications sont appliquées, et figurent dans
+`supabase_migrations` sous `20260813043957` (`push_notifications`) et
+`20260813092636` (`notification_data`). Relevé le 13 août 2026 par
+`list_migrations`, et non déduit de la présence des fichiers.
+
 Constat avant application des premières, sur la base réelle :
 
 - `authenticated` avait le droit `UPDATE` sur `profiles.is_admin`, et la policy
@@ -135,6 +140,31 @@ sélection — qui reçoit quoi, à quelle heure locale — vit dans `schedule.t
 sans dépendance, et est couverte par les tests de `npm test`. Seul le point
 d'entrée `index.ts` est écarté de `tsc` : il tourne sous Deno.
 
+### État au 13 août 2026
+
+Relevé sur le projet réel, pas déduit du dépôt.
+
+| Élément | État |
+|---|---|
+| `push_subscriptions`, `notification_log` | en place (migration `20260813043957`) |
+| `notification_data()` | en place (migration `20260813092636`) |
+| `pg_net` 0.20.4, `pg_cron` 1.6.4 | installées |
+| Fonction `send-notifications` | déployée, version 1, `verify_jwt: false` |
+| Les trois secrets | **absents** — c'est ce qui reste |
+| Planificateur `cron.schedule` | **absent** — à créer une fois les secrets déposés |
+| Abonnements, journal | 0 ligne l'un et l'autre |
+
+La fonction déployée a été appelée depuis la base, avec un `x-cron-secret`
+volontairement faux : elle répond `401` et le corps `unauthorized`. Cette
+chaîne est celle de `index.ts` et non un JSON d'erreur de la passerelle — la
+preuve que l'appel sans `Authorization` traverse bien, et que le contrôle du
+secret s'exécute. Tant que `NOTIFY_CRON_SECRET` n'est pas déposé, tout appel
+reçoit ce même `401` : c'est le comportement attendu, pas une panne.
+
+Le planificateur est délibérément créé **après** les secrets. L'inverse ferait
+tourner un cron à vide toutes les quinze minutes, dont les échecs
+ressembleraient à ceux d'un secret mal recopié.
+
 ### Les cinq déclencheurs
 
 | Motif | Quand | Référence anti-doublon |
@@ -166,6 +196,13 @@ Trois secrets, à déposer sur la fonction. La **clé privée VAPID ne doit jama
 entrer dans le dépôt** : seule la clé publique y figure, en clair, dans
 `src/lib/notifications.ts` et dans `index.ts`.
 
+La paire a été **regénérée le 13 août 2026** : la première clé privée n'avait
+jamais été affichée, et le répertoire temporaire qui la portait n'a pas survécu
+à la séance. Cela n'a rien coûté — `push_subscriptions` était vide, donc aucun
+abonnement à invalider. Ce ne serait plus vrai après le premier appareil
+abonné : changer la clé publique force alors chaque appareil à se réabonner,
+faute de quoi il ne reçoit plus rien sans que rien ne le signale.
+
 ```bash
 supabase secrets set \
   VAPID_PRIVATE_KEY="…" \
@@ -183,6 +220,14 @@ Puis le déploiement :
 ```bash
 supabase functions deploy send-notifications --project-ref nttasjckcmoqvjchxbzf
 ```
+
+**`verify_jwt` doit rester à `false`**, ce que `[functions.send-notifications]`
+de `config.toml` impose désormais. C'est un piège coûteux : `pg_cron` n'envoie
+aucun en-tête `Authorization`, et la valeur par défaut ferait rejeter l'appel
+par la passerelle **avant** que le corps de la fonction s'exécute. Le rejet est
+un `401`, exactement comme celui d'un mauvais `x-cron-secret` : on chercherait
+l'erreur du côté du secret pendant des heures. Le déploiement du 13 août, passé
+par l'outil MCP, a été fait avec `verify_jwt: false` et vérifié.
 
 ### La cadence
 
