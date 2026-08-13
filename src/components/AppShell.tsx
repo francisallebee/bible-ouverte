@@ -7,6 +7,7 @@ import AutoLogout from '@/components/AutoLogout'
 import LayoutClient from '@/lib/pwa/layout-client'
 import { getSettings, SETTINGS_CHANGED } from '@/lib/storage'
 import { applyColorTheme, applyTheme, watchSystemTheme } from '@/lib/themes'
+import { syncDeviceSubscription } from '@/lib/notifications'
 import { APP_VERSION } from '@/lib/version'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -38,6 +39,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       if (s?.colorTheme) applyColorTheme(s.colorTheme)
       applyTheme(s?.theme)
       setAutoLogoutMinutes(s?.autoLogoutMinutes ?? 0)
+      // Rattrapé ici et non dans l'écran des réglages : un appareil dont le
+      // propriétaire n'ouvre jamais cet écran resterait sinon inconnu du
+      // serveur, qui n'aurait personne à qui écrire.
+      syncDeviceSubscription(s?.notificationsEnabled ?? false)
     }
     load()
     // Un réglage modifié doit prendre effet tout de suite, et non au prochain

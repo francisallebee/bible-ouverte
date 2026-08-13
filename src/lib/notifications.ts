@@ -230,6 +230,33 @@ export async function subscribeDevice(): Promise<SubscribeResult> {
   }
 }
 
+let deviceSyncedThisSession = false
+
+/**
+ * Rattrape l'abonnement d'un appareil que le serveur ne connaît pas encore.
+ *
+ * L'abonnement ne pouvait naître que du basculement de la case des réglages.
+ * C'était insuffisant dans deux situations, dont la seconde est permanente :
+ * un compte ayant activé les notifications avant l'existence de ce code n'a
+ * plus rien à basculer, et surtout un **deuxième appareil** — nouveau
+ * téléphone, ordinateur — trouve la case déjà cochée et ne s'abonne jamais.
+ * L'abonnement vaut par appareil, son déclencheur ne pouvait pas être un
+ * changement d'état par compte.
+ *
+ * Sans effet si les notifications sont désactivées ou la permission absente.
+ * `subscribeDevice` réutilise l'abonnement en place et enregistre par `upsert`
+ * sur l'`endpoint` : rappeler cette fonction ne crée jamais de doublon.
+ */
+export async function syncDeviceSubscription(enabled: boolean): Promise<void> {
+  if (deviceSyncedThisSession || !enabled) return
+  if (typeof window === 'undefined' || !('Notification' in window)) return
+  if (Notification.permission !== 'granted') return
+
+  // Le drapeau n'est posé qu'en cas de succès : un échec réseau doit pouvoir
+  // être rattrapé à la session suivante.
+  if (await subscribeDevice() === 'subscribed') deviceSyncedThisSession = true
+}
+
 /** Désabonne cet appareil, côté navigateur et côté compte. */
 export async function unsubscribeDevice(): Promise<boolean> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return false
