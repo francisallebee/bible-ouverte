@@ -95,10 +95,25 @@ export default function DiscoveryTour() {
   // L'écran suit l'étape. `hrefToVisit` rend `null` quand on y est déjà : deux
   // étapes voisines peuvent viser la même page, et la recharger sous les yeux
   // de quelqu'un qui lit serait désagréable.
+  //
+  // Une seule tentative par étape. Sans cette garde, un écran qui renvoie
+  // ailleurs — une redirection, un accès refusé — remet `pathname` sur une
+  // autre valeur, l'effet repart, et le parcours se bat indéfiniment contre la
+  // page : c'est ce qui faisait tomber l'application sur `/contexts`, qui
+  // n'existe plus que pour rediriger. On tente donc, et on s'en accommode.
+  const dernierSaut = useRef<string | null>(null)
   useEffect(() => {
-    if (!ouvert) return
+    if (!ouvert) {
+      dernierSaut.current = null
+      return
+    }
     const cible = hrefToVisit(etapes, indice, pathname)
-    if (cible) router.push(cible)
+    if (!cible) return
+
+    const tentative = `${indice}:${cible}`
+    if (dernierSaut.current === tentative) return
+    dernierSaut.current = tentative
+    router.push(cible)
   }, [ouvert, indice, pathname, etapes, router])
 
   useEffect(() => {
