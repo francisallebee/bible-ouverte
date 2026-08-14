@@ -13,10 +13,10 @@ action hors du dépôt.
 1. **Le réseau domestique filtre github, supabase et vercel.** Tant que ce n'est
    pas réglé sur la box, travailler en **partage de connexion iPhone** : c'est
    mesuré, tout repasse. Voir la section dédiée plus bas.
-2. **Aucune notification n'est jamais apparue sur un appareil.** Tout le reste
-   de la chaîne est vérifié — voir « Le mur du 13 août » plus bas. C'est le
-   seul point qui empêche de déclarer l'item 17 terminé, et il se reprend au
-   cycle du 14 août.
+2. **Les trois secrets Brevo de l'alerte d'inscription ne sont pas déposés**, et
+   son planificateur n'existe pas encore. La fonction `notify-new-user` est
+   déployée et répond ; sans les secrets elle rend un `500` qui nomme ce qui
+   manque. Commandes dans `supabase/README.md`, section « Alerte d'inscription ».
 3. **L'heure du rappel quotidien du compte `7e8695d3` a été déplacée** sur
    ~23 h 55 le 13 août pour l'essai, au lieu de 14 h. À remettre à l'heure
    voulue, sans quoi le rappel de demain tombera vers minuit.
@@ -54,10 +54,25 @@ changement d'état par compte. C'est ce correctif qui a permis le premier
 abonnement réel : les deux comptes avaient les notifications activées depuis une
 séance antérieure, sans aucun appareil enregistré.
 
-### Le mur du 13 août : tout marche, rien n'arrive
+### Le mur du 13 août, franchi le 14
 
-Toute la chaîne est vérifiée **sauf le dernier mètre**. Chaque ligne ci-dessous
-est une mesure, pas une déduction.
+**Les notifications arrivent.** Constaté le 14 août 2026 par le propriétaire du
+dépôt, sur son iPhone — pas par l'agent, qui n'a jamais pu voir l'écran. Le
+parcours découverte a été confirmé du même coup.
+
+Ce qui manquait n'était donc **aucun** des maillons mesurés ci-dessous : ils
+étaient tous corrects. L'échec du 13 au soir tenait à l'essai lui-même, mené
+vers 23 h 55 — l'hypothèse du mode de concentration ou du Sommeil reste la plus
+probable, et n'a pas été formellement écartée. Ce qui a changé entre les deux
+essais : l'heure, et le déploiement en production du code d'abonnement.
+
+**La leçon n'en est pas invalidée** : `envoyes` ne prouvait toujours pas la
+remise. Il se trouve simplement que la remise avait lieu.
+
+Le tableau qui suit reste utile pour un prochain diagnostic : il dit où
+regarder, maillon par maillon.
+
+Chaque ligne est une mesure, pas une déduction.
 
 | Maillon | Preuve |
 |---|---|
@@ -69,25 +84,24 @@ est une mesure, pas une déduction.
 | Envoi | `{"candidats":2,"envoyes":2,"purges":0,"parMotif":{"daily":1,"plan-late":1}}` |
 | Trace | deux lignes dans `notification_log`, refs `2026-08-13` et `3:2026-01-06` |
 | `sw.js` en production | **identique octet pour octet** au dépôt, gestionnaire `push` présent, `cache-control: max-age=0, must-revalidate` |
-| **Affichage sur l'iPhone** | **rien** |
+| **Affichage sur l'iPhone** | **vu le 14 août**, par le propriétaire du dépôt |
 
-L'essai a eu lieu vers 23 h 55 heure de Paris, ce qui laisse une explication
-simple et non vérifiée : un mode de concentration ou Sommeil qui remet les
-notifications silencieusement. À reprendre au cycle du 14 août, en journée.
+Le cycle du 14 août a tourné seul : **68 passages du planificateur, 68 réussis**,
+et quatre des cinq déclencheurs armés en conditions réelles — `roadmap-done` (8),
+`daily` (3), `support-reply` (1), `plan-late` (1). Seul `inactive` n'a rien
+produit, ce qui est normal : il demande sept jours sans lecture.
 
-Pistes non encore écartées, par ordre de vraisemblance : mode de concentration
-actif ; remise silencieuse (les notifications seraient dans le centre de
-notifications, pas sur l'écran verrouillé) ; réglage iOS de l'app ; service
-worker enregistré sur l'appareil différent de celui servi.
+**Si un jour rien n'arrive à nouveau**, le test qui sépare le plus vite : le
+bouton de notification de test des réglages appelle `showNotification`
+localement, sans serveur ni abonnement. S'il affiche quelque chose, l'affichage
+fonctionne et le défaut est dans la remise ; s'il n'affiche rien, c'est iOS qui
+retient tout et le push n'y est pour rien. Regarder aussi les modes de
+concentration, et le centre de notifications — une remise silencieuse ressemble
+à une absence.
 
-**Le test qui sépare** : le bouton de notification de test des réglages appelle
-`showNotification` localement, sans serveur ni abonnement. S'il affiche quelque
-chose, l'affichage fonctionne et le défaut est dans la remise ; s'il n'affiche
-rien, c'est iOS qui retient tout et le push n'y est pour rien.
-
-**Attention pour rejouer** : les deux références sont consommées. Le `daily` du
-14 août partira seul (nouvelle date), mais ce `plan-late` ne repartira pas tant
-que le jour du 6 janvier du plan 3 n'aura pas été coché. Pour forcer, effacer la
+**Pour rejouer un déclencheur**, sa référence doit changer ou disparaître. Le
+`daily` repart chaque jour de lui-même ; un `plan-late` ne repartira pas tant
+que son plus ancien jour en retard n'aura pas bougé. Pour forcer, effacer la
 ligne correspondante de `notification_log`.
 
 ### La clé privée VAPID a été perdue, puis regénérée
@@ -308,12 +322,10 @@ lecture, Détail d'un plan, Détail d'une lecture.
 **Jamais vu fonctionner : Administration.** Typage, lint, tests et build
 passent, ce qui n'est pas la même chose.
 
-**Jamais vue arriver : une notification push.** Le 13 août au soir, deux
-notifications sont parties, ont été acceptées par Apple et tracées en base — et
-rien n'est apparu sur l'iPhone. Tous les maillons en amont sont mesurés, le
-dernier ne l'est pas. Voir « Le mur du 13 août ».
+**Vus fonctionner le 14 août 2026, par le propriétaire du dépôt et non par
+l'agent** : les **notifications push** sur iPhone, et le **parcours découverte**.
+C'est la même distinction que pour les plans libres — une preuve d'écran vaut
+par qui l'a vue, et l'agent n'a jamais eu de session pour la produire lui-même.
 
-L'abonnement, lui, est acquis : un iPhone sous iOS 18.7 figure dans
-`push_subscriptions` avec un endpoint `web.push.apple.com`. L'application doit
-être installée sur l'écran d'accueil et lancée depuis son icône — iOS ne délivre
-rien à un onglet Safari.
+L'abonnement suppose que l'application soit installée sur l'écran d'accueil et
+lancée depuis son icône : iOS ne délivre rien à un onglet Safari.
