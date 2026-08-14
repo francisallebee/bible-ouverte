@@ -21,6 +21,7 @@ aucune donnée.
 | `20260810120000_free_plans.sql` | `plans.kind` et les versets de `plan_days` : les plans de lecture libres |
 | `20260813120000_push_notifications.sql` | `push_subscriptions` et `notification_log`, avec leur RLS |
 | `20260813160000_notification_data.sql` | `notification_data()` : les agrégats des cinq déclencheurs |
+| `20260814140000_new_user_alerts.sql` | `new_user_alerts` : mémoire des inscriptions déjà signalées, amorcée avec les comptes existants |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -140,7 +141,7 @@ sélection — qui reçoit quoi, à quelle heure locale — vit dans `schedule.t
 sans dépendance, et est couverte par les tests de `npm test`. Seul le point
 d'entrée `index.ts` est écarté de `tsc` : il tourne sous Deno.
 
-### État au 13 août 2026
+### État au 14 août 2026 : en service
 
 Relevé sur le projet réel, pas déduit du dépôt.
 
@@ -149,10 +150,16 @@ Relevé sur le projet réel, pas déduit du dépôt.
 | `push_subscriptions`, `notification_log` | en place (migration `20260813043957`) |
 | `notification_data()` | en place (migration `20260813092636`) |
 | `pg_net` 0.20.4, `pg_cron` 1.6.4 | installées |
-| Fonction `send-notifications` | déployée, version 1, `verify_jwt: false` |
+| Fonction `send-notifications` | déployée, `verify_jwt: false` |
 | `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NOTIFY_CRON_SECRET` | déposés |
-| Planificateur `cron.schedule` | **absent** — c'est ce qui reste |
-| Abonnements, journal | 0 ligne l'un et l'autre |
+| Planificateur `notifications-quart-dheure` | `*/15 * * * *`, actif |
+| Passages du planificateur | **68 sur 68 réussis** |
+| Abonnements | 3 appareils, dont un iPhone via `web.push.apple.com` |
+| **Réception sur l'appareil** | **confirmée le 14 août par le propriétaire du dépôt** |
+
+Quatre des cinq déclencheurs se sont armés en conditions réelles :
+`roadmap-done` (8), `daily` (3), `support-reply` (1), `plan-late` (1). Seul
+`inactive` n'a rien produit — il demande sept jours sans lecture.
 
 Appelée avec le bon secret, la fonction rend `200` et
 `{"candidats":0,"envoyes":0,"deja":0,"purges":0,"parMotif":{}}` ; avec un

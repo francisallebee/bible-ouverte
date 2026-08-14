@@ -143,16 +143,19 @@ npm test           # vitest
   écrans ont été vérifiés au navigateur — les dix premiers le 9 août 2026, les
   trois écrans de plans le 13 août. Le détail est dans `spec/REPRISE.md`, qui
   fait foi sur ce point.
-- **Aucune notification push n'est jamais apparue sur un appareil.** Tout le
-  reste est en place et mesuré : secrets déposés, fonction déployée,
-  planificateur actif, et un iPhone réellement abonné via `web.push.apple.com`.
-  Deux envois ont été acceptés par Apple et tracés en base sans que rien
-  n'arrive à l'écran. Le détail et les pistes sont dans `spec/REPRISE.md`,
-  section « Le mur du 13 août ».
+- **Les notifications push et le parcours découverte fonctionnent**, vus par le
+  propriétaire du dépôt le 14 août 2026 — pas par l'agent, qui n'a jamais eu de
+  session pour le constater. L'item 17 est terminé de bout en bout.
 - **`envoyes` n'est pas un accusé de réception.** Ce compteur ne dit que
-  l'acceptation du message par le service de push. Ce qui suit — remise,
-  réveil du service worker, réglages iOS — n'y figure pas.
-- Sur `send-notifications`, **`verify_jwt` doit rester à `false`** : `pg_cron`
-  n'envoie pas d'en-tête `Authorization`, et la passerelle rejetterait l'appel
-  par un `401` impossible à distinguer d'un mauvais secret. `config.toml` fige
-  le réglage.
+  l'acceptation du message par le service de push. Ce qui suit — remise, réveil
+  du service worker, réglages iOS — n'y figure pas. La leçon tient toujours,
+  même si la remise avait bien lieu : elle a fait chercher le défaut au bon
+  endroit plutôt qu'à l'aveugle.
+- Sur `send-notifications` **et `notify-new-user`**, `verify_jwt` doit rester à
+  `false` : `pg_cron` n'envoie pas d'en-tête `Authorization`, et la passerelle
+  rejetterait l'appel par un `401` impossible à distinguer d'un mauvais secret.
+  `config.toml` fige le réglage pour les deux.
+- L'**alerte d'inscription** (`notify-new-user`, Brevo) est déployée mais
+  **attend ses trois secrets et son planificateur**. Sa migration a amorcé
+  `new_user_alerts` avec les comptes existants : ne pas la vider, le prochain
+  passage signalerait tout le monde comme nouveau.
