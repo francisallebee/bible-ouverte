@@ -178,7 +178,7 @@ secret mal recopié.
 | `plan-late` | à l'heure choisie | le plan **et** son plus ancien jour non coché |
 | `inactive` | à l'heure choisie, après 7 jours sans lecture | la date de la dernière lecture |
 | `support-reply` | dès la plage de veille (8 h–22 h) | le ticket **et** la réponse |
-| `roadmap-done` | dès la plage de veille | l'item |
+| `roadmap-done` | dès la plage de veille | l'item — mais **un seul envoi** pour tous |
 
 Les trois premiers ne pressent pas : ils attendent le créneau choisi. Les deux
 autres perdent leur sens s'ils attendent, mais n'ont rien à faire à 3 h du
@@ -190,6 +190,25 @@ bouge pas, la référence non plus, et l'unicité bloque la relance. Rattraper u
 partie du retard fait avancer ce jour, donc autorise une relance, une seule.
 Même principe pour `inactive`, dont la référence est la dernière lecture : une
 relance par période d'absence, et non chaque jour où l'absence dure.
+
+### Pourquoi la feuille de route est le seul déclencheur groupé
+
+Le 14 août, marquer quatre items terminés a produit **huit notifications en
+moins de quatre heures** — une par personne et par item. C'est ce qui donne
+envie de tout couper.
+
+`roadmap-done` n'envoie donc plus qu'une notification par personne : « A », « B »
+et 2 autres nouveautés sont disponibles. Mais **les références restent une par
+item**, et c'est le point délicat. Une référence composée — `« 3+7+9 »` —
+changerait dès qu'un item est terminé après coup, et réannoncerait les
+précédents.
+
+Le groupe écrit donc ses traces en une fois, par
+`upsert(..., { ignoreDuplicates: true }).select()`, et ne rédige son message
+qu'à partir des lignes **réellement écrites**. Vérifié contre la base : deux
+références soumises en rendent deux, puis trois références dont deux déjà
+écrites n'en rendent qu'une. Un item terminé plus tard rejoint donc le groupe
+sans faire répéter les autres.
 
 `notification_data()` fournit les agrégats en une requête. `security invoker` :
 la clé service_role voit tout, un compte ordinaire qui l'appellerait depuis son

@@ -14,7 +14,7 @@
 
 import webpush from 'npm:web-push@3.6.7'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import { collectAll } from './schedule.ts'
+import { collectAll, composeRoadmapMessage } from './schedule.ts'
 import type { CollectInput } from './schedule.ts'
 
 /**
@@ -90,17 +90,57 @@ Deno.serve(async (req) => {
   let pruned = 0
 
   for (const recipient of recipients) {
+    // Le texte peut être refait après l'écriture des traces : voir plus bas.
+    let title = recipient.title
+    let body = recipient.body
+
     // La trace est écrite AVANT l'envoi. Un doublon est pire qu'un manque :
     // recevoir deux fois le même rappel donne envie de tout couper, alors
     // qu'un rappel manqué passe inaperçu. Un conflit sur l'unicité
     // (user_id, kind, ref) vaut donc « déjà envoyé ».
-    const { error: logError } = await supabase
-      .from('notification_log')
-      .insert({ user_id: recipient.userId, kind: recipient.kind, ref: recipient.ref })
+    if (recipient.groupe) {
+      // Déclencheur groupé : une trace par item, un seul envoi.
+      //
+      // `ignoreDuplicates` laisse passer sans erreur les items déjà annoncés,
+      // et `select` ne rend que les lignes réellement écrites. Le message est
+      // donc rédigé à partir des seules nouveautés — un item terminé après
+      // coup rejoint le groupe sans faire réannoncer les précédents.
+      const { data: ecrites, error: logError } = await supabase
+        .from('notification_log')
+        .upsert(
+          recipient.groupe.map((g) => ({
+            user_id: recipient.userId,
+            kind: recipient.kind,
+            ref: g.ref,
+          })),
+          { onConflict: 'user_id,kind,ref', ignoreDuplicates: true },
+        )
+        .select('ref')
 
-    if (logError) {
-      skipped++
-      continue
+      if (logError || !ecrites || ecrites.length === 0) {
+        skipped++
+        continue
+      }
+
+      const nouvelles = new Set((ecrites as { ref: string }[]).map((l) => l.ref))
+      const message = composeRoadmapMessage(
+        recipient.groupe.filter((g) => nouvelles.has(g.ref)).map((g) => g.label),
+      )
+      if (!message) {
+        skipped++
+        continue
+      }
+      title = message.title
+      body = message.body
+    } else {
+      const { error: logError } = await supabase
+        .from('notification_log')
+        .insert({ user_id: recipient.userId, kind: recipient.kind, ref: recipient.ref })
+
+      if (logError) {
+        skipped++
+        continue
+      }
     }
 
     const { data: subs } = await supabase
@@ -113,8 +153,8 @@ Deno.serve(async (req) => {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
           JSON.stringify({
-            title: recipient.title,
-            body: recipient.body,
+            title,
+            body,
             url: recipient.url,
             kind: recipient.kind,
           }),

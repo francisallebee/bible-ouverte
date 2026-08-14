@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   minutesApart, localNow, daysBetween, withinWakingHours, readPrefs,
   collectDaily, collectPlanLate, collectSupportReplies, collectRoadmapDone,
-  collectInactive, collectAll,
+  collectInactive, collectAll, composeRoadmapMessage,
   WINDOW_MINUTES, INACTIVE_DAYS,
 } from './schedule'
 import type { SettingsRow, UserPrefs } from './schedule'
@@ -257,6 +257,31 @@ describe('collectSupportReplies', () => {
   })
 })
 
+describe('composeRoadmapMessage', () => {
+  it('renonce quand il n\'y a rien à annoncer', () => {
+    expect(composeRoadmapMessage([])).toBeNull()
+  })
+
+  it('cite la nouveauté quand elle est seule', () => {
+    expect(composeRoadmapMessage(['Thème système'])?.body)
+      .toBe('« Thème système » est disponible.')
+  })
+
+  it('cite les deux quand il y en a deux', () => {
+    expect(composeRoadmapMessage(['Thème système', 'Plans libres'])?.body)
+      .toBe('« Thème système » et « Plans libres » sont disponibles.')
+  })
+
+  it('compte le reste au-delà de deux', () => {
+    // Le corps d'une notification est tronqué par le système bien avant
+    // d'avoir énuméré huit titres.
+    expect(composeRoadmapMessage(['A', 'B', 'C'])?.body)
+      .toBe('« A », « B » et une autre nouveauté sont disponibles.')
+    expect(composeRoadmapMessage(['A', 'B', 'C', 'D'])?.body)
+      .toBe('« A », « B » et 2 autres nouveautés sont disponibles.')
+  })
+})
+
 describe('collectRoadmapDone', () => {
   const item = { itemId: 18, title: 'Réglage automatique système' }
 
@@ -271,13 +296,63 @@ describe('collectRoadmapDone', () => {
     expect(collectRoadmapDone([prefs()], [item], new Date('2026-08-13T02:00:00Z'))).toHaveLength(0)
   })
 
-  it('une référence par item, donc une seule notification par personne', () => {
-    const deux = [item, { itemId: 8, title: 'Modale de sélection' }]
-    expect(collectRoadmapDone([prefs()], deux, QUATORZE_HEURES_PARIS).map((r) => r.ref)).toEqual(['18', '8'])
-  })
-
   it('écarte qui ne l\'a pas demandé', () => {
     expect(collectRoadmapDone([prefs({ triggers: { 'roadmap-done': false } })], [item], QUATORZE_HEURES_PARIS)).toHaveLength(0)
+  })
+
+  it('ne produit rien sans item', () => {
+    expect(collectRoadmapDone([prefs()], [], QUATORZE_HEURES_PARIS)).toHaveLength(0)
+  })
+
+  it('ne fait qu\'un seul envoi, quel que soit le nombre d\'items', () => {
+    // Quatre items terminés d'un coup faisaient sonner quatre fois chaque
+    // téléphone, ce qui donne surtout envie de couper les notifications.
+    const quatre = [
+      item,
+      { itemId: 8, title: 'Modale de sélection' },
+      { itemId: 7, title: 'Déconnexion automatique' },
+      { itemId: 15, title: 'Plans de lecture libres' },
+    ]
+    const r = collectRoadmapDone([prefs()], quatre, QUATORZE_HEURES_PARIS)
+    expect(r).toHaveLength(1)
+    expect(r[0].body).toBe(
+      '« Réglage automatique système », « Modale de sélection » et 2 autres nouveautés sont disponibles.',
+    )
+  })
+
+  it('garde une référence par item, pour pouvoir en annoncer un plus tard', () => {
+    // C'est ce qui distingue le regroupement d'une référence composée : un
+    // item terminé après coup rejoint le groupe sans faire réannoncer les
+    // précédents, puisque les leurs sont déjà écrites.
+    const deux = [item, { itemId: 8, title: 'Modale de sélection' }]
+    const r = collectRoadmapDone([prefs()], deux, QUATORZE_HEURES_PARIS)
+    expect(r[0].groupe).toEqual([
+      { ref: '18', label: 'Réglage automatique système' },
+      { ref: '8', label: 'Modale de sélection' },
+    ])
+  })
+
+  it('fait porter à `ref` la première référence du groupe', () => {
+    const deux = [item, { itemId: 8, title: 'Modale de sélection' }]
+    const r = collectRoadmapDone([prefs()], deux, QUATORZE_HEURES_PARIS)
+    expect(r[0].ref).toBe(r[0].groupe?.[0].ref)
+  })
+
+  it('est le seul déclencheur groupé', () => {
+    // Les quatre autres n'annoncent qu'une chose à la fois : leur donner un
+    // groupe ferait écrire des traces qu'ils ne contrôlent pas.
+    const tous = collectAll({
+      settings: [{ user_id: 'u1', data: { notificationsEnabled: true, dailyReminderTime: '14:00', timeZone: 'Europe/Paris' } }],
+      latePlans: [{ userId: 'u1', planId: 3, planName: 'NT en 90 jours', earliestLateDate: '2026-08-01' }],
+      supportReplies: [{ userId: 'u1', ticketId: 4, replyId: 'r1', authorName: 'Francis' }],
+      roadmapDone: [item],
+      lastReadings: [{ userId: 'u1', date: '2026-08-01' }],
+    }, QUATORZE_HEURES_PARIS)
+
+    for (const r of tous) {
+      if (r.kind === 'roadmap-done') expect(r.groupe).toBeDefined()
+      else expect(r.groupe).toBeUndefined()
+    }
   })
 })
 

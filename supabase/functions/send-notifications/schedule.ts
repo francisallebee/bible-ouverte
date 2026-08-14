@@ -46,6 +46,17 @@ export interface Recipient {
   title: string
   body: string
   url: string
+  /**
+   * Déclencheur groupé : toutes les références couvertes par un seul envoi, la
+   * première étant `ref`. Chacune reçoit sa trace dans `notification_log`, ce
+   * qui garde la garantie d'une annonce par item.
+   *
+   * Le texte porté par `title` et `body` suppose que tout est nouveau. L'appelant
+   * doit le refaire à partir des seules références réellement écrites : un item
+   * terminé après coup rejoint le groupe, et sans cette précaution il ferait
+   * réannoncer ceux qui l'ont déjà été.
+   */
+  groupe?: { ref: string; label: string }[]
 }
 
 /** Un plan dont un jour prévu est passé sans avoir été coché. */
@@ -289,36 +300,72 @@ export function collectSupportReplies(
 }
 
 /**
+ * Le message de la feuille de route, pour les nouveautés à annoncer.
+ *
+ * Rendu `null` sur une liste vide : il n'y a alors rien à dire, et c'est à
+ * l'appelant de renoncer à l'envoi plutôt que d'expédier une notification vide.
+ */
+export function composeRoadmapMessage(
+  labels: string[],
+): { title: string; body: string } | null {
+  if (labels.length === 0) return null
+  const title = 'Feuille de route'
+
+  if (labels.length === 1) {
+    return { title, body: `« ${labels[0]} » est disponible.` }
+  }
+  if (labels.length === 2) {
+    return { title, body: `« ${labels[0]} » et « ${labels[1]} » sont disponibles.` }
+  }
+
+  // Au-delà de deux, on cite les deux premières et on compte le reste : le
+  // corps d'une notification est tronqué par le système bien avant d'avoir
+  // énuméré huit titres.
+  const reste = labels.length - 2
+  const suite = reste === 1 ? 'une autre nouveauté' : `${reste} autres nouveautés`
+  return { title, body: `« ${labels[0]} », « ${labels[1]} » et ${suite} sont disponibles.` }
+}
+
+/**
  * Les items de la feuille de route passés à « Terminé ».
  *
  * Diffusion à tous les comptes qui l'ont demandé : c'est le seul déclencheur
  * qui ne dépend pas des données de la personne. Restreint au passage à
  * « Terminé », et non à toute création ou modification — sans quoi la moindre
  * correction de statut réveillerait tout le monde.
+ *
+ * **Un seul envoi par personne**, quel que soit le nombre d'items. Marquer
+ * quatre items terminés d'un coup faisait auparavant sonner quatre fois chaque
+ * téléphone, ce qui donne surtout envie de couper les notifications. Les
+ * références restent une par item : c'est ce qui permet d'annoncer plus tard un
+ * item terminé après coup, sans répéter ceux qui l'ont déjà été.
  */
 export function collectRoadmapDone(
   prefsList: UserPrefs[],
   items: RoadmapDone[],
   now: Date,
 ): Recipient[] {
+  if (items.length === 0) return []
   const out: Recipient[] = []
+
   for (const prefs of prefsList) {
     if (!prefs.triggers['roadmap-done']) continue
     const local = safeLocalNow(prefs, now)
     if (!local || !withinWakingHours(local.time)) continue
 
-    for (const item of items) {
-      out.push({
-        userId: prefs.userId,
-        kind: 'roadmap-done',
-        // Une notification par item et par personne, quel que soit le nombre
-        // de passages du cron.
-        ref: String(item.itemId),
-        title: 'Feuille de route',
-        body: `« ${item.title} » est disponible.`,
-        url: '/roadmap',
-      })
-    }
+    const groupe = items.map((item) => ({ ref: String(item.itemId), label: item.title }))
+    const message = composeRoadmapMessage(groupe.map((g) => g.label))
+    if (!message) continue
+
+    out.push({
+      userId: prefs.userId,
+      kind: 'roadmap-done',
+      ref: groupe[0].ref,
+      title: message.title,
+      body: message.body,
+      url: '/roadmap',
+      groupe,
+    })
   }
   return out
 }
