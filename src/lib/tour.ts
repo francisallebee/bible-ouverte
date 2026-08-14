@@ -77,7 +77,10 @@ export const TOUR_STEPS: TourStep[] = [
   },
   {
     id: 'contextes',
-    href: '/contexts',
+    // Les contextes n'ont pas d'écran à eux : ils se choisissent et se créent
+    // depuis le sélecteur de l'écran de saisie. `/contexts` existe encore mais
+    // ne fait que rediriger — y envoyer le parcours l'enfermait dans une boucle.
+    href: '/new-reading',
     icon: 'tags',
     title: 'Les contextes',
     body:
@@ -85,8 +88,9 @@ export const TOUR_STEPS: TourStep[] = [
       + "prédication, podcast, livre audio. C'est ce qui rend les statistiques "
       + "parlantes plus tard.",
     points: [
-      'Dix contextes existent au départ, avec leur emoji.',
-      'Tu peux en créer, les renommer, en retirer.',
+      "Le sélecteur « Contexte » de cet écran les propose.",
+      'Dix existent au départ, avec leur emoji.',
+      'Tu peux en créer un à la volée, sans quitter ta saisie.',
     ],
   },
   {

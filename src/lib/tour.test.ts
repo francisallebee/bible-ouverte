@@ -4,15 +4,25 @@ import {
 } from './tour'
 
 /**
- * Les écrans qui existent réellement dans `src/app`. Une étape qui viserait
+ * Les écrans qui affichent réellement quelque chose. Une étape qui viserait
  * ailleurs enverrait l'utilisateur sur un 404 au beau milieu de sa découverte
  * de l'application — le pire moment pour lui montrer une page morte.
  */
-const ECRANS_EXISTANTS = [
-  '/admin', '/contexts', '/history', '/new-reading', '/plans', '/profil',
-  '/progress', '/roadmap', '/search', '/settings', '/soutenir', '/stats',
-  '/support',
+const ECRANS_REELS = [
+  '/admin', '/history', '/new-reading', '/plans', '/profil', '/progress',
+  '/roadmap', '/search', '/settings', '/soutenir', '/stats', '/support',
 ]
+
+/**
+ * Les routes qui existent mais ne font que rediriger ailleurs.
+ *
+ * Elles sont pires qu'une page absente : le parcours y navigue, la page le
+ * renvoie, l'effet de navigation repart, et l'application finit par tomber sur
+ * une exception. C'est arrivé en production avec `/contexts`, vestige d'un
+ * écran retiré depuis. Les contextes se gèrent désormais depuis le sélecteur
+ * de l'écran de saisie.
+ */
+const ROUTES_DE_REDIRECTION = ['/contexts']
 
 describe('le contenu du parcours', () => {
   it('donne un identifiant unique à chaque étape', () => {
@@ -20,10 +30,22 @@ describe('le contenu du parcours', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('ne vise que des écrans qui existent', () => {
+  it('ne vise que des écrans qui affichent quelque chose', () => {
     for (const step of TOUR_STEPS) {
       if (step.href === null) continue
-      expect(ECRANS_EXISTANTS.includes(step.href), `${step.id} vise ${step.href}`).toBe(true)
+      expect(ECRANS_REELS.includes(step.href), `${step.id} vise ${step.href}`).toBe(true)
+    }
+  })
+
+  it('ne vise aucune route qui ne fait que rediriger', () => {
+    // Une redirection met le parcours en lutte contre la page : il navigue,
+    // elle renvoie, il renavigue. L'application tombe.
+    for (const step of TOUR_STEPS) {
+      if (step.href === null) continue
+      expect(
+        ROUTES_DE_REDIRECTION.includes(step.href),
+        `${step.id} vise ${step.href}, qui ne fait que rediriger`,
+      ).toBe(false)
     }
   })
 
@@ -51,7 +73,7 @@ describe('le contenu du parcours', () => {
     // Le parcours promet d'expliquer toutes les fonctions : si un écran est
     // ajouté à la navigation sans étape correspondante, ce test le dit.
     const vises = TOUR_STEPS.map((s) => s.href).filter(Boolean)
-    for (const ecran of ECRANS_EXISTANTS) {
+    for (const ecran of ECRANS_REELS) {
       expect(vises.includes(ecran), `aucune étape ne présente ${ecran}`).toBe(true)
     }
   })
