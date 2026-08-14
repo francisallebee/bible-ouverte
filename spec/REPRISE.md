@@ -13,13 +13,13 @@ action hors du dépôt.
 1. **Le réseau domestique filtre github, supabase et vercel.** Tant que ce n'est
    pas réglé sur la box, travailler en **partage de connexion iPhone** : c'est
    mesuré, tout repasse. Voir la section dédiée plus bas.
-2. **Le planificateur `cron.schedule` reste à créer.** Le SQL est prêt, secret
-   substitué, dans `~/bible-ouverte-planificateur.sql` (mode `600`, hors du
-   dépôt) — à coller une fois dans le SQL Editor. Il ne passe pas par un outil
-   d'agent parce qu'il porte le secret partagé.
-3. **Aucune notification n'a jamais été reçue sur un appareil réel.** Tant que
-   ce n'est pas fait, l'item 17 n'est pas terminé, quoi qu'en disent le typage
-   et les tests.
+2. **Aucune notification n'est jamais apparue sur un appareil.** Tout le reste
+   de la chaîne est vérifié — voir « Le mur du 13 août » plus bas. C'est le
+   seul point qui empêche de déclarer l'item 17 terminé, et il se reprend au
+   cycle du 14 août.
+3. **L'heure du rappel quotidien du compte `7e8695d3` a été déplacée** sur
+   ~23 h 55 le 13 août pour l'essai, au lieu de 14 h. À remettre à l'heure
+   voulue, sans quoi le rappel de demain tombera vers minuit.
 4. **Trois chemins n'ont jamais été exécutés sur des données réelles** : la
    suppression d'un ticket support, le changement de mot de passe, et la
    suppression en bloc dans l'historique. Le code est en place et le reste a été
@@ -42,32 +42,53 @@ production. Reste l'item 17, les notifications push, découpé en cinq morceaux.
 | Réglages et demande de permission | fait | oui |
 | Table d'abonnements et préférences | fait | oui |
 | Gestionnaires `push` et `notificationclick` | fait | oui |
-| Abonnement de l'appareil au service de push | fait | **non poussé** |
-| Fonction d'envoi et les cinq déclencheurs | fait | **non poussé** |
+| Abonnement de l'appareil au service de push | fait | oui (PR #10, `d3437ae`) |
+| Fonction d'envoi et les cinq déclencheurs | fait | oui (PR #10, `d3437ae`) |
 
-Les deux derniers morceaux tiennent en trois commits qui n'ont pas pu quitter le
-poste, sur `feat/notifications-abonnement-appareil` :
+Le morceau qui méritait un commit à lui seul est `5603523` : un appareil déjà
+connu du compte s'abonne enfin. L'abonnement ne pouvait naître que du
+basculement de la case des réglages, ce qui laissait un **deuxième appareil**
+sans abonnement pour toujours — il trouve la case déjà cochée et n'a rien à
+basculer. L'abonnement vaut par appareil, son déclencheur ne pouvait pas être un
+changement d'état par compte. C'est ce correctif qui a permis le premier
+abonnement réel : les deux comptes avaient les notifications activées depuis une
+séance antérieure, sans aucun appareil enregistré.
 
-* `5603523` — un appareil déjà connu du compte s'abonne enfin. L'abonnement ne
-  pouvait naître que du basculement de la case des réglages, ce qui laissait un
-  **deuxième appareil** sans abonnement pour toujours : il trouve la case déjà
-  cochée et n'a rien à basculer. L'abonnement vaut par appareil, son déclencheur
-  ne pouvait pas être un changement d'état par compte.
-* `5b9d30b` — la fonction Edge et le rappel quotidien.
-* `bf7cb12` — les quatre autres déclencheurs.
+### Le mur du 13 août : tout marche, rien n'arrive
 
-**Ce qui est en production côté base**, relevé et non déduit : les deux
-migrations sont appliquées, `notification_data()` existe, `pg_net` et `pg_cron`
-sont installées, la fonction `send-notifications` est déployée en version 1 avec
-`verify_jwt: false`, et **les trois secrets sont déposés**. Appelée avec le bon
-secret, elle rend `200` et `{"candidats":0,"envoyes":0,"deja":0,"purges":0}` ;
-sans lui, `401`. Un `200` vaut mieux qu'un aller-retour : il prouve que les clés
-VAPID sont chargées — sinon la fonction rendrait `500` —, que le client
-service_role fonctionne et que la RPC `notification_data()` répond.
+Toute la chaîne est vérifiée **sauf le dernier mètre**. Chaque ligne ci-dessous
+est une mesure, pas une déduction.
 
-Il ne manque que le **planificateur**. `push_subscriptions` et
-`notification_log` comptent zéro ligne : `candidats:0` est donc l'attendu, pas
-un symptôme.
+| Maillon | Preuve |
+|---|---|
+| Migrations, `notification_data()`, `pg_net`, `pg_cron` | présents |
+| Fonction déployée, `verify_jwt: false` | `401`/`unauthorized` sur secret faux — la chaîne vient de `index.ts`, pas de la passerelle |
+| Les trois secrets | `200` sur appel valide ; sans les clés VAPID ce serait `500` |
+| Planificateur | `notifications-quart-dheure`, `*/15 * * * *`, `active = true` |
+| Abonnement iPhone | endpoint `web.push.apple.com`, iOS 18.7, créé à 21:46:46 UTC |
+| Envoi | `{"candidats":2,"envoyes":2,"purges":0,"parMotif":{"daily":1,"plan-late":1}}` |
+| Trace | deux lignes dans `notification_log`, refs `2026-08-13` et `3:2026-01-06` |
+| `sw.js` en production | **identique octet pour octet** au dépôt, gestionnaire `push` présent, `cache-control: max-age=0, must-revalidate` |
+| **Affichage sur l'iPhone** | **rien** |
+
+L'essai a eu lieu vers 23 h 55 heure de Paris, ce qui laisse une explication
+simple et non vérifiée : un mode de concentration ou Sommeil qui remet les
+notifications silencieusement. À reprendre au cycle du 14 août, en journée.
+
+Pistes non encore écartées, par ordre de vraisemblance : mode de concentration
+actif ; remise silencieuse (les notifications seraient dans le centre de
+notifications, pas sur l'écran verrouillé) ; réglage iOS de l'app ; service
+worker enregistré sur l'appareil différent de celui servi.
+
+**Le test qui sépare** : le bouton de notification de test des réglages appelle
+`showNotification` localement, sans serveur ni abonnement. S'il affiche quelque
+chose, l'affichage fonctionne et le défaut est dans la remise ; s'il n'affiche
+rien, c'est iOS qui retient tout et le push n'y est pour rien.
+
+**Attention pour rejouer** : les deux références sont consommées. Le `daily` du
+14 août partira seul (nouvelle date), mais ce `plan-late` ne repartira pas tant
+que le jour du 6 janvier du plan 3 n'aura pas été coché. Pour forcer, effacer la
+ligne correspondante de `notification_log`.
 
 ### La clé privée VAPID a été perdue, puis regénérée
 
@@ -193,6 +214,14 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
 
 ## Pièges vérifiés, à ne pas réintroduire
 
+- **`envoyes` ne prouve pas qu'une notification est arrivée.** Le compteur
+  n'incrémente que parce que `webpush.sendNotification` n'a pas levé, c'est-à-dire
+  parce que le **service de push a accepté le message** — Apple répond `201` et
+  se charge de la suite. Entre cette acceptation et un écran allumé, il reste la
+  remise au terminal, le réveil du service worker, `showNotification`, et les
+  réglages iOS. Le 13 août, `envoyes:2` et zéro notification visible : les deux
+  faits sont compatibles. Ne jamais lire ce compteur comme un accusé de
+  réception.
 - **`verify_jwt` doit rester à `false` sur `send-notifications`.** `pg_cron`
   n'envoie aucun en-tête `Authorization` : la valeur par défaut ferait rejeter
   l'appel par la passerelle **avant** que la fonction s'exécute. Et le rejet est
@@ -279,9 +308,12 @@ lecture, Détail d'un plan, Détail d'une lecture.
 **Jamais vu fonctionner : Administration.** Typage, lint, tests et build
 passent, ce qui n'est pas la même chose.
 
-**Jamais vue arriver : une notification push.** Les cinq déclencheurs sont
-couverts par des tests déterministes, la fonction est déployée et répond, mais
-aucun appareil n'a jamais reçu quoi que ce soit. Sur iPhone, l'essai suppose que
-l'application soit installée sur l'écran d'accueil — iOS ne délivre rien depuis
-un onglet Safari — et se contrôle par l'apparition d'une ligne dans
-`push_subscriptions` au lancement.
+**Jamais vue arriver : une notification push.** Le 13 août au soir, deux
+notifications sont parties, ont été acceptées par Apple et tracées en base — et
+rien n'est apparu sur l'iPhone. Tous les maillons en amont sont mesurés, le
+dernier ne l'est pas. Voir « Le mur du 13 août ».
+
+L'abonnement, lui, est acquis : un iPhone sous iOS 18.7 figure dans
+`push_subscriptions` avec un endpoint `web.push.apple.com`. L'application doit
+être installée sur l'écran d'accueil et lancée depuis son icône — iOS ne délivre
+rien à un onglet Safari.
