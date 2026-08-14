@@ -184,6 +184,18 @@ export interface AppSettings {
    * sens côté serveur : les dates de l'application sont des `YYYY-MM-DD` nus.
    */
   timeZone?: string;
+  /**
+   * Date à laquelle le parcours découverte a été vu, terminé ou passé.
+   *
+   * Absente : il se déclenchera à la prochaine ouverture. Distincte de
+   * `firstLaunchCompleted`, qui appartient à `seedIfNeeded` et dit tout autre
+   * chose — qu'un compte a reçu ses données de départ. Les confondre relancerait
+   * l'amorçage ou le parcours l'un pour l'autre.
+   *
+   * Une date plutôt qu'un booléen : elle s'affiche dans les réglages, et elle
+   * permettra de reproposer le parcours si son contenu change un jour.
+   */
+  tourCompletedAt?: string;
   /** true si une modification locale n'a pas encore été poussée vers le cloud */
   _dirty?: boolean;
 }

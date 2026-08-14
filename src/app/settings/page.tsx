@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion } from "@/lib/storage";
 import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 import { useAuth } from "@/contexts/AuthContext";
+import { TOUR_START } from "@/lib/tour";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
@@ -604,6 +605,27 @@ export default function SettingsPage() {
               rien de ce que tu es en train de saisir ne soit perdu.
             </p>
           )}
+        </SectionCard>
+
+        <SectionCard icon={Compass} title="Parcours découverte">
+          <p className="text-sm text-[--text-secondary] mb-3">
+            La visite guidée des écrans de l&apos;application. Elle se lance une seule
+            fois, à la première connexion — puis seulement si tu la redemandes ici.
+          </p>
+          <p className="text-sm text-[--text-secondary] mb-3">
+            {settings?.tourCompletedAt
+              ? `Déjà suivi le ${new Date(settings.tourCompletedAt).toLocaleDateString('fr-FR', {
+                  day: 'numeric', month: 'long', year: 'numeric',
+                })}.`
+              : 'Tu ne l’as pas encore suivi : il s’ouvrira à ta prochaine visite.'}
+          </p>
+          <button
+            onClick={() => window.dispatchEvent(new Event(TOUR_START))}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-[--primary] hover:opacity-90 transition-opacity"
+          >
+            <Compass className="w-4 h-4" />
+            Revoir le parcours
+          </button>
         </SectionCard>
 
         <SectionCard icon={Cloud} title="Synchronisation cloud">

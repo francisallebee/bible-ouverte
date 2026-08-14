@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import AutoLogout from '@/components/AutoLogout'
+import DiscoveryTour from '@/components/DiscoveryTour'
 import LayoutClient from '@/lib/pwa/layout-client'
 import { getSettings, SETTINGS_CHANGED } from '@/lib/storage'
 import { applyColorTheme, applyTheme, watchSystemTheme } from '@/lib/themes'
@@ -69,6 +70,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </a>
       <Sidebar />
       <AutoLogout minutes={autoLogoutMinutes} />
+      {/* Monté ici et non dans un écran : le parcours traverse l'application
+          et doit survivre aux changements de page qu'il provoque lui-même. */}
+      <DiscoveryTour />
       <main id="main" className="lg:ml-[var(--nav-width)] min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pt-24 lg:pt-10">
           {children}
