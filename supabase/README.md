@@ -273,6 +273,69 @@ l'unicité `(user_id, kind, ref)` vaut donc « déjà envoyé ».
 Un abonnement qui répond 404 ou 410 est retiré : le service de push ne le
 connaît plus, et le garder ferait échouer chaque envoi à jamais.
 
+## Alerte d'inscription
+
+`functions/notify-new-user` écrit à l'administrateur quand quelqu'un crée un
+compte. Elle passe par l'API transactionnelle de **Brevo**
+(`api.brevo.com/v3/smtp/email`).
+
+Un **balayage** au même rythme que les notifications, et non un déclencheur sur
+la table : le chemin d'inscription n'a pas à porter une pièce de plus, et un
+quart d'heure de délai est sans conséquence pour un avertissement
+d'administration.
+
+`new_user_alerts` retient qui a déjà été signalé, et la ligne est écrite
+**avant** l'envoi — même discipline que `notification_log`. Un courriel manqué
+passe inaperçu ; recevoir dix fois la même inscription fait poser une règle de
+filtrage, et l'alerte ne sert plus à rien.
+
+La migration `20260814140000_new_user_alerts.sql` **amorce la table avec tous
+les comptes existants**. C'est son point important : sans cela, le premier
+passage aurait considéré chacun des 99 comptes déjà inscrits comme une
+nouveauté.
+
+### Les trois secrets
+
+À déposer une fois, comme ceux des notifications. La clé Brevo ne doit jamais
+entrer dans le dépôt, ni dans une conversation.
+
+```bash
+supabase secrets set \
+  BREVO_API_KEY="…" \
+  NEW_USER_ALERT_FROM="…" \
+  NEW_USER_ALERT_TO="…" \
+  --project-ref nttasjckcmoqvjchxbzf
+```
+
+`NEW_USER_ALERT_FROM` doit être une adresse **vérifiée chez Brevo**, sans quoi
+l'envoi est refusé. Les deux adresses passent par des secrets et non par le
+code : le dépôt est public, et ce sont des données personnelles.
+
+Le contrôle d'accès réutilise `NOTIFY_CRON_SECRET` — c'est le même
+planificateur qui appelle les deux fonctions. `verify_jwt` doit rester à
+`false`, pour la raison déjà exposée plus haut.
+
+### Le planificateur
+
+À ajouter une fois les secrets déposés, en remplaçant le secret :
+
+```sql
+select cron.schedule(
+  'alerte-nouvel-utilisateur',
+  '*/15 * * * *',
+  $$
+  select net.http_post(
+    url := 'https://nttasjckcmoqvjchxbzf.supabase.co/functions/v1/notify-new-user',
+    headers := '{"Content-Type":"application/json","x-cron-secret":"LE_SECRET"}'::jsonb
+  );
+  $$
+);
+```
+
+Sans les secrets, la fonction répond `500` avec le nom de ce qui manque ; avec
+un mauvais `x-cron-secret`, `401` et le corps `unauthorized`. Les deux ont été
+vérifiés au déploiement.
+
 ## Ce qui reste hors du dépôt
 
 Les buckets de stockage `photos` et `audio` sont créés depuis le dashboard et ne
