@@ -28,11 +28,18 @@ Deno.serve(async (req) => {
   const cle = Deno.env.get('BREVO_API_KEY')
   const expediteur = Deno.env.get('NEW_USER_ALERT_FROM')
   const destinataire = Deno.env.get('NEW_USER_ALERT_TO')
-  if (!cle || !expediteur || !destinataire) {
-    return new Response(
-      'BREVO_API_KEY, NEW_USER_ALERT_FROM ou NEW_USER_ALERT_TO manquant',
-      { status: 500 },
-    )
+
+  // Nommer précisément ce qui manque, et non les trois d'un bloc : ces secrets
+  // se déposent en plusieurs fois, et un message groupé laisse chercher lequel
+  // n'est pas passé.
+  const manquants = [
+    ['BREVO_API_KEY', cle],
+    ['NEW_USER_ALERT_FROM', expediteur],
+    ['NEW_USER_ALERT_TO', destinataire],
+  ].filter(([, valeur]) => !valeur).map(([nom]) => nom)
+
+  if (manquants.length > 0) {
+    return new Response(`secret manquant : ${manquants.join(', ')}`, { status: 500 })
   }
 
   // La clé service_role est nécessaire : `new_user_alerts` n'a aucune policy,
