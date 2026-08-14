@@ -427,6 +427,11 @@ deno_version = 2
 [functions.send-notifications]
 verify_jwt = false
 
+# Même raison pour l'alerte d'inscription : appelée par pg_cron, authentifiée
+# par le même secret partagé dans `x-cron-secret`.
+[functions.notify-new-user]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
