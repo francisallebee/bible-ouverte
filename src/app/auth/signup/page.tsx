@@ -89,7 +89,9 @@ export default function SignupPage() {
 
   return (
     <AuthCard title={t.authScreens.signupTitle} subtitle={t.authScreens.signupSubtitle}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Voir le commentaire de `auth/login` : sans `method`, une soumission
+          non hydratée emporte le mot de passe dans l'URL. */}
+      <form method="post" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="signup-name" className={authLabel}>{t.authScreens.firstName}</label>
           <input

@@ -281,7 +281,9 @@ export default function ProfilPage() {
         {saved && <p className="text-sm text-green-600 text-center">{t.profile.saved}</p>}
       </div>
 
-      <form onSubmit={handleChangePassword} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 mt-6">
+      {/* Voir le commentaire de `auth/login` : trois mots de passe transitent
+          ici, dont l'actuel. */}
+      <form method="post" onSubmit={handleChangePassword} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 mt-6">
         <h2 className="text-base font-semibold flex items-center gap-2 text-gray-900">
           <KeyRound className="w-4 h-4 text-[--primary]" />
           {t.profile.password}

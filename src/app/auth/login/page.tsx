@@ -51,7 +51,16 @@ function LoginForm() {
 
   return (
     <AuthCard title={t.authScreens.login} subtitle={t.authScreens.loginSubtitle}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/*
+        `method="post"` n'est pas décoratif, et n'est pas là pour le serveur :
+        `handleSubmit` intercepte la soumission dès que la page est hydratée.
+        Il vaut pour l'instant où elle ne l'est pas — script encore en vol,
+        chunk en erreur, JavaScript coupé. Un `<form>` sans `method` se soumet
+        alors en GET, et le mot de passe part dans la query string, donc dans
+        l'historique du navigateur et dans les journaux du serveur. C'est
+        arrivé, en développement, le 15 août 2026.
+      */}
+      <form method="post" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="login-email" className={authLabel}>{t.authScreens.email}</label>
           <input
