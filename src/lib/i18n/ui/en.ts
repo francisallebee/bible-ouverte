@@ -573,6 +573,10 @@ export const en: Dictionary = {
 
     confirming: 'Confirmation in progress',
     confirmingHint: 'Your address is being verified. Just a moment.',
+
+    home: 'Home',
+    byPrefix: 'By ',
+    bySuffix: ' — Resources and You',
   },
   components: {
     syncAuto: 'Synced automatically',

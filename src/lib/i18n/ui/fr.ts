@@ -602,6 +602,16 @@ export const fr = {
 
     confirming: 'Confirmation en cours',
     confirmingHint: "Ton adresse est en train d'être vérifiée. Encore un instant.",
+
+    /**
+     * Le cadre de l'écran, et non son formulaire : le bouton de retour et la
+     * signature du pied de page. Coupée en deux parce qu'un lien s'intercale,
+     * comme celle du canal WhatsApp dans `donate` — les espaces sont dans les
+     * chaînes et non dans le JSX, pour que chaque langue en décide.
+     */
+    home: 'Accueil',
+    byPrefix: 'Par ',
+    bySuffix: ' — Ressources et Vous',
   },
   components: {
     syncAuto: 'Synchronisé automatiquement',

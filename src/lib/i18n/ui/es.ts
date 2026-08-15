@@ -598,6 +598,10 @@ export const es: Dictionary = {
 
     confirming: 'Confirmación en curso',
     confirmingHint: 'Tu dirección se está verificando. Un momento más.',
+
+    home: 'Inicio',
+    byPrefix: 'Por ',
+    bySuffix: ' — Recursos y Tú',
   },
   components: {
     syncAuto: 'Sincronizado automáticamente',

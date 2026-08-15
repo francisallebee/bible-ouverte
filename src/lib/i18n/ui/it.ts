@@ -597,6 +597,10 @@ export const it: Dictionary = {
 
     confirming: 'Conferma in corso',
     confirmingHint: 'Il tuo indirizzo è in fase di verifica. Ancora un istante.',
+
+    home: 'Home',
+    byPrefix: 'Di ',
+    bySuffix: ' — Risorse e Te',
   },
   components: {
     syncAuto: 'Sincronizzato automaticamente',
