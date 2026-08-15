@@ -147,6 +147,15 @@ coûterait une passe complète sur les 19 écrans.
 11. Ne jamais nommer `t` une variable de boucle : c'est le dictionnaire, et le
     typage ne signale pas le masquage quand les deux objets ont un `.name`. Le
     piège s'est présenté deux fois, dans Réglages et Administration.
+12. **Tout `<form>` qui porte un mot de passe déclare `method="post"`**, même
+    quand un `onSubmit` avec `preventDefault()` le rend inutile. Il ne sert pas
+    au serveur : il sert à la fenêtre où la page n'est pas encore hydratée —
+    script en vol, chunk en erreur, JavaScript coupé. Un `<form>` sans `method`
+    se soumet alors en **GET**, et le mot de passe part dans la query string,
+    donc dans l'historique du navigateur et dans les journaux du serveur. Ce
+    n'est pas une hypothèse : c'est arrivé le 15 août 2026 sur le serveur de
+    développement, avec un vrai compte. Concerne `auth/login`, `auth/signup` et
+    la section mot de passe de `profil`.
 
 ## Commandes
 
@@ -235,15 +244,16 @@ npm test           # vitest
   d'API — c'est une commande pour le propriétaire.
   Sa migration a amorcé `new_user_alerts` avec les comptes existants : ne pas la
   vider, le prochain passage signalerait tout le monde comme nouveau.
-- **Le gabarit de `/auth` est resté français**, et celui-là n'est pas délibéré.
-  `src/app/auth/layout.tsx` est un composant serveur qui écrit deux chaînes en
-  dur : le bouton « Accueil » et le pied « Par Ôappliday — Ressources et Vous ».
-  Vu à l'écran le 15 août 2026, en espagnol et en italien : le formulaire est
-  traduit, son cadre non. C'est le seul écart de ce genre — les trois autres
-  composants serveur de `src/app/` sont propres, et `soutenir/page.tsx` montre
-  la solution déjà employée ici : garder le serveur pour le `metadata` qu'il
-  seul peut porter, et sortir le contenu visible dans un composant client.
-  Ce gabarit-là n'a aucun `metadata` à porter.
+- **Un composant serveur ne peut pas lire le dictionnaire**, et c'est ainsi que
+  le gabarit de `/auth` est resté français jusqu'au 15 août 2026 : le formulaire
+  était traduit, son cadre — « Accueil », « Par Ôappliday — Ressources et
+  Vous » — ne l'était pas. Trouvé à l'écran, pas par un relevé.
+  `src/app/auth/layout.tsx` est désormais client. **Le prérendu n'en a pas
+  souffert** : `/`, `/auth/login` et `/auth/signup` restent `○ (Static)` au
+  build, un composant client étant tout de même rendu en HTML à ce moment-là.
+  Vérifié, non supposé. Les trois autres composants serveur de `src/app/` sont
+  propres — et `soutenir/page.tsx` montre le cas où le serveur se justifie : il
+  porte un `metadata`, qu'un composant client n'a pas le droit d'exporter.
 - **La traduction ne couvre pas tout, et le reste est délibéré.** La page de
   présentation `/` et les titres d'onglet (`metadata`) restent français : ils
   sont rendus côté serveur, un visiteur sans session n'a pas de réglage de

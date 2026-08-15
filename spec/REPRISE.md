@@ -140,10 +140,22 @@ relevés successifs, et un seul des deux compte vraiment :
   formulaire entièrement traduit.
 
 C'est l'écran qui a trouvé ce que le relevé ne pouvait pas voir : **le gabarit
-`src/app/auth/layout.tsx` est resté français**. Composant serveur, deux chaînes
-en dur — « Accueil » et « Par Ôappliday — Ressources et Vous ». Le formulaire
-est traduit, son cadre non. Ce n'est pas dans le périmètre délibéré, qui ne
-nomme que `/` et les `metadata`.
+`src/app/auth/layout.tsx` était resté français**. Composant serveur, deux
+chaînes en dur — « Accueil » et « Par Ôappliday — Ressources et Vous ». Le
+formulaire traduit, son cadre non. Ce n'était pas dans le périmètre délibéré,
+qui ne nomme que `/` et les `metadata`.
+
+Corrigé dans la foulée : le gabarit est passé client, et trois clés
+(`home`, `byPrefix`, `bySuffix`) l'ont rejoint dans `authScreens`. Le pied de
+page est coupé en deux parce qu'un lien s'y intercale, comme celui du canal
+WhatsApp dans `donate`. Le bouton de retour est passé de `left-5` à `start-5`
+et sa flèche porte `rtl:rotate-180` — l'arabe arrive.
+
+**Le prérendu n'en a pas souffert, et c'est mesuré** : `/`, `/auth/login` et
+`/auth/signup` restent `○ (Static)` au build, à 1,57 kB contre 1,56 avant. Un
+composant client est tout de même rendu en HTML au build ; ce que la règle 9
+protège sur `/` est la redirection du middleware, pas l'absence de `'use
+client'`.
 
 L'essai s'est fait **sans session** : `getSettings` lit IndexedDB, qui existe
 avant toute connexion, et `SETTINGS_CHANGED` fait relire la langue sans
@@ -394,6 +406,18 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   `contextId` manquait dans le troisième, ce qui rendait toute modification
   éphémère. Le même piège s'est représenté avec la `date` des plans libres, que
   `updatePlanDay` ne poussait pas.
+- **Un `<form>` sans `method` se soumet en GET, et un mot de passe dans une
+  query string finit dans les journaux.** Le 15 août 2026, sur le serveur de
+  développement, l'adresse et le mot de passe d'un vrai compte sont apparus en
+  clair dans une ligne `GET /auth/login?email=…&password=…`. Le formulaire a
+  pourtant un `onSubmit` avec `preventDefault()` : il n'était simplement pas
+  encore hydraté — les chunks répondaient `404` après un changement de
+  composant serveur en composant client. **Un garde-fou qui vit dans du
+  JavaScript ne protège pas la fenêtre où ce JavaScript n'est pas là.** Les
+  trois formulaires concernés portent désormais `method="post"` ; voir la
+  règle 12 d'`AGENTS.md`. Le mot de passe exposé est à changer, et l'incident
+  vaut aussi pour la production : toute hydratation lente ou en échec rouvre la
+  même fenêtre.
 - **Un cache qui pousse sans avoir lu finit par écraser.** `getSettings`
   envoyait sa ligne `_dirty` au cloud sans jamais appeler `fetchSettings` : rien
   ne comparait les deux états, donc l'appareil le plus en retard gagnait. Un
