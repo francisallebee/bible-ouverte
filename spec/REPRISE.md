@@ -25,16 +25,25 @@ action hors du dépôt.
    courriel les nommant tous les trois. Inutile de créer un compte de test.
    Si rien n'arrive dans le quart d'heure, c'est la validation de l'expéditeur
    chez Brevo qui est en cause — le point resté non vérifié.
-3. **Les actions de l'écran Administration n'ont jamais été exercées** :
+3. **Dix-huit écrans sur dix-neuf n'ont jamais été vus en arabe.** Seul
+   `/auth/login` l'a été, faute de session côté agent. Les propriétés logiques
+   y tiennent ; rien ne dit qu'elles tiennent ailleurs. Une trentaine de
+   classes physiques subsistent dans 14 fichiers — piste, pas verdict.
+4. **Les actions de l'écran Administration n'ont jamais été exercées** :
    suspendre, promouvoir, supprimer un compte, changer le statut d'un ticket.
    L'écran s'affiche (vu le 15 août), ce qui n'est pas la même chose.
    S'y ajoutent trois chemins déjà connus, eux non plus jamais exécutés sur des
    données réelles : la suppression d'un ticket support, le changement de mot de
    passe, et la suppression en bloc dans l'historique.
-4. **La réversion de langue est expliquée et corrigée** — voir la section dédiée
+5. **La réversion de langue est expliquée et corrigée** — voir la section dédiée
    plus bas. Reste à la voir à l'écran, connecté : le correctif est éprouvé en
    laboratoire, pas encore en usage. Trois appareils sont concernés.
-5. **Deux migrations ont été appliquées par exécution SQL directe**, l'outil de
+6. **Un mot de passe est à changer.** Celui du compte propriétaire est apparu en
+   clair dans les journaux du serveur de développement le 15 août 2026, par une
+   soumission de formulaire non hydratée. Le défaut de code est corrigé
+   (règle 12 d'`AGENTS.md`), l'exposition ne l'est pas : rien n'annule ce qui a
+   déjà été écrit dans un journal ou un historique.
+7. **Deux migrations ont été appliquées par exécution SQL directe**, l'outil de
    migration ayant été refusé à l'époque : `20260809100000_meditation_emoji.sql`
    et `20260809140000_plan_reading_context.sql`. Elles ne figurent donc pas dans
    la table `supabase_migrations` du projet. Les fichiers sont au dépôt et
@@ -166,7 +175,44 @@ réversion existe pour de vrai.
 Le coût est mesuré, pas estimé : **+15 kB de First Load JS**, identique sur tous
 les écrans, soit environ 7,5 kB par langue. `/` reste prérendue statique.
 
-Reste l'arabe, la seule qui éprouvera réellement les propriétés logiques.
+### L'arabe, et ce qu'il a réellement éprouvé
+
+Livré dans la foulée. Un fichier, une ligne — la promesse tient une troisième
+fois. Mais l'arabe n'est pas une quatrième traduction : c'est l'épreuve des
+fondations posées à la vague 4.
+
+**Son pluriel justifie à lui seul les valeurs en fonction.** Six formes
+cardinales et non deux — zéro, un, duel, 3 à 10, 11 à 99, le reste — et le nom
+repasse au singulier après 11, la forme étant décidée par `n % 100`. `ar.ts`
+porte un `pluriel()` local appliquant les règles CLDR ; sept tests le couvrent,
+dont celui qui vérifie que 103 se comporte comme 3 et 111 comme 11.
+
+**Ce que l'écran a montré**, sur `/auth/login`, dans un onglet neuf après
+redémarrage du serveur :
+
+| Fondation | Constat |
+|---|---|
+| `dir` sur `<html>` | `rtl`, et `lang="ar"` |
+| Bouton de retour | passé **à droite** — c'est `start-5` qui agit |
+| Sa flèche | retournée, `matrix(-1, 0, 0, -1, 0, 0)` |
+| Libellés | `text-align: start` |
+| En-tête | logo passé à droite du titre |
+
+**Réserve, et elle est grande : un écran sur dix-neuf.** Les dix-huit autres
+demandent une session, que l'agent n'a pas. Un relevé des classes physiques
+restantes trouve une trentaine d'occurrences dans 14 fichiers — dont onze dans
+la page de présentation, qui reste française et LTR par conception. Ce relevé
+est une piste, pas un verdict : il ne dit pas lesquelles gênent réellement, et
+un `grep` dit ce qu'il cherche, pas ce qui manque. **Les dix-huit écrans
+restants sont à repasser en arabe.**
+
+Coût mesuré : **+10 kB** de First Load JS (`/auth/login` 206 → 216 kB), un peu
+au-dessus des ~7,5 kB de l'espagnol et de l'italien — l'arabe pèse davantage en
+UTF-8.
+
+Deux limites assumées : les chiffres des compteurs restent occidentaux, et le
+test de non-régression a dû être réécrit — il citait `ar` comme exemple de
+langue sans dictionnaire, et il n'y en a plus une seule.
 
 ## La vague 3 et les notifications
 
@@ -361,6 +407,8 @@ interrompu avant la fin. Les previews passent par git.
 | Comptes et alertes en attente | 102 profils, 99 traces — 3 comptes à annoncer | 15 août |
 | Volume de la traduction | 1 070 lignes accentuées sur 19 écrans et ~85 fichiers, ramenées à 520 clés | 15 août |
 | Coût de l'espagnol et de l'italien | **+15 kB de First Load JS**, identique sur tous les écrans (`/auth/login` 191 → 206 kB) | 15 août |
+| Coût de l'arabe | **+10 kB** (`/auth/login` 206 → 216 kB) — plus lourd en UTF-8 | 15 août |
+| RTL sur `/auth/login` | `dir=rtl`, bouton passé à droite, flèche retournée — **1 écran sur 19** | 15 août |
 | Valeurs restées identiques au français | 11 en espagnol, 12 en italien sur 652 feuilles — toutes légitimes (*Audio*, *Email*, *Admin*…) | 15 août |
 | Ce que `readings.book` stocke | l'abréviation USFM (`GEN`, `2CH`), jamais le nom | 15 août |
 | Persistance de la langue | écrite dans la colonne `jsonb`, relue après rechargement complet | 15 août |

@@ -5,6 +5,7 @@ import { contextName } from './contexts'
 import { formatDate, parseJour, monthNames, weekdayNames } from './format'
 import { AVAILABLE_LOCALES, DICTIONARIES, dictionary } from './ui'
 import { fr } from './ui/fr'
+import { ar } from './ui/ar'
 import { BOOKS } from '@/features/bible/books'
 
 describe('le choix de la langue', () => {
@@ -155,7 +156,12 @@ describe('les dictionnaires', () => {
   })
 
   it('retombe sur le français pour une langue sans dictionnaire', () => {
-    expect(dictionary('ar')).toBe(fr)
+    // Ce test citait `ar` jusqu'au 15 août 2026, jour où l'arabe a reçu le
+    // sien : les cinq langues de LOCALES sont désormais toutes traduites. Le
+    // garde-fou garde tout son sens — il couvre la langue qu'on déclarera
+    // avant de l'écrire — mais il lui faut un code hors registre pour rester
+    // vrai.
+    expect(dictionary('pt' as never)).toBe(fr)
   })
 })
 
@@ -180,5 +186,61 @@ describe('les dates', () => {
     expect(weekdayNames('en', 'long')).toHaveLength(7)
     expect(weekdayNames('en', 'long')[0]).toBe('Monday')
     expect(weekdayNames('fr', 'long')[0]).toBe('lundi')
+  })
+})
+
+describe("le pluriel de l'arabe", () => {
+  /**
+   * L'arabe distingue six formes là où le français en a deux, et le nom
+   * repasse au singulier après 11 — ce qu'aucun `s` conditionnel ne sait
+   * faire. C'est la règle CLDR, et c'est de la logique : elle se teste.
+   */
+  const compte = (n: number) => ar.history.readingCount(n)
+
+  it('emploie une forme distincte pour zéro, un et le duel', () => {
+    expect(compte(0)).toBe('0 قراءة')
+    expect(compte(1)).toBe('1 قراءة واحدة')
+    expect(compte(2)).toBe('2 قراءتان')
+  })
+
+  it('emploie le pluriel de petit nombre de 3 à 10', () => {
+    expect(compte(3)).toBe('3 قراءات')
+    expect(compte(10)).toBe('10 قراءات')
+  })
+
+  it('revient au singulier de 11 à 99', () => {
+    expect(compte(11)).toBe('11 قراءة')
+    expect(compte(99)).toBe('99 قراءة')
+  })
+
+  it('reprend les mêmes formes selon les deux derniers chiffres', () => {
+    // 103 se comporte comme 3, 111 comme 11 — c'est le reste modulo 100 qui
+    // décide, et non la grandeur du nombre. Seule la forme se compare : le
+    // nombre lui-même fait partie de la chaîne.
+    const forme = (n: number) => compte(n).replace(`${n} `, '')
+    expect(forme(103)).toBe(forme(3))
+    expect(forme(111)).toBe(forme(11))
+    expect(forme(100)).toBe(forme(1000))
+    expect(compte(100)).toBe('100 قراءة')
+  })
+
+  it('applique la même règle aux autres compteurs', () => {
+    expect(ar.progress.chapterCount(2)).toBe('2 إصحاحان')
+    expect(ar.progress.chapterCount(5)).toBe('5 إصحاحات')
+    expect(ar.search.verseCount(1)).toBe('1 عدد واحد')
+    expect(ar.support.replyCount(3)).toBe('3 ردود')
+  })
+})
+
+describe("l'arabe au registre", () => {
+  it('est proposable et se lit de droite à gauche', () => {
+    expect(DICTIONARIES.ar).toBeDefined()
+    expect(AVAILABLE_LOCALES.map((l) => l.code)).toContain('ar')
+    expect(localeInfo('ar').dir).toBe('rtl')
+  })
+
+  it("est la seule langue à droite-à-gauche pour l'instant", () => {
+    const rtl = LOCALES.filter((l) => l.dir === 'rtl').map((l) => l.code)
+    expect(rtl).toEqual(['ar'])
   })
 })

@@ -45,19 +45,31 @@ au registre `ui/index.ts`. Une langue déclarée dans `LOCALES` mais sans
 dictionnaire n'apparaît pas au sélecteur : on ne choisit pas une langue à
 moitié faite.
 
-**Quatre langues sont livrées** : français, anglais, espagnol, italien. Les deux
-dernières le 15 août 2026, et elles ont confirmé la promesse — un fichier, une
-ligne, rien d'autre à toucher. Reste l'arabe, qui éprouvera les propriétés
-logiques.
+**Les cinq langues sont livrées** : français, anglais, espagnol, italien, arabe.
+Les trois dernières le 15 août 2026, et elles ont confirmé la promesse — un
+fichier, une ligne, rien d'autre à toucher.
 
 Le pluriel se décide **dans chaque dictionnaire**, et c'est ce que les valeurs
 en fonction achètent. `es.ts` et `it.ts` testent `n !== 1` là où `fr.ts` teste
 `n > 1` : « 0 lectura » se dit au pluriel en espagnol quand « 0 lecture » reste
 au singulier en français. L'italien va plus loin — `lettura` fait `letture`,
-`capitolo` fait `capitoli` — et écrit donc les deux formes en entier, ce qu'un
-gabarit `{n} lectures` interdirait. `en.ts` teste encore `n > 1`, ce qui rend
-« 0 reading » : petit défaut connu, sans conséquence tant que zéro ne s'affiche
-pas.
+`capitolo` fait `capitoli` — et écrit donc les deux formes en entier.
+
+**L'arabe pousse ce choix à son terme, et le justifie à lui seul.** Il a *six*
+formes cardinales, pas deux : zéro, un, le duel, le petit nombre (3 à 10), le
+grand nombre (11 à 99), et le reste — et le nom **repasse au singulier après
+11**, la forme étant décidée par `n % 100` et non par la grandeur. `ar.ts`
+porte donc un `pluriel()` local qui applique les règles CLDR, et chaque
+compteur lui fournit ses six formes. Aucun `{n} lectures` à trous n'aurait pu
+exprimer cela. Couvert par `i18n.test.ts`.
+
+`en.ts` teste encore `n > 1`, ce qui rend « 0 reading » : petit défaut connu,
+sans conséquence tant que zéro ne s'affiche pas.
+
+Deux limites de l'arabe, assumées : les chiffres restent **occidentaux** dans
+les compteurs (ils viennent de `${n}`, pas d'`Intl` — les dates et nombres
+formatés, eux, suivent `tag: 'ar'`), et **un seul écran sur dix-neuf a été vu
+en RTL**, `/auth/login`, le seul accessible sans session.
 
 La langue vit dans la colonne `jsonb` des réglages — l'exception documentée plus
 bas : ni migration, ni piège des trois chemins. Ordre de préséance :
