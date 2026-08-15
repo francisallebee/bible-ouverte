@@ -45,6 +45,20 @@ au registre `ui/index.ts`. Une langue déclarée dans `LOCALES` mais sans
 dictionnaire n'apparaît pas au sélecteur : on ne choisit pas une langue à
 moitié faite.
 
+**Quatre langues sont livrées** : français, anglais, espagnol, italien. Les deux
+dernières le 15 août 2026, et elles ont confirmé la promesse — un fichier, une
+ligne, rien d'autre à toucher. Reste l'arabe, qui éprouvera les propriétés
+logiques.
+
+Le pluriel se décide **dans chaque dictionnaire**, et c'est ce que les valeurs
+en fonction achètent. `es.ts` et `it.ts` testent `n !== 1` là où `fr.ts` teste
+`n > 1` : « 0 lectura » se dit au pluriel en espagnol quand « 0 lecture » reste
+au singulier en français. L'italien va plus loin — `lettura` fait `letture`,
+`capitolo` fait `capitoli` — et écrit donc les deux formes en entier, ce qu'un
+gabarit `{n} lectures` interdirait. `en.ts` teste encore `n > 1`, ce qui rend
+« 0 reading » : petit défaut connu, sans conséquence tant que zéro ne s'affiche
+pas.
+
 La langue vit dans la colonne `jsonb` des réglages — l'exception documentée plus
 bas : ni migration, ni piège des trois chemins. Ordre de préséance :
 choix explicite, puis langue du navigateur, puis français (`resolveLocale`).
@@ -221,7 +235,16 @@ npm test           # vitest
   d'API — c'est une commande pour le propriétaire.
   Sa migration a amorcé `new_user_alerts` avec les comptes existants : ne pas la
   vider, le prochain passage signalerait tout le monde comme nouveau.
-- **La traduction ne couvre pas tout, et c'est délibéré.** La page de
+- **Le gabarit de `/auth` est resté français**, et celui-là n'est pas délibéré.
+  `src/app/auth/layout.tsx` est un composant serveur qui écrit deux chaînes en
+  dur : le bouton « Accueil » et le pied « Par Ôappliday — Ressources et Vous ».
+  Vu à l'écran le 15 août 2026, en espagnol et en italien : le formulaire est
+  traduit, son cadre non. C'est le seul écart de ce genre — les trois autres
+  composants serveur de `src/app/` sont propres, et `soutenir/page.tsx` montre
+  la solution déjà employée ici : garder le serveur pour le `metadata` qu'il
+  seul peut porter, et sortir le contenu visible dans un composant client.
+  Ce gabarit-là n'a aucun `metadata` à porter.
+- **La traduction ne couvre pas tout, et le reste est délibéré.** La page de
   présentation `/` et les titres d'onglet (`metadata`) restent français : ils
   sont rendus côté serveur, un visiteur sans session n'a pas de réglage de
   langue à lire, et les traduire au client détruirait le prérendu que la règle 9

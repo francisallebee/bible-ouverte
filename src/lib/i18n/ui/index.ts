@@ -10,10 +10,12 @@
 import { LOCALES, type Locale, type LocaleInfo } from '../locales'
 import { fr, type Dictionary } from './fr'
 import { en } from './en'
+import { es } from './es'
+import { it } from './it'
 
 export type { Dictionary }
 
-export const DICTIONARIES: Partial<Record<Locale, Dictionary>> = { fr, en }
+export const DICTIONARIES: Partial<Record<Locale, Dictionary>> = { fr, en, es, it }
 
 export function dictionary(locale: Locale): Dictionary {
   return DICTIONARIES[locale] ?? fr

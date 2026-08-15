@@ -44,7 +44,8 @@ action hors du dépôt.
 ## La vague 4 : la traduction (item 3)
 
 Livrée le 15 août 2026, PR #18, `b9c62c6`, en production. **19 écrans, 8
-composants, 520 clés**, français et anglais. L'architecture est décrite dans
+composants, 520 clés**, français et anglais — puis espagnol et italien le même
+jour, voir plus bas. L'architecture est décrite dans
 `AGENTS.md`, section « Les langues » ; ne sont consignés ici que les faits
 mesurés et les pièges.
 
@@ -119,6 +120,41 @@ Deux choix à connaître :
 
 Ce qui reste à faire : **le voir à l'écran**, connecté, sur les trois appareils.
 Le laboratoire dit que la règle est juste, pas que l'application la suit.
+
+### L'espagnol et l'italien, livrés le 15 août
+
+Deux fichiers à côté de `ui/fr.ts`, deux lignes dans `ui/index.ts` — la promesse
+d'`AGENTS.md` tenait, rien d'autre n'a été touché. `tsc` passe, donc aucune des
+520 clés ne manque : c'est le garde-fou qui fait son travail.
+
+Mais le typage garantit la **forme**, pas que rien n'est resté en français. Deux
+relevés successifs, et un seul des deux compte vraiment :
+
+- Un comptage des valeurs identiques au français a trouvé **11 en espagnol et
+  12 en italien sur 652 feuilles** — toutes légitimes : *Audio*, *Emoji*,
+  *Admin*, *User*, *Email*, *Menu*, *Bug*, et *Libre* et *Ocre* qui s'écrivent
+  ainsi en espagnol. Aucun oubli.
+- **L'écran, ensuite** — parce qu'un outil de relevé n'est pas un écran, et que
+  la leçon a déjà été payée sur Progression. `/auth/login` a été vu dans les deux
+  langues, dans un onglet neuf : `<html lang="es-ES">` et `<html lang="it-IT">`,
+  formulaire entièrement traduit.
+
+C'est l'écran qui a trouvé ce que le relevé ne pouvait pas voir : **le gabarit
+`src/app/auth/layout.tsx` est resté français**. Composant serveur, deux chaînes
+en dur — « Accueil » et « Par Ôappliday — Ressources et Vous ». Le formulaire
+est traduit, son cadre non. Ce n'est pas dans le périmètre délibéré, qui ne
+nomme que `/` et les `metadata`.
+
+L'essai s'est fait **sans session** : `getSettings` lit IndexedDB, qui existe
+avant toute connexion, et `SETTINGS_CHANGED` fait relire la langue sans
+rechargement. Au passage, la ligne locale de ce navigateur **n'avait pas
+d'`updatedAt`** — la preuve que le cas « ligne non datée » du correctif de
+réversion existe pour de vrai.
+
+Le coût est mesuré, pas estimé : **+15 kB de First Load JS**, identique sur tous
+les écrans, soit environ 7,5 kB par langue. `/` reste prérendue statique.
+
+Reste l'arabe, la seule qui éprouvera réellement les propriétés logiques.
 
 ## La vague 3 et les notifications
 
@@ -312,6 +348,8 @@ interrompu avant la fin. Les previews passent par git.
 | Fonction `send-notifications` | `200` et `{"candidats":0,…}` avec le bon secret, `401` sans | 13 août |
 | Comptes et alertes en attente | 102 profils, 99 traces — 3 comptes à annoncer | 15 août |
 | Volume de la traduction | 1 070 lignes accentuées sur 19 écrans et ~85 fichiers, ramenées à 520 clés | 15 août |
+| Coût de l'espagnol et de l'italien | **+15 kB de First Load JS**, identique sur tous les écrans (`/auth/login` 191 → 206 kB) | 15 août |
+| Valeurs restées identiques au français | 11 en espagnol, 12 en italien sur 652 feuilles — toutes légitimes (*Audio*, *Email*, *Admin*…) | 15 août |
 | Ce que `readings.book` stocke | l'abréviation USFM (`GEN`, `2CH`), jamais le nom | 15 août |
 | Persistance de la langue | écrite dans la colonne `jsonb`, relue après rechargement complet | 15 août |
 | Réglages portant une langue, en base | **1 ligne sur 102**, à `fr`, écrite à 14:07:26 UTC | 15 août |
