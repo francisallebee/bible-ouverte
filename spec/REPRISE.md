@@ -415,9 +415,25 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   composant serveur en composant client. **Un garde-fou qui vit dans du
   JavaScript ne protège pas la fenêtre où ce JavaScript n'est pas là.** Les
   trois formulaires concernés portent désormais `method="post"` ; voir la
-  règle 12 d'`AGENTS.md`. Le mot de passe exposé est à changer, et l'incident
-  vaut aussi pour la production : toute hydratation lente ou en échec rouvre la
-  même fenêtre.
+  règle 12 d'`AGENTS.md`. Le mot de passe exposé est à changer.
+
+  **La portée en production a d'abord été surestimée, puis mesurée.** Les trois
+  pages ne sont pas dans le même cas, et seul le HTML prérendu le dit :
+
+  | Page | Formulaire dans le HTML statique | Fenêtre avant hydratation |
+  |---|---|---|
+  | `auth/login` | **non** — `<Suspense fallback={null}>` l'avale | fermée |
+  | `auth/signup` | **oui** | **elle était réelle, en production** |
+  | `profil` | non — page protégée, pas de prérendu | fermée |
+
+  Le `Suspense` de `login` n'est pas là pour ça : il est imposé par
+  `useSearchParams()`, sans quoi la page ne se prérendrait pas. La protection y
+  est donc **fortuite**, et disparaîtrait avec ce crochet.
+
+  Sur `auth/signup`, en revanche, le formulaire était bien servi en HTML sans
+  `method`, à tout visiteur, avant tout JavaScript. Relevé sur la production
+  d'avant le correctif. C'est là que le défaut était réel, et non sur la page
+  où l'incident s'est produit.
 - **Un cache qui pousse sans avoir lu finit par écraser.** `getSettings`
   envoyait sa ligne `_dirty` au cloud sans jamais appeler `fetchSettings` : rien
   ne comparait les deux états, donc l'appareil le plus en retard gagnait. Un

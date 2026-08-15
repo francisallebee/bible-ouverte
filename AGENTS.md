@@ -154,8 +154,13 @@ coûterait une passe complète sur les 19 écrans.
     se soumet alors en **GET**, et le mot de passe part dans la query string,
     donc dans l'historique du navigateur et dans les journaux du serveur. Ce
     n'est pas une hypothèse : c'est arrivé le 15 août 2026 sur le serveur de
-    développement, avec un vrai compte. Concerne `auth/login`, `auth/signup` et
-    la section mot de passe de `profil`.
+    développement, avec un vrai compte.
+    Ce qui décide, c'est **le HTML prérendu, pas le code source** : `auth/login`
+    n'y met aucun formulaire — son `<Suspense fallback={null}>`, imposé par
+    `useSearchParams()`, l'avale — quand `auth/signup` l'y met bel et bien, et
+    le servait sans `method` à tout visiteur. Vérifier dans
+    `.next/server/app/…​.html` avant de conclure qu'une page est à l'abri, et ne
+    pas se fier à une protection fortuite qu'un crochet retiré ferait tomber.
 
 ## Commandes
 
