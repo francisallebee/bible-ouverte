@@ -210,6 +210,19 @@ export interface AppSettings {
    * françaises.
    */
   language?: Locale;
+  /**
+   * Date de la dernière modification, posée par `updateSettings`.
+   *
+   * Elle sert à arbitrer entre ce cache et le cloud quand les deux ont bougé
+   * chacun de leur côté. Sans elle, un appareil dont la poussée avait échoué
+   * réécrivait sa valeur par-dessus une plus récente à sa session suivante —
+   * c'est ainsi qu'une langue remise en français repartait en anglais.
+   *
+   * Poussée dans le `jsonb` avec le reste : le distant porte donc la date de
+   * la modification, là où la colonne `updatedAt` de la table porte celle de
+   * la poussée. Les deux diffèrent dès qu'un appareil a travaillé hors ligne.
+   */
+  updatedAt?: string;
   /** true si une modification locale n'a pas encore été poussée vers le cloud */
   _dirty?: boolean;
 }

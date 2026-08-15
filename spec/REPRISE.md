@@ -31,9 +31,9 @@ action hors du dépôt.
    S'y ajoutent trois chemins déjà connus, eux non plus jamais exécutés sur des
    données réelles : la suppression d'un ticket support, le changement de mot de
    passe, et la suppression en bloc dans l'historique.
-4. **La réversion de langue reste inexpliquée** — voir la section dédiée plus
-   bas. À éprouver en multi-onglets avant de s'y fier : trois appareils sont
-   abonnés.
+4. **La réversion de langue est expliquée et corrigée** — voir la section dédiée
+   plus bas. Reste à la voir à l'écran, connecté : le correctif est éprouvé en
+   laboratoire, pas encore en usage. Trois appareils sont concernés.
 5. **Deux migrations ont été appliquées par exécution SQL directe**, l'outil de
    migration ayant été refusé à l'époque : `20260809100000_meditation_emoji.sql`
    et `20260809140000_plan_reading_context.sql`. Elles ne figurent donc pas dans
@@ -80,24 +80,45 @@ phrase y affirmait encore que les notifications n'étaient pas envoyées, faux
 depuis le 14 août ; `/contexts` renvoyait vers `/settings`, où aucune section
 contextes n'existe.
 
-### La langue est-elle repartie seule en arrière ?
+### La langue repartait seule en arrière — mesuré, puis corrigé
 
 Le 15 août, un réglage remis en français est **reparti en anglais** quelques
 minutes plus tard — `updatedAt` postérieur à l'écriture, donc une vraie écriture
-et non un cache. Refait en onglet unique, il tient à travers rechargement
-complet, dans IndexedDB comme dans Supabase, sans nouvelle écriture.
+et non un cache. Refait en onglet unique, il tenait à travers rechargement
+complet. La condition qui échouait comptait **trois onglets, dont un chargé
+avant l'existence du champ `language`**.
 
-La condition qui a échoué comptait **trois onglets ouverts, dont un chargé avant
-l'existence du champ `language`**.
+**La piste était la bonne, et elle est maintenant mesurée.** Dans `getSettings`,
+une ligne locale marquée `_dirty` partait vers le nuage **sans que le distant
+soit lu une seule fois** — `fetchSettings` n'était même pas appelé sur ce
+chemin. Un appareil dont la poussée avait échoué ramenait donc sa vieille valeur
+à chaque session, quelle que soit la date de ce qu'il écrasait.
 
-La piste : dans `getSettings`, une ligne locale marquée `_dirty` est poussée
-vers le nuage **avant** toute lecture. Une modification locale ancienne peut
-donc écraser une valeur distante plus récente, quelle que soit la date.
+L'essai au navigateur supposait une session connectée, que l'agent n'a pas : la
+règle a donc été éprouvée en laboratoire, comme celle de la déconnexion
+automatique avant elle. `src/lib/storage/settings-store.test.ts` monte la
+condition — local `en` en attente, distant `fr` plus récent — et l'a vue rendre
+`en` avant correctif : `expected 'en' to be 'fr'`. Dix tests, dont trois
+échouaient.
 
-**Cette piste n'est pas vérifiée.** Un coupable plausible n'est pas un coupable
-mesuré — c'est exactement la leçon des extensions Surfshark. L'essai qui
-trancherait : deux onglets, une écriture dans chacun, et relever les deux
-sources après rechargement.
+Le correctif tient en deux gestes. `updateSettings` **date chaque écriture**
+dans le `jsonb` (`updatedAt`), que le distant porte donc à son tour — la colonne
+`updatedAt` de la table, elle, porte la date de la *poussée*, et les deux
+diffèrent dès qu'un appareil a travaillé hors ligne. Et `getSettings` **lit le
+distant sans condition**, puis laisse gagner le plus récent des deux.
+
+Deux choix à connaître :
+
+- Une ligne locale en attente **non datée** — toutes celles écrites avant ce
+  correctif — laisse gagner le distant. Une valeur parvenue au serveur a au
+  moins été vue sur un appareil en ligne.
+- **Une modification faite hors ligne et jamais poussée est abandonnée** si le
+  serveur a reçu autre chose entre-temps. C'est le dernier-écrivain-gagne, et
+  c'est ce qui surprend le moins : l'utilisateur retrouve partout la dernière
+  chose qu'il a réglée.
+
+Ce qui reste à faire : **le voir à l'écran**, connecté, sur les trois appareils.
+Le laboratoire dit que la règle est juste, pas que l'application la suit.
 
 ## La vague 3 et les notifications
 
@@ -293,6 +314,8 @@ interrompu avant la fin. Les previews passent par git.
 | Volume de la traduction | 1 070 lignes accentuées sur 19 écrans et ~85 fichiers, ramenées à 520 clés | 15 août |
 | Ce que `readings.book` stocke | l'abréviation USFM (`GEN`, `2CH`), jamais le nom | 15 août |
 | Persistance de la langue | écrite dans la colonne `jsonb`, relue après rechargement complet | 15 août |
+| Réglages portant une langue, en base | **1 ligne sur 102**, à `fr`, écrite à 14:07:26 UTC | 15 août |
+| Réversion de langue | reproduite en test : un `en` local en attente écrasait un `fr` distant plus récent | 15 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -333,6 +356,12 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   `contextId` manquait dans le troisième, ce qui rendait toute modification
   éphémère. Le même piège s'est représenté avec la `date` des plans libres, que
   `updatePlanDay` ne poussait pas.
+- **Un cache qui pousse sans avoir lu finit par écraser.** `getSettings`
+  envoyait sa ligne `_dirty` au cloud sans jamais appeler `fetchSettings` : rien
+  ne comparait les deux états, donc l'appareil le plus en retard gagnait. Un
+  cache local qui rattrape son retard doit d'abord regarder ce qu'il rattrape.
+  Tout arbitrage suppose une date **des deux côtés** — celle de la modification,
+  pas celle de la poussée.
 - **Sous RLS, un `delete` qui ne correspond à rien réussit sans erreur.**
   Ajouter `.select()` pour distinguer une suppression d'un refus silencieux.
 - **L'espace disque n'est pas rendu immédiatement** quand on désactive une

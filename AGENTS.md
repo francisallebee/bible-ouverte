@@ -231,12 +231,18 @@ npm test           # vitest
   `notification_data()` devra remonter `settings.language` et
   `send-notifications` porter ses propres dictionnaires. C'est le seul endroit
   où la traduction sort du navigateur.
-- **La langue peut-elle revenir seule en arrière ?** Le 15 août, un réglage
-  remis en français est reparti en anglais quelques minutes plus tard,
-  horodatage à l'appui. Refait en onglet unique, il tient à travers rechargement,
-  dans IndexedDB comme dans Supabase. La condition qui a échoué comptait trois
-  onglets, dont un chargé avant l'existence du champ. La piste : dans
-  `getSettings`, une ligne locale marquée `_dirty` est poussée vers le nuage
-  **avant** toute lecture — une modification locale ancienne peut donc écraser
-  une valeur distante plus récente. **Non vérifiée.** À éprouver en
-  multi-onglets : trois appareils sont concernés.
+- **La réversion de langue est mesurée et corrigée**, le 15 août 2026 au soir.
+  La piste était la bonne : `getSettings` poussait une ligne locale `_dirty`
+  **sans jamais lire le distant**, si bien qu'un appareil dont la poussée avait
+  échoué ramenait sa vieille valeur à chaque session. Le test
+  `settings-store.test.ts` reproduit la condition — local `en` en attente,
+  distant `fr` plus récent — et l'a vue rendre `en` avant correctif.
+  La lecture du distant est désormais inconditionnelle, et le plus récent des
+  deux gagne : `updateSettings` date chaque écriture dans le `jsonb`
+  (`updatedAt`), que le distant porte donc aussi. Une ligne locale non datée —
+  toutes celles écrites avant ce correctif — laisse gagner le distant.
+  **Conséquence assumée** : une modification faite hors ligne et jamais poussée
+  est abandonnée si le serveur a reçu autre chose entre-temps. C'est le
+  dernier-écrivain-gagne, et c'est ce qui surprend le moins l'utilisateur.
+  **Non vérifié au navigateur** : le chemin corrigé demande une session
+  connectée, que l'agent n'a pas.
