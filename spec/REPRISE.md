@@ -1,4 +1,4 @@
-# Reprise des travaux — état au 13 août 2026 (soir)
+# Reprise des travaux — état au 15 août 2026
 
 Ce document ne liste pas les fonctionnalités à venir : **la feuille de route
 fait foi**, et elle vit dans l'application (`/roadmap`, table `roadmap_items`).
@@ -13,23 +13,91 @@ action hors du dépôt.
 1. **Le réseau domestique filtre github, supabase et vercel.** Tant que ce n'est
    pas réglé sur la box, travailler en **partage de connexion iPhone** : c'est
    mesuré, tout repasse. Voir la section dédiée plus bas.
-2. **Les trois secrets Brevo de l'alerte d'inscription ne sont pas déposés**, et
-   son planificateur n'existe pas encore. La fonction `notify-new-user` est
-   déployée et répond ; sans les secrets elle rend un `500` qui nomme ce qui
-   manque. Commandes dans `supabase/README.md`, section « Alerte d'inscription ».
-3. **L'heure du rappel quotidien du compte `7e8695d3` a été déplacée** sur
-   ~23 h 55 le 13 août pour l'essai, au lieu de 14 h. À remettre à l'heure
-   voulue, sans quoi le rappel de demain tombera vers minuit.
-4. **Trois chemins n'ont jamais été exécutés sur des données réelles** : la
-   suppression d'un ticket support, le changement de mot de passe, et la
-   suppression en bloc dans l'historique. Le code est en place et le reste a été
-   vérifié, mais ces trois-là attendent un premier essai.
+2. **Il ne manque plus qu'un secret à l'alerte d'inscription :
+   `BREVO_API_KEY`.** `NEW_USER_ALERT_FROM`, `NEW_USER_ALERT_TO` et le
+   planificateur `alerte-nouvel-utilisateur` sont en place. Un agent ne dépose
+   pas de clé d'API. Commande dans `supabase/README.md`.
+
+   **L'essai est déjà prêt, sans rien créer** : au 15 août, `profiles` compte
+   102 lignes et `new_user_alerts` 99 — **trois comptes réels attendent d'être
+   annoncés**, le plus ancien du 14 août 21 h 42, le plus récent du 15 août
+   8 h 32. Dès le dépôt de la clé, le premier passage du cron enverra un
+   courriel les nommant tous les trois. Inutile de créer un compte de test.
+   Si rien n'arrive dans le quart d'heure, c'est la validation de l'expéditeur
+   chez Brevo qui est en cause — le point resté non vérifié.
+3. **Les actions de l'écran Administration n'ont jamais été exercées** :
+   suspendre, promouvoir, supprimer un compte, changer le statut d'un ticket.
+   L'écran s'affiche (vu le 15 août), ce qui n'est pas la même chose.
+   S'y ajoutent trois chemins déjà connus, eux non plus jamais exécutés sur des
+   données réelles : la suppression d'un ticket support, le changement de mot de
+   passe, et la suppression en bloc dans l'historique.
+4. **La réversion de langue reste inexpliquée** — voir la section dédiée plus
+   bas. À éprouver en multi-onglets avant de s'y fier : trois appareils sont
+   abonnés.
 5. **Deux migrations ont été appliquées par exécution SQL directe**, l'outil de
    migration ayant été refusé à l'époque : `20260809100000_meditation_emoji.sql`
    et `20260809140000_plan_reading_context.sql`. Elles ne figurent donc pas dans
    la table `supabase_migrations` du projet. Les fichiers sont au dépôt et
    rejouables sans dégât. `20260810120000_free_plans.sql`, elle, est bien passée
    par l'outil et y figure sous l'horodatage de son application.
+
+## La vague 4 : la traduction (item 3)
+
+Livrée le 15 août 2026, PR #18, `b9c62c6`, en production. **19 écrans, 8
+composants, 520 clés**, français et anglais. L'architecture est décrite dans
+`AGENTS.md`, section « Les langues » ; ne sont consignés ici que les faits
+mesurés et les pièges.
+
+Ce qui a été vérifié avant d'écrire une ligne, sur la production :
+
+| Mesure | Conséquence |
+|---|---|
+| `readings.book` stocke `GEN`, `2CH`, `PSA` | traduire un nom de livre ne touche **aucune ligne enregistrée** |
+| 11 contextes système à `slug` stable, 71 à 94 lignes chacun | traduits à l'affichage ; `seedIfNeeded` n'est pas touché |
+| Contextes à `isSystemDefault: false` | « ZOOM », « Recherches versets » gardent le nom tapé |
+
+**Le relevé par `grep` a menti, l'écran non.** L'écran Progression avait été
+déclaré terminé par un comptage des lignes accentuées. Le passage au navigateur,
+langue basculée, y a trouvé **quatre blocs encore français** : l'anneau
+d'objectif, les deux testaments, et une section « par contexte » que le relevé
+avait confondue avec celle « par catégorie ». Sans cette revue, ils partaient en
+production. Compter les accents ne dit rien de ce qui n'en porte pas.
+
+**Deux variables de boucle nommées `t`** masquaient le dictionnaire, dans
+Réglages (`COLOR_THEMES.map(t => …)`) et Administration
+(`filteredTickets.map(t => …)`). Le typage ne le signale pas : les deux objets
+ont un `.name`. Renommées en `charte` et `ticket`.
+
+**Le rechargement à chaud produit des erreurs qui n'existent pas.** Trois fois
+dans la séance, la console a montré `DICTIONARIES is not defined`,
+`BOOKS is not defined`, `formatDate is not defined` — alors que `tsc` passait.
+C'était chaque fois l'état intermédiaire entre deux éditions d'un même fichier.
+Un onglet neuf ne montrait rien. La leçon du 13 août tient toujours, et vaut
+aussi pour l'état, pas seulement pour l'historique.
+
+Corrigé au passage : les Réglages annonçaient la version **0.1.0** en dur ; une
+phrase y affirmait encore que les notifications n'étaient pas envoyées, faux
+depuis le 14 août ; `/contexts` renvoyait vers `/settings`, où aucune section
+contextes n'existe.
+
+### La langue est-elle repartie seule en arrière ?
+
+Le 15 août, un réglage remis en français est **reparti en anglais** quelques
+minutes plus tard — `updatedAt` postérieur à l'écriture, donc une vraie écriture
+et non un cache. Refait en onglet unique, il tient à travers rechargement
+complet, dans IndexedDB comme dans Supabase, sans nouvelle écriture.
+
+La condition qui a échoué comptait **trois onglets ouverts, dont un chargé avant
+l'existence du champ `language`**.
+
+La piste : dans `getSettings`, une ligne locale marquée `_dirty` est poussée
+vers le nuage **avant** toute lecture. Une modification locale ancienne peut
+donc écraser une valeur distante plus récente, quelle que soit la date.
+
+**Cette piste n'est pas vérifiée.** Un coupable plausible n'est pas un coupable
+mesuré — c'est exactement la leçon des extensions Surfshark. L'essai qui
+trancherait : deux onglets, une écriture dans chacun, et relever les deux
+sources après rechargement.
 
 ## La vague 3 et les notifications
 
@@ -173,8 +241,9 @@ Migrations, SQL, déploiement de fonction Edge restent accessibles quand la CLI
 et le tableau de bord ne le sont pas.
 
 Ce que le MCP **ne** sait pas faire : déposer un secret de fonction. Il n'existe
-pas d'outil pour cela. Les trois secrets passeront donc par le tableau de bord
-ou par la CLI, une fois le réseau rétabli.
+pas d'outil pour cela. C'est ce qui a fait passer les secrets de l'alerte
+d'inscription par la CLI, deux d'abord puis le troisième — et il ne reste que
+`BREVO_API_KEY`, que le propriétaire déposera lui-même.
 
 Pour appeler une fonction Edge sans réseau depuis le poste, la base sert de
 relais : `select net.http_post(...)` puis lecture de `net._http_response`. C'est
@@ -220,6 +289,10 @@ interrompu avant la fin. Les previews passent par git.
 | Filtrage de la box | github/supabase/vercel refusés sur 443, github:80 et gitlab:443 passent | 13 août |
 | Le même Mac en partage de connexion | `github.com` à `200` en 124 ms, `git push` immédiat | 13 août |
 | Fonction `send-notifications` | `200` et `{"candidats":0,…}` avec le bon secret, `401` sans | 13 août |
+| Comptes et alertes en attente | 102 profils, 99 traces — 3 comptes à annoncer | 15 août |
+| Volume de la traduction | 1 070 lignes accentuées sur 19 écrans et ~85 fichiers, ramenées à 520 clés | 15 août |
+| Ce que `readings.book` stocke | l'abréviation USFM (`GEN`, `2CH`), jamais le nom | 15 août |
+| Persistance de la langue | écrite dans la colonne `jsonb`, relue après rechargement complet | 15 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -303,6 +376,13 @@ côté base. Le MCP Supabase passait par ailleurs, et a permis de déployer et d
 vérifier la fonction d'envoi pendant que la CLI restait muette. Avant de
 déclarer une tâche bloquée, chercher si un autre chemin y mène.
 
+**Un outil de relevé n'est pas un écran.** Le 15 août, un comptage des lignes
+accentuées a déclaré l'écran Progression entièrement traduit. Il l'était à 80 % :
+quatre blocs restaient français, dont deux ne portaient aucun accent — « Old
+Testament » n'en a pas plus que « Ancien Testament » n'en manque. C'est le
+passage au navigateur, langue basculée, qui les a trouvés. Un `grep` dit ce
+qu'il cherche, pas ce qui manque.
+
 **Un coupable plausible n'est pas un coupable mesuré.** Une extension Surfshark
 orpheline, `activated enabled` alors que son application était désinstallée, a
 été désignée comme la cause du blocage réseau : c'était cohérent, vérifiable
@@ -315,17 +395,27 @@ réseau coûtait trente secondes et aurait tranché d'emblée.
 
 ## Vérification visuelle
 
-Vus fonctionner : Nouvelle lecture, Recherche, Historique, Statistiques,
-Progression, Réglages, Profil, Support, Feuille de route, Soutenir, Plans de
-lecture, Détail d'un plan, Détail d'une lecture.
+**Tous les écrans de l'application ont désormais été vus fonctionner.**
 
-**Jamais vu fonctionner : Administration.** Typage, lint, tests et build
-passent, ce qui n'est pas la même chose.
+Nouvelle lecture, Recherche, Historique, Statistiques, Progression, Réglages,
+Profil, Support, Feuille de route, Soutenir, Plans de lecture, Détail d'un plan,
+Détail d'une lecture — les dix premiers le 9 août 2026, les trois écrans de
+plans le 13 août.
+
+**Administration, le 15 août 2026, et par l'agent.** C'est la première preuve
+d'écran de ce dépôt qui ne vienne pas du propriétaire. 101 comptes, 111
+lectures, 7 plans, 808 contextes, les deux onglets et le tableau des comptes.
+Réserve, qui compte : **aucune de ses actions n'a été exercée** — voir la
+section des actions en attente.
+
+Le 15 août également, **les 19 écrans ont été repassés dans les deux langues**,
+par l'agent, pour la vague 4.
 
 **Vus fonctionner le 14 août 2026, par le propriétaire du dépôt et non par
 l'agent** : les **notifications push** sur iPhone, et le **parcours découverte**.
 C'est la même distinction que pour les plans libres — une preuve d'écran vaut
-par qui l'a vue, et l'agent n'a jamais eu de session pour la produire lui-même.
+par qui l'a vue, et l'agent n'avait alors jamais eu de session pour la produire
+lui-même.
 
 L'abonnement suppose que l'application soit installée sur l'écran d'accueil et
 lancée depuis son icône : iOS ne délivre rien à un onglet Safari.
