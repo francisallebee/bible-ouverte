@@ -6,9 +6,15 @@ import { History, BookPlus, ChevronRight, ChevronDown, CheckSquare, Trash2, Tag,
 import { seedIfNeeded, getAllReadings, getAllVersions, getAllContexts, deleteReading, updateReading } from "@/lib/storage";
 import type { ReadingEntry, BibleVersion, ReadingContext } from "@/lib/storage";
 import { sortContexts } from "@/components/ContextPicker";
-import { BOOKS, getBookName } from "@/features/bible";
+import { useI18n, useBookName, useBooks, useContextName } from "@/contexts/I18nContext";
+import { formatDate } from "@/lib/i18n/format";
+import { localeInfo } from "@/lib/i18n/locales";
 
 export default function HistoryPage() {
+  const { t, locale } = useI18n();
+  const getBookName = useBookName();
+  const contextName = useContextName();
+  const books = useBooks();
   const [readings, setReadings] = useState<ReadingEntry[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [contexts, setContexts] = useState<ReadingContext[]>([]);
@@ -148,8 +154,8 @@ export default function HistoryPage() {
     const ids = Array.from(selected);
     if (ids.length === 0) return;
     const message = ids.length === 1
-      ? "Supprimer cette lecture ? Cette action est définitive."
-      : `Supprimer ces ${ids.length} lectures ? Cette action est définitive.`;
+      ? t.history.confirmDeleteOne
+      : t.history.confirmDeleteMany(ids.length);
     if (!window.confirm(message)) return;
 
     setBusy(true);
@@ -192,7 +198,7 @@ export default function HistoryPage() {
   }
 
   if (!loaded) {
-    return <p className="text-gray-500">Chargement...</p>;
+    return <p className="text-gray-500">{t.common.loading}</p>;
   }
 
   return (
@@ -200,7 +206,7 @@ export default function HistoryPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <History className="w-6 h-6 text-[--primary]" />
-          Historique
+          {t.history.title}
         </h1>
         <div className="flex items-center gap-2">
           {readings.length > 0 && !selectMode && (
@@ -209,7 +215,7 @@ export default function HistoryPage() {
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 flex items-center gap-1.5"
             >
               <CheckSquare className="w-4 h-4" aria-hidden="true" />
-              Sélectionner
+              {t.history.select}
             </button>
           )}
           <Link
@@ -217,15 +223,15 @@ export default function HistoryPage() {
             className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] no-underline flex items-center gap-1.5"
           >
             <BookPlus className="w-4 h-4" />
-            Nouvelle lecture
+            {t.nav.newReading}
           </Link>
         </div>
       </div>
 
       {selectMode && (
         <div className="bg-[--primary-light] border border-[--primary]/20 rounded-xl p-3 mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-[--primary] mr-1">
-            {selected.size} sélectionnée{selected.size > 1 ? "s" : ""}
+          <span className="text-sm font-medium text-[--primary] me-1">
+            {t.history.selectedCount(selected.size)}
           </span>
 
           <button
@@ -233,11 +239,11 @@ export default function HistoryPage() {
             disabled={busy || filtered.length === 0}
             className="border border-gray-300 bg-white rounded-lg px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-50"
           >
-            Tout sélectionner ({filtered.length})
+            {t.history.selectAll(filtered.length)}
           </button>
 
           <div className="flex items-center gap-1.5">
-            <label htmlFor="bulk-context" className="sr-only">Contexte à appliquer</label>
+            <label htmlFor="bulk-context" className="sr-only">{t.history.contextToApply}</label>
             <select
               id="bulk-context"
               value={bulkContext}
@@ -245,10 +251,10 @@ export default function HistoryPage() {
               disabled={busy || selected.size === 0}
               className="border border-gray-300 bg-white rounded-lg px-2 py-1.5 text-xs disabled:opacity-50"
             >
-              <option value="">— Aucun contexte —</option>
-              {sortContexts(contexts).map((c) => (
+              <option value="">{t.contextPicker.none}</option>
+              {sortContexts(contexts, contextName, localeInfo(locale).tag).map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.emoji ? `${c.emoji} ` : ""}{c.name}
+                  {c.emoji ? `${c.emoji} ` : ""}{contextName(c)}
                 </option>
               ))}
             </select>
@@ -258,7 +264,7 @@ export default function HistoryPage() {
               className="border border-gray-300 bg-white rounded-lg px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-1.5"
             >
               <Tag className="w-3.5 h-3.5" aria-hidden="true" />
-              Appliquer
+              {t.history.apply}
             </button>
           </div>
 
@@ -270,15 +276,15 @@ export default function HistoryPage() {
             {busy
               ? <Loader className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
               : <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />}
-            Supprimer
+            {t.common.delete}
           </button>
 
           <button
             onClick={exitSelectMode}
             disabled={busy}
-            className="text-xs text-gray-500 hover:text-gray-700 ml-auto disabled:opacity-50"
+            className="text-xs text-gray-500 hover:text-gray-700 ms-auto disabled:opacity-50"
           >
-            Quitter
+            {t.history.leave}
           </button>
         </div>
       )}
@@ -286,7 +292,7 @@ export default function HistoryPage() {
       <div className="flex flex-wrap gap-3 mb-6">
         <input
           type="text"
-          placeholder="Rechercher dans les notes ou le texte..."
+          placeholder={t.history.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[160px] sm:min-w-[200px] w-full sm:w-auto"
@@ -296,8 +302,8 @@ export default function HistoryPage() {
           onChange={(e) => setBookFilter(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
         >
-          <option value="">Tous les livres</option>
-          {BOOKS.map((b) => (
+          <option value="">{t.history.allBooks}</option>
+          {books.map((b) => (
             <option key={b.abbreviation} value={b.abbreviation}>
               {b.name}
             </option>
@@ -308,20 +314,20 @@ export default function HistoryPage() {
           value={dateStart}
           onChange={(e) => setDateStart(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          placeholder="Date début"
+          placeholder={t.history.startDate}
         />
         <input
           type="date"
           value={dateEnd}
           onChange={(e) => setDateEnd(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          placeholder="Date fin"
+          placeholder={t.history.endDate}
         />
         <button
           onClick={resetFilters}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100"
         >
-          Réinitialiser
+          {t.history.reset}
         </button>
         {groups.length > 0 && (
           <button
@@ -329,20 +335,20 @@ export default function HistoryPage() {
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 flex items-center gap-1.5"
           >
             {allExpanded
-              ? <><ChevronRight className="w-4 h-4" aria-hidden="true" />Tout replier</>
-              : <><ChevronDown className="w-4 h-4" aria-hidden="true" />Tout déplier</>}
+              ? <><ChevronRight className="w-4 h-4" aria-hidden="true" />{t.history.collapseAll}</>
+              : <><ChevronDown className="w-4 h-4" aria-hidden="true" />{t.history.expandAll}</>}
           </button>
         )}
       </div>
 
       {filtered.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">Aucune lecture trouvée.</p>
+          <p className="text-gray-500 mb-4">{t.history.empty}</p>
           <Link
             href="/new-reading"
             className="text-[--primary] underline text-sm"
           >
-            Nouvelle lecture
+            {t.nav.newReading}
           </Link>
         </div>
       ) : (
@@ -363,7 +369,7 @@ export default function HistoryPage() {
                     ? <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />
                     : <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />}
                   <span className="flex-1 min-w-0 font-medium text-gray-900 truncate">
-                    {new Date(group.date).toLocaleDateString("fr-FR", {
+                    {formatDate(locale, group.date, {
                       weekday: "long",
                       year: "numeric",
                       month: "long",
@@ -371,7 +377,7 @@ export default function HistoryPage() {
                     })}
                   </span>
                   <span className="text-xs text-gray-400 shrink-0">
-                    {group.entries.length} lecture{group.entries.length > 1 ? "s" : ""}
+                    {t.history.readingCount(group.entries.length)}
                   </span>
                 </button>
 
@@ -391,7 +397,7 @@ export default function HistoryPage() {
                             </p>
                             {ctx && (
                               <span className="text-xs text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 shrink-0">
-                                <span aria-hidden="true">{ctx.emoji} </span>{ctx.name}
+                                <span aria-hidden="true">{ctx.emoji} </span>{contextName(ctx)}
                               </span>
                             )}
                           </div>

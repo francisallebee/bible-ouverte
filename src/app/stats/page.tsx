@@ -7,7 +7,9 @@ import {
 } from "recharts";
 import { seedIfNeeded, getAllReadings, getAllVersions, getAllContexts } from "@/lib/storage";
 import type { ReadingEntry, BibleVersion, ReadingContext } from "@/lib/storage";
-import { getBookName } from "@/features/bible";
+import { useI18n, useBookName, useContextName } from "@/contexts/I18nContext";
+import { formatDate } from "@/lib/i18n/format";
+import { localeInfo, type Locale } from "@/lib/i18n/locales";
 
 const COLORS = ["#1e3a5f", "#4a90d9", "#7b68ee", "#2ecc71", "#e74c3c", "#f39c12", "#95a5a6"];
 
@@ -31,8 +33,8 @@ function getMonthRange() {
   return { start: first, end: last };
 }
 
-function fmtDate(d: Date) {
-  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+function fmtDate(locale: Locale, d: Date) {
+  return formatDate(locale, d, { day: "2-digit", month: "2-digit" });
 }
 
 function toDateStr(d: Date) {
@@ -40,6 +42,9 @@ function toDateStr(d: Date) {
 }
 
 export default function StatsPage() {
+  const { t, locale } = useI18n();
+  const getBookName = useBookName();
+  const contextName = useContextName();
   const [readings, setReadings] = useState<ReadingEntry[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [contexts, setContexts] = useState<ReadingContext[]>([]);
@@ -90,10 +95,10 @@ export default function StatsPage() {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
       const key = toDateStr(d);
-      result.push({ date: fmtDate(d), count: counts[key] || 0 });
+      result.push({ date: fmtDate(locale, d), count: counts[key] || 0 });
     }
     return result;
-  }, [readings]);
+  }, [readings, locale]);
 
   const topBooks = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -108,7 +113,7 @@ export default function StatsPage() {
         count,
         fill: COLORS[i % COLORS.length],
       }));
-  }, [readings]);
+  }, [readings, getBookName]);
 
   const byContext = useMemo(() => {
     const byId: Record<string, ReadingContext> = {};
@@ -126,12 +131,12 @@ export default function StatsPage() {
         return {
           // Un contexte supprimé depuis laisse ses lectures orphelines : on
           // les regroupe plutôt que de les faire disparaître du graphique.
-          name: id === "" ? "Sans contexte" : ctx ? `${ctx.emoji ?? ""} ${ctx.name}`.trim() : id,
+          name: id === "" ? t.stats.noContext : ctx ? `${ctx.emoji ?? ""} ${contextName(ctx)}`.trim() : id,
           count,
           fill: ctx?.color ?? COLORS[i % COLORS.length],
         };
       });
-  }, [readings, contexts]);
+  }, [readings, contexts, contextName, t.stats.noContext]);
 
   const versionMap = useMemo(() => {
     const m: Record<string, BibleVersion> = {};
@@ -152,7 +157,7 @@ export default function StatsPage() {
   }, [readings, versionMap]);
 
   if (!loaded) {
-    return <p className="text-gray-500">Chargement...</p>;
+    return <p className="text-gray-500">{t.common.loading}</p>;
   }
 
   if (total === 0) {
@@ -160,10 +165,10 @@ export default function StatsPage() {
       <div>
         <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <BarChart3 className="w-6 h-6 text-[--primary]" />
-          Statistiques
+          {t.stats.title}
         </h1>
         <div className="text-center py-12">
-          <p className="text-gray-500">Aucune donnée de lecture pour le moment.</p>
+          <p className="text-gray-500">{t.stats.empty}</p>
         </div>
       </div>
     );
@@ -173,27 +178,27 @@ export default function StatsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
         <BarChart3 className="w-6 h-6 text-[--primary]" />
-        Statistiques
+        {t.stats.title}
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <p className="text-sm text-gray-500 mb-1">Total lectures</p>
+          <p className="text-sm text-gray-500 mb-1">{t.stats.total}</p>
           <p className="text-3xl font-bold text-[--primary]">{total}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <p className="text-sm text-gray-500 mb-1">Cette semaine</p>
+          <p className="text-sm text-gray-500 mb-1">{t.stats.thisWeek}</p>
           <p className="text-3xl font-bold text-[#4a90d9]">{weekCount}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <p className="text-sm text-gray-500 mb-1">Ce mois</p>
+          <p className="text-sm text-gray-500 mb-1">{t.stats.thisMonth}</p>
           <p className="text-3xl font-bold text-[#7b68ee]">{monthCount}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4">Lectures par jour (30 jours)</h2>
+          <h2 className="text-lg font-semibold mb-4">{t.stats.perDay}</h2>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={byDay}>
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
@@ -205,7 +210,7 @@ export default function StatsPage() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4">Top 10 livres</h2>
+          <h2 className="text-lg font-semibold mb-4">{t.stats.topBooks}</h2>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={topBooks} layout="vertical" margin={{ left: 80 }}>
               <XAxis type="number" allowDecimals={false} />
@@ -221,7 +226,7 @@ export default function StatsPage() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4">Répartition par contexte</h2>
+          <h2 className="text-lg font-semibold mb-4">{t.stats.byContext}</h2>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={byContext} layout="vertical" margin={{ left: 100 }}>
               <XAxis type="number" allowDecimals={false} />
@@ -237,7 +242,7 @@ export default function StatsPage() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold mb-4">Répartition par version</h2>
+          <h2 className="text-lg font-semibold mb-4">{t.stats.byVersion}</h2>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={byVersion}>
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />

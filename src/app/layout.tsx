@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { I18nProvider } from "@/contexts/I18nContext";
 import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
@@ -19,7 +20,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    // `lang` et `dir` sont repris côté client par `I18nProvider` dès que la
+    // langue de l'utilisateur est connue. Les valeurs posées ici sont celles du
+    // rendu serveur, qui ne sait rien de lui.
+    <html lang="fr" dir="ltr">
       <head>
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />
         <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
@@ -28,7 +32,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen">
         <AuthProvider>
-          <AppShell>{children}</AppShell>
+          {/* Sous AuthProvider : la langue vit dans les réglages du compte, et
+              doit être relue quand on change de compte. */}
+          <I18nProvider>
+            <AppShell>{children}</AppShell>
+          </I18nProvider>
         </AuthProvider>
         <Script src="/sw-register.js" strategy="afterInteractive" />
       </body>

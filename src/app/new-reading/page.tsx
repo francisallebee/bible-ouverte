@@ -11,8 +11,9 @@ import {
   getAllContexts,
 } from "@/lib/storage";
 import type { BibleVersion, ReadingLink, BiblePassage, ReadingContext } from "@/lib/storage";
-import { BOOKS, getBook, getBookName } from "@/features/bible";
+import { getBook } from "@/features/bible";
 import type { BibleBook } from "@/features/bible";
+import { useI18n, useBookName, useBooks } from "@/contexts/I18nContext";
 import AudioRecorder from "@/components/AudioRecorder";
 import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange } from "@/components/PassagePicker";
@@ -27,18 +28,25 @@ interface PendingPassage {
   verseEnd: number;
 }
 
-function describePassage(p: PendingPassage): string {
+/**
+ * Le nom du livre est fourni par l'appelant plutôt que lu ici : cette fonction
+ * vit hors du composant, donc hors de portée du crochet qui connaît la langue.
+ */
+function describePassage(p: PendingPassage, nomDuLivre: (code: string) => string): string {
   const chapters = p.chapterEnd !== p.chapterStart
     ? `${p.chapterStart}-${p.chapterEnd}`
     : `${p.chapterStart}`;
   const verses = p.verseEnd !== p.verseStart
     ? `${p.verseStart}-${p.verseEnd}`
     : `${p.verseStart}`;
-  return `${getBookName(p.book)} ${chapters}:${verses}`;
+  return `${nomDuLivre(p.book)} ${chapters}:${verses}`;
 }
 
 export default function NewReadingPage() {
   const router = useRouter();
+  const { t } = useI18n();
+  const getBookName = useBookName();
+  const books = useBooks();
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -232,10 +240,10 @@ export default function NewReadingPage() {
           <span className="w-10 h-10 bg-[--primary-light] rounded-xl flex items-center justify-center">
             <BookPlus className="w-5 h-5 text-[--primary]" />
           </span>
-          Nouvelle lecture
+          {t.newReading.title}
         </h1>
-        <p className="text-[--text-secondary] text-sm mt-1.5 ml-[3.25rem]">
-          Enregistre ta lecture du jour
+        <p className="text-[--text-secondary] text-sm mt-1.5 ms-[3.25rem]">
+          {t.newReading.subtitle}
         </p>
       </div>
 
@@ -243,13 +251,13 @@ export default function NewReadingPage() {
         <div className="space-y-5">
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow] space-y-5">
             <div>
-              <label htmlFor="reading-date" className="block text-sm font-medium mb-1.5 text-[--text]">Date</label>
+              <label htmlFor="reading-date" className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.date}</label>
               <input id="reading-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} autoComplete="off"
                 className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
             </div>
 
             <div>
-              <label htmlFor="reading-context" className="block text-sm font-medium mb-1.5 text-[--text]">Contexte</label>
+              <label htmlFor="reading-context" className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.context}</label>
               <ContextPicker
                 id="reading-context"
                 contexts={contexts}
@@ -260,34 +268,34 @@ export default function NewReadingPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[--text]">Livre</label>
+              <label className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.book}</label>
               <div className="relative">
                 <select value={book} onChange={(e) => selectBook(e.target.value)}
                   className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] appearance-none cursor-pointer">
-                  <option value="">Sélectionner un livre</option>
-                  {BOOKS.map((b) => (
+                  <option value="">{t.newReading.selectBook}</option>
+                  {books.map((b) => (
                     <option key={b.abbreviation} value={b.abbreviation}>{b.name}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[--text-secondary] pointer-events-none" />
+                <ChevronDown className="absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[--text-secondary] pointer-events-none" />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[--text]">Chapitres et versets</label>
+              <label className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.chaptersAndVerses}</label>
               <button type="button" onClick={() => setPickerOpen(true)} disabled={!book}
                 className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
                 <span className="truncate">
                   {book
                     ? describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })
-                    : "Sélectionne d'abord un livre"}
+                    : t.newReading.selectBookFirst}
                 </span>
                 <SlidersHorizontal className="w-4 h-4 text-[--text-secondary] shrink-0" />
               </button>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[--text]">Version</label>
+              <label className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.version}</label>
               <select value={versionId} onChange={(e) => setVersionId(e.target.value)}
                 className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
                 {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
@@ -298,10 +306,10 @@ export default function NewReadingPage() {
               <button type="button" onClick={stackPassage} disabled={!book}
                 className="w-full flex items-center justify-center gap-2 border border-dashed border-[--border] rounded-lg px-3 py-2.5 text-sm text-[--text-secondary] hover:border-[--primary] hover:text-[--primary] disabled:opacity-40 disabled:hover:border-[--border] disabled:hover:text-[--text-secondary] transition-colors">
                 <Plus className="w-4 h-4" />
-                Ajouter un autre passage à cette date
+                {t.newReading.addAnotherPassage}
               </button>
               <p className="text-xs text-[--text-secondary] mt-1.5">
-                La date, le contexte, les notes et les médias sont communs à tous les passages.
+                {t.newReading.sharedFields}
               </p>
             </div>
           </div>
@@ -310,15 +318,15 @@ export default function NewReadingPage() {
             <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
               <p className="text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
                 <Layers className="w-4 h-4 text-[--primary]" />
-                Passages à enregistrer ({pending.length}{currentPassage() ? " + celui en cours" : ""})
+                {t.newReading.passagesToSave(pending.length, currentPassage() !== null)}
               </p>
               <ul className="space-y-1.5">
                 {pending.map((p, i) => (
                   <li key={`${p.book}-${p.chapterStart}-${i}`}
                     className="flex items-center gap-2 bg-gray-50 border border-[--border] rounded-lg px-3 py-2 text-sm">
-                    <span className="flex-1 min-w-0 truncate text-[--text]">{describePassage(p)}</span>
+                    <span className="flex-1 min-w-0 truncate text-[--text]">{describePassage(p, getBookName)}</span>
                     <button type="button" onClick={() => removePending(i)}
-                      aria-label={`Retirer ${describePassage(p)}`}
+                      aria-label={t.newReading.removePassage(describePassage(p, getBookName))}
                       className="text-[--text-secondary] hover:text-red-600 transition-colors shrink-0">
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -329,27 +337,27 @@ export default function NewReadingPage() {
           )}
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
-            <label className="block text-sm font-medium mb-2 text-[--text]">Notes</label>
+            <label className="block text-sm font-medium mb-2 text-[--text]">{t.newReading.notes}</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
-              rows={4} placeholder="Tes réflexions sur ce passage..."
+              rows={4} placeholder={t.newReading.notesPlaceholder}
               className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] resize-none placeholder:text-gray-400" />
           </div>
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
             <label className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
               <LinkIcon className="w-4 h-4 text-blue-500" />
-              Liens
+              {t.newReading.links}
             </label>
             <div className="space-y-2 mb-2">
               <input type="text" value={linkTitle}
                 onChange={(e) => setLinkTitle(e.target.value)}
-                placeholder="Titre du lien" className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
+                placeholder={t.newReading.linkTitlePlaceholder} className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
               <div className="flex gap-2">
                 <input type="url" value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addLink()}
                   placeholder="https://..." className="flex-1 border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
-                <button onClick={addLink} disabled={!linkUrl.trim()} aria-label="Ajouter le lien"
+                <button onClick={addLink} disabled={!linkUrl.trim()} aria-label={t.newReading.addLink}
                   className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 disabled:opacity-50 flex items-center gap-1 transition-colors shrink-0">
                   <Plus className="w-4 h-4" />
                 </button>
@@ -364,11 +372,11 @@ export default function NewReadingPage() {
                       <p className="truncate font-medium text-[--text]">{link.title}</p>
                       <p className="truncate text-xs text-[--text-secondary]">{link.url}</p>
                     </div>
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le lien"
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" aria-label={t.newReading.openLink}
                       className="text-gray-400 hover:text-gray-600 shrink-0 transition-colors">
                       <ExternalLink className="w-4 h-4" />
                     </a>
-                    <button onClick={() => removeLink(i)} aria-label="Retirer le lien" className="text-red-400 hover:text-red-600 shrink-0 transition-colors">
+                    <button onClick={() => removeLink(i)} aria-label={t.newReading.removeLink} className="text-red-400 hover:text-red-600 shrink-0 transition-colors">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
@@ -380,7 +388,7 @@ export default function NewReadingPage() {
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
             <label className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
               <Music className="w-4 h-4 text-purple-500" />
-              Audio
+              {t.newReading.audio}
             </label>
             <AudioRecorder value={audio} onChange={setAudio} />
           </div>
@@ -388,20 +396,20 @@ export default function NewReadingPage() {
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
             <label className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
               <ImageIcon className="w-4 h-4 text-green-500" />
-              Photos
+              {t.newReading.photos}
             </label>
             <div className="flex flex-wrap gap-2 mb-3">
               <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
                 onChange={(e) => handleFile(e.target.files)} />
               <button onClick={() => cameraRef.current?.click()}
                 className="flex items-center gap-1.5 border border-[--border] rounded-lg px-3 py-2 text-sm hover:bg-gray-50 transition-colors">
-                <Camera className="w-4 h-4" /> Appareil
+                <Camera className="w-4 h-4" /> {t.newReading.camera}
               </button>
               <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden"
                 onChange={(e) => handleFile(e.target.files)} />
               <button onClick={() => galleryRef.current?.click()}
                 className="flex items-center gap-1.5 border border-[--border] rounded-lg px-3 py-2 text-sm hover:bg-gray-50 transition-colors">
-                <Upload className="w-4 h-4" /> Galerie
+                <Upload className="w-4 h-4" /> {t.newReading.gallery}
               </button>
             </div>
             {photos.length > 0 && (
@@ -409,8 +417,8 @@ export default function NewReadingPage() {
                 {photos.map((photo, i) => (
                   <div key={i} className="relative group rounded-lg overflow-hidden border border-[--border] aspect-square">
                     <img src={photo} alt="" width="640" height="640" className="w-full h-full object-cover" />
-                    <button onClick={() => removePhoto(i)} aria-label="Retirer la photo"
-                      className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80">
+                    <button onClick={() => removePhoto(i)} aria-label={t.newReading.removePhoto}
+                      className="absolute top-1 end-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -424,18 +432,18 @@ export default function NewReadingPage() {
             {saving ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                Enregistrement…
+                {t.newReading.saving}
               </span>
-            ) : toSave.length > 1 ? `Enregistrer les ${toSave.length} lectures` : "Enregistrer la lecture"}
+            ) : toSave.length > 1 ? t.newReading.saveMany(toSave.length) : t.newReading.saveOne}
           </button>
         </div>
 
         <div className="lg:sticky lg:top-10 lg:self-start">
-          <h2 className="font-semibold text-sm text-[--text-secondary] mb-3 uppercase tracking-wider">Aperçu du texte</h2>
+          <h2 className="font-semibold text-sm text-[--text-secondary] mb-3 uppercase tracking-wider">{t.newReading.preview}</h2>
           {!book ? (
             <div className="bg-[--surface] rounded-xl border border-[--border] p-8 text-center">
               <BookPlus className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-[--text-secondary] text-sm">Sélectionne un livre pour voir l&apos;aperçu.</p>
+              <p className="text-[--text-secondary] text-sm">{t.newReading.previewEmpty}</p>
             </div>
           ) : loadingPassage ? (
             <div className="bg-[--surface] rounded-xl border border-[--border] p-8 flex items-center justify-center">
@@ -443,7 +451,7 @@ export default function NewReadingPage() {
             </div>
           ) : passages.length === 0 ? (
             <div className="bg-[--surface] rounded-xl border border-[--border] p-8 text-center">
-              <p className="text-[--text-secondary] text-sm">Texte non disponible pour cette référence.</p>
+              <p className="text-[--text-secondary] text-sm">{t.newReading.previewUnavailable}</p>
             </div>
           ) : (
             <>
@@ -452,7 +460,7 @@ export default function NewReadingPage() {
                   {/* Les deux-points manquaient entre le chapitre et le verset,
                       et l'aperçu de Jean 3:16-18 s'annonçait « Jean 316:18 ». */}
                   {describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
-                  <span className="text-[--text-secondary] font-normal ml-2">— {versions.find(v => v.id === versionId)?.name || versionId}</span>
+                  <span className="text-[--text-secondary] font-normal ms-2">— {versions.find(v => v.id === versionId)?.name || versionId}</span>
                 </p>
                 <div className="space-y-1">
                   {passages.map((p) => (
@@ -464,12 +472,12 @@ export default function NewReadingPage() {
                 </div>
               </div>
               <div className="bg-[--primary-light] rounded-xl border border-[--primary]/10 p-4 text-sm text-[--text] mt-4 space-y-1">
-                <p className="font-medium text-[--primary]">Résumé de la saisie</p>
+                <p className="font-medium text-[--primary]">{t.newReading.summary}</p>
                 <p className="text-[--text-secondary]">{getBookName(book) || "?"} {chapterStart}{cEnd !== chapterStart ? `-${cEnd}` : ""}:{verseStart}{vEnd !== verseStart ? `-${vEnd}` : ""}</p>
                 {notes && <p className="flex items-center gap-1.5"><span className="text-base">📝</span> {notes}</p>}
-                {links.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">🔗</span> {links.length} lien(s)</p>}
-                {photos.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">📷</span> {photos.length} photo(s)</p>}
-                {audio && <p className="flex items-center gap-1.5"><span className="text-base">🎵</span> Audio joint</p>}
+                {links.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">🔗</span> {t.newReading.linkCount(links.length)}</p>}
+                {photos.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">📷</span> {t.newReading.photoCount(photos.length)}</p>}
+                {audio && <p className="flex items-center gap-1.5"><span className="text-base">🎵</span> {t.newReading.audioAttached}</p>}
               </div>
             </>
           )}

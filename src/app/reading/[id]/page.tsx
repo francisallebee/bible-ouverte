@@ -16,10 +16,16 @@ import {
 } from "@/lib/storage";
 import type { ReadingEntry, BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
 
-import { BOOKS, getBookName, getBook } from "@/features/bible";
+import { getBook } from "@/features/bible";
+import { useI18n, useBookName, useBooks, useContextName } from "@/contexts/I18nContext";
+import { formatDate } from "@/lib/i18n/format";
 import ContextPicker from "@/components/ContextPicker";
 
 export default function ReadingDetailPage() {
+  const { t, locale } = useI18n();
+  const getBookName = useBookName();
+  const books = useBooks();
+  const contextName = useContextName();
   const params = useParams();
   const router = useRouter();
   const id = Number(params.id);
@@ -135,21 +141,21 @@ export default function ReadingDetailPage() {
   }
 
   async function handleDelete() {
-    if (!window.confirm("Supprimer cette lecture ?")) return;
+    if (!window.confirm(t.readingDetail.confirmDelete)) return;
     await deleteReading(id);
     router.push("/history");
   }
 
   if (!loaded) {
-    return <p className="text-gray-500">Chargement…</p>;
+    return <p className="text-gray-500">{t.common.loading}</p>;
   }
 
   if (notFound || !reading) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold mb-4">Lecture introuvable</h1>
+        <h1 className="text-2xl font-bold mb-4">{t.readingDetail.notFound}</h1>
         <Link href="/history" className="text-[--primary] underline">
-          Retour à l&apos;historique
+          {t.readingDetail.backToHistory}
         </Link>
       </div>
     );
@@ -176,20 +182,20 @@ export default function ReadingDetailPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">
-          {isEditing ? "Modifier la lecture" : "Détail de la lecture"}
+          {isEditing ? t.readingDetail.editTitle : t.readingDetail.detailTitle}
         </h1>
         <Link
           href="/history"
           className="text-sm text-gray-500 hover:text-gray-700 underline"
         >
-          Retour
+          {t.common.back}
         </Link>
       </div>
 
       {isEditing ? (
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 mb-8">
           <div>
-            <label className="block text-sm font-medium mb-1">Date</label>
+            <label className="block text-sm font-medium mb-1">{t.readingDetail.date}</label>
             <input
               type="date"
               value={editDate}
@@ -198,7 +204,7 @@ export default function ReadingDetailPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Livre</label>
+            <label className="block text-sm font-medium mb-1">{t.readingDetail.book}</label>
             <select
               value={editBook}
               onChange={(e) => {
@@ -208,7 +214,7 @@ export default function ReadingDetailPage() {
               }}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             >
-              {BOOKS.map((b) => (
+              {books.map((b) => (
                 <option key={b.abbreviation} value={b.abbreviation}>
                   {b.name}
                 </option>
@@ -217,7 +223,7 @@ export default function ReadingDetailPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Chapitre début</label>
+              <label className="block text-sm font-medium mb-1">{t.readingDetail.chapterStart}</label>
               <select value={editChapterStart} onChange={(e) => setEditChapterStart(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 {Array.from({ length: maxChapters }, (_, i) => i + 1).map(n => (
@@ -226,7 +232,7 @@ export default function ReadingDetailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Chapitre fin</label>
+              <label className="block text-sm font-medium mb-1">{t.readingDetail.chapterEnd}</label>
               <select value={editChapterEnd} onChange={(e) => setEditChapterEnd(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 {Array.from({ length: maxChapters - (editChapterStart - 1) }, (_, i) => i + editChapterStart).map(n => (
@@ -237,7 +243,7 @@ export default function ReadingDetailPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Verset début</label>
+              <label className="block text-sm font-medium mb-1">{t.readingDetail.verseStart}</label>
               <select value={editVerseStart} onChange={(e) => setEditVerseStart(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 {Array.from({ length: 200 }, (_, i) => i + 1).map(n => (
@@ -246,7 +252,7 @@ export default function ReadingDetailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Verset fin</label>
+              <label className="block text-sm font-medium mb-1">{t.readingDetail.verseEnd}</label>
               <select value={editVerseEnd} onChange={(e) => setEditVerseEnd(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 {Array.from({ length: 200 - (editVerseStart - 1) }, (_, i) => i + editVerseStart).map(n => (
@@ -256,7 +262,7 @@ export default function ReadingDetailPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Version</label>
+            <label className="block text-sm font-medium mb-1">{t.readingDetail.version}</label>
             <select
               value={editVersionId}
               onChange={(e) => setEditVersionId(e.target.value)}
@@ -293,13 +299,13 @@ export default function ReadingDetailPage() {
               onClick={handleSave}
               className="bg-[--primary] text-white px-6 py-2 rounded-lg text-sm hover:bg-[--primary-hover]"
             >
-              Sauvegarder
+              {t.readingDetail.saveEdit}
             </button>
             <button
               onClick={() => setIsEditing(false)}
               className="border border-gray-300 text-gray-700 px-6 py-2 rounded-lg text-sm hover:bg-gray-100"
             >
-              Annuler
+              {t.common.cancel}
             </button>
           </div>
         </div>
@@ -308,7 +314,7 @@ export default function ReadingDetailPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-sm text-gray-400">
-                {new Date(reading.date).toLocaleDateString("fr-FR", {
+                {formatDate(locale, reading.date, {
                   weekday: "long",
                   year: "numeric",
                   month: "long",
@@ -328,17 +334,17 @@ export default function ReadingDetailPage() {
             </h2>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-gray-500 mb-4">
-              <span>Version : {version?.name ?? reading.translationId}</span>
+              <span>{t.readingDetail.versionLabel(version?.name ?? reading.translationId)}</span>
               {context && (
                 <span className="text-xs text-gray-500 border border-gray-200 rounded-full px-2 py-0.5">
-                  <span aria-hidden="true">{context.emoji} </span>{context.name}
+                  <span aria-hidden="true">{context.emoji} </span>{contextName(context)}
                 </span>
               )}
             </div>
 
             {reading.notes && (
               <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">Notes</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">{t.readingDetail.notes}</p>
                 <p className="text-sm text-gray-600 whitespace-pre-wrap">
                   {reading.notes}
                 </p>
@@ -348,7 +354,7 @@ export default function ReadingDetailPage() {
             {reading.links && reading.links.length > 0 && (
               <div className="mb-4">
                 <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
-                  <ExternalLink className="w-4 h-4 text-blue-500" /> Liens
+                  <ExternalLink className="w-4 h-4 text-blue-500" /> {t.readingDetail.links}
                 </p>
                 <div className="space-y-1.5">
                   {reading.links.map((link, i) => (
@@ -365,16 +371,16 @@ export default function ReadingDetailPage() {
 
             {reading.audio && (
               <div className="mb-4">
-                <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">🎵 Audio</p>
+                <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">🎵 {t.readingDetail.audio}</p>
                 <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
                   <audio ref={audioRef} src={reading.audio} onEnded={() => setAudioPlaying(false)} />
                   <button onClick={() => {
                     if (audioPlaying) { audioRef.current?.pause(); setAudioPlaying(false); }
                     else { audioRef.current?.play(); setAudioPlaying(true); }
-                  }} aria-label={audioPlaying ? "Mettre en pause" : "Écouter l'audio"} className="text-purple-700">
+                  }} aria-label={audioPlaying ? t.readingDetail.pause : t.readingDetail.play} className="text-purple-700">
                     {audioPlaying ? <Square className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                   </button>
-                  <span className="text-sm text-gray-600">Audio joint</span>
+                  <span className="text-sm text-gray-600">{t.readingDetail.audioAttached}</span>
                 </div>
               </div>
             )}
@@ -382,7 +388,7 @@ export default function ReadingDetailPage() {
             {reading.photos && reading.photos.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
-                  📷 Photos
+                  📷 {t.readingDetail.photos}
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {reading.photos.map((photo, i) => (
@@ -396,17 +402,16 @@ export default function ReadingDetailPage() {
           </div>
 
           <div className="bg-amber-50 rounded-xl border border-amber-200 p-6 mb-6">
-            <h3 className="font-semibold text-gray-700 mb-3">Texte biblique</h3>
+            <h3 className="font-semibold text-gray-700 mb-3">{t.readingDetail.bibleText}</h3>
             {passages.length === 0 ? (
               <p className="text-gray-400 text-sm">
-                Texte non disponible pour cette référence avec la version
-                sélectionnée.
+                {t.readingDetail.textUnavailable}
               </p>
             ) : (
               <div className="text-sm leading-relaxed">
                 {passages.map((p) => (
                   <p key={`${p.chapter}-${p.verse}`} className="mb-1">
-                    <sup className="text-xs text-gray-400 mr-1">
+                    <sup className="text-xs text-gray-400 me-1">
                       {p.chapter !== reading.chapterStart ||
                       p.verse !== reading.verseStart
                         ? `${p.chapter}:${p.verse}`
@@ -427,13 +432,13 @@ export default function ReadingDetailPage() {
             onClick={enterEditMode}
             className="bg-[--primary] text-white px-6 py-2 rounded-lg text-sm hover:bg-[--primary-hover]"
           >
-            Modifier
+            {t.common.edit}
           </button>
           <button
             onClick={handleDelete}
             className="border border-red-300 text-red-600 px-6 py-2 rounded-lg text-sm hover:bg-red-50"
           >
-            Supprimer
+            {t.common.delete}
           </button>
         </div>
       )}

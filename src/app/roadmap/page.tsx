@@ -4,15 +4,18 @@ import { useEffect, useMemo, useState } from 'react'
 import { Route, Plus, Edit3, Trash2, Loader, ChevronDown, ChevronRight } from 'lucide-react'
 import { getAllRoadmapItems, addRoadmapItem, updateRoadmapItem, deleteRoadmapItem, toggleReaction } from '@/lib/storage/roadmap-store'
 import { useAuth } from '@/contexts/AuthContext'
+import { useI18n } from '@/contexts/I18nContext'
+import { formatDate } from '@/lib/i18n/format'
 import type { RoadmapItem } from '@/lib/storage/types'
 import { getCurrentUserId } from '@/lib/storage/user-id'
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  planned: { label: 'Planifié', color: 'text-gray-500 bg-gray-100' },
-  projet: { label: 'Projet', color: 'text-purple-600 bg-purple-50' },
-  'in-progress': { label: 'En cours', color: 'text-blue-600 bg-blue-50' },
-  done: { label: 'Terminé', color: 'text-green-600 bg-green-50' },
-  cancelled: { label: 'Annulé', color: 'text-red-500 bg-red-50' },
+/** Couleur de chaque statut. Les libellés vivent dans les dictionnaires. */
+const STATUS_CONFIG: Record<string, { color: string }> = {
+  planned: { color: 'text-gray-500 bg-gray-100' },
+  projet: { color: 'text-purple-600 bg-purple-50' },
+  'in-progress': { color: 'text-blue-600 bg-blue-50' },
+  done: { color: 'text-green-600 bg-green-50' },
+  cancelled: { color: 'text-red-500 bg-red-50' },
 }
 
 /**
@@ -33,6 +36,7 @@ const REACTIONS = ['👍', '👎', '❤️', '🚀']
 
 export default function RoadmapPage() {
   const { isAdmin } = useAuth()
+  const { t, locale } = useI18n()
   const [items, setItems] = useState<RoadmapItem[]>([])
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState('default')
@@ -94,7 +98,7 @@ export default function RoadmapPage() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Supprimer cet élément de la feuille de route ?')) return
+    if (!confirm(t.roadmap.confirmDelete)) return
     await deleteRoadmapItem(id)
     await load()
   }
@@ -109,12 +113,12 @@ export default function RoadmapPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Route className="w-6 h-6 text-[--primary]" />
-          Feuille de route
+          {t.roadmap.title}
         </h1>
         {isAdmin && (
           <button onClick={() => { resetForm(); setShowForm(true) }}
             className="bg-[--primary] text-white px-4 py-3 rounded-lg text-sm hover:bg-[--primary-hover] flex items-center gap-1.5">
-            <Plus className="w-4 h-4" /> Ajouter
+            <Plus className="w-4 h-4" /> {t.roadmap.add}
           </button>
         )}
       </div>
@@ -122,23 +126,23 @@ export default function RoadmapPage() {
       {isAdmin && showForm && (
         <div className="bg-[--surface] rounded-xl border border-[--border] p-5 mb-6 space-y-3 shadow-[--shadow]">
           <div>
-            <label className="block text-sm font-medium text-[--text] mb-1">Titre</label>
+            <label className="block text-sm font-medium text-[--text] mb-1">{t.roadmap.itemTitle}</label>
             <input type="text" value={title} onChange={e => setTitle(e.target.value)}
-              placeholder="Nom de la fonctionnalité"
+              placeholder={t.roadmap.titlePlaceholder}
               className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]" autoFocus />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[--text] mb-1">Description</label>
+            <label className="block text-sm font-medium text-[--text] mb-1">{t.roadmap.description}</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)}
-              rows={3} placeholder="Décris brièvement..."
+              rows={3} placeholder={t.roadmap.descriptionPlaceholder}
               className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] resize-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[--text] mb-1">Statut</label>
+            <label className="block text-sm font-medium text-[--text] mb-1">{t.roadmap.status}</label>
             <select value={status} onChange={e => setStatus(e.target.value as RoadmapItem['status'])}
               className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
-              {Object.entries(STATUS_CONFIG).map(([k, v]) => (
-                <option key={k} value={k}>{v.label}</option>
+              {Object.keys(STATUS_CONFIG).map((k) => (
+                <option key={k} value={k}>{t.roadmap.statuses[k]}</option>
               ))}
             </select>
           </div>
@@ -146,19 +150,19 @@ export default function RoadmapPage() {
             <button onClick={handleSave} disabled={saving || !title.trim()}
               className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 flex items-center gap-1.5">
               {saving && <Loader className="w-4 h-4 animate-spin" />}
-              {editId ? 'Modifier' : 'Ajouter'}
+              {editId ? t.common.edit : t.roadmap.add}
             </button>
-            <button onClick={resetForm} className="border border-[--border] text-[--text] px-4 py-2 rounded-lg text-sm hover:bg-gray-50">Annuler</button>
+            <button onClick={resetForm} className="border border-[--border] text-[--text] px-4 py-2 rounded-lg text-sm hover:bg-gray-50">{t.common.cancel}</button>
           </div>
         </div>
       )}
 
       {loading ? (
-        <p className="text-gray-500">Chargement...</p>
+        <p className="text-gray-500">{t.common.loading}</p>
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
           <Route className="w-10 h-10 mx-auto mb-3 opacity-50" />
-          <p>Aucun élément pour le moment</p>
+          <p>{t.roadmap.empty}</p>
         </div>
       ) : (
         <div className="space-y-5">
@@ -178,9 +182,9 @@ export default function RoadmapPage() {
                   {isOpen
                     ? <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />
                     : <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />}
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${sc.color}`}>{sc.label}</span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${sc.color}`}>{t.roadmap.statuses[key]}</span>
                   <span className="text-xs text-[--text-secondary]">
-                    {groupItems.length} élément{groupItems.length > 1 ? 's' : ''}
+                    {t.roadmap.itemCount(groupItems.length)}
                   </span>
                 </button>
 
@@ -193,8 +197,8 @@ export default function RoadmapPage() {
                             <h3 className="font-medium text-sm text-[--text]">{item.title}</h3>
                             {item.description && <p className="text-xs text-[--text-secondary] mt-1">{item.description}</p>}
                             <p className="text-xs text-gray-400 mt-2">
-                              {new Date(item.createdAt).toLocaleDateString('fr-FR')}
-                              {item.updatedAt !== item.createdAt && ` · modifié ${new Date(item.updatedAt).toLocaleDateString('fr-FR')}`}
+                              {formatDate(locale, item.createdAt)}
+                              {item.updatedAt !== item.createdAt && t.roadmap.modifiedOn(formatDate(locale, item.updatedAt))}
                             </p>
                           </div>
                           {isAdmin && (
@@ -233,7 +237,7 @@ export default function RoadmapPage() {
       )}
 
       <p className="text-xs text-gray-400 mt-6 text-center">
-        {isAdmin ? 'Vous pouvez ajouter, modifier ou supprimer des éléments.' : 'Les fonctionnalités à venir seront listées ici.'}
+        {isAdmin ? t.roadmap.footerAdmin : t.roadmap.footerUser}
       </p>
     </div>
   )

@@ -5,7 +5,8 @@ import { Search, BookOpen, BookPlus, BookText, FileText } from "lucide-react";
 import { seedIfNeeded, getEnabledVersions, addReading, getPassages, getPassagesByRange, searchPassages, getSettings } from "@/lib/storage";
 import type { BibleVersion, BiblePassage } from "@/lib/storage";
 
-import { BOOKS, getBookName } from "@/features/bible";
+import { BOOKS } from "@/features/bible";
+import { useI18n, useBookName, useBooks } from "@/contexts/I18nContext";
 
 type Mode = "reference" | "keyword";
 
@@ -31,6 +32,9 @@ interface AddTarget {
 }
 
 export default function SearchPage() {
+  const { t } = useI18n();
+  const getBookName = useBookName();
+  const books = useBooks();
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -131,17 +135,17 @@ export default function SearchPage() {
       notes: addNotes,
     });
     setAddSaving(false);
-    setAddDone("Ajouté ✓");
+    setAddDone(t.search.added);
     setTimeout(() => { setAddTarget(null); setAddDone(""); }, 1500);
   }
 
-  if (!loaded) return <p className="text-gray-500">Chargement...</p>;
+  if (!loaded) return <p className="text-gray-500">{t.common.loading}</p>;
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
         <Search className="w-6 h-6 text-[--primary]" />
-        Recherche biblique
+        {t.search.title}
       </h1>
 
       <div className="flex gap-2 mb-6">
@@ -152,7 +156,7 @@ export default function SearchPage() {
             }`}
           >
             {m === "reference" ? <BookText className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-            {m === "reference" ? "Référence" : "Libre"}
+            {m === "reference" ? t.search.modeReference : t.search.modeKeyword}
           </button>
         ))}
       </div>
@@ -162,17 +166,17 @@ export default function SearchPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Livre</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.book}</label>
                 <select value={refBook} onChange={(e) => setRefBook(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  <option value="">Sélectionner</option>
-                  {BOOKS.map((b) => (
+                  <option value="">{t.search.select}</option>
+                  {books.map((b) => (
                     <option key={b.abbreviation} value={b.abbreviation}>{b.name}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Chapitre</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.chapter}</label>
                 <select value={refChapter} onChange={(e) => setRefChapter(Number(e.target.value))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                   <option value="">Tous</option>
@@ -185,7 +189,7 @@ export default function SearchPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Verset (optionnel)</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.verse}</label>
                 <select value={refVerse ?? ""} onChange={(e) => setRefVerse(e.target.value ? Number(e.target.value) : undefined)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                   <option value="">Tous</option>
@@ -195,7 +199,7 @@ export default function SearchPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Version</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.version}</label>
                 <select value={refVersion} onChange={(e) => setRefVersion(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                   {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
@@ -204,22 +208,22 @@ export default function SearchPage() {
             </div>
             <button onClick={searchByReference} disabled={!refBook}
               className="mt-4 bg-[--primary] text-white px-5 py-2 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50">
-              Chercher
+              {t.search.go}
             </button>
           </div>
 
           {refLoading ? (
-            <p className="text-gray-500 text-sm">Chargement...</p>
+            <p className="text-gray-500 text-sm">{t.common.loading}</p>
           ) : refResults.length > 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <p className="font-medium mb-3">
                 {getBookName(refBook)} {refChapter}
-                {refVerse ? `:${refVerse}` : ""} — {refResults.length} verset(s)
+                {refVerse ? `:${refVerse}` : ""} — {t.search.verseCount(refResults.length)}
               </p>
               <div className="text-sm leading-relaxed mb-4">
                 {refResults.map((p) => (
                   <span key={`${p.chapter}-${p.verse}`}>
-                    <sup className="text-xs text-gray-400 mr-0.5">{p.verse}</sup>
+                    <sup className="text-xs text-gray-400 me-0.5">{p.verse}</sup>
                     {p.text}{" "}
                   </span>
                 ))}
@@ -234,11 +238,11 @@ export default function SearchPage() {
                 passageText: refResults.map((p) => `[${p.verse}] ${p.text}`).join("\n"),
               })}
                 className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-green-800">
-                + Ajouter cette lecture
+                {t.search.addThisReading}
               </button>
             </div>
           ) : refBook ? (
-            <p className="text-gray-400 text-sm">Aucun résultat.</p>
+            <p className="text-gray-400 text-sm">{t.search.noResult}</p>
           ) : null}
         </div>
       ) : (
@@ -246,14 +250,14 @@ export default function SearchPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
             <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
               <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-500 mb-1">Mot-clé</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.keyword}</label>
                 <input type="text" value={kwQuery}
                   onChange={(e) => setKwQuery(e.target.value)}
-                  placeholder="Entrez un mot ou une phrase..."
+                  placeholder={t.search.keywordPlaceholder}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" autoFocus />
               </div>
               <div className="w-full sm:w-48">
-                <label className="block text-xs font-medium text-gray-500 mb-1">Version</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.version}</label>
                 <select value={kwVersion} onChange={(e) => setKwVersion(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                   {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
@@ -263,12 +267,12 @@ export default function SearchPage() {
           </div>
 
           {kwLoading ? (
-            <p className="text-gray-500 text-sm">Recherche en cours...</p>
+            <p className="text-gray-500 text-sm">{t.search.searching}</p>
           ) : kwQuery.trim() && kwResults.length === 0 ? (
-            <p className="text-gray-400 text-sm">Aucun résultat pour &quot;{kwQuery}&quot;.</p>
+            <p className="text-gray-400 text-sm">{t.search.noResultFor(kwQuery)}</p>
           ) : kwResults.length > 0 ? (
             <div>
-              <p className="text-sm text-gray-500 mb-3">{kwCount} résultat(s) pour &quot;{kwQuery}&quot;</p>
+              <p className="text-sm text-gray-500 mb-3">{t.search.resultCount(kwCount, kwQuery)}</p>
               <div className="space-y-1">
                 {kwResults.map((p) => (
                   <div key={`${p.book}-${p.chapter}-${p.verse}`}
@@ -289,14 +293,14 @@ export default function SearchPage() {
                       passageText: `[${p.verse}] ${p.text}`,
                     })}
                       className="shrink-0 text-xs text-green-700 hover:text-green-800 font-medium mt-0.5">
-                      + Ajouter
+                      {t.search.add}
                     </button>
                   </div>
                 ))}
               </div>
               {kwCount >= 100 && (
                 <p className="text-xs text-gray-400 mt-2">
-                  Affichage des 100 premiers résultats. Précisez votre recherche.
+                  {t.search.truncated}
                 </p>
               )}
             </div>
@@ -313,7 +317,7 @@ export default function SearchPage() {
               </div>
             ) : (
               <>
-                <h3 className="font-semibold mb-1">Ajouter une lecture</h3>
+                <h3 className="font-semibold mb-1">{t.search.addTitle}</h3>
                 <p className="text-sm text-gray-500 mb-4">
                   {getBookName(addTarget.book)} {addTarget.chapterStart}
                   {addTarget.chapterEnd !== addTarget.chapterStart ? `-${addTarget.chapterEnd}` : ""}
@@ -321,13 +325,13 @@ export default function SearchPage() {
                 </p>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.date}</label>
                     <input type="date" value={addDate}
                       onChange={(e) => setAddDate(e.target.value)}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Notes (optionnel)</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.notes}</label>
                     <textarea value={addNotes} onChange={(e) => setAddNotes(e.target.value)}
                       rows={2}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none" />
@@ -336,11 +340,11 @@ export default function SearchPage() {
                 <div className="flex gap-3 mt-4 justify-end">
                   <button onClick={cancelAdd}
                     className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
-                    Annuler
+                    {t.common.cancel}
                   </button>
                   <button onClick={saveAdd} disabled={addSaving}
                     className="bg-[--primary] text-white px-4 py-2 text-sm rounded-lg hover:bg-[--primary-hover] disabled:opacity-50">
-                    {addSaving ? "Ajout..." : "Ajouter aux lectures"}
+                    {addSaving ? t.search.adding : t.search.addToReadings}
                   </button>
                 </div>
               </>

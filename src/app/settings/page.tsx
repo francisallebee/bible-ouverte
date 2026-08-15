@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass, Languages } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion } from "@/lib/storage";
 import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 import { useAuth } from "@/contexts/AuthContext";
+import { useI18n } from "@/contexts/I18nContext";
+import { AVAILABLE_LOCALES } from "@/lib/i18n/ui";
+import type { Locale } from "@/lib/i18n/locales";
+import { formatDate, formatNumber } from "@/lib/i18n/format";
+import { APP_VERSION } from "@/lib/version";
 import { TOUR_START } from "@/lib/tour";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -21,6 +26,7 @@ import {
 import type { DeviceNotificationState } from "@/lib/notifications";
 
 export default function SettingsPage() {
+  const { t, locale, setLocale } = useI18n();
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [verseCount, setVerseCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
@@ -86,8 +92,8 @@ export default function SettingsPage() {
       await updateVersion(version.id, { isEnabled: !enabling });
       setVersionError(
         enabling
-          ? `Téléchargement de « ${version.name} » impossible. Vérifie ta connexion.`
-          : `Suppression de « ${version.name} » impossible.`,
+          ? t.errors.versionDownload(version.name)
+          : t.errors.versionDelete(version.name),
       );
     }
     setBusyVersion(null);
@@ -121,25 +127,25 @@ export default function SettingsPage() {
       a.download = `bible-ouverte-export-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      setExportStatus("Export réussi.");
+      setExportStatus(t.settings.exportOk);
     } catch {
-      setExportStatus("Erreur lors de l'export.");
+      setExportStatus(t.settings.exportError);
     }
   }
 
   async function handleImport(file: File) {
-    if (!confirm("Cette action remplacera vos données existantes. Continuer ?")) return;
-    setImportStatus("Import en cours...");
+    if (!confirm(t.settings.importConfirm)) return;
+    setImportStatus(t.settings.importRunning);
     try {
       const text = await file.text();
       const result = await importData(text);
       if (result.ok) {
-        setImportStatus(`${result.count} élément(s) importé(s) avec succès.`);
+        setImportStatus(t.settings.importOk(result.count));
       } else {
-        setImportStatus(`Erreur : ${result.errors.join(", ")}`);
+        setImportStatus(t.settings.importError(result.errors.join(", ")));
       }
     } catch {
-      setImportStatus("Erreur lors de la lecture du fichier.");
+      setImportStatus(t.settings.importReadError);
     }
   }
 
@@ -155,7 +161,7 @@ export default function SettingsPage() {
       await supabase.auth.signOut()
       setTimeout(() => { router.push('/auth/login'); router.refresh() }, 2000)
     } catch {
-      alert('Erreur lors de la suppression')
+      alert(t.settings.deleteError)
       setDeleteStep('initial')
       setDeleting(false)
     }
@@ -202,8 +208,8 @@ export default function SettingsPage() {
       const result = await subscribeDevice();
       if (result !== "subscribed") {
         setNotifTest(result === "no-permission"
-          ? "La permission n'est pas accordée sur cet appareil."
-          : "Cet appareil n'a pas pu être abonné. Les réglages sont enregistrés, mais rien n'y sera envoyé.");
+          ? t.notifications.noPermission
+          : t.notifications.subscribeFailed);
       }
     } else {
       await unsubscribeDevice();
@@ -225,12 +231,12 @@ export default function SettingsPage() {
   }
 
   async function handleTestNotification() {
-    setNotifTest("Envoi…");
+    setNotifTest(t.notifications.testSending);
     const messages: Record<string, string> = {
-      sent: "Notification envoyée. Si tu ne la vois pas apparaître, c'est que ton appareil la retient — vérifie ses réglages de notifications pour Bible Ouverte.",
-      "no-permission": "La permission n'est pas accordée sur cet appareil.",
-      unsupported: "Ce navigateur ne gère pas les notifications.",
-      failed: "L'appareil a refusé l'envoi. Sur iPhone, l'application doit être ouverte depuis l'écran d'accueil et non depuis Safari.",
+      sent: t.notifications.testSent,
+      "no-permission": t.notifications.noPermission,
+      unsupported: t.notifications.testUnsupported,
+      failed: t.notifications.testFailed,
     };
     setNotifTest(messages[await showTestNotification()]);
   }
@@ -275,57 +281,73 @@ export default function SettingsPage() {
           <span className="w-10 h-10 bg-[--primary-light] rounded-xl flex items-center justify-center">
             <Settings className="w-5 h-5 text-[--primary]" />
           </span>
-          Réglages
+          {t.settings.title}
         </h1>
-        <p className="text-[--text-secondary] text-sm mt-1.5 ml-[3.25rem]">
-          Personnalise ton expérience
+        <p className="text-[--text-secondary] text-sm mt-1.5 ms-[3.25rem]">
+          {t.settings.subtitle}
         </p>
       </div>
 
       <div className="space-y-4">
-        <SectionCard icon={Sun} title="Thème">
+        <SectionCard icon={Languages} title={t.language.title}>
+          <select
+            value={locale}
+            onChange={(e) => { void setLocale(e.target.value as Locale) }}
+            className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] w-full sm:w-auto"
+          >
+            {AVAILABLE_LOCALES.map((l) => (
+              <option key={l.code} value={l.code}>{l.flag} {l.name}</option>
+            ))}
+          </select>
+          <p className="text-sm text-[--text-secondary] mt-3">
+            {t.language.bibleStaysFrench}
+          </p>
+        </SectionCard>
+
+        <SectionCard icon={Sun} title={t.settings.theme}>
           <select
             value={settings?.theme ?? "light"}
             onChange={(e) => handleThemeChange(e.target.value)}
             className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] w-full sm:w-auto"
           >
-            <option value="light">☀️ Clair</option>
-            <option value="dark">🌙 Sombre</option>
-            <option value="system">🖥️ Système</option>
+            <option value="light">{t.settings.themeLight}</option>
+            <option value="dark">{t.settings.themeDark}</option>
+            <option value="system">{t.settings.themeSystem}</option>
           </select>
           {settings?.theme === 'system' && (
             <p className="text-sm text-[--text-secondary] mt-3">
-              L&apos;application suit le réglage jour/nuit de ton appareil et
-              bascule dès qu&apos;il change.
+              {t.settings.themeSystemHint}
             </p>
           )}
         </SectionCard>
 
-        <SectionCard icon={Palette} title="Charte graphique">
+        <SectionCard icon={Palette} title={t.settings.colorTheme}>
           <p className="text-sm text-[--text-secondary] mb-3">
-            Change l&apos;ambiance de l&apos;application en un clic.
+            {t.settings.colorThemeHint}
           </p>
           <div className="flex flex-wrap gap-3">
-            {COLOR_THEMES.map(t => {
-              const active = (settings?.colorTheme || 'marine') === t.id;
+            {/* `charte` et non `t` : `t` est désormais le dictionnaire, et la
+                variable de boucle le masquait dans tout ce bloc. */}
+            {COLOR_THEMES.map(charte => {
+              const active = (settings?.colorTheme || 'marine') === charte.id;
               return (
-                <button key={t.id} onClick={() => handleColorThemeChange(t.id)}
+                <button key={charte.id} onClick={() => handleColorThemeChange(charte.id)}
                   className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border-2 transition-all ${
                     active
                       ? 'border-[--primary] bg-[--primary-light] shadow-sm'
                       : 'border-[--border] hover:border-gray-300'
                   }`}>
                   <div className="flex -space-x-1">
-                    <div className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: t.colors.primary }} />
-                    <div className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: t.colors.accent }} />
+                    <div className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: charte.colors.primary }} />
+                    <div className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: charte.colors.accent }} />
                   </div>
-                  <div className="text-left">
+                  <div className="text-start">
                     <p className={`text-sm font-medium ${active ? 'text-[--primary]' : 'text-[--text]'}`}>
-                      {t.emoji} {t.name}
+                      {charte.emoji} {t.colorThemes[charte.id] ?? charte.id}
                     </p>
                   </div>
                   {active && (
-                    <span className="text-xs bg-[--primary] text-white px-2 py-0.5 rounded-full font-medium">Actif</span>
+                    <span className="text-xs bg-[--primary] text-white px-2 py-0.5 rounded-full font-medium">{t.settings.active}</span>
                   )}
                 </button>
               );
@@ -333,9 +355,9 @@ export default function SettingsPage() {
           </div>
         </SectionCard>
 
-        <SectionCard icon={Target} title="Objectif de lecture">
+        <SectionCard icon={Target} title={t.settings.goal}>
           <p className="text-sm text-[--text-secondary] mb-3">
-            Fixe un objectif quotidien pour suivre ta progression.
+            {t.settings.goalHint}
           </p>
           <div className="flex items-center gap-3 flex-wrap">
             <select
@@ -349,8 +371,8 @@ export default function SettingsPage() {
               }}
               className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
             >
-              <option value="chapters-per-day">Chapitres / jour</option>
-              <option value="verses-per-day">Versets / jour</option>
+              <option value="chapters-per-day">{t.settings.goalChapters}</option>
+              <option value="verses-per-day">{t.settings.goalVerses}</option>
             </select>
             <input
               type="number"
@@ -365,19 +387,21 @@ export default function SettingsPage() {
               }}
               className="w-20 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
             />
-            <span className="text-sm text-[--text-secondary]">par jour</span>
+            <span className="text-sm text-[--text-secondary]">{t.settings.perDay}</span>
           </div>
           {settings?.readingGoal && (
             <p className="text-xs text-[--text-secondary] mt-2">
-              → {settings.readingGoal.target} {settings.readingGoal.type === "chapters-per-day" ? "chapitres" : "versets"} par jour
+              {t.settings.goalSummary(
+                settings.readingGoal.target,
+                settings.readingGoal.type === "chapters-per-day",
+              )}
             </p>
           )}
         </SectionCard>
 
-        <SectionCard icon={BookOpen} title="Versions bibliques">
+        <SectionCard icon={BookOpen} title={t.settings.versions}>
           <p className="text-sm text-[--text-secondary] mb-3">
-            Une version activée est téléchargée sur cet appareil pour la lecture
-            hors ligne — environ 6 Mo chacune. La désactiver libère cette place.
+            {t.settings.versionsHint}
           </p>
           {versionError && (
             <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">
@@ -397,7 +421,7 @@ export default function SettingsPage() {
                       className="accent-[--primary] w-4 h-4 shrink-0" />
                     <span className="text-sm truncate">{v.name}</span>
                   </label>
-                  {isDefault && <span className="text-xs bg-[--primary] text-white px-2 py-0.5 rounded-full font-medium">Par défaut</span>}
+                  {isDefault && <span className="text-xs bg-[--primary] text-white px-2 py-0.5 rounded-full font-medium">{t.settings.versionDefault}</span>}
                   <label className={`flex items-center gap-1.5 text-xs text-[--text-secondary] shrink-0 ${
                     isDefault || busyVersion ? 'cursor-default' : 'cursor-pointer'
                   }`}>
@@ -409,8 +433,8 @@ export default function SettingsPage() {
                         className="accent-[--primary] w-3.5 h-3.5" />
                     )}
                     {busyVersion === v.id
-                      ? (v.isEnabled ? 'Suppression…' : 'Téléchargement…')
-                      : 'Activée'}
+                      ? (v.isEnabled ? t.settings.versionDeleting : t.settings.versionDownloading)
+                      : t.settings.versionEnabled}
                   </label>
                 </div>
               );
@@ -418,16 +442,16 @@ export default function SettingsPage() {
           </div>
         </SectionCard>
 
-        <SectionCard icon={Download} title="Export des données">
+        <SectionCard icon={Download} title={t.settings.exportTitle}>
           <p className="text-sm text-[--text-secondary] mb-3">
-            Télécharge toutes tes données au format JSON.
+            {t.settings.exportHint}
           </p>
           <button
             onClick={handleExport}
             className="bg-[--primary] text-white px-4 py-2.5 rounded-lg text-sm hover:bg-[--primary-hover] transition-colors flex items-center gap-1.5 shadow-[--shadow]"
           >
             <Download className="w-4 h-4" />
-            Exporter en JSON
+            {t.settings.exportButton}
           </button>
           {exportStatus && (
             <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
@@ -436,9 +460,9 @@ export default function SettingsPage() {
           )}
         </SectionCard>
 
-        <SectionCard icon={Upload} title="Import des données">
+        <SectionCard icon={Upload} title={t.settings.importTitle}>
           <p className="text-sm text-[--text-secondary] mb-3">
-            Importe un fichier JSON précédemment exporté.
+            {t.settings.importHint}
           </p>
           <input
             ref={fileInputRef}
@@ -455,37 +479,34 @@ export default function SettingsPage() {
             className="bg-[--surface] text-[--text] border border-[--border] px-4 py-2.5 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5"
           >
             <Upload className="w-4 h-4" />
-            Importer un fichier JSON
+            {t.settings.importButton}
           </button>
           {importStatus && (
             <p className={`text-sm mt-2 flex items-center gap-1 ${
-              importStatus.includes("Erreur") ? "text-red-500" : "text-green-600"
+              importStatus.includes(t.settings.errorMarker) ? "text-red-500" : "text-green-600"
             }`}>
               <span className={`w-1.5 h-1.5 rounded-full ${
-                importStatus.includes("Erreur") ? "bg-red-500" : "bg-green-500"
+                importStatus.includes(t.settings.errorMarker) ? "bg-red-500" : "bg-green-500"
               }`} />
               {importStatus}
             </p>
           )}
         </SectionCard>
 
-        <SectionCard icon={Bell} title="Notifications">
+        <SectionCard icon={Bell} title={t.notifications.title}>
           {(() => {
             // Tant que l'état de l'appareil n'est pas lu, ne rien affirmer :
             // afficher « non géré » puis se dédire au montage serait pire que
             // d'attendre une fraction de seconde.
             if (!deviceNotif) {
-              return <p className="text-sm text-[--text-secondary]">Lecture de l&apos;appareil…</p>;
+              return <p className="text-sm text-[--text-secondary]">{t.notifications.readingDevice}</p>;
             }
             const status = notificationStatus(deviceNotif, settings?.notificationsEnabled ?? false);
 
             if (status.kind === "ios-not-installed") {
               return (
                 <p className="text-sm text-[--text-secondary]">
-                  Sur iPhone et iPad, les notifications ne sont délivrées qu&apos;aux
-                  applications installées. Ouvre le menu de partage de Safari, puis
-                  « Sur l&apos;écran d&apos;accueil », et reviens ici depuis
-                  l&apos;application ainsi installée.
+                  {t.notifications.iosNotInstalled}
                 </p>
               );
             }
@@ -493,8 +514,7 @@ export default function SettingsPage() {
             if (status.kind === "unsupported") {
               return (
                 <p className="text-sm text-[--text-secondary]">
-                  Ce navigateur ne gère pas les notifications. Le réglage reste
-                  disponible depuis un appareil qui les prend en charge.
+                  {t.notifications.unsupported}
                 </p>
               );
             }
@@ -502,9 +522,7 @@ export default function SettingsPage() {
             if (status.kind === "denied") {
               return (
                 <p className="text-sm text-[--text-secondary]">
-                  Les notifications ont été refusées pour ce site. Une application
-                  ne peut pas revenir sur ce choix : il faut le rouvrir dans les
-                  réglages de ton navigateur.
+                  {t.notifications.denied}
                 </p>
               );
             }
@@ -513,12 +531,11 @@ export default function SettingsPage() {
               return (
                 <>
                   <p className="text-sm text-[--text-secondary] mb-3">
-                    Reçois un rappel de lecture sur cet appareil. Ton navigateur
-                    va te demander ton accord.
+                    {t.notifications.needsPermission}
                   </p>
                   <button type="button" onClick={handleAskPermission} disabled={notifBusy}
                     className="bg-[--primary] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-50 transition-colors">
-                    {notifBusy ? "En attente de ta réponse…" : "Autoriser les notifications"}
+                    {notifBusy ? t.notifications.waiting : t.notifications.allow}
                   </button>
                 </>
               );
@@ -531,36 +548,41 @@ export default function SettingsPage() {
                     onChange={(e) => handleNotificationsToggle(e.target.checked)}
                     className="accent-[--primary] w-4 h-4" />
                   <span className="text-sm text-[--text]">
-                    Recevoir des notifications sur cet appareil
+                    {t.notifications.receiveOnDevice}
                   </span>
                 </label>
                 {status.enabled && (() => {
                   const triggers = resolveTriggers(settings?.notificationTriggers);
                   return (
                     <div className="mt-4 pt-4 border-t border-[--border] space-y-3">
-                      <p className="text-sm font-medium text-[--text]">Ce qui déclenche une notification</p>
-                      {NOTIFICATION_TRIGGERS.map((t) => (
-                        <div key={t.id}>
+                      <p className="text-sm font-medium text-[--text]">{t.notifications.whatTriggers}</p>
+                      {/* `declencheur` et non `t` : `t` est le dictionnaire. */}
+                      {NOTIFICATION_TRIGGERS.map((declencheur) => (
+                        <div key={declencheur.id}>
                           <label className="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" checked={triggers[t.id]}
-                              onChange={(e) => handleTriggerToggle(t.id, e.target.checked)}
+                            <input type="checkbox" checked={triggers[declencheur.id]}
+                              onChange={(e) => handleTriggerToggle(declencheur.id, e.target.checked)}
                               className="accent-[--primary] w-4 h-4 mt-0.5" />
                             <span className="min-w-0">
-                              <span className="block text-sm text-[--text]">{t.label}</span>
-                              <span className="block text-xs text-[--text-secondary]">{t.hint}</span>
+                              <span className="block text-sm text-[--text]">
+                                {t.notifications.triggers[declencheur.id].label}
+                              </span>
+                              <span className="block text-xs text-[--text-secondary]">
+                                {t.notifications.triggers[declencheur.id].hint}
+                              </span>
                             </span>
                           </label>
-                          {t.id === "daily" && triggers.daily && (
-                            <div className="flex items-center gap-2 mt-2 ml-7">
+                          {declencheur.id === "daily" && triggers.daily && (
+                            <div className="flex items-center gap-2 mt-2 ms-7">
                               <label htmlFor="reminder-time" className="text-xs text-[--text-secondary]">
-                                À
+                                {t.notifications.at}
                               </label>
                               <input id="reminder-time" type="time"
                                 value={settings?.dailyReminderTime ?? DEFAULT_REMINDER_TIME}
                                 onChange={(e) => handleReminderTimeChange(e.target.value)}
                                 className="border border-[--border] rounded-lg px-2.5 py-1.5 text-sm bg-[--surface] text-[--text]" />
                               <span className="text-xs text-[--text-secondary]">
-                                heure de {settings?.timeZone ?? readTimeZone()}
+                                {t.notifications.timeZoneOf(settings?.timeZone ?? readTimeZone())}
                               </span>
                             </div>
                           )}
@@ -570,12 +592,11 @@ export default function SettingsPage() {
                   );
                 })()}
                 <p className="text-sm text-[--text-secondary] mt-4">
-                  L&apos;autorisation est accordée et tes choix sont enregistrés.
-                  Rien n&apos;est encore envoyé : l&apos;envoi lui-même reste à venir.
+                  {t.notifications.granted}
                 </p>
                 <button type="button" onClick={handleTestNotification}
                   className="mt-3 border border-[--border] rounded-lg px-4 py-2 text-sm text-[--text] hover:bg-gray-50 transition-colors">
-                  Envoyer une notification de test
+                  {t.notifications.sendTest}
                 </button>
                 {notifTest && (
                   <p className="text-sm text-[--text-secondary] mt-2">{notifTest}</p>
@@ -585,10 +606,9 @@ export default function SettingsPage() {
           })()}
         </SectionCard>
 
-        <SectionCard icon={Clock} title="Déconnexion automatique">
+        <SectionCard icon={Clock} title={t.settings.autoLogout}>
           <p className="text-sm text-[--text-secondary] mb-3">
-            Ferme la session après une période sans activité. Utile si tu lis
-            depuis un appareil partagé.
+            {t.settings.autoLogoutHint}
           </p>
           <select
             value={settings?.autoLogoutMinutes ?? 0}
@@ -596,64 +616,64 @@ export default function SettingsPage() {
             className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] w-full sm:w-auto"
           >
             {AUTO_LOGOUT_CHOICES.map((c) => (
-              <option key={c.minutes} value={c.minutes}>{c.label}</option>
+              <option key={c.minutes} value={c.minutes}>
+                {t.settings.autoLogoutChoices[c.minutes]}
+              </option>
             ))}
           </select>
           {(settings?.autoLogoutMinutes ?? 0) > 0 && (
             <p className="text-sm text-[--text-secondary] mt-3">
-              Une fenêtre te préviendra une minute avant la coupure, pour que
-              rien de ce que tu es en train de saisir ne soit perdu.
+              {t.settings.autoLogoutWarning}
             </p>
           )}
         </SectionCard>
 
-        <SectionCard icon={Compass} title="Parcours découverte">
+        <SectionCard icon={Compass} title={t.settings.tour}>
           <p className="text-sm text-[--text-secondary] mb-3">
-            La visite guidée des écrans de l&apos;application. Elle se lance une seule
-            fois, à la première connexion — puis seulement si tu la redemandes ici.
+            {t.settings.tourHint}
           </p>
           <p className="text-sm text-[--text-secondary] mb-3">
             {settings?.tourCompletedAt
-              ? `Déjà suivi le ${new Date(settings.tourCompletedAt).toLocaleDateString('fr-FR', {
+              ? t.settings.tourDone(formatDate(locale, settings.tourCompletedAt, {
                   day: 'numeric', month: 'long', year: 'numeric',
-                })}.`
-              : 'Tu ne l’as pas encore suivi : il s’ouvrira à ta prochaine visite.'}
+                }))
+              : t.settings.tourNotYet}
           </p>
           <button
             onClick={() => window.dispatchEvent(new Event(TOUR_START))}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-[--primary] hover:opacity-90 transition-opacity"
           >
             <Compass className="w-4 h-4" />
-            Revoir le parcours
+            {t.settings.tourReplay}
           </button>
         </SectionCard>
 
-        <SectionCard icon={Cloud} title="Synchronisation cloud">
+        <SectionCard icon={Cloud} title={t.settings.sync}>
           <p className="text-sm text-[--text-secondary] mb-3">
-            Synchronise tes données avec ton compte pour les retrouver sur tous tes appareils.
+            {t.settings.syncHint}
           </p>
           <SyncButton />
         </SectionCard>
 
         {user && (
-          <SectionCard icon={AlertTriangle} title="Supprimer mon compte" className="border-red-200">
+          <SectionCard icon={AlertTriangle} title={t.settings.deleteAccount} className="border-red-200">
             {deleteStep === 'initial' && (
               <>
                 <p className="text-sm text-red-600 mb-3 font-medium">
-                  Cette action est irréversible. Toutes tes données seront définitivement effacées.
+                  {t.settings.deleteWarning}
                 </p>
                 <button
                   onClick={() => setDeleteStep('confirm')}
                   className="bg-red-500 text-white px-4 py-2.5 rounded-lg text-sm hover:bg-red-600 transition-colors"
                 >
-                  Supprimer mon compte
+                  {t.settings.deleteAccount}
                 </button>
               </>
             )}
             {deleteStep === 'confirm' && (
               <div className="space-y-3">
                 <p className="text-sm text-red-700 font-bold bg-red-50 border border-red-200 rounded-lg p-3">
-                  ⚠️ Es-tu sûr ? Tes lectures, plans et fichiers seront perdus à jamais.
+                  {t.settings.deleteConfirm}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -661,45 +681,45 @@ export default function SettingsPage() {
                     disabled={deleting}
                     className="border border-[--border] text-[--text] px-4 py-2.5 rounded-lg text-sm hover:bg-gray-50 transition-colors"
                   >
-                    Annuler
+                    {t.common.cancel}
                   </button>
                   <button
                     onClick={handleDeleteAccount}
                     disabled={deleting}
                     className="bg-red-500 text-white px-4 py-2.5 rounded-lg text-sm hover:bg-red-600 disabled:opacity-50 transition-colors"
                   >
-                    {deleting ? 'Suppression…' : 'Oui, tout supprimer'}
+                    {deleting ? t.settings.deleting : t.settings.deleteYes}
                   </button>
                 </div>
               </div>
             )}
             {deleteStep === 'done' && (
-              <p className="text-sm text-green-600 font-medium">Compte supprimé. Redirection...</p>
+              <p className="text-sm text-green-600 font-medium">{t.settings.deleteDone}</p>
             )}
           </SectionCard>
         )}
 
-        <SectionCard icon={Info} title="Informations">
+        <SectionCard icon={Info} title={t.settings.info}>
           <dl className="text-sm space-y-2">
             <div className="flex justify-between py-1">
-              <dt className="text-[--text-secondary]">Application</dt>
+              <dt className="text-[--text-secondary]">{t.settings.infoApp}</dt>
               <dd className="text-[--text] font-medium">Bible Ouverte</dd>
             </div>
             <div className="flex justify-between py-1 border-t border-[--border]">
-              <dt className="text-[--text-secondary]">Version</dt>
-              <dd className="text-[--text]">0.1.0</dd>
+              <dt className="text-[--text-secondary]">{t.settings.infoVersion}</dt>
+              <dd className="text-[--text]">{APP_VERSION}</dd>
             </div>
             <div className="flex justify-between py-1 border-t border-[--border]">
-              <dt className="text-[--text-secondary]">Mode hors ligne</dt>
-              <dd className="text-green-600 font-medium">Activé</dd>
+              <dt className="text-[--text-secondary]">{t.settings.infoOffline}</dt>
+              <dd className="text-green-600 font-medium">{t.settings.infoOfflineOn}</dd>
             </div>
             <div className="flex justify-between py-1 border-t border-[--border]">
-              <dt className="text-[--text-secondary]">Stockage</dt>
+              <dt className="text-[--text-secondary]">{t.settings.infoStorage}</dt>
               <dd className="text-[--text]">IndexedDB</dd>
             </div>
             <div className="flex justify-between py-1 border-t border-[--border]">
-              <dt className="text-[--text-secondary]">Versets disponibles</dt>
-              <dd className="text-[--text]">{verseCount.toLocaleString("fr-FR")}</dd>
+              <dt className="text-[--text-secondary]">{t.settings.infoVerses}</dt>
+              <dd className="text-[--text]">{formatNumber(locale, verseCount)}</dd>
             </div>
           </dl>
         </SectionCard>

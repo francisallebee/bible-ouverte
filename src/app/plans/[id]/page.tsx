@@ -14,21 +14,26 @@ import {
   getCurrentUserId, PLAN_CONTEXT_ID,
   exportPlanCSV, exportPlanMarkdown, exportPlanJSON, exportPlanHTML, exportPlanPDF,
 } from "@/lib/storage";
-import { getBookName, BOOKS } from "@/features/bible";
+import { useI18n, useBookName, useBooks } from "@/contexts/I18nContext";
+import { formatDate } from "@/lib/i18n/format";
 import PlanEntryAdder from "@/components/PlanEntryAdder";
 import type { PlanEntryDraft } from "@/components/PlanEntryAdder";
 import { describeRange } from "@/components/PassagePicker";
 import type { ReadingPlan, PlanDay, BibleVersion, PlanDuration } from "@/lib/storage";
 
-const DURATIONS: { value: PlanDuration; label: string }[] = [
-  { value: "1-year", label: "1 an (365 jours)" },
-  { value: "6-months", label: "6 mois (182 jours)" },
-  { value: "3-months", label: "3 mois (91 jours)" },
-  { value: "1-month", label: "1 mois (30 jours)" },
-  { value: "custom", label: "Personnalisé" },
+/** Les durées proposées. Leurs libellés vivent dans les dictionnaires. */
+const DURATIONS: { value: PlanDuration }[] = [
+  { value: "1-year" },
+  { value: "6-months" },
+  { value: "3-months" },
+  { value: "1-month" },
+  { value: "custom" },
 ];
 
 export default function PlanDetailPage() {
+  const { t, locale } = useI18n();
+  const getBookName = useBookName();
+  const books = useBooks();
   const params = useParams();
   const router = useRouter();
   const planId = Number(params.id);
@@ -224,12 +229,12 @@ export default function PlanDetailPage() {
     );
   }
 
-  if (!loaded) return <p className="text-gray-500">Chargement...</p>;
+  if (!loaded) return <p className="text-gray-500">{t.common.loading}</p>;
   if (!plan) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 mb-4">Plan introuvable.</p>
-        <Link href="/plans" className="text-[--primary] underline text-sm">Retour aux plans</Link>
+        <p className="text-gray-500 mb-4">{t.planDetail.notFound}</p>
+        <Link href="/plans" className="text-[--primary] underline text-sm">{t.planDetail.backToPlans}</Link>
       </div>
     );
   }
@@ -237,7 +242,7 @@ export default function PlanDetailPage() {
   return (
     <div>
       <button onClick={() => router.push("/plans")} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4">
-        <ArrowLeft className="w-4 h-4" /> Retour aux plans
+        <ArrowLeft className="w-4 h-4" /> {t.planDetail.backToPlans}
       </button>
 
       <div className="flex items-center justify-between mb-6">
@@ -247,17 +252,17 @@ export default function PlanDetailPage() {
             <h1 className="text-2xl font-bold">{plan.name}</h1>
             <p className="text-sm text-gray-500">
               {isFree
-                ? `${readDays}/${days.length} passages lus${days.length > 0 ? ` (${progress}%)` : ""}`
-                : `${readDays}/${days.length} jours lus (${progress}%)`}
+                ? t.planDetail.passagesRead(readDays, days.length, progress)
+                : t.planDetail.daysRead(readDays, days.length, progress)}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative group">
             <button className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 flex items-center gap-1.5">
-              <Download className="w-4 h-4" /> Exporter
+              <Download className="w-4 h-4" /> {t.planDetail.export}
             </button>
-            <div className="absolute right-0 top-full mt-1 bg-white rounded-xl border border-gray-200 shadow-lg p-1 min-w-[180px] hidden group-hover:block z-10">
+            <div className="absolute end-0 top-full mt-1 bg-white rounded-xl border border-gray-200 shadow-lg p-1 min-w-[180px] hidden group-hover:block z-10">
               <button onClick={() => exportPlanPDF(plan, days)} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg flex items-center gap-2">
                 <File className="w-4 h-4 text-red-600" /> PDF
               </button>
@@ -276,43 +281,43 @@ export default function PlanDetailPage() {
             </div>
           </div>
           <button onClick={() => setEditing(!editing)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 flex items-center gap-1.5">
-            <Edit3 className="w-4 h-4" /> Modifier
+            <Edit3 className="w-4 h-4" /> {t.common.edit}
           </button>
         </div>
       </div>
 
       {editing && (
         <div className="bg-blue-50 rounded-xl border border-blue-200 p-5 mb-6">
-          <h3 className="font-semibold mb-4">Modifier le plan</h3>
+          <h3 className="font-semibold mb-4">{t.planDetail.editPlan}</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Nom</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.name}</label>
               <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {!isFree && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Durée</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.duration}</label>
                   <select value={formDuration} onChange={(e) => setFormDuration(e.target.value as PlanDuration)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    {DURATIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                    {DURATIONS.map((d) => <option key={d.value} value={d.value}>{t.planDetail.durations[d.value]}</option>)}
                   </select>
                 </div>
               )}
               {!isFree && formDuration === "custom" && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Nombre de jours</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.customDays}</label>
                   <input type="number" min={1} value={formCustomDays} onChange={(e) => setFormCustomDays(Math.max(1, Number(e.target.value)))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
                 </div>
               )}
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Version</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.version}</label>
                 <select value={formVersion} onChange={(e) => setFormVersion(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                   {selectableVersions.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                 </select>
               </div>
               {!isFree && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Date de début</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.startDate}</label>
                   <input type="date" value={formStartDate} onChange={(e) => setFormStartDate(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
                 </div>
               )}
@@ -320,13 +325,13 @@ export default function PlanDetailPage() {
             {/* Un plan libre n'a pas de jours à régénérer : sa liste se construit
                 passage par passage, et rejouer le générateur l'effacerait. */}
             <div className={isFree ? "hidden" : undefined}>
-              <label className="block text-xs font-medium text-gray-500 mb-2">Livres (laisser vide pour toute la Bible)</label>
+              <label className="block text-xs font-medium text-gray-500 mb-2">{t.planDetail.booksLabel}</label>
               <details className="text-sm">
                 <summary className="cursor-pointer text-[--primary] hover:underline">
-                  {formBooks.length === 0 ? "Tous les livres" : `${formBooks.length} livre(s) sélectionné(s)`}
+                  {formBooks.length === 0 ? t.planDetail.allBooks : t.planDetail.booksSelected(formBooks.length)}
                 </summary>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1 mt-2 max-h-60 overflow-y-auto">
-                  {BOOKS.map((b) => (
+                  {books.map((b) => (
                     <label key={b.abbreviation} className="flex items-center gap-1.5 text-sm cursor-pointer hover:bg-blue-100 rounded px-1 py-0.5">
                       <input type="checkbox" checked={formBooks.includes(b.abbreviation)} onChange={() => toggleBook(b.abbreviation)} className="accent-[--primary]" />
                       {b.name}
@@ -339,9 +344,9 @@ export default function PlanDetailPage() {
           <div className="flex gap-2 mt-4">
             <button onClick={handleSaveEdit} disabled={!formName.trim() || saving} className="bg-[--primary] text-white px-4 py-1.5 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 flex items-center gap-1.5">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {saving ? "Enregistrement…" : "Enregistrer"}
+              {saving ? t.planDetail.saving : t.common.save}
             </button>
-            <button onClick={() => setEditing(false)} className="text-gray-600 px-4 py-1.5 rounded-lg text-sm hover:bg-gray-200">Annuler</button>
+            <button onClick={() => setEditing(false)} className="text-gray-600 px-4 py-1.5 rounded-lg text-sm hover:bg-gray-200">{t.common.cancel}</button>
           </div>
         </div>
       )}
@@ -358,7 +363,7 @@ export default function PlanDetailPage() {
             <div className="h-full bg-[--primary] rounded-full transition-[width] duration-500" style={{ width: `${progress}%` }} />
           </div>
           <p className="text-xs text-gray-400 mt-2">
-            {days.length - readDays} {isFree ? "passages restants" : "jours restants"} sur {days.length}
+            {t.planDetail.remaining(days.length - readDays, days.length, isFree)}
           </p>
         </div>
       )}
@@ -367,12 +372,12 @@ export default function PlanDetailPage() {
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => setCurrentPage(Math.max(0, currentPage - 1))} disabled={currentPage === 0}
             className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
-            <ChevronLeft className="w-4 h-4" /> Précédent
+            <ChevronLeft className="w-4 h-4" /> {t.planDetail.previous}
           </button>
           <span className="text-sm text-gray-500">{currentPage + 1} / {pageCount}</span>
           <button onClick={() => setCurrentPage(Math.min(pageCount - 1, currentPage + 1))} disabled={currentPage >= pageCount - 1}
             className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
-            Suivant <ChevronRight className="w-4 h-4" />
+            {t.planDetail.next} <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -380,9 +385,9 @@ export default function PlanDetailPage() {
       {isFree && days.length === 0 && (
         <div className="text-center py-12">
           <ListChecks className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 mb-1">Cette liste est encore vide.</p>
+          <p className="text-gray-500 mb-1">{t.planDetail.emptyList}</p>
           <p className="text-gray-400 text-sm">
-            Ajoute les passages que tu veux lire, dans l&apos;ordre qui te plaît.
+            {t.planDetail.emptyListHint}
           </p>
         </div>
       )}
@@ -402,16 +407,16 @@ export default function PlanDetailPage() {
                   : <Circle className="w-5 h-5 text-gray-300 shrink-0" />}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    {!isFree && <span className="text-xs text-gray-400 font-mono shrink-0">Jour {day.day}</span>}
+                    {!isFree && <span className="text-xs text-gray-400 font-mono shrink-0">{t.planDetail.day(day.day)}</span>}
                     {/* Un plan libre n'annonce une date que lorsqu'elle existe :
                         `new Date("")` produirait « Invalid Date » à l'écran. */}
                     {day.date ? (
                       <span className="text-xs text-gray-400">
-                        {isFree ? "Lu le " : ""}
-                        {new Date(day.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                        {isFree ? t.planDetail.readOn : ""}
+                        {formatDate(locale, day.date, { day: "numeric", month: "short" })}
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-400">Pas encore lu</span>
+                      <span className="text-xs text-gray-400">{t.planDetail.notReadYet}</span>
                     )}
                   </div>
                   <p className="text-sm font-medium text-gray-900">
@@ -428,7 +433,7 @@ export default function PlanDetailPage() {
               </button>
               {isFree && (
                 <button onClick={() => handleRemoveEntry(day)}
-                  aria-label={`Retirer ${getBookName(day.book)} ${day.chapterStart}`}
+                  aria-label={t.planDetail.remove(`${getBookName(day.book)} ${day.chapterStart}`)}
                   className="px-4 py-3 text-gray-400 hover:text-red-600 transition-colors shrink-0">
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -438,7 +443,7 @@ export default function PlanDetailPage() {
             {dating?.day === day.day && (
               <div className="border-t border-gray-200 px-4 py-3 flex flex-wrap items-center gap-2">
                 <label htmlFor={`date-${day.day}`} className="text-xs text-gray-500">
-                  Lu le
+                  {t.planDetail.readOnLabel}
                 </label>
                 <input id={`date-${day.day}`} type="date" value={dating.date}
                   onChange={(e) => setDating({ day: day.day, date: e.target.value })}
@@ -447,9 +452,9 @@ export default function PlanDetailPage() {
                   onClick={() => { const d = dating.date; setDating(null); markRead(day, d); }}
                   disabled={!dating.date}
                   className="bg-[--primary] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50">
-                  Valider
+                  {t.planDetail.validate}
                 </button>
-                <button onClick={() => setDating(null)} aria-label="Annuler"
+                <button onClick={() => setDating(null)} aria-label={t.common.cancel}
                   className="text-gray-400 hover:text-gray-600 p-1.5">
                   <X className="w-4 h-4" />
                 </button>

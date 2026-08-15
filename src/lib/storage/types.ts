@@ -1,3 +1,5 @@
+import type { Locale } from "@/lib/i18n/locales";
+
 export type DisplayPreset = "smartphone" | "tablet" | "desktop";
 export type PlanDuration = "1-year" | "6-months" | "3-months" | "1-month" | "custom";
 
@@ -196,6 +198,18 @@ export interface AppSettings {
    * permettra de reproposer le parcours si son contenu change un jour.
    */
   tourCompletedAt?: string;
+  /**
+   * Langue de l'interface, en code court : `fr`, `en`, `es`, `it`, `ar`.
+   *
+   * Absente : la langue du navigateur décide, et le français en dernier
+   * recours (`resolveLocale`). Ne jamais l'écrire par défaut à l'amorçage —
+   * une valeur posée d'office empêcherait le navigateur de s'exprimer, et un
+   * compte créé sur un appareil anglophone démarrerait en français.
+   *
+   * Le texte biblique ne suit pas : `public/bibles/` ne porte que des versions
+   * françaises.
+   */
+  language?: Locale;
   /** true si une modification locale n'a pas encore été poussée vers le cloud */
   _dirty?: boolean;
 }

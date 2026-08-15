@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { User, Save, Camera, KeyRound } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useI18n } from '@/contexts/I18nContext'
 import { resizeImage } from '@/lib/image-utils'
 import { createClient } from '@/lib/supabase/client'
 import { describePasswordProblems, PASSWORD_MIN_LENGTH } from '@/lib/auth/password'
@@ -18,6 +19,7 @@ type ProfileData = {
 }
 
 export default function ProfilPage() {
+  const { t } = useI18n()
   const { user } = useAuth()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -97,16 +99,21 @@ export default function ProfilPage() {
     setPwSaved(false)
 
     if (newPassword !== confirmPassword) {
-      setPwError('Les deux saisies du nouveau mot de passe ne correspondent pas.')
+      setPwError(t.profile.mismatch)
       return
     }
     if (newPassword === currentPassword) {
-      setPwError('Le nouveau mot de passe doit être différent de l\'actuel.')
+      setPwError(t.profile.sameAsCurrent)
       return
     }
     // Mêmes règles que le serveur : les vérifier ici affiche un message en
     // français plutôt que l'erreur brute de Supabase.
-    const problem = describePasswordProblems(newPassword)
+    const problem = describePasswordProblems(
+      newPassword,
+      t.auth.passwordRules.labels,
+      t.auth.passwordRules.sentence,
+      t.auth.passwordRules.and,
+    )
     if (problem) {
       setPwError(problem)
       return
@@ -120,7 +127,7 @@ export default function ProfilPage() {
       password: currentPassword,
     })
     if (signInError) {
-      setPwError('Mot de passe actuel incorrect.')
+      setPwError(t.profile.wrongCurrent)
       setPwSaving(false)
       return
     }
@@ -161,20 +168,20 @@ export default function ProfilPage() {
 
   const addSocial = () => {
     if (!profile) return
-    const key = prompt('Nom du réseau (ex: instagram, twitter, facebook)')
+    const key = prompt(t.profile.socialPrompt)
     if (key && key.trim()) {
       setProfile({ ...profile, social_links: { ...profile.social_links, [key.trim()]: '' } })
     }
   }
 
-  if (loading) return <p className="text-gray-500">Chargement...</p>
-  if (!profile) return <p className="text-red-500">Erreur de chargement du profil</p>
+  if (loading) return <p className="text-gray-500">{t.common.loading}</p>
+  if (!profile) return <p className="text-red-500">{t.profile.loadError}</p>
 
   return (
     <div className="max-w-lg mx-auto">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
         <User className="w-6 h-6 text-[--primary]" />
-        Mon profil
+        {t.profile.title}
       </h1>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
@@ -188,7 +195,7 @@ export default function ProfilPage() {
                 {profile.name[0]?.toUpperCase() || '?'}
               </div>
             )}
-            <label className="absolute bottom-0 right-0 w-8 h-8 bg-[--primary] rounded-full flex items-center justify-center cursor-pointer hover:bg-[--primary-hover]">
+            <label className="absolute bottom-0 end-0 w-8 h-8 bg-[--primary] rounded-full flex items-center justify-center cursor-pointer hover:bg-[--primary-hover]">
               <Camera className="w-4 h-4 text-white" />
               <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
             </label>
@@ -198,8 +205,8 @@ export default function ProfilPage() {
                   setProfile({ ...profile, avatar_url: null })
                   localStorage.removeItem('profile_avatar')
                 }}
-                className="absolute top-0 right-0 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-red-600"
-                title="Supprimer l'avatar"
+                className="absolute top-0 end-0 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-red-600"
+                title={t.profile.removeAvatar}
               >
                 ×
               </button>
@@ -209,46 +216,46 @@ export default function ProfilPage() {
 
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.profile.firstName}</label>
           <input type="text" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
         </div>
 
         {/* Email (read-only) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.profile.email}</label>
           <input type="email" value={user?.email || ''} disabled
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500" />
         </div>
 
         {/* Birth date */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date de naissance</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.profile.birthDate}</label>
           <input type="date" value={profile.birth_date || ''} onChange={e => setProfile({ ...profile, birth_date: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
         </div>
 
         {/* Phone */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.profile.phone}</label>
           <input type="tel" value={profile.phone || ''} onChange={e => setProfile({ ...profile, phone: e.target.value })}
-            placeholder="+33 6 12 34 56 78"
+            placeholder={t.profile.phonePlaceholder}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
         </div>
 
         {/* Bio */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.profile.bio}</label>
           <textarea value={profile.bio || ''} onChange={e => setProfile({ ...profile, bio: e.target.value })}
-            rows={3} placeholder="Quelques mots sur toi..."
+            rows={3} placeholder={t.profile.bioPlaceholder}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none" />
         </div>
 
         {/* Social links */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-gray-700">Réseaux sociaux</label>
-            <button onClick={addSocial} className="text-xs text-[--primary] hover:underline">+ Ajouter</button>
+            <label className="text-sm font-medium text-gray-700">{t.profile.socials}</label>
+            <button onClick={addSocial} className="text-xs text-[--primary] hover:underline">{t.profile.addSocial}</button>
           </div>
           {Object.entries(profile.social_links).map(([key, val]) => (
             <div key={key} className="flex items-center gap-2 mb-2">
@@ -261,7 +268,7 @@ export default function ProfilPage() {
             </div>
           ))}
           {Object.keys(profile.social_links).length === 0 && (
-            <p className="text-xs text-gray-400 italic">Aucun réseau ajouté</p>
+            <p className="text-xs text-gray-400 italic">{t.profile.noSocial}</p>
           )}
         </div>
 
@@ -269,20 +276,20 @@ export default function ProfilPage() {
         <button onClick={handleSave} disabled={saving}
           className="w-full bg-[--primary] text-white py-3 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 flex items-center justify-center gap-2">
           {saving ? <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" /> : <Save className="w-4 h-4" />}
-          {saving ? 'Enregistrement...' : 'Enregistrer'}
+          {saving ? t.profile.saving : t.profile.save}
         </button>
-        {saved && <p className="text-sm text-green-600 text-center">✓ Profil mis à jour</p>}
+        {saved && <p className="text-sm text-green-600 text-center">{t.profile.saved}</p>}
       </div>
 
       <form onSubmit={handleChangePassword} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 mt-6">
         <h2 className="text-base font-semibold flex items-center gap-2 text-gray-900">
           <KeyRound className="w-4 h-4 text-[--primary]" />
-          Mot de passe
+          {t.profile.password}
         </h2>
 
         <div>
           <label htmlFor="current-password" className="block text-sm font-medium text-gray-700 mb-1">
-            Mot de passe actuel
+            {t.profile.currentPassword}
           </label>
           <input id="current-password" type="password" autoComplete="current-password"
             value={currentPassword} onChange={e => setCurrentPassword(e.target.value)}
@@ -291,20 +298,19 @@ export default function ProfilPage() {
 
         <div>
           <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">
-            Nouveau mot de passe
+            {t.profile.newPassword}
           </label>
           <input id="new-password" type="password" autoComplete="new-password"
             value={newPassword} onChange={e => setNewPassword(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
           <p className="text-xs text-gray-400 mt-1">
-            {PASSWORD_MIN_LENGTH} caractères minimum, avec une minuscule, une majuscule,
-            un chiffre et un symbole.
+            {t.profile.passwordHint(PASSWORD_MIN_LENGTH)}
           </p>
         </div>
 
         <div>
           <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
-            Confirmer le nouveau mot de passe
+            {t.profile.confirmPassword}
           </label>
           <input id="confirm-password" type="password" autoComplete="new-password"
             value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
@@ -323,12 +329,12 @@ export default function ProfilPage() {
           {pwSaving
             ? <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
             : <KeyRound className="w-4 h-4" />}
-          {pwSaving ? 'Modification...' : 'Changer le mot de passe'}
+          {pwSaving ? t.profile.changing : t.profile.changePassword}
         </button>
 
         {pwSaved && (
           <p className="text-sm text-green-600 text-center">
-            ✓ Mot de passe modifié. Il servira à ta prochaine connexion.
+            {t.profile.passwordChanged}
           </p>
         )}
       </form>

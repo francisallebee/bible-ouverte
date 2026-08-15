@@ -9,7 +9,9 @@ import {
   seedIfNeeded, getAllReadings, getSettings, getAllContexts,
 } from "@/lib/storage";
 import type { ReadingEntry, AppSettings, ReadingContext } from "@/lib/storage";
-import { BOOKS, getBookName } from "@/features/bible";
+import { BOOKS } from "@/features/bible";
+import { useI18n, useBookName, useContextName } from "@/contexts/I18nContext";
+import type { Dictionary } from "@/lib/i18n/ui/fr";
 import {
   BIBLE_CATEGORIES, OLD_TESTAMENT, NEW_TESTAMENT,
   getCategoryChapters, getBookCategory,
@@ -68,42 +70,49 @@ function calcStreaks(readings: ReadingEntry[]): StreakInfo {
 }
 
 interface Badge {
-  id: string;
-  name: string;
-  description: string;
+  id: keyof Dictionary["progress"]["badges"];
   icon: typeof Star;
   unlocked: boolean;
 }
 
+/**
+ * Les badges, par identifiant et condition. Leurs noms et descriptions vivent
+ * dans les dictionnaires, sous `progress.badges` : ce sont des libellés, pas
+ * de la logique.
+ */
 function getBadges(totalChapters: number, streak: number, categoriesDone: number, totalCategories: number): Badge[] {
   return [
-    { id: "first", name: "Premiers pas", description: "Lire son premier chapitre", icon: Star, unlocked: totalChapters >= 1 },
-    { id: "ten", name: "Découvreur", description: "Lire 10 chapitres", icon: Star, unlocked: totalChapters >= 10 },
-    { id: "fifty", name: "Explorateur", description: "Lire 50 chapitres", icon: Star, unlocked: totalChapters >= 50 },
-    { id: "hundred", name: "Lecteur assidu", description: "Lire 100 chapitres", icon: Award, unlocked: totalChapters >= 100 },
-    { id: "two-fifty", name: "Scribe", description: "Lire 250 chapitres", icon: Award, unlocked: totalChapters >= 250 },
-    { id: "five-hundred", name: "Docteur de la Loi", description: "Lire 500 chapitres", icon: Trophy, unlocked: totalChapters >= 500 },
-    { id: "thousand", name: "Veilleur", description: "Lire 1000 chapitres", icon: Trophy, unlocked: totalChapters >= 1000 },
-    { id: "streak-3", name: "Régulier", description: "3 jours d'affilée", icon: Flame, unlocked: streak >= 3 },
-    { id: "streak-7", name: "Persévérant", description: "7 jours d'affilée", icon: Flame, unlocked: streak >= 7 },
-    { id: "streak-30", name: "Inarrêtable", description: "30 jours d'affilée", icon: Flame, unlocked: streak >= 30 },
-    { id: "streak-100", name: "Légende vivante", description: "100 jours d'affilée", icon: Flame, unlocked: streak >= 100 },
-    { id: "category-all", name: "Canon complet", description: "Lire dans toutes les catégories", icon: Gem, unlocked: categoriesDone >= totalCategories },
-    { id: "category-half", name: "À mi-parcours", description: "Lire dans la moitié des catégories", icon: Gem, unlocked: categoriesDone >= Math.ceil(totalCategories / 2) },
+    { id: "first", icon: Star, unlocked: totalChapters >= 1 },
+    { id: "ten", icon: Star, unlocked: totalChapters >= 10 },
+    { id: "fifty", icon: Star, unlocked: totalChapters >= 50 },
+    { id: "hundred", icon: Award, unlocked: totalChapters >= 100 },
+    { id: "two-fifty", icon: Award, unlocked: totalChapters >= 250 },
+    { id: "five-hundred", icon: Trophy, unlocked: totalChapters >= 500 },
+    { id: "thousand", icon: Trophy, unlocked: totalChapters >= 1000 },
+    { id: "streak-3", icon: Flame, unlocked: streak >= 3 },
+    { id: "streak-7", icon: Flame, unlocked: streak >= 7 },
+    { id: "streak-30", icon: Flame, unlocked: streak >= 30 },
+    { id: "streak-100", icon: Flame, unlocked: streak >= 100 },
+    { id: "category-all", icon: Gem, unlocked: categoriesDone >= totalCategories },
+    { id: "category-half", icon: Gem, unlocked: categoriesDone >= Math.ceil(totalCategories / 2) },
   ];
 }
 
-function getLevel(totalChapters: number): { level: number; title: string; next: number } {
-  if (totalChapters < 10) return { level: 1, title: "Apprenti lecteur", next: 10 };
-  if (totalChapters < 50) return { level: 2, title: "Lecteur du dimanche", next: 50 };
-  if (totalChapters < 100) return { level: 3, title: "Fidèle", next: 100 };
-  if (totalChapters < 250) return { level: 4, title: "Dévoué", next: 250 };
-  if (totalChapters < 500) return { level: 5, title: "Érudit", next: 500 };
-  if (totalChapters < 1000) return { level: 6, title: "Théologien", next: 1000 };
-  return { level: 7, title: "Maître", next: -1 };
+/** Le palier atteint. Son titre vit dans les dictionnaires. */
+function getLevel(totalChapters: number): { level: number; next: number } {
+  if (totalChapters < 10) return { level: 1, next: 10 };
+  if (totalChapters < 50) return { level: 2, next: 50 };
+  if (totalChapters < 100) return { level: 3, next: 100 };
+  if (totalChapters < 250) return { level: 4, next: 250 };
+  if (totalChapters < 500) return { level: 5, next: 500 };
+  if (totalChapters < 1000) return { level: 6, next: 1000 };
+  return { level: 7, next: -1 };
 }
 
 export default function ProgressPage() {
+  const { t } = useI18n();
+  const getBookName = useBookName();
+  const contextName = useContextName();
   const [readings, setReadings] = useState<ReadingEntry[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [contexts, setContexts] = useState<ReadingContext[]>([]);
@@ -147,7 +156,9 @@ export default function ProgressPage() {
       const bookInfo = BOOKS.find((b) => b.abbreviation === book);
       return { book, name: getBookName(book), readChapters: chapters.size, totalChapters: bookInfo?.chapters ?? 0 };
     }).sort((a, b) => b.readChapters / Math.max(b.totalChapters, 1) - a.readChapters / Math.max(a.totalChapters, 1));
-  }, [readings]);
+    // `getBookName` change avec la langue : sans lui ici, la liste garderait
+    // les noms de la langue précédente jusqu'à la prochaine lecture.
+  }, [readings, getBookName]);
 
   const otChapters = useMemo(() => {
     const s = new Set<string>();
@@ -215,7 +226,7 @@ export default function ProgressPage() {
       const ctx = byId[id];
       return {
         id,
-        name: id === "" ? "Sans contexte" : ctx?.name ?? id,
+        name: id === "" ? t.progress.noContext : (ctx ? contextName(ctx) : id),
         emoji: id === "" ? "—" : ctx?.emoji ?? "",
         color: ctx?.color ?? "#95a5a6",
         chapters,
@@ -226,7 +237,7 @@ export default function ProgressPage() {
     return rows
       .sort((a, b) => b.chapters - a.chapters)
       .map((r) => ({ ...r, share: max > 0 ? (r.chapters / max) * 100 : 0 }));
-  }, [readings, contexts]);
+  }, [readings, contexts, contextName, t.progress.noContext]);
 
   const goalProgress = useMemo(() => {
     if (!goal) return null;
@@ -242,13 +253,13 @@ export default function ProgressPage() {
     };
   }, [goal, readings]);
 
-  if (!loaded) return <p className="text-gray-500">Chargement…</p>;
+  if (!loaded) return <p className="text-gray-500">{t.common.loading}</p>;
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
         <BarChart3 className="w-6 h-6 text-[--primary]" />
-        Ma progression
+        {t.progress.title}
       </h1>
 
       {/* Level + Streak */}
@@ -256,15 +267,15 @@ export default function ProgressPage() {
         <div className="bg-gradient-to-br from-[--primary] to-[--primary-hover] text-white rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <Trophy className="w-5 h-5 text-yellow-300" />
-            <span className="text-xs uppercase tracking-wider opacity-80">Niveau {level.level}</span>
+            <span className="text-xs uppercase tracking-wider opacity-80">{t.progress.level(level.level)}</span>
           </div>
-          <p className="text-lg font-bold">{level.title}</p>
+          <p className="text-lg font-bold">{t.progress.levels[level.level]}</p>
           {level.next > 0 && (
             <div className="mt-2">
               <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
                 <div className="h-full bg-yellow-300 rounded-full" style={{ width: `${Math.min(100, (chapterCount / level.next) * 100)}%` }} />
               </div>
-              <p className="text-xs mt-1 opacity-70">{chapterCount} / {level.next} chapitres</p>
+              <p className="text-xs mt-1 opacity-70">{t.progress.chaptersOf(chapterCount, level.next)}</p>
             </div>
           )}
         </div>
@@ -272,33 +283,33 @@ export default function ProgressPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-2">
             <Flame className="w-5 h-5 text-orange-500" />
-            <span className="text-xs uppercase tracking-wider text-gray-500">Série actuelle</span>
+            <span className="text-xs uppercase tracking-wider text-gray-500">{t.progress.currentStreak}</span>
           </div>
-          <p className="text-3xl font-bold text-orange-500">{streaks.current}<span className="text-lg font-normal text-gray-400 ml-1">jours</span></p>
-          <p className="text-xs text-gray-400 mt-1">Meilleure : {streaks.longest} jours</p>
+          <p className="text-3xl font-bold text-orange-500">{streaks.current}<span className="text-lg font-normal text-gray-400 ms-1">{t.progress.days}</span></p>
+          <p className="text-xs text-gray-400 mt-1">{t.progress.bestStreak(streaks.longest)}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-2">
             <BookOpen className="w-5 h-5 text-[--primary]" />
-            <span className="text-xs uppercase tracking-wider text-gray-500">Chapitres lus</span>
+            <span className="text-xs uppercase tracking-wider text-gray-500">{t.progress.chaptersRead}</span>
           </div>
           <p className="text-3xl font-bold text-[--primary]">{chapterCount}<span className="text-lg font-normal text-gray-400 ml-1">/ {totalBibleChapters}</span></p>
-          <p className="text-xs text-gray-400 mt-1">{uniqueBooks} livre(s) entamé(s)</p>
+          <p className="text-xs text-gray-400 mt-1">{t.progress.booksStarted(uniqueBooks)}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-2">
             <Target className="w-5 h-5 text-green-600" />
-            <span className="text-xs uppercase tracking-wider text-gray-500">Objectif du jour</span>
+            <span className="text-xs uppercase tracking-wider text-gray-500">{t.progress.dailyGoal}</span>
           </div>
           {goalProgress ? (
             <>
               <p className="text-3xl font-bold text-green-600">{goalProgress.current}<span className="text-lg font-normal text-gray-400 ml-1">/ {goalProgress.target}</span></p>
-              <p className="text-xs text-gray-400 mt-1">{goalProgress.type === "chapters-per-day" ? "chapitres" : "versets"} aujourd&apos;hui</p>
+              <p className="text-xs text-gray-400 mt-1">{goalProgress.type === "chapters-per-day" ? t.progress.chaptersToday : t.progress.versesToday}</p>
             </>
           ) : (
-            <p className="text-sm text-gray-400">Aucun objectif défini</p>
+            <p className="text-sm text-gray-400">{t.progress.noGoal}</p>
           )}
         </div>
       </div>
@@ -321,10 +332,10 @@ export default function ProgressPage() {
             </div>
             <div>
               <p className="font-semibold">
-                {goalProgress.current >= goalProgress.target ? "Objectif atteint ! 🎉" : "Encore un peu d'effort"}
+                {goalProgress.current >= goalProgress.target ? t.progress.goalReached : t.progress.goalAlmost}
               </p>
               <p className="text-sm text-gray-500">
-                {goalProgress.current} / {goalProgress.target} {goalProgress.type === "chapters-per-day" ? "chapitres" : "versets"} aujourd&apos;hui
+                {t.progress.goalToday(goalProgress.current, goalProgress.target, goalProgress.type === "chapters-per-day")}
               </p>
             </div>
           </div>
@@ -336,22 +347,22 @@ export default function ProgressPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-3">
             <ScrollText className="w-5 h-5 text-amber-700" />
-            <h2 className="font-semibold">Ancien Testament</h2>
+            <h2 className="font-semibold">{t.progress.oldTestament}</h2>
           </div>
           <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-amber-600 rounded-full transition-[width]" style={{ width: `${otTotal > 0 ? (otChapters / otTotal) * 100 : 0}%` }} />
           </div>
-          <p className="text-xs text-gray-500 mt-1">{otChapters} / {otTotal} chapitres</p>
+          <p className="text-xs text-gray-500 mt-1">{t.progress.chaptersOfTotal(otChapters, otTotal)}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-3">
             <BookMarked className="w-5 h-5 text-blue-600" />
-            <h2 className="font-semibold">Nouveau Testament</h2>
+            <h2 className="font-semibold">{t.progress.newTestament}</h2>
           </div>
           <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-blue-600 rounded-full transition-[width]" style={{ width: `${ntTotal > 0 ? (ntChapters / ntTotal) * 100 : 0}%` }} />
           </div>
-          <p className="text-xs text-gray-500 mt-1">{ntChapters} / {ntTotal} chapitres</p>
+          <p className="text-xs text-gray-500 mt-1">{t.progress.chaptersOfTotal(ntChapters, ntTotal)}</p>
         </div>
       </div>
 
@@ -360,7 +371,7 @@ export default function ProgressPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
           <h2 className="font-semibold mb-4 flex items-center gap-2">
             <Layers className="w-5 h-5 text-[--primary]" />
-            Progression par contexte
+            {t.progress.byContext}
           </h2>
           <div className="space-y-3">
             {byContext.map((c) => (
@@ -369,7 +380,7 @@ export default function ProgressPage() {
                   <span className="font-medium">
                     <span aria-hidden="true">{c.emoji} </span>{c.name}
                   </span>
-                  <span className="text-gray-500">{c.chapters} chapitre{c.chapters > 1 ? "s" : ""}</span>
+                  <span className="text-gray-500">{t.progress.chapterCount(c.chapters)}</span>
                 </div>
                 <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-[width] duration-500"
@@ -385,13 +396,13 @@ export default function ProgressPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
         <h2 className="font-semibold mb-4 flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-[--primary]" />
-          Progression par catégorie
+          {t.progress.byCategory}
         </h2>
         <div className="space-y-3">
           {categories.map((cat) => (
             <div key={cat.id}>
               <div className="flex justify-between text-sm mb-1">
-                <span className="font-medium">{cat.name}</span>
+                <span className="font-medium">{t.bibleCategories[cat.id] ?? cat.name}</span>
                 <span className="text-gray-500">{cat.readChapters} / {cat.totalChapters}</span>
               </div>
               <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -409,7 +420,7 @@ export default function ProgressPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
         <h2 className="font-semibold mb-4 flex items-center gap-2">
           <Award className="w-5 h-5 text-yellow-500" />
-          Succès &amp; Récompenses
+          {t.progress.achievements}
           <span className="text-xs text-gray-400 font-normal ml-auto">{badges.filter((b) => b.unlocked).length}/{badges.length}</span>
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -420,8 +431,8 @@ export default function ProgressPage() {
                 <div className={`flex justify-center mb-1 ${badge.unlocked ? "" : "grayscale"}`}>
                   <Icon className={`w-7 h-7 ${badge.unlocked ? "text-yellow-500" : "text-gray-400"}`} />
                 </div>
-                <p className="text-xs font-semibold">{badge.name}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{badge.description}</p>
+                <p className="text-xs font-semibold">{t.progress.badges[badge.id].name}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{t.progress.badges[badge.id].description}</p>
               </div>
             );
           })}
@@ -432,7 +443,7 @@ export default function ProgressPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h2 className="font-semibold mb-4 flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-[--primary]" />
-          Détail par livre
+          {t.progress.byBook}
         </h2>
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {booksReadList.map((b) => (

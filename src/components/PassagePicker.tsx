@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { X, Check } from 'lucide-react'
 import { getPassages } from '@/lib/storage'
+import { useT } from '@/contexts/I18nContext'
 
 export interface PassageRange {
   chapterStart: number
@@ -92,6 +93,7 @@ export default function PassagePicker({
   chapterStart, chapterEnd, verseStart, verseEnd,
   onValidate, onClose,
 }: Props) {
+  const t = useT()
   const [draft, setDraft] = useState<PassageRange>({ chapterStart, chapterEnd, verseStart, verseEnd })
   // Un intervalle se ferme au second appui : ces drapeaux disent si le
   // prochain appui pose une fin ou recommence un intervalle.
@@ -183,14 +185,14 @@ export default function PassagePicker({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
 
-      <div role="dialog" aria-modal="true" aria-label={`Chapitres et versets — ${bookName}`}
+      <div role="dialog" aria-modal="true" aria-label={t.passagePicker.dialogLabel(bookName)}
         className="relative w-full sm:max-w-lg max-h-[90vh] overflow-y-auto bg-[--surface] rounded-t-2xl sm:rounded-2xl border border-[--border] shadow-xl">
         <div className="sticky top-0 bg-[--surface] border-b border-[--border] px-5 py-4 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="font-semibold text-[--text] truncate">{bookName}</p>
             <p className="text-sm text-[--text-secondary]">{describeRange(bookName, draft)}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Fermer"
+          <button type="button" onClick={onClose} aria-label={t.common.close}
             className="shrink-0 text-[--text-secondary] hover:text-[--text] transition-colors">
             <X className="w-5 h-5" />
           </button>
@@ -198,26 +200,26 @@ export default function PassagePicker({
 
         <div className="px-5 py-4 space-y-5">
           <div>
-            <p className="text-sm font-medium mb-2 text-[--text]">Chapitre</p>
-            <NumberGrid label="Chapitres" count={maxChapters}
+            <p className="text-sm font-medium mb-2 text-[--text]">{t.passagePicker.chapter}</p>
+            <NumberGrid label={t.passagePicker.chapters} count={maxChapters}
               isSelected={(n) => n === draft.chapterStart || n === draft.chapterEnd}
               isBetween={(n) => n > draft.chapterStart && n < draft.chapterEnd}
               onPick={pickChapter} />
             <p className="text-xs text-[--text-secondary] mt-2">
-              Un second appui plus loin sélectionne l&apos;intervalle.
+              {t.passagePicker.rangeHint}
             </p>
           </div>
 
           {sameChapter ? (
             <div>
               <div className="flex items-center justify-between gap-3 mb-2">
-                <p className="text-sm font-medium text-[--text]">Verset</p>
+                <p className="text-sm font-medium text-[--text]">{t.passagePicker.verse}</p>
                 <button type="button" onClick={wholeChapters}
                   className="text-xs text-[--primary] hover:underline">
-                  Tout le chapitre
+                  {t.passagePicker.wholeChapter}
                 </button>
               </div>
-              <NumberGrid label="Versets" count={versesIn(draft.chapterStart)}
+              <NumberGrid label={t.passagePicker.verses} count={versesIn(draft.chapterStart)}
                 isSelected={(n) => n === draft.verseStart || n === draft.verseEnd}
                 isBetween={(n) => n > draft.verseStart && n < draft.verseEnd}
                 onPick={pickVerse} />
@@ -227,17 +229,17 @@ export default function PassagePicker({
             // même chapitre : un intervalle unique n'aurait pas de sens.
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-[--text]">Versets</p>
+                <p className="text-sm font-medium text-[--text]">{t.passagePicker.verses}</p>
                 <button type="button" onClick={wholeChapters}
                   className="text-xs text-[--primary] hover:underline">
-                  Tous les versets
+                  {t.passagePicker.allVerses}
                 </button>
               </div>
               <div>
                 <p className="text-xs text-[--text-secondary] mb-1.5">
-                  Premier verset — chapitre {draft.chapterStart}
+                  {t.passagePicker.firstVerseOf(draft.chapterStart)}
                 </p>
-                <NumberGrid label={`Premier verset, chapitre ${draft.chapterStart}`}
+                <NumberGrid label={t.passagePicker.firstVerseLabel(draft.chapterStart)}
                   count={versesIn(draft.chapterStart)}
                   isSelected={(n) => n === draft.verseStart}
                   isBetween={() => false}
@@ -245,9 +247,9 @@ export default function PassagePicker({
               </div>
               <div>
                 <p className="text-xs text-[--text-secondary] mb-1.5">
-                  Dernier verset — chapitre {draft.chapterEnd}
+                  {t.passagePicker.lastVerseOf(draft.chapterEnd)}
                 </p>
-                <NumberGrid label={`Dernier verset, chapitre ${draft.chapterEnd}`}
+                <NumberGrid label={t.passagePicker.lastVerseLabel(draft.chapterEnd)}
                   count={versesIn(draft.chapterEnd)}
                   isSelected={(n) => n === draft.verseEnd}
                   isBetween={() => false}
@@ -260,12 +262,12 @@ export default function PassagePicker({
         <div className="sticky bottom-0 bg-[--surface] border-t border-[--border] px-5 py-4 flex gap-3">
           <button type="button" onClick={onClose}
             className="flex-1 border border-[--border] rounded-lg px-4 py-2.5 text-sm text-[--text] hover:bg-gray-50 transition-colors">
-            Annuler
+            {t.common.cancel}
           </button>
           <button type="button" onClick={() => onValidate(draft)}
             className="flex-1 flex items-center justify-center gap-2 bg-[--primary] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[--primary-hover] transition-colors">
             <Check className="w-4 h-4" />
-            Valider
+            {t.passagePicker.validate}
           </button>
         </div>
       </div>

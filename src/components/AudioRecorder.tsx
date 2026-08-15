@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Mic, Square, Play, Trash2, Upload, Loader2 } from "lucide-react";
+import { useT } from '@/contexts/I18nContext'
 
 interface Props {
   value: string | undefined;
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function AudioRecorder({ value, onChange }: Props) {
+  const t = useT()
   const [recording, setRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -48,7 +50,7 @@ export default function AudioRecorder({ value, onChange }: Props) {
       setDuration(0);
       timerRef.current = setInterval(() => setDuration((d) => d + 1), 1000);
     } catch {
-      alert("Impossible d'accéder au microphone.");
+      alert(t.components.micUnavailable);
     }
   }
 
@@ -78,18 +80,18 @@ export default function AudioRecorder({ value, onChange }: Props) {
         {recording ? (
           <button onClick={stopRecording}
             className="flex items-center gap-1.5 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700">
-            <Square className="w-4 h-4" /> Arrêter ({formatDuration(duration)})
+            <Square className="w-4 h-4" /> {t.components.stopRecording(formatDuration(duration))}
           </button>
         ) : (
           <button onClick={startRecording}
             className="flex items-center gap-1.5 border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">
-            <Mic className="w-4 h-4 text-red-500" /> Enregistrer
+            <Mic className="w-4 h-4 text-red-500" /> {t.components.record}
           </button>
         )}
         <input ref={fileRef} type="file" accept="audio/*" className="hidden" onChange={(e) => handleFile(e.target.files)} />
         <button onClick={() => fileRef.current?.click()}
           className="flex items-center gap-1.5 border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">
-          <Upload className="w-4 h-4" /> Fichier audio
+          <Upload className="w-4 h-4" /> {t.components.audioFile}
         </button>
       </div>
 

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import AuthCard, {
   AuthError, authButton, authInput, authLabel, authLink,
 } from '@/components/auth/AuthCard'
+import { useT } from '@/contexts/I18nContext'
 
 export default function LoginPage() {
   return (
@@ -17,10 +18,11 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
+  const t = useT()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState(searchParams.get('error') === 'suspended'
-    ? 'Ton compte a été suspendu par un administrateur.'
+    ? t.authScreens.suspended
     : '')
   const [loading, setLoading] = useState(false)
 
@@ -48,10 +50,10 @@ function LoginForm() {
   }
 
   return (
-    <AuthCard title="Bon retour" subtitle="Reprends tes lectures là où tu les as laissées.">
+    <AuthCard title={t.authScreens.login} subtitle={t.authScreens.loginSubtitle}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="login-email" className={authLabel}>Email</label>
+          <label htmlFor="login-email" className={authLabel}>{t.authScreens.email}</label>
           <input
             id="login-email"
             name="email"
@@ -63,7 +65,7 @@ function LoginForm() {
           />
         </div>
         <div>
-          <label htmlFor="login-password" className={authLabel}>Mot de passe</label>
+          <label htmlFor="login-password" className={authLabel}>{t.authScreens.password}</label>
           <input
             id="login-password"
             name="password"
@@ -75,13 +77,13 @@ function LoginForm() {
         </div>
         {error && <AuthError>{error}</AuthError>}
         <button type="submit" disabled={loading} className={authButton}>
-          {loading ? 'Connexion…' : 'Se connecter'}
+          {loading ? t.authScreens.signingIn : t.authScreens.signIn}
         </button>
       </form>
 
       <p className="mt-6 border-t border-slate-100 pt-5 text-center text-[14px] text-slate-500">
-        Pas encore de compte ?{' '}
-        <Link href="/auth/signup" className={authLink}>Créer un compte</Link>
+        {t.authScreens.noAccount}
+        <Link href="/auth/signup" className={authLink}>{t.authScreens.createAccount}</Link>
       </p>
     </AuthCard>
   )
