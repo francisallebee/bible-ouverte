@@ -7,12 +7,17 @@
  */
 
 /** Délais proposés dans les réglages. 0 : jamais. */
+/**
+ * Les durées proposées. Les libellés vivent dans les dictionnaires, sous
+ * `settings.autoLogoutChoices`, indexés par ce nombre de minutes : « Au bout
+ * d'une heure » ne se traduit pas en calculant, il s'écrit.
+ */
 export const AUTO_LOGOUT_CHOICES = [
-  { minutes: 0, label: 'Jamais' },
-  { minutes: 15, label: 'Au bout de 15 minutes' },
-  { minutes: 30, label: 'Au bout de 30 minutes' },
-  { minutes: 60, label: "Au bout d'une heure" },
-  { minutes: 240, label: 'Au bout de quatre heures' },
+  { minutes: 0 },
+  { minutes: 15 },
+  { minutes: 30 },
+  { minutes: 60 },
+  { minutes: 240 },
 ]
 
 /** Durée de l'avertissement avant la coupure, en secondes. */

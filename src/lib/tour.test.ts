@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   TOUR_STEPS, clampIndex, hrefToVisit, isLastStep, shouldStartTour, visibleSteps,
 } from './tour'
+import { DICTIONARIES } from '@/lib/i18n/ui'
 
 /**
  * Les écrans qui affichent réellement quelque chose. Une étape qui viserait
@@ -49,18 +50,41 @@ describe('le contenu du parcours', () => {
     }
   })
 
-  it('donne un titre et un texte à chaque étape', () => {
-    for (const step of TOUR_STEPS) {
-      expect(step.title.trim().length, step.id).toBeGreaterThan(0)
-      expect(step.body.trim().length, step.id).toBeGreaterThan(20)
+  /**
+   * Le texte vit désormais dans les dictionnaires. Le vérifier pour **chaque**
+   * langue, et non pour le seul français : une étape ajoutée sans sa traduction
+   * afficherait une carte vide au milieu du parcours.
+   */
+  it('donne un titre et un texte à chaque étape, dans chaque langue', () => {
+    for (const [langue, dico] of Object.entries(DICTIONARIES)) {
+      for (const step of TOUR_STEPS) {
+        const contenu = dico!.tour.steps[step.id as keyof typeof dico.tour.steps]
+        expect(contenu, `${langue} — ${step.id}`).toBeDefined()
+        expect(contenu.title.trim().length, `${langue} — ${step.id}`).toBeGreaterThan(0)
+        expect(contenu.body.trim().length, `${langue} — ${step.id}`).toBeGreaterThan(20)
+      }
     }
   })
 
-  it('ne laisse jamais une liste de points vide', () => {
-    for (const step of TOUR_STEPS) {
-      if (step.points === undefined) continue
-      expect(step.points.length, step.id).toBeGreaterThan(0)
-      for (const point of step.points) expect(point.trim().length).toBeGreaterThan(0)
+  it('ne laisse aucun point vide', () => {
+    for (const [langue, dico] of Object.entries(DICTIONARIES)) {
+      for (const step of TOUR_STEPS) {
+        const contenu = dico!.tour.steps[step.id as keyof typeof dico.tour.steps]
+        for (const point of contenu.points) {
+          expect(point.trim().length, `${langue} — ${step.id}`).toBeGreaterThan(0)
+        }
+      }
+    }
+  })
+
+  it('ne décrit aucune étape qui n’existe pas', () => {
+    // L'inverse du test précédent : un identifiant resté au dictionnaire après
+    // le retrait d'une étape est du texte mort que personne ne verrait.
+    const ids = new Set(TOUR_STEPS.map((s) => s.id))
+    for (const [langue, dico] of Object.entries(DICTIONARIES)) {
+      for (const id of Object.keys(dico!.tour.steps)) {
+        expect(ids.has(id), `${langue} — ${id} n'est plus une étape`).toBe(true)
+      }
     }
   })
 

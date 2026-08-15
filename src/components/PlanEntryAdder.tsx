@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { ChevronDown, Plus, SlidersHorizontal, Loader2 } from 'lucide-react'
-import { BOOKS, getBook, getBookName } from '@/features/bible'
+import { getBook } from '@/features/bible'
+import { useT, useBooks, useBookName } from '@/contexts/I18nContext'
 import PassagePicker, { describeRange } from '@/components/PassagePicker'
 
 export interface PlanEntryDraft {
@@ -27,6 +28,9 @@ export default function PlanEntryAdder({
   versionId: string
   onAdd: (entry: PlanEntryDraft) => Promise<void>
 }) {
+  const t = useT()
+  const books = useBooks()
+  const getBookName = useBookName()
   const [book, setBook] = useState('')
   const [chapterStart, setChapterStart] = useState(1)
   const [chapterEnd, setChapterEnd] = useState(1)
@@ -64,18 +68,18 @@ export default function PlanEntryAdder({
 
   return (
     <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
-      <p className="text-sm font-medium mb-3 text-[--text]">Ajouter un passage</p>
+      <p className="text-sm font-medium mb-3 text-[--text]">{t.components.addPassage}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="relative">
           <select value={book} onChange={(e) => selectBook(e.target.value)}
-            aria-label="Livre"
+            aria-label={t.components.book}
             className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] appearance-none cursor-pointer">
-            <option value="">Sélectionner un livre</option>
-            {BOOKS.map((b) => (
+            <option value="">{t.components.selectBook}</option>
+            {books.map((b) => (
               <option key={b.abbreviation} value={b.abbreviation}>{b.name}</option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[--text-secondary] pointer-events-none" />
+          <ChevronDown className="absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[--text-secondary] pointer-events-none" />
         </div>
 
         <button type="button" onClick={() => setPickerOpen(true)} disabled={!book}
@@ -83,7 +87,7 @@ export default function PlanEntryAdder({
           <span className="truncate">
             {book
               ? describeRange(getBookName(book), { chapterStart, chapterEnd, verseStart, verseEnd })
-              : "Sélectionne d'abord un livre"}
+              : t.components.selectBookFirst}
           </span>
           <SlidersHorizontal className="w-4 h-4 text-[--text-secondary] shrink-0" />
         </button>
@@ -92,7 +96,7 @@ export default function PlanEntryAdder({
       <button type="button" onClick={handleAdd} disabled={!book || saving}
         className="mt-3 w-full sm:w-auto flex items-center justify-center gap-2 bg-[--primary] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-        Ajouter à la liste
+        {t.components.addToList}
       </button>
 
       <PassagePicker

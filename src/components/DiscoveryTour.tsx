@@ -7,6 +7,7 @@ import {
   MessageCircle, Route, Search, Settings, Shield, Tags, Trophy, User, X,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useT } from '@/contexts/I18nContext'
 import { getSettings, updateSettings } from '@/lib/storage'
 import {
   TOUR_START, clampIndex, hrefToVisit, isLastStep, shouldStartTour, visibleSteps,
@@ -47,6 +48,7 @@ const ICONES: Record<TourIcon, React.ComponentType<{ className?: string }>> = {
 }
 
 export default function DiscoveryTour() {
+  const t = useT()
   const router = useRouter()
   const pathname = usePathname()
   const { isAdmin } = useAuth()
@@ -60,6 +62,9 @@ export default function DiscoveryTour() {
   // la même route avant que `pathname` ait eu le temps de se mettre à jour.
   const etapes = useMemo(() => visibleSteps(isAdmin === true), [isAdmin])
   const etape = etapes[clampIndex(etapes, indice)]
+  // Le texte de l'étape vient du dictionnaire, indexé par son identifiant :
+  // `TOUR_STEPS` ne porte plus que la structure et les cibles.
+  const contenu = t.tour.steps[etape.id as keyof typeof t.tour.steps]
   const derniere = isLastStep(etapes, indice)
 
   // Déclenchement automatique, une seule fois par compte. Le drapeau de session
@@ -183,7 +188,7 @@ export default function DiscoveryTour() {
         <button
           type="button"
           onClick={() => void terminer()}
-          aria-label="Fermer le parcours découverte"
+          aria-label={t.tourUi.close}
           className="absolute top-3 right-3 p-2 rounded-lg text-[--text-secondary] hover:text-[--text] hover:bg-[--primary-light] transition-colors"
         >
           <X className="w-4 h-4" />
@@ -194,23 +199,23 @@ export default function DiscoveryTour() {
             <span className="shrink-0 w-11 h-11 rounded-xl bg-[--primary-light] flex items-center justify-center">
               <Icone className="w-5 h-5 text-[--primary]" />
             </span>
-            <div className="min-w-0 pr-8">
+            <div className="min-w-0 pe-8">
               <p className="text-[11.5px] font-semibold uppercase tracking-[0.14em] text-[--text-secondary]">
-                Étape {position + 1} sur {etapes.length}
+                {t.tourUi.stepOf(position + 1, etapes.length)}
               </p>
               <h2 id="tour-titre" className="text-lg sm:text-xl font-bold text-[--text] mt-0.5">
-                {etape.title}
+                {contenu.title}
               </h2>
             </div>
           </div>
 
           <p className="mt-4 text-[15px] leading-relaxed text-[--text-secondary]">
-            {etape.body}
+            {contenu.body}
           </p>
 
-          {etape.points && (
+          {contenu.points.length > 0 && (
             <ul className="mt-3.5 flex flex-col gap-2">
-              {etape.points.map((point) => (
+              {contenu.points.map((point: string) => (
                 <li key={point} className="flex items-start gap-2.5 text-[14px] leading-relaxed text-[--text-secondary]">
                   <Check className="w-4 h-4 mt-0.5 shrink-0 text-[--primary]" />
                   <span>{point}</span>
@@ -237,7 +242,7 @@ export default function DiscoveryTour() {
               onClick={() => void terminer()}
               className="text-[13.5px] text-[--text-secondary] hover:text-[--text] transition-colors mr-auto"
             >
-              {derniere ? 'Fermer' : 'Passer le parcours'}
+              {derniere ? t.common.close : t.tourUi.skip}
             </button>
 
             {position > 0 && (
@@ -246,7 +251,7 @@ export default function DiscoveryTour() {
                 onClick={precedent}
                 className="px-4 py-2 rounded-lg text-[14px] font-medium text-[--text] border border-[--border] hover:bg-[--primary-light] transition-colors"
               >
-                Précédent
+                {t.tourUi.previous}
               </button>
             )}
 
@@ -255,7 +260,7 @@ export default function DiscoveryTour() {
               onClick={suivant}
               className="px-5 py-2 rounded-lg text-[14px] font-semibold text-white bg-[--primary] hover:opacity-90 transition-opacity"
             >
-              {derniere ? 'Terminer' : 'Suivant'}
+              {derniere ? t.tourUi.finish : t.tourUi.next}
             </button>
           </div>
         </div>

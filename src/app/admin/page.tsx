@@ -7,6 +7,8 @@ import {
   MoreHorizontal, ChevronDown,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useI18n } from '@/contexts/I18nContext'
+import { formatDate } from '@/lib/i18n/format'
 
 /* ---------- types ---------- */
 type AdminUser = {
@@ -26,9 +28,10 @@ type Ticket = {
   createdAt: string; updatedAt: string
 }
 
-const CATEGORIES: Record<string, { label: string; icon: any }> = {
-  bug: { label: 'Bug', icon: Bug },
-  suggestion: { label: 'Suggestion', icon: Lightbulb },
+/** Icône par catégorie. Les libellés vivent dans les dictionnaires. */
+const CATEGORIES: Record<string, { icon: any }> = {
+  bug: { icon: Bug },
+  suggestion: { icon: Lightbulb },
 }
 
 const STATUS_OPTIONS = ['open', 'in_progress', 'resolved', 'closed']
@@ -56,6 +59,7 @@ function StatCard({ icon, label, value, sub, color }: {
 /* ---------- page ---------- */
 export default function AdminPage() {
   const { user, isAdmin } = useAuth()
+  const { t, locale } = useI18n()
   const [tab, setTab] = useState<'users' | 'tickets'>('users')
 
   /* users state */
@@ -88,7 +92,7 @@ export default function AdminPage() {
   useEffect(() => { loadData() }, [])
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Supprimer ${name} et toutes ses données ?`)) return
+    if (!confirm(t.admin.confirmDelete(name))) return
     setActionId(id)
     const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' }).then(r => r.json())
     if (res.error) { alert(res.error); setActionId(null); return }
@@ -112,12 +116,12 @@ export default function AdminPage() {
     await loadTickets()
   }
 
-  if (loading) return <p className="text-gray-500">Chargement...</p>
+  if (loading) return <p className="text-gray-500">{t.common.loading}</p>
   if (error || !isAdmin) return (
     <div className="max-w-2xl mx-auto mt-12 text-center">
       <ShieldOff className="w-12 h-12 text-red-400 mx-auto mb-4" />
-      <h1 className="text-xl font-bold text-gray-700 mb-2">Accès refusé</h1>
-      <p className="text-gray-500">{error || "Tu n'es pas administrateur."}</p>
+      <h1 className="text-xl font-bold text-gray-700 mb-2">{t.admin.denied}</h1>
+      <p className="text-gray-500">{error || t.admin.notAdmin}</p>
     </div>
   )
 
@@ -129,11 +133,11 @@ export default function AdminPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Shield className="w-6 h-6 text-[--primary]" /> Administration
+          <Shield className="w-6 h-6 text-[--primary]" /> {t.admin.title}
         </h1>
         <button onClick={tab === 'users' ? loadData : loadTickets}
           className="flex items-center gap-1.5 text-sm text-[--primary] hover:underline">
-          <RefreshCw className="w-4 h-4" /> Actualiser
+          <RefreshCw className="w-4 h-4" /> {t.admin.refresh}
         </button>
       </div>
 
@@ -141,12 +145,12 @@ export default function AdminPage() {
       <div className="flex gap-1 mb-6 border-b border-gray-200">
         <button onClick={() => setTab('users')}
           className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === 'users' ? 'border-[--primary] text-[--primary]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-          <Users className="w-4 h-4 inline mr-1.5" />Utilisateurs
+          <Users className="w-4 h-4 inline me-1.5" />{t.admin.tabUsers}
         </button>
         <button onClick={() => { setTab('tickets'); if (tickets.length === 0) loadTickets() }}
           className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === 'tickets' ? 'border-[--primary] text-[--primary]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-          <MessageSquare className="w-4 h-4 inline mr-1.5" />Tickets{' '}
-          {tickets.length > 0 && <span className="text-xs ml-1">({tickets.length})</span>}
+          <MessageSquare className="w-4 h-4 inline me-1.5" />{t.admin.tabTickets}{' '}
+          {tickets.length > 0 && <span className="text-xs ms-1">({tickets.length})</span>}
         </button>
       </div>
 
@@ -155,13 +159,13 @@ export default function AdminPage() {
         <>
           {stats && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-              <StatCard icon={<Users className="w-4 h-4" />} label="Utilisateurs" value={stats.totalUsers}
-                sub={`${stats.admins} admin · ${stats.activeUsers} actifs/7j`} color="text-[--primary]" />
-              <StatCard icon={<BookOpen className="w-4 h-4" />} label="Lectures" value={stats.totalReadings} color="text-green-600" />
-              <StatCard icon={<Ban className="w-4 h-4" />} label="Suspendus" value={users.filter(u => u.suspended).length} color="text-red-600" />
-              <StatCard icon={<Users className="w-4 h-4" />} label="Plans" value={stats.totalPlans}
-                sub={`${stats.totalPlanDays} jours`} color="text-blue-600" />
-              <StatCard icon={<Tags className="w-4 h-4" />} label="Contextes" value={stats.totalContexts} color="text-purple-600" />
+              <StatCard icon={<Users className="w-4 h-4" />} label={t.admin.statUsers} value={stats.totalUsers}
+                sub={t.admin.statUsersSub(stats.admins, stats.activeUsers)} color="text-[--primary]" />
+              <StatCard icon={<BookOpen className="w-4 h-4" />} label={t.admin.statReadings} value={stats.totalReadings} color="text-green-600" />
+              <StatCard icon={<Ban className="w-4 h-4" />} label={t.admin.statSuspended} value={users.filter(u => u.suspended).length} color="text-red-600" />
+              <StatCard icon={<Users className="w-4 h-4" />} label={t.admin.statPlans} value={stats.totalPlans}
+                sub={t.admin.statPlanDays(stats.totalPlanDays)} color="text-blue-600" />
+              <StatCard icon={<Tags className="w-4 h-4" />} label={t.admin.statContexts} value={stats.totalContexts} color="text-purple-600" />
             </div>
           )}
 
@@ -170,14 +174,14 @@ export default function AdminPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left p-3 font-medium text-gray-600">Utilisateur</th>
-                    <th className="text-left p-3 font-medium text-gray-600 hidden sm:table-cell">Email</th>
-                    <th className="text-center p-3 font-medium text-gray-600">Rôle</th>
-                    <th className="text-center p-3 font-medium text-gray-600">Statut</th>
+                    <th className="text-start p-3 font-medium text-gray-600">{t.admin.colUser}</th>
+                    <th className="text-start p-3 font-medium text-gray-600 hidden sm:table-cell">{t.admin.colEmail}</th>
+                    <th className="text-center p-3 font-medium text-gray-600">{t.admin.colRole}</th>
+                    <th className="text-center p-3 font-medium text-gray-600">{t.admin.colStatus}</th>
                     <th className="text-center p-3 font-medium text-gray-600"><BookOpen className="w-4 h-4 inline" /></th>
-                    <th className="text-center p-3 font-medium text-gray-600 hidden sm:table-cell">Plans</th>
-                    <th className="text-left p-3 font-medium text-gray-600 hidden lg:table-cell">Connexion</th>
-                    <th className="text-center p-3 font-medium text-gray-600">Actions</th>
+                    <th className="text-center p-3 font-medium text-gray-600 hidden sm:table-cell">{t.admin.colPlans}</th>
+                    <th className="text-start p-3 font-medium text-gray-600 hidden lg:table-cell">{t.admin.colLastSignIn}</th>
+                    <th className="text-center p-3 font-medium text-gray-600">{t.admin.colActions}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -185,18 +189,18 @@ export default function AdminPage() {
                     <tr key={u.id} className={`border-b border-gray-100 hover:bg-gray-50 ${u.suspended ? 'opacity-60' : ''}`}>
                       <td className="p-3"><div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: u.color }}>{u.name[0]?.toUpperCase() || '?'}</div>
-                        <div><span className="font-medium block leading-tight">{u.name || 'Sans nom'}</span><span className="text-xs text-gray-400 sm:hidden">{u.email || ''}</span></div>
+                        <div><span className="font-medium block leading-tight">{u.name || t.admin.noName}</span><span className="text-xs text-gray-400 sm:hidden">{u.email || ''}</span></div>
                       </div></td>
                       <td className="p-3 text-gray-600 text-xs hidden sm:table-cell">{u.email || '—'}</td>
-                      <td className="p-3 text-center">{u.is_admin ? <span className="text-green-600 text-xs font-medium bg-green-50 px-2 py-0.5 rounded-full">Admin</span> : <span className="text-gray-400 text-xs">User</span>}</td>
-                      <td className="p-3 text-center">{u.suspended ? <span className="flex items-center justify-center gap-1 text-red-600 text-xs"><Ban className="w-3 h-3" /> Suspendu</span> : isOnline(u) ? <span className="flex items-center justify-center gap-1 text-green-600 text-xs"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> En ligne</span> : <span className="text-gray-400 text-xs">Hors ligne</span>}</td>
+                      <td className="p-3 text-center">{u.is_admin ? <span className="text-green-600 text-xs font-medium bg-green-50 px-2 py-0.5 rounded-full">{t.admin.roleAdmin}</span> : <span className="text-gray-400 text-xs">{t.admin.roleUser}</span>}</td>
+                      <td className="p-3 text-center">{u.suspended ? <span className="flex items-center justify-center gap-1 text-red-600 text-xs"><Ban className="w-3 h-3" /> {t.admin.suspended}</span> : isOnline(u) ? <span className="flex items-center justify-center gap-1 text-green-600 text-xs"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> {t.admin.online}</span> : <span className="text-gray-400 text-xs">{t.admin.offline}</span>}</td>
                       <td className="p-3 text-center">{u.readings}</td>
                       <td className="p-3 text-center hidden sm:table-cell">{u.plans}</td>
-                      <td className="p-3 text-xs text-gray-500 hidden lg:table-cell">{u.lastSignIn ? new Date(u.lastSignIn).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Jamais'}</td>
+                      <td className="p-3 text-xs text-gray-500 hidden lg:table-cell">{u.lastSignIn ? formatDate(locale, u.lastSignIn, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : t.admin.never}</td>
                       <td className="p-3"><div className="flex items-center justify-center gap-1">
-                        <button onClick={() => handleToggleAdmin(u.id, u.is_admin)} disabled={actionId === u.id} className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[--primary] disabled:opacity-30" title={u.is_admin ? 'Rétrograder' : 'Promouvoir admin'}><UserCog className="w-4 h-4" /></button>
-                        <button onClick={() => handleToggleSuspend(u.id, u.suspended)} disabled={actionId === u.id} className={`p-1.5 rounded hover:bg-gray-100 disabled:opacity-30 ${u.suspended ? 'text-green-500 hover:text-green-700' : 'text-gray-400 hover:text-red-600'}`} title={u.suspended ? 'Réactiver' : 'Suspendre'}>{u.suspended ? <CheckCircle className="w-4 h-4" /> : <Ban className="w-4 h-4" />}</button>
-                        <button onClick={() => handleDelete(u.id, u.name)} disabled={actionId === u.id} className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 disabled:opacity-30" title="Supprimer"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleToggleAdmin(u.id, u.is_admin)} disabled={actionId === u.id} className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[--primary] disabled:opacity-30" title={u.is_admin ? t.admin.demote : t.admin.promote}><UserCog className="w-4 h-4" /></button>
+                        <button onClick={() => handleToggleSuspend(u.id, u.suspended)} disabled={actionId === u.id} className={`p-1.5 rounded hover:bg-gray-100 disabled:opacity-30 ${u.suspended ? 'text-green-500 hover:text-green-700' : 'text-gray-400 hover:text-red-600'}`} title={u.suspended ? t.admin.reactivate : t.admin.suspend}>{u.suspended ? <CheckCircle className="w-4 h-4" /> : <Ban className="w-4 h-4" />}</button>
+                        <button onClick={() => handleDelete(u.id, u.name)} disabled={actionId === u.id} className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 disabled:opacity-30" title={t.common.delete}><Trash2 className="w-4 h-4" /></button>
                       </div></td>
                     </tr>
                   ))}
@@ -214,27 +218,28 @@ export default function AdminPage() {
           <div className="flex flex-wrap gap-2 mb-4">
             <button onClick={() => setStatusFilter('')}
               className={`px-3 py-1.5 rounded-lg text-xs border ${!statusFilter ? 'border-[--primary] bg-[--primary] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
-              Tous ({tickets.length})
+              {t.admin.allTickets(tickets.length)}
             </button>
             {STATUS_OPTIONS.map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
                 className={`px-3 py-1.5 rounded-lg text-xs border ${statusFilter === s ? 'border-[--primary] bg-[--primary] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
-                {STATUS_BADGE[s] ? s.replace('_', ' ') : s} ({tickets.filter(t => t.status === s).length})
+                {t.admin.ticketStatuses[s] ?? s} ({tickets.filter(x => x.status === s).length})
               </button>
             ))}
           </div>
 
           {loadingTickets ? (
-            <p className="text-gray-500">Chargement...</p>
+            <p className="text-gray-500">{t.common.loading}</p>
           ) : filteredTickets.length === 0 ? (
-            <p className="text-gray-400 text-center py-12">Aucun ticket</p>
+            <p className="text-gray-400 text-center py-12">{t.admin.noTicket}</p>
           ) : (
             <div className="space-y-3">
-              {filteredTickets.map(t => {
-                const cat = CATEGORIES[t.type] || { label: t.type, icon: MoreHorizontal }
+              {/* `ticket` et non `t` : `t` est le dictionnaire. */}
+              {filteredTickets.map(ticket => {
+                const cat = CATEGORIES[ticket.type] || { icon: MoreHorizontal }
                 const CatIcon = cat.icon
                 return (
-                  <div key={t.id} className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div key={ticket.id} className="bg-white rounded-xl border border-gray-200 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
@@ -242,20 +247,20 @@ export default function AdminPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_BADGE[t.status] || ''}`}>
-                              {t.status.replace('_', ' ')}
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_BADGE[ticket.status] || ''}`}>
+                              {t.admin.ticketStatuses[ticket.status] ?? ticket.status}
                             </span>
-                            <span className="text-xs text-gray-400">{cat.label}</span>
+                            <span className="text-xs text-gray-400">{t.admin.categories[ticket.type] ?? ticket.type}</span>
                           </div>
-                          <p className="text-sm text-gray-800 whitespace-pre-wrap">{t.message}</p>
+                          <p className="text-sm text-gray-800 whitespace-pre-wrap">{ticket.message}</p>
                           <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
-                            <span>Par {t.userName}</span>
+                            <span>{t.admin.by(ticket.userName)}</span>
                             <span>·</span>
-                            <span>{new Date(t.createdAt).toLocaleDateString('fr-FR')}</span>
-                            {t.replies?.length > 0 && (
+                            <span>{formatDate(locale, ticket.createdAt)}</span>
+                            {ticket.replies?.length > 0 && (
                               <>
                                 <span>·</span>
-                                <span>{t.replies.length} réponse{t.replies.length > 1 ? 's' : ''}</span>
+                                <span>{t.admin.replyCount(ticket.replies.length)}</span>
                               </>
                             )}
                           </div>
@@ -266,12 +271,12 @@ export default function AdminPage() {
                         <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400">
                           <ChevronDown className="w-4 h-4" />
                         </button>
-                        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[140px] hidden group-hover:block z-10">
+                        <div className="absolute end-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[140px] hidden group-hover:block z-10">
                           {STATUS_OPTIONS.map(s => (
-                            <button key={s} onClick={() => handleTicketStatus(t.id, s)}
-                              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 ${t.status === s ? 'font-medium text-[--primary]' : 'text-gray-600'}`}>
+                            <button key={s} onClick={() => handleTicketStatus(ticket.id, s)}
+                              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 ${ticket.status === s ? 'font-medium text-[--primary]' : 'text-gray-600'}`}>
                               {STATUS_BADGE[s] && <span className={`inline-block w-2 h-2 rounded-full mr-2 ${STATUS_BADGE[s].replace('text-', 'bg-').split(' ')[0]}`} />}
-                              {s.replace('_', ' ')}
+                              {t.admin.ticketStatuses[s] ?? s}
                             </button>
                           ))}
                         </div>

@@ -12,9 +12,21 @@
  *
  * Vérifié contre le serveur le 1er août 2026 : longueur minimale 10, minuscule,
  * majuscule, chiffre et symbole exigés.
+ *
+ * `validatePassword` rend des **codes** et non des phrases : la règle est de la
+ * logique, sa formulation appartient à la langue. Les libellés vivent dans les
+ * dictionnaires, sous `auth.passwordRules`.
  */
 
 export const PASSWORD_MIN_LENGTH = 10;
+
+/** Ce qui manque à un mot de passe. */
+export type PasswordProblem =
+  | 'length'
+  | 'lowercase'
+  | 'uppercase'
+  | 'digit'
+  | 'symbol';
 
 /**
  * Jeu de symboles accepté par Supabase Auth. Reproduit tel quel : un caractère
@@ -28,34 +40,37 @@ const SYMBOLS = /[!@#$%^&*()_+\-=[\]{};'\\:"|<>?,./`~]/;
  * Ces règles reproduisent celles configurées côté serveur : dix caractères au
  * minimum, avec une minuscule, une majuscule, un chiffre et un symbole.
  */
-export function validatePassword(password: string): string[] {
-  const problems: string[] = [];
+export function validatePassword(password: string): PasswordProblem[] {
+  const problems: PasswordProblem[] = [];
 
-  if (password.length < PASSWORD_MIN_LENGTH) {
-    problems.push(`au moins ${PASSWORD_MIN_LENGTH} caractères`);
-  }
-  if (!/[a-z]/.test(password)) {
-    problems.push('une minuscule');
-  }
-  if (!/[A-Z]/.test(password)) {
-    problems.push('une majuscule');
-  }
-  if (!/[0-9]/.test(password)) {
-    problems.push('un chiffre');
-  }
-  if (!SYMBOLS.test(password)) {
-    problems.push('un symbole (par exemple ! ? * - .)');
-  }
+  if (password.length < PASSWORD_MIN_LENGTH) problems.push('length');
+  if (!/[a-z]/.test(password)) problems.push('lowercase');
+  if (!/[A-Z]/.test(password)) problems.push('uppercase');
+  if (!/[0-9]/.test(password)) problems.push('digit');
+  if (!SYMBOLS.test(password)) problems.push('symbol');
 
   return problems;
 }
 
-/** Message prêt à afficher, ou chaîne vide si le mot de passe convient. */
-export function describePasswordProblems(password: string): string {
+/**
+ * Assemble la phrase à afficher à partir des codes.
+ *
+ * `labels` et `sentence` viennent du dictionnaire de la langue : l'énumération
+ * — virgules puis « et » final — n'a pas la même forme partout, c'est donc à
+ * chaque langue de la produire.
+ */
+export function describePasswordProblems(
+  password: string,
+  labels: Record<PasswordProblem, string>,
+  sentence: (list: string) => string,
+  and: string,
+): string {
   const problems = validatePassword(password);
   if (problems.length === 0) return '';
-  if (problems.length === 1) return `Le mot de passe doit contenir ${problems[0]}.`;
 
-  const last = problems[problems.length - 1];
-  return `Le mot de passe doit contenir ${problems.slice(0, -1).join(', ')} et ${last}.`;
+  const parts = problems.map((p) => labels[p]);
+  if (parts.length === 1) return sentence(parts[0]);
+
+  const last = parts[parts.length - 1];
+  return sentence(`${parts.slice(0, -1).join(', ')} ${and} ${last}`);
 }

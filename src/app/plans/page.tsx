@@ -5,16 +5,20 @@ import Link from "next/link";
 import { BookOpen, Plus, Calendar, Trash2, ListChecks } from "lucide-react";
 import { seedIfNeeded, getEnabledVersions, getAllPlans, addPlan, deletePlan, generatePlanDays, addPlanDays, getCurrentUserId, getSettings } from "@/lib/storage";
 import type { BibleVersion, ReadingPlan, PlanDuration, PlanKind } from "@/lib/storage";
+import { useI18n } from "@/contexts/I18nContext";
+import { formatDate } from "@/lib/i18n/format";
 
-const DURATIONS: { value: PlanDuration; label: string; days?: number }[] = [
-  { value: "1-year", label: "1 an", days: 365 },
-  { value: "6-months", label: "6 mois", days: 182 },
-  { value: "3-months", label: "3 mois", days: 91 },
-  { value: "1-month", label: "1 mois", days: 30 },
-  { value: "custom", label: "Personnalisé" },
+/** Les durées proposées. Leurs libellés vivent dans les dictionnaires. */
+const DURATIONS: { value: PlanDuration; days?: number }[] = [
+  { value: "1-year", days: 365 },
+  { value: "6-months", days: 182 },
+  { value: "3-months", days: 91 },
+  { value: "1-month", days: 30 },
+  { value: "custom" },
 ];
 
 export default function PlansPage() {
+  const { t, locale } = useI18n();
   const [plans, setPlans] = useState<ReadingPlan[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -109,7 +113,7 @@ export default function PlansPage() {
   }
 
   if (!loaded) {
-    return <p className="text-gray-500">Chargement...</p>;
+    return <p className="text-gray-500">{t.common.loading}</p>;
   }
 
   return (
@@ -117,34 +121,34 @@ export default function PlansPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-[--primary]" />
-          Plans de lecture
+          {t.plans.title}
         </h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] flex items-center gap-1.5"
         >
           <Plus className="w-4 h-4" />
-          Nouveau plan
+          {t.plans.newPlan}
         </button>
       </div>
 
       {showForm && (
         <div className="bg-blue-50 rounded-xl border border-blue-200 p-5 mb-6 max-w-lg">
-          <h3 className="font-medium text-sm mb-4">Créer un plan de lecture</h3>
+          <h3 className="font-medium text-sm mb-4">{t.plans.createTitle}</h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Nom</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t.plans.name}</label>
               <input
                 type="text"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Mon plan 2026"
+                placeholder={t.plans.namePlaceholder}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                 autoFocus
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Type de plan</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t.plans.kind}</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -157,10 +161,10 @@ export default function PlansPage() {
                   }`}
                 >
                   <span className="flex items-center gap-1.5 font-medium">
-                    <Calendar className="w-4 h-4" /> Daté
+                    <Calendar className="w-4 h-4" /> {t.plans.scheduled}
                   </span>
                   <span className="block text-xs text-gray-500 mt-0.5">
-                    Un passage par jour, réparti sur une durée.
+                    {t.plans.scheduledHint}
                   </span>
                 </button>
                 <button
@@ -174,10 +178,10 @@ export default function PlansPage() {
                   }`}
                 >
                   <span className="flex items-center gap-1.5 font-medium">
-                    <ListChecks className="w-4 h-4" /> Libre
+                    <ListChecks className="w-4 h-4" /> {t.plans.free}
                   </span>
                   <span className="block text-xs text-gray-500 mt-0.5">
-                    Une liste de passages sans date, cochés à ton rythme.
+                    {t.plans.freeHint}
                   </span>
                 </button>
               </div>
@@ -185,14 +189,14 @@ export default function PlansPage() {
 
             {formKind === "scheduled" && (
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Durée</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">{t.plans.duration}</label>
                 <select
                   value={formDuration}
                   onChange={(e) => setFormDuration(e.target.value as PlanDuration)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                 >
                   {DURATIONS.map((d) => (
-                    <option key={d.value} value={d.value}>{d.label}{d.days ? ` (${d.days} jours)` : ""}</option>
+                    <option key={d.value} value={d.value}>{t.plans.durations[d.value]}{d.days ? t.plans.durationDays(d.days) : ""}</option>
                   ))}
                 </select>
                 {formDuration === "custom" && (
@@ -201,14 +205,14 @@ export default function PlansPage() {
                     min={1}
                     value={formCustomDays}
                     onChange={(e) => setFormCustomDays(Math.max(1, Number(e.target.value)))}
-                    placeholder="Nombre de jours"
+                    placeholder={t.plans.customDaysPlaceholder}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-2"
                   />
                 )}
               </div>
             )}
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Version</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t.plans.version}</label>
               <select
                 value={formVersion}
                 onChange={(e) => setFormVersion(e.target.value)}
@@ -221,7 +225,7 @@ export default function PlansPage() {
             </div>
             {formKind === "scheduled" && (
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Date de début</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">{t.plans.startDate}</label>
                 <input
                   type="date"
                   value={formStartDate}
@@ -237,13 +241,13 @@ export default function PlansPage() {
               disabled={!formName.trim() || formSaving}
               className="bg-[--primary] text-white px-4 py-1.5 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50"
             >
-              {formSaving ? "Création..." : "Créer le plan"}
+              {formSaving ? t.plans.creating : t.plans.create}
             </button>
             <button
               onClick={() => setShowForm(false)}
               className="text-gray-600 px-4 py-1.5 rounded-lg text-sm hover:bg-gray-200"
             >
-              Annuler
+              {t.common.cancel}
             </button>
           </div>
         </div>
@@ -252,16 +256,16 @@ export default function PlansPage() {
       {plans.length === 0 ? (
         <div className="text-center py-12">
           <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 mb-1">Aucun plan de lecture.</p>
+          <p className="text-gray-500 mb-1">{t.plans.empty}</p>
           <p className="text-gray-400 text-sm">
-            Créez un plan pour lire la Bible sur une durée définie.
+            {t.plans.emptyHint}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {plans.map((plan) => {
             const isFree = plan.kind === "free";
-            const durationLabel = DURATIONS.find(d => d.value === plan.duration)?.label ?? plan.duration;
+            const durationLabel = t.plans.durations[plan.duration] ?? plan.duration;
             return (
               <div key={plan.id as number} className="bg-white rounded-xl border border-gray-200 p-5">
                 <div className="flex items-start justify-between mb-3">
@@ -273,7 +277,7 @@ export default function PlansPage() {
                       {plan.name}
                     </Link>
                     <p className="text-sm text-gray-500 mt-0.5">
-                      {isFree ? "Plan libre" : `${durationLabel} · ${plan.totalDays} jours`}
+                      {isFree ? t.plans.freePlan : t.plans.scheduledSummary(durationLabel, plan.totalDays)}
                     </p>
                   </div>
                   <button
@@ -287,12 +291,12 @@ export default function PlansPage() {
                   {isFree ? (
                     <span className="flex items-center gap-1">
                       <ListChecks className="w-3.5 h-3.5" />
-                      Sans date
+                      {t.plans.undated}
                     </span>
                   ) : (
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5" />
-                      {new Date(plan.startDate).toLocaleDateString("fr-FR")}
+                      {formatDate(locale, plan.startDate)}
                     </span>
                   )}
                 </div>
@@ -305,20 +309,20 @@ export default function PlansPage() {
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-sm shadow-xl mx-4">
-            <h3 className="font-semibold mb-2">Supprimer ce plan ?</h3>
-            <p className="text-sm text-gray-500 mb-4">Cette action est irréversible.</p>
+            <h3 className="font-semibold mb-2">{t.plans.deleteTitle}</h3>
+            <p className="text-sm text-gray-500 mb-4">{t.plans.deleteHint}</p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setDeleteConfirm(null)}
                 className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t.common.cancel}
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirm)}
                 className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
-                Supprimer
+                {t.common.delete}
               </button>
             </div>
           </div>

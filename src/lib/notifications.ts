@@ -12,32 +12,21 @@
  * Ce qui déclenche une notification. Les identifiants sont ceux de la colonne
  * `kind` de `notification_log` : les changer suppose de changer sa contrainte.
  */
+/**
+ * Les cinq déclencheurs, par identifiant et dans l'ordre d'affichage.
+ *
+ * Les libellés ne sont plus ici : ils vivent dans les dictionnaires, sous
+ * `notifications.triggers`, où chaque langue les fournit. Ne restent que les
+ * identifiants, qui sont de la logique — ils servent de clés à
+ * `notificationTriggers` dans les réglages et à `notification_log` en base, et
+ * ne doivent donc jamais changer.
+ */
 export const NOTIFICATION_TRIGGERS = [
-  {
-    id: 'daily',
-    label: 'Rappel quotidien',
-    hint: "À l'heure de ton choix, pour ne pas oublier ta lecture.",
-  },
-  {
-    id: 'plan-late',
-    label: 'Plan de lecture en retard',
-    hint: "Quand un jour prévu n'a pas été coché.",
-  },
-  {
-    id: 'support-reply',
-    label: 'Réponse à un message de support',
-    hint: 'Quand quelqu’un répond à un de tes tickets.',
-  },
-  {
-    id: 'roadmap-done',
-    label: 'Feuille de route',
-    hint: "Quand une fonctionnalité attendue passe à « Terminé ».",
-  },
-  {
-    id: 'inactive',
-    label: 'Longue absence',
-    hint: "Une relance après plusieurs jours sans lecture.",
-  },
+  { id: 'daily' },
+  { id: 'plan-late' },
+  { id: 'support-reply' },
+  { id: 'roadmap-done' },
+  { id: 'inactive' },
 ] as const
 
 export type NotificationTrigger = typeof NOTIFICATION_TRIGGERS[number]['id']

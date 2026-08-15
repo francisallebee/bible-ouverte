@@ -12,20 +12,32 @@ import { seedIfNeeded } from "@/lib/storage";
 import { APP_VERSION } from "@/lib/version";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useT } from "@/contexts/I18nContext";
+import type { Dictionary } from "@/lib/i18n/ui/fr";
 
-const links: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; adminOnly?: boolean }[] = [
-  { href: "/new-reading", label: "Nouvelle lecture", icon: BookPlus },
-  { href: "/plans", label: "Plans de lecture", icon: BookOpen },
-  { href: "/search", label: "Recherche biblique", icon: Search },
-  { href: "/progress", label: "Progression", icon: Trophy },
-  { href: "/history", label: "Historique", icon: History },
-  { href: "/stats", label: "Statistiques", icon: BarChart3 },
-  { href: "/settings", label: "Réglages", icon: Settings },
-  { href: "/roadmap", label: "Feuille de route", icon: Route },
-  { href: "/support", label: "Support", icon: MessageCircle },
-  { href: "/soutenir", label: "Soutenir le projet", icon: Heart },
-  { href: "/profil", label: "Mon profil", icon: User },
-  { href: "/admin", label: "Administration", icon: Shield, adminOnly: true },
+/**
+ * Le libellé est désigné par sa clé, et non écrit ici : la liste est constante,
+ * la traduction ne l'est pas. `label` reçoit le dictionnaire et y puise —
+ * ainsi une clé renommée casse la compilation plutôt que l'affichage.
+ */
+const links: {
+  href: string
+  label: (t: Dictionary) => string
+  icon: React.ComponentType<{ className?: string }>
+  adminOnly?: boolean
+}[] = [
+  { href: "/new-reading", label: (t) => t.nav.newReading, icon: BookPlus },
+  { href: "/plans", label: (t) => t.nav.plans, icon: BookOpen },
+  { href: "/search", label: (t) => t.nav.search, icon: Search },
+  { href: "/progress", label: (t) => t.nav.progress, icon: Trophy },
+  { href: "/history", label: (t) => t.nav.history, icon: History },
+  { href: "/stats", label: (t) => t.nav.stats, icon: BarChart3 },
+  { href: "/settings", label: (t) => t.nav.settings, icon: Settings },
+  { href: "/roadmap", label: (t) => t.nav.roadmap, icon: Route },
+  { href: "/support", label: (t) => t.nav.support, icon: MessageCircle },
+  { href: "/soutenir", label: (t) => t.nav.donate, icon: Heart },
+  { href: "/profil", label: (t) => t.nav.profile, icon: User },
+  { href: "/admin", label: (t) => t.nav.admin, icon: Shield, adminOnly: true },
 ];
 
 export default function Sidebar() {
@@ -33,6 +45,7 @@ export default function Sidebar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const { user, isAdmin } = useAuth();
+  const t = useT();
   const [profileName, setProfileName] = useState("");
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
 
@@ -56,8 +69,8 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setOpen(!open)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-11 h-11 bg-white rounded-xl shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition active:scale-95"
-        aria-label="Menu"
+        className="lg:hidden fixed top-4 start-4 z-50 w-11 h-11 bg-white rounded-xl shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition active:scale-95"
+        aria-label={t.nav.menu}
       >
         {open ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
       </button>
@@ -67,8 +80,11 @@ export default function Sidebar() {
       )}
 
       <nav
-        className={`fixed top-0 left-0 bottom-0 w-64 lg:w-[var(--nav-width)] bg-white border-r border-gray-200 flex flex-col p-4 z-40 transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "-translate-x-full"
+        // `start-0` et `border-e` plutôt que `left-0` et `border-r` : la barre
+        // passe d'elle-même à droite en écriture droite-à-gauche. Le retrait
+        // hors écran, lui, doit changer de signe — d'où la variante `rtl:`.
+        className={`fixed top-0 start-0 bottom-0 w-64 lg:w-[var(--nav-width)] bg-white border-e border-gray-200 flex flex-col p-4 z-40 transition-transform duration-300 ease-out ${
+          open ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
         } lg:translate-x-0`}
       >
         <Link href="/new-reading" onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2">
@@ -93,7 +109,7 @@ export default function Sidebar() {
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
-                {label}
+                {label(t)}
               </Link>
             );
           })}
@@ -117,7 +133,7 @@ export default function Sidebar() {
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 w-full mt-0.5 transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              Déconnexion
+              {t.nav.signOut}
             </button>
           </div>
         )}

@@ -1,6 +1,6 @@
 export interface ColorTheme {
   id: string
-  name: string
+  /** Le nom vit dans les dictionnaires, sous `colorThemes`, par identifiant. */
   emoji: string
   colors: {
     primary: string
@@ -14,7 +14,6 @@ export interface ColorTheme {
 export const COLOR_THEMES: ColorTheme[] = [
   {
     id: 'marine',
-    name: 'Marine',
     emoji: '🌊',
     colors: {
       primary: '#1e3a5f',
@@ -26,7 +25,6 @@ export const COLOR_THEMES: ColorTheme[] = [
   },
   {
     id: 'foret',
-    name: 'Forêt',
     emoji: '🌲',
     colors: {
       primary: '#1a4a3a',
@@ -38,7 +36,6 @@ export const COLOR_THEMES: ColorTheme[] = [
   },
   {
     id: 'pourpre',
-    name: 'Pourpre',
     emoji: '💜',
     colors: {
       primary: '#4a1a5e',
@@ -50,7 +47,6 @@ export const COLOR_THEMES: ColorTheme[] = [
   },
   {
     id: 'ocre',
-    name: 'Ocre',
     emoji: '🏺',
     colors: {
       primary: '#5e3a1a',
@@ -62,7 +58,6 @@ export const COLOR_THEMES: ColorTheme[] = [
   },
   {
     id: 'ardoise',
-    name: 'Ardoise',
     emoji: '🪨',
     colors: {
       primary: '#2d3748',

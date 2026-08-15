@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { autoLogoutState } from '@/lib/auto-logout'
+import { useT } from '@/contexts/I18nContext'
 
 /**
  * Déconnecte après une période sans activité, en prévenant une minute avant.
@@ -19,6 +20,7 @@ import { autoLogoutState } from '@/lib/auto-logout'
  * couvre.
  */
 export default function AutoLogout({ minutes }: { minutes: number }) {
+  const t = useT()
   const router = useRouter()
   const [remaining, setRemaining] = useState<number | null>(null)
   const lastActivity = useRef(Date.now())
@@ -76,23 +78,23 @@ export default function AutoLogout({ minutes }: { minutes: number }) {
           <Clock className="w-6 h-6 text-[--primary]" />
         </span>
         <h2 id="auto-logout-titre" className="text-lg font-semibold text-[--text]">
-          Toujours là ?
+          {t.components.stillThere}
         </h2>
         <p className="text-sm text-[--text-secondary] mt-2">
-          Sans réponse, ta session se fermera dans{' '}
+          {t.components.sessionClosingBefore}
           <span className="font-semibold text-[--text]" aria-live="polite">
-            {remaining} seconde{remaining! > 1 ? 's' : ''}
+            {t.components.seconds(remaining!)}
           </span>.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 mt-6">
           <button type="button" onClick={signOut}
             className="flex-1 border border-[--border] rounded-lg px-4 py-2.5 text-sm text-[--text] hover:bg-gray-50 transition-colors">
-            Me déconnecter
+            {t.components.signOutNow}
           </button>
           <button type="button" autoFocus
             onClick={() => { lastActivity.current = Date.now(); setRemaining(null) }}
             className="flex-1 bg-[--primary] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[--primary-hover] transition-colors">
-            Je suis là
+            {t.components.stayHere}
           </button>
         </div>
       </div>

@@ -8,8 +8,10 @@ import { describePasswordProblems, PASSWORD_MIN_LENGTH } from '@/lib/auth/passwo
 import AuthCard, {
   AuthError, authButton, authHint, authInput, authLabel, authLink,
 } from '@/components/auth/AuthCard'
+import { useT } from '@/contexts/I18nContext'
 
 export default function SignupPage() {
+  const t = useT()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -38,7 +40,12 @@ export default function SignupPage() {
 
     // Le serveur applique les mêmes règles ; les vérifier ici évite un
     // aller-retour et affiche un message en français plutôt que l'erreur brute.
-    const problem = describePasswordProblems(password)
+    const problem = describePasswordProblems(
+      password,
+      t.auth.passwordRules.labels,
+      t.auth.passwordRules.sentence,
+      t.auth.passwordRules.and,
+    )
     if (problem) {
       setError(problem)
       setLoading(false)
@@ -64,27 +71,27 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <AuthCard title="Compte créé">
+      <AuthCard title={t.authScreens.accountCreated}>
         <div className="flex items-start gap-3.5 rounded-xl bg-[#e8faf0] p-4">
           <MailCheck className="mt-0.5 w-5 h-5 shrink-0 text-[#1f9254]" />
           <p className="text-[14px] leading-relaxed text-[#1a6b41]">
-            Un message vient de partir vers{' '}
-            <span className="font-semibold">{email || 'ton adresse'}</span>. Ouvre-le
-            pour confirmer ton adresse, puis reviens te connecter.
+            {t.authScreens.mailSentBefore}
+            <span className="font-semibold">{email || t.authScreens.yourAddress}</span>
+            {t.authScreens.mailSentAfter}
           </p>
         </div>
         <Link href="/auth/login" className={`${authButton} mt-5`}>
-          Aller à la connexion
+          {t.authScreens.goToLogin}
         </Link>
       </AuthCard>
     )
   }
 
   return (
-    <AuthCard title="Créer un compte" subtitle="Moins d'une minute, et c'est gratuit.">
+    <AuthCard title={t.authScreens.signupTitle} subtitle={t.authScreens.signupSubtitle}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="signup-name" className={authLabel}>Prénom</label>
+          <label htmlFor="signup-name" className={authLabel}>{t.authScreens.firstName}</label>
           <input
             id="signup-name"
             name="name"
@@ -96,7 +103,7 @@ export default function SignupPage() {
           />
         </div>
         <div>
-          <label htmlFor="signup-email" className={authLabel}>Email</label>
+          <label htmlFor="signup-email" className={authLabel}>{t.authScreens.email}</label>
           <input
             id="signup-email"
             name="email"
@@ -110,7 +117,7 @@ export default function SignupPage() {
           />
         </div>
         <div>
-          <label htmlFor="password" className={authLabel}>Mot de passe</label>
+          <label htmlFor="password" className={authLabel}>{t.authScreens.password}</label>
           <input
             id="password"
             name="password"
@@ -122,19 +129,18 @@ export default function SignupPage() {
             className={authInput}
           />
           <p id="password-hint" className={authHint}>
-            {PASSWORD_MIN_LENGTH} caractères minimum, avec une minuscule, une majuscule,
-            un chiffre et un symbole.
+            {t.profile.passwordHint(PASSWORD_MIN_LENGTH)}
           </p>
         </div>
         {error && <AuthError>{error}</AuthError>}
         <button type="submit" disabled={loading} className={authButton}>
-          {loading ? 'Création…' : 'Créer le compte'}
+          {loading ? t.authScreens.creating : t.authScreens.createButton}
         </button>
       </form>
 
       <p className="mt-6 border-t border-slate-100 pt-5 text-center text-[14px] text-slate-500">
-        Déjà un compte ?{' '}
-        <Link href="/auth/login" className={authLink}>Se connecter</Link>
+        {t.authScreens.haveAccount}
+        <Link href="/auth/login" className={authLink}>{t.authScreens.signIn}</Link>
       </p>
     </AuthCard>
   )
