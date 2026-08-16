@@ -33,7 +33,21 @@ interface SourceBible {
  * chaque build et à parser au chargement. Servies depuis public/, ce sont de
  * simples fichiers statiques que le navigateur récupère et met en cache.
  */
-const VERSIONS: { id: string; file: string }[] = [
+/**
+ * Le nom de fichier de chaque version — **le troisième chemin**.
+ *
+ * Ajouter une version demande trois gestes, et l'oubli du dernier ne se voit
+ * qu'à l'usage : une entrée dans `scripts/download-bible-versions.mjs`, une
+ * ligne dans `TEXT_VERSIONS` de `lib/storage/seed.ts`, et une ici. Sans cette
+ * dernière, la version apparaît dans les Réglages, se laisse cocher, et
+ * `loadData` lève « Version inconnue » — l'utilisateur ne voit qu'un échec de
+ * téléchargement.
+ *
+ * C'est arrivé le 16 août 2026 aux quatre versions non françaises, déjà
+ * déployées quand le manque a été trouvé. `import.test.ts` compare désormais
+ * cette table à `TEXT_VERSIONS` : un oubli ne compile plus jusqu'aux tests.
+ */
+export const VERSIONS: { id: string; file: string }[] = [
   { id: 'ls1910', file: 'ls1910.json' },
   { id: 'darby', file: 'darby.json' },
   { id: 'martin1744', file: 'martin.json' },
@@ -41,6 +55,10 @@ const VERSIONS: { id: string; file: string }[] = [
   { id: 'cramp23', file: 'cramp23.json' },
   { id: 'sacc', file: 'sacc.json' },
   { id: 'perret', file: 'perret.json' },
+  { id: 'kjv', file: 'kjv.json' },
+  { id: 'diodati', file: 'diodati.json' },
+  { id: 'svd', file: 'svd.json' },
+  { id: 'rv1909', file: 'rv1909.json' },
 ];
 
 async function loadData(versionId: string): Promise<SourceBible> {

@@ -51,7 +51,7 @@ const DEFAULT_CONTEXT_IDS = new Set(DEFAULT_CONTEXTS.map(c => c.id));
  * n'ajoute que les versions absentes et ne réécrit jamais une ligne présente.
  * Un appareil déjà utilisé conserve donc ses sept versions actives.
  */
-const TEXT_VERSIONS: BibleVersion[] = [
+export const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'ls1910', name: 'Louis Segond 1910', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: true },
   { id: 'darby', name: 'Bible Darby 1885', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
   { id: 'martin1744', name: 'Bible David Martin 1744', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
