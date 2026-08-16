@@ -299,6 +299,28 @@ l'unicité `(user_id, kind, ref)` vaut donc « déjà envoyé ».
 Un abonnement qui répond 404 ou 410 est retiré : le service de push ne le
 connaît plus, et le garder ferait échouer chaque envoi à jamais.
 
+#### Le revers, mesuré le 16 août 2026
+
+Ce choix a un angle mort, et il s'est manifesté sur `new_user_alerts`, qui
+suit la même discipline : **rien ne rattrape une trace écrite pour un envoi qui
+n'a pas eu lieu.**
+
+Ce jour-là, `notify-new-user` a écrit ses quatre lignes à `06:45:04.760`, puis
+a levé une exception au `fetch` vers Brevo **19 millisecondes plus tard**. Les
+quatre comptes se sont retrouvés réputés annoncés sans qu'aucun courriel ne
+parte — et définitivement, puisque la trace vaut « déjà envoyé ».
+
+Le piège est double : le passage suivant rend alors `{"candidats":0}`, un `200`
+franc qui ressemble à un succès et ne prouve rien. Les quatre lignes ont dû
+être retirées à la main, par leur horodatage exact, pour rendre les comptes
+annonçables et pour que l'essai retrouve un sens.
+
+`notification_log` a exactement la même structure, donc le même angle mort.
+
+Le correctif qui garderait les deux propriétés : écrire la trace d'abord —
+c'est elle qui bloque le doublon —, tenter l'envoi, et **retirer la trace si
+l'envoi lève**. Non fait à ce jour.
+
 ## Alerte d'inscription
 
 `functions/notify-new-user` écrit à l'administrateur quand quelqu'un crée un
@@ -323,7 +345,13 @@ nouveauté.
 ### Les trois secrets
 
 À déposer une fois, comme ceux des notifications. La clé Brevo ne doit jamais
-entrer dans le dépôt, ni dans une conversation.
+entrer dans le dépôt, **ni dans une conversation** : trois l'ont déjà été et
+ont dû être révoquées. Un agent ne dépose pas de clé — c'est une commande pour
+le propriétaire.
+
+`BREVO_API_KEY` attend une clé **API v3**, préfixée `xkeysib-`. Une clé **SMTP**
+(`xsmtpsib-`) est un autre objet, destiné au relais d'authentification : voir
+« Les courriels d'authentification » plus bas, où les deux sont distinguées.
 
 ```bash
 supabase secrets set \
@@ -361,6 +389,121 @@ select cron.schedule(
 Sans les secrets, la fonction répond `500` avec le nom de ce qui manque ; avec
 un mauvais `x-cron-secret`, `401` et le corps `unauthorized`. Les deux ont été
 vérifiés au déploiement.
+
+### Lire la réponse : trois `500` qui ne disent pas la même chose
+
+Diagnostiqué le 16 août 2026, et à relire avant de suspecter le dépôt.
+`cron.job_run_details` ne sert à rien ici : `pg_net` étant asynchrone, le job
+est « succeeded » dès la mise en file, avant toute réponse — même piège que
+`envoyes`, à un autre étage. La vérité est dans `net._http_response`, et le
+détail dans les journaux `function_logs`.
+
+| Corps de la réponse | Cause |
+|---|---|
+| `500 secret manquant : BREVO_API_KEY` | le secret n'est pas déposé |
+| `502 brevo : 401` | le secret est déposé mais Brevo le refuse — souvent une clé **SMTP** (`xsmtpsib-`) là où il faut une clé **API** (`xkeysib-`) |
+| `500 Internal Server Error` | **exception non capturée** : la fonction a crashé avant d'appeler Brevo |
+
+Le troisième est le plus trompeur, parce que le message est générique et vient
+de la passerelle, pas du code. Le cas rencontré :
+
+```
+TypeError: Failed to construct 'Request': 'headers' of 'RequestInit'
+            is not a valid ByteString
+```
+
+**La valeur du secret portait un caractère au-dessus de U+00FF** — un guillemet
+typographique ou un espace de largeur nulle ramené par un copier-coller. Un
+en-tête HTTP n'accepte que du `ByteString` ; le `fetch` lève avant de partir.
+
+Pour le vérifier sans divulguer la clé :
+
+```bash
+printf %s 'la-cle' | LC_ALL=C grep -q '[^ -~]' && echo "caractère parasite" || echo "ASCII pur"
+```
+
+Et déposer entre guillemets **simples**, qui empêchent le shell d'interpréter
+quoi que ce soit.
+
+## Les courriels d'authentification : SMTP Brevo
+
+**État : à faire.** Cette section décrit la manœuvre, pas un fait mesuré. Elle
+sera reprise une fois la bascule effectuée, avec ce qui aura été constaté.
+
+Supabase envoie lui-même la confirmation d'adresse à l'inscription. Son service
+intégré est **explicitement bridé et non destiné à la production** : son quota
+horaire est bas et partagé, si bien qu'une rafale d'inscriptions peut faire
+échouer des confirmations sans que rien ne le signale. Le relais SMTP de Brevo
+lève cette limite, et regroupe au même endroit les deux courriels que le projet
+émet déjà.
+
+### Deux clés Brevo, et surtout ne pas les confondre
+
+C'est le piège de cette bascule, et il coûte une heure à qui l'ignore : Brevo
+délivre **deux sortes de clés**, qui ne s'emploient pas au même endroit et ne
+s'authentifient pas de la même façon.
+
+| Usage | Type | Préfixe | Où elle vit |
+|---|---|---|---|
+| `notify-new-user`, qui appelle `api.brevo.com/v3/smtp/email` | clé **API** v3 | `xkeysib-` | secret de fonction `BREVO_API_KEY` |
+| Confirmation d'adresse à l'inscription | clé **SMTP** | `xsmtpsib-` | *Custom SMTP* du dashboard |
+
+Une clé SMTP déposée comme `BREVO_API_KEY` ne produit pas l'erreur qu'on
+attend : la fonction trouve bien son secret, part appeler l'API, et Brevo
+refuse l'authentification — la réponse est **`502 brevo : 401`**, et non le
+`500 secret manquant : BREVO_API_KEY` d'un secret absent. Ces deux codes
+distinguent les deux causes ; les lire dans `net._http_response` évite de
+chercher du côté du dépôt quand le problème est le type de clé.
+
+### Où cela se règle
+
+**Au dashboard** : *Authentication → Emails → SMTP Settings*. Nulle part
+ailleurs.
+
+Pas par `config.toml`, dont la section `[auth.email.smtp]` n'est que le gabarit
+SendGrid commenté laissé par `supabase init`. Ce fichier diverge déjà de la
+production sur au moins deux points — `site_url` en localhost, et
+`enable_confirmations = false` alors que l'inscription envoie bel et bien une
+confirmation. **`supabase config push` casserait l'authentification**, pour la
+raison exposée plus haut.
+
+Le MCP ne sait pas le faire non plus : il n'expose aucun outil de réglage Auth.
+
+| Champ | Valeur |
+|---|---|
+| Host | `smtp-relay.brevo.com` |
+| Port | `587` |
+| Username | le **SMTP login** Brevo, de la forme `9xxxxx@smtp-brevo.com` — *pas* l'adresse d'expédition |
+| Password | la clé **SMTP** (`xsmtpsib-…`) |
+| Sender email | une adresse **vérifiée chez Brevo** |
+| Sender name | `Bible Ouverte` |
+
+Le champ *Username* est l'erreur classique : c'est un identifiant de relais
+distinct de l'adresse d'expédition, et il se lit dans *SMTP & API → SMTP*.
+
+### Ce qui restera à faire après la bascule
+
+**Les gabarits ne sont pas traduits.** Ils vivent dans *Authentication → Emails
+→ Templates* et sont en anglais par défaut. Basculer le SMTP ne les touche pas.
+Un utilisateur peut donc lire une interface en arabe et recevoir sa
+confirmation en anglais — même limite que les notifications push : le courriel
+part du serveur, qui ne connaît pas la langue choisie. C'est le troisième
+endroit où la traduction sort du navigateur.
+
+**L'expéditeur vérifié est le maillon à surveiller.** Brevo refuse d'expédier
+depuis une adresse non validée, en SMTP comme en API. C'est déjà le suspect
+principal de l'alerte d'inscription ; il devient commun aux deux chemins.
+
+### L'essai qui vaut pour quatre
+
+Une fois le SMTP en place, **un seul compte de test** éprouve d'un coup ce qui
+attend depuis des séances :
+
+1. il reçoit sa confirmation — le SMTP Brevo fonctionne ;
+2. le cron l'annonce par courriel — l'alerte d'inscription fonctionne ;
+3. il sert de cible aux actions d'Administration jamais exercées : promouvoir,
+   rétrograder, suspendre, réactiver ;
+4. et sa suppression exerce la dernière d'entre elles.
 
 ## Ce qui reste hors du dépôt
 

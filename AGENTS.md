@@ -240,6 +240,10 @@ npm test           # vitest
   désormais été vus. **Mais aucune de ses actions n'a été exercée** — suspendre,
   promouvoir, supprimer un compte, changer le statut d'un ticket restent non
   essayés. Voir un écran s'afficher n'est pas voir ses boutons agir.
+  Hors de cet écran, **le changement de mot de passe a été exercé le 16 août
+  2026** depuis Profil, sur un compte réel, par le propriétaire du dépôt. Il
+  reste la suppression d'un ticket support et la suppression en bloc de
+  l'historique.
 - **Les notifications push et le parcours découverte fonctionnent**, vus par le
   propriétaire du dépôt le 14 août 2026 — pas par l'agent, qui n'a jamais eu de
   session pour le constater. L'item 17 est terminé de bout en bout.

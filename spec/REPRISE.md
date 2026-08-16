@@ -32,9 +32,11 @@ action hors du dépôt.
 4. **Les actions de l'écran Administration n'ont jamais été exercées** :
    suspendre, promouvoir, supprimer un compte, changer le statut d'un ticket.
    L'écran s'affiche (vu le 15 août), ce qui n'est pas la même chose.
-   S'y ajoutent trois chemins déjà connus, eux non plus jamais exécutés sur des
-   données réelles : la suppression d'un ticket support, le changement de mot de
-   passe, et la suppression en bloc dans l'historique.
+   S'y ajoutaient trois chemins déjà connus. **Le changement de mot de passe a
+   été exercé le 16 août 2026, par le propriétaire du dépôt et non par
+   l'agent**, depuis l'écran Profil et sur son compte réel — il fonctionne.
+   Restent donc la suppression d'un ticket support et la suppression en bloc
+   dans l'historique.
 5. **La réversion de langue est expliquée et corrigée** — voir la section dédiée
    plus bas. Reste à la voir à l'écran, connecté : le correctif est éprouvé en
    laboratoire, pas encore en usage. Trois appareils sont concernés.
