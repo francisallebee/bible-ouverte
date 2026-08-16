@@ -300,7 +300,7 @@ export default function SettingsPage() {
             ))}
           </select>
           <p className="text-sm text-[--text-secondary] mt-3">
-            {t.language.bibleStaysFrench}
+            {t.language.bibleLanguages}
           </p>
         </SectionCard>
 

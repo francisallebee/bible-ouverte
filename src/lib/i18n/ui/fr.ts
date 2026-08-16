@@ -62,12 +62,13 @@ export const fr = {
     title: 'Langue',
     subtitle: "La langue de l'application.",
     /**
-     * Le texte biblique ne suit pas : les sept versions de `public/bibles/` sont
-     * françaises. Le dire ici plutôt que de laisser l'utilisateur le découvrir.
+     * Le texte biblique suit désormais, mais partiellement : sept versions
+     * françaises, une anglaise, une italienne et une arabe depuis le 16 août
+     * 2026. Le dire ici plutôt que de laisser l'utilisateur le découvrir.
      */
-    bibleStaysFrench:
-      'Les versions bibliques disponibles restent en français : seule '
-      + "l'interface est traduite.",
+    bibleLanguages:
+      'Le texte biblique existe en français, anglais, italien et arabe. '
+      + 'Choisis les versions à garder sur cet appareil dans les Réglages.',
   },
 
   newReading: {
@@ -177,7 +178,7 @@ export const fr = {
     versions: 'Versions bibliques',
     versionsHint:
       'Une version activée est téléchargée sur cet appareil pour la lecture '
-      + 'hors ligne — environ 6 Mo chacune. La désactiver libère cette place.',
+      + 'hors ligne — de 6 à 10 Mo selon la langue. La désactiver libère cette place.',
     versionDefault: 'Par défaut',
     versionDeleting: 'Suppression…',
     versionDownloading: 'Téléchargement…',
@@ -858,7 +859,7 @@ export const fr = {
           + "l'apparence, les traductions gardées sur l'appareil et la sécurité "
           + 'du compte.',
         points: [
-          'Active ou retire une traduction : chacune pèse environ 6 Mo hors ligne.',
+          'Active ou retire une traduction : chacune pèse de 6 à 10 Mo hors ligne.',
           'Thème clair, sombre, ou accordé à celui de ton système.',
           "Déconnexion automatique après un délai d'inactivité.",
           'Export et import de toutes tes données, pour en garder une copie.',

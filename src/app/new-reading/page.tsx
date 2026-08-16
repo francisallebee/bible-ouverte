@@ -14,6 +14,7 @@ import type { BibleVersion, ReadingLink, BiblePassage, ReadingContext } from "@/
 import { getBook } from "@/features/bible";
 import type { BibleBook } from "@/features/bible";
 import { useI18n, useBookName, useBooks } from "@/contexts/I18nContext";
+import { textDirection } from "@/lib/i18n/locales";
 import AudioRecorder from "@/components/AudioRecorder";
 import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange } from "@/components/PassagePicker";
@@ -462,10 +463,14 @@ export default function NewReadingPage() {
                   {describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
                   <span className="text-[--text-secondary] font-normal ms-2">— {versions.find(v => v.id === versionId)?.name || versionId}</span>
                 </p>
-                <div className="space-y-1">
+                {/* Le sens d'écriture suit la version choisie, pas l'interface. */}
+                <div
+                  className="space-y-1"
+                  dir={textDirection(versions.find((v) => v.id === versionId)?.language ?? "fr")}
+                >
                   {passages.map((p) => (
                     <p key={`${p.chapter}-${p.verse}`} className="leading-relaxed">
-                      <sup className="text-xs text-[--text-secondary] mr-0.5">{p.verse}</sup>
+                      <sup className="text-xs text-[--text-secondary] me-0.5">{p.verse}</sup>
                       {p.text}
                     </p>
                   ))}

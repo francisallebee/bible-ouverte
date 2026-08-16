@@ -98,7 +98,9 @@ describe('seedIfNeeded', () => {
     await seedIfNeeded();
 
     expect(stores.contexts.get('meditation')).toMatchObject({ emoji: '🕊️' });
-    expect(stores.bible_versions.size).toBe(7);
+    // Sept françaises, puis l'anglais, l'italien et l'arabe depuis le 16 août
+    // 2026 — les langues que l'interface parle déjà.
+    expect(stores.bible_versions.size).toBe(10);
   });
 
   it("n'active que la version par défaut à l'installation", async () => {

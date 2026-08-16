@@ -70,6 +70,14 @@ const OSIS_BOOKS = [
   { osis: 'Rev', abbr: 'REV', name: 'Apocalypse' },
 ];
 
+/**
+ * `lang` est le segment de langue de `midvash/bible-data`, et vaut `fr` par
+ * défaut — c'est ce que le script supposait quand il ne servait qu'au français.
+ *
+ * Le `name` français des livres, lui, reste tel quel dans les fichiers produits :
+ * `features/bible/import.ts` ne lit que `abbreviation`, et l'affichage passe par
+ * `i18n/books.ts`. Le champ est décoratif, le traduire ne changerait rien.
+ */
 const VERSIONS = [
   {
     id: 'darby',
@@ -93,6 +101,34 @@ const VERSIONS = [
     source: 'sourceforge',
     sourceforgeFile: 'oster.json',
   },
+
+  // Les langues de l'interface, ajoutées le 16 août 2026. Chacune est du
+  // domaine public et complète : Genèse 50, Exode 40, Psaumes 150, Cantique 8,
+  // Malachie 4 et Apocalypse 22 ont été comptés avant téléchargement.
+  {
+    id: 'kjv',
+    name: 'King James Version 1611',
+    lang: 'en',
+    slug: 'kjv',
+    output: 'kjv.json',
+    source: 'midvash',
+  },
+  {
+    id: 'diodati',
+    name: 'Giovanni Diodati 1649',
+    lang: 'it',
+    slug: 'diodati',
+    output: 'diodati.json',
+    source: 'midvash',
+  },
+  {
+    id: 'svd',
+    name: 'Smith & Van Dyck 1865',
+    lang: 'ar',
+    slug: 'svd',
+    output: 'svd.json',
+    source: 'midvash',
+  },
 ];
 
 async function fetchJson(url) {
@@ -105,8 +141,8 @@ function countVerses(books) {
   return books.reduce((sum, b) => sum + b.chapters.reduce((s, c) => s + c.verses.length, 0), 0);
 }
 
-async function downloadFromMidvash(slug) {
-  const base = `https://raw.githubusercontent.com/midvash/bible-data/main/versions/fr/${slug}/books`;
+async function downloadFromMidvash(slug, lang = 'fr') {
+  const base = `https://raw.githubusercontent.com/midvash/bible-data/main/versions/${lang}/${slug}/books`;
   const books = [];
   for (const bookMeta of OSIS_BOOKS) {
     const url = `${base}/${bookMeta.osis}.json`;
@@ -174,13 +210,31 @@ async function main() {
   const outputDir = path.resolve('public/bibles');
   fs.mkdirSync(outputDir, { recursive: true });
 
-  for (const version of VERSIONS) {
+  /**
+   * Sans argument, tout est retéléchargé — 47 Mo et sept versions, ce qui n'a
+   * de sens qu'au premier remplissage. Avec des identifiants en argument, seules
+   * ces versions-là sont reprises :
+   *
+   *   node scripts/download-bible-versions.mjs kjv diodati svd
+   */
+  const demandees = process.argv.slice(2);
+  const aTraiter = demandees.length
+    ? VERSIONS.filter((v) => demandees.includes(v.id))
+    : VERSIONS;
+
+  const inconnues = demandees.filter((d) => !VERSIONS.some((v) => v.id === d));
+  if (inconnues.length) {
+    console.error(`Version inconnue : ${inconnues.join(', ')}`);
+    process.exit(1);
+  }
+
+  for (const version of aTraiter) {
     console.log(`\n--- ${version.name} ---`);
     const outputPath = path.join(outputDir, version.output);
 
     let books;
     if (version.source === 'midvash') {
-      books = await downloadFromMidvash(version.slug);
+      books = await downloadFromMidvash(version.slug, version.lang ?? 'fr');
     } else if (version.source === 'sourceforge') {
       books = await downloadFromSourceforge(version.sourceforgeFile);
     }
@@ -188,7 +242,7 @@ async function main() {
     const bible = {
       id: version.id,
       name: version.name,
-      language: 'fr',
+      language: version.lang ?? 'fr',
       copyrightStatus: 'public-domain',
       source: 'bundled',
       books,

@@ -400,9 +400,55 @@ détail dans les journaux `function_logs`.
 
 | Corps de la réponse | Cause |
 |---|---|
-| `500 secret manquant : BREVO_API_KEY` | le secret n'est pas déposé |
-| `502 brevo : 401` | le secret est déposé mais Brevo le refuse — souvent une clé **SMTP** (`xsmtpsib-`) là où il faut une clé **API** (`xkeysib-`) |
+| `500 secret manquant : BREVO_API_KEY` | le secret n'est pas déposé — **ou déposé à vide**, voir plus bas |
+| `502 brevo : 401` | Brevo refuse : mauvais type de clé, **ou IP non autorisée** — le journal tranche |
 | `500 Internal Server Error` | **exception non capturée** : la fonction a crashé avant d'appeler Brevo |
+
+Le `502` a deux causes très différentes, et seul le journal `function_logs` les
+distingue : le corps que Brevo renvoie y est écrit en entier.
+
+### La liste blanche d'adresses IP de Brevo
+
+Rencontrée le 16 août 2026, et elle n'était prévue nulle part.
+
+Brevo peut restreindre l'usage d'une clé aux **adresses IP autorisées** du
+compte, et refuse tout le reste par un `401` dont le message nomme l'IP vue :
+
+```
+brevo a refusé l'envoi 401
+{"message":"We have detected you are using an unrecognised IP address
+ 2a05:d01c:76e:… ","code":"unauthorized"}
+```
+
+La clé était bonne, l'expéditeur validé, le secret correctement déposé : le
+refus vient d'un réglage de compte, en amont de tout examen de la requête.
+
+**Les fonctions Edge n'ont pas d'IP fixe.** Elles changent d'exécution en
+exécution, si bien qu'autoriser l'adresse d'un échec ne règle rien pour le
+suivant. Le réglage se trouve dans le compte Brevo — le nom en haut à droite,
+puis *Security*, section *Authorized IPs*, et non dans *SMTP & API* — et il
+offre deux modes : approbation par courriel, ingérable ici, et **autorisation
+automatique**, qui est le mode fait pour ce cas. Le CIDR est accepté, mais
+Supabase ne publie pas de plage stable pour ses fonctions Edge.
+
+### Vérifier un secret sans attendre le cron
+
+`supabase secrets list --project-ref …` rend le **digest SHA-256** de chaque
+secret, jamais sa valeur. Deux usages :
+
+- savoir si un dépôt a été pris, en comparant l'`updated_at` ;
+- **détecter un secret vide**, dont le digest est la constante
+  `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` —
+  le SHA-256 de la chaîne vide.
+
+Le cas s'est produit : un `--env-file` déposé avant que la clé y soit collée a
+posé une valeur vide, que la fonction a signalée comme « secret manquant ». La
+CLI le dit en trois secondes, là où le cron demande un quart d'heure.
+
+**Le tableau de bord est plus sûr que la CLI pour ce geste** : *Edge Functions →
+Secrets*. Un champ, un collage, aucun risque de quoting, de locale, de fichier
+mal enregistré ni de `rm` passé trop tôt — trois tentatives en terminal ont
+échoué là où le navigateur a réussi du premier coup.
 
 Le troisième est le plus trompeur, parce que le message est générique et vient
 de la passerelle, pas du code. Le cas rencontré :

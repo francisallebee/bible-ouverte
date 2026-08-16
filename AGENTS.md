@@ -31,9 +31,19 @@ une migration SQL**, pas par un composant.
 
 ## Les langues
 
-L'interface est traduite ; **le texte biblique ne l'est pas** — `public/bibles/`
-ne porte que sept versions françaises, et rien sur la feuille de route n'en
-ajoute d'autres langues.
+L'interface est traduite, **et le texte biblique l'est désormais aussi, en
+partie** : depuis le 16 août 2026, `public/bibles/` porte sept versions
+françaises, une anglaise (King James 1611), une italienne (Diodati 1649) et une
+arabe (Smith & Van Dyck 1865). Toutes du domaine public, toutes complètes —
+leurs 66 livres et les chapitres qui avaient trahi Sacy ont été comptés avant
+téléchargement. **L'espagnol manque** : la source `midvash/bible-data` porte 22
+langues, mais pas la sienne.
+
+Deux choses ne se confondent pas : **la langue de l'interface et celle du texte
+lu**. Un lecteur peut consulter la Van Dyck dans une application réglée en
+français. C'est pourquoi le bloc de versets porte son propre `dir`, donné par
+`textDirection(version.language)` et non par la langue de l'interface — voir
+`search`, `new-reading` et `reading/[id]`.
 
 Le français fait référence. Le type des autres langues en découle
 (`type Dictionary = typeof fr`, sans `as const`, qui figerait le contenu au lieu
@@ -112,7 +122,7 @@ coûterait une passe complète sur les 19 écrans.
 | `src/lib/i18n/` | Langues, dictionnaires, noms de livres et de contextes, dates |
 | `src/contexts/` | Fournisseurs React : session (`AuthContext`), langue (`I18nContext`) |
 | `src/features/bible/` | Livres, classification, import des versions |
-| `public/bibles/` | 7 versions françaises libres de droits (47 Mo) |
+| `public/bibles/` | 10 versions libres de droits : 7 fr, 1 en, 1 it, 1 ar (69 Mo) |
 | `supabase/migrations/` | Schéma et RLS, appliqués dans l'ordre des noms |
 | `scripts/` | Téléchargement et conversion des textes bibliques |
 
@@ -133,7 +143,8 @@ coûterait une passe complète sur les 19 écrans.
    Une version n'est téléchargée que si elle est active (`isEnabled`). La case
    des réglages commande réellement le cache : l'activer importe le texte, la
    désactiver l'efface. Seule la version par défaut est active à
-   l'installation.
+   l'installation. L'arabe pèse **10 Mo** là où les autres font 6 à 7 : le
+   texte vocalisé coûte deux octets par caractère en UTF-8.
 5. `npm run typecheck`, `npm run lint` et `npm test` doivent passer avant
    chaque commit.
 6. Pas de dépendance nouvelle sans raison sérieuse.

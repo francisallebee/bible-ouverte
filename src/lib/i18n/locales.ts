@@ -39,6 +39,23 @@ export function isLocale(value: unknown): value is Locale {
 }
 
 /**
+ * Le sens d'écriture d'un **texte biblique**, d'après le code langue de sa
+ * version — et non d'après la langue de l'interface.
+ *
+ * Les deux ne coïncident pas : depuis le 16 août 2026, `public/bibles/` porte
+ * la Smith & Van Dyck arabe, qu'un lecteur peut consulter dans une interface
+ * française. Le bloc de versets a donc son propre `dir`, indépendant de celui
+ * posé sur `<html>`.
+ *
+ * Une langue inconnue de `LOCALES` — le jour où une version allemande
+ * arriverait — est réputée de gauche à droite, ce qui est vrai de toutes les
+ * langues que ce projet est susceptible d'ajouter sauf l'hébreu.
+ */
+export function textDirection(language: string): 'ltr' | 'rtl' {
+  return isLocale(language) ? localeInfo(language).dir : 'ltr'
+}
+
+/**
  * La langue à servir, par ordre de préséance :
  *
  * 1. le choix explicite de l'utilisateur, qui vit dans ses réglages ;

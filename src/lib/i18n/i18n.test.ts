@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_LOCALE, LOCALES, isLocale, localeInfo, resolveLocale } from './locales'
+import { DEFAULT_LOCALE, LOCALES, isLocale, localeInfo, resolveLocale, textDirection } from './locales'
 import { BOOKS_FR, bookName, bookNames } from './books'
 import { contextName } from './contexts'
 import { formatDate, parseJour, monthNames, weekdayNames } from './format'
@@ -242,5 +242,29 @@ describe("l'arabe au registre", () => {
   it("est la seule langue à droite-à-gauche pour l'instant", () => {
     const rtl = LOCALES.filter((l) => l.dir === 'rtl').map((l) => l.code)
     expect(rtl).toEqual(['ar'])
+  })
+})
+
+describe("le sens d'écriture d'un texte biblique", () => {
+  /**
+   * Il suit la **version lue**, pas la langue de l'interface : depuis le
+   * 16 août 2026, `public/bibles/` porte la Smith & Van Dyck arabe, qu'on peut
+   * consulter dans une application réglée en français.
+   */
+  it('met la version arabe de droite à gauche', () => {
+    expect(textDirection('ar')).toBe('rtl')
+  })
+
+  it('laisse les autres langues de gauche à droite', () => {
+    for (const code of ['fr', 'en', 'it', 'es']) {
+      expect(textDirection(code), code).toBe('ltr')
+    }
+  })
+
+  it("traite une langue inconnue du registre comme gauche-à-droite", () => {
+    // Le jour où une version allemande arriverait, avant que `de` soit une
+    // locale d'interface.
+    expect(textDirection('de')).toBe('ltr')
+    expect(textDirection('')).toBe('ltr')
   })
 })

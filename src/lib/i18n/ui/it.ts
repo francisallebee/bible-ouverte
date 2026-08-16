@@ -60,9 +60,9 @@ export const it: Dictionary = {
   language: {
     title: 'Lingua',
     subtitle: "La lingua dell'applicazione.",
-    bibleStaysFrench:
-      'Le versioni bibliche disponibili restano in francese: viene tradotta '
-      + "solo l'interfaccia.",
+    bibleLanguages:
+      'Il testo biblico è disponibile in francese, inglese, italiano e arabo. '
+      + 'Scegli nelle Impostazioni quali versioni tenere su questo dispositivo.',
   },
 
   newReading: {
@@ -171,7 +171,7 @@ export const it: Dictionary = {
     versions: 'Versioni bibliche',
     versionsHint:
       'Una versione attivata viene scaricata su questo dispositivo per la '
-      + 'lettura offline — circa 6 MB ciascuna. Disattivarla libera quello '
+      + 'lettura offline — da 6 a 10 MB a seconda della lingua. Disattivarla libera quello '
       + 'spazio.',
     versionDefault: 'Predefinita',
     versionDeleting: 'Eliminazione…',
@@ -847,7 +847,7 @@ export const it: Dictionary = {
           + "l'aspetto, le traduzioni tenute sul dispositivo e la sicurezza "
           + "dell'account.",
         points: [
-          'Attiva o togli una traduzione: ciascuna pesa circa 6 MB offline.',
+          'Attiva o togli una traduzione: ciascuna pesa da 6 a 10 MB offline.',
           'Tema chiaro, scuro, o in accordo con quello del tuo sistema.',
           'Disconnessione automatica dopo un tempo di inattività.',
           'Esportazione e importazione di tutti i tuoi dati, per tenerne una copia.',

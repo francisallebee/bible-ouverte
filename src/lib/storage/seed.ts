@@ -59,6 +59,13 @@ const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'cramp23', name: 'Augustin Crampon 1923', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
   { id: 'sacc', name: 'Lemaître de Sacy 1667', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
   { id: 'perret', name: 'Perret-Gentil et Rilliet 1861', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+
+  // Les langues de l'interface, ajoutées le 16 août 2026. Toutes désactivées
+  // par défaut, comme les six françaises non natives : rien n'est téléchargé
+  // tant que l'utilisateur ne le demande pas.
+  { id: 'kjv', name: 'King James Version 1611', language: 'en', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'diodati', name: 'Giovanni Diodati 1649', language: 'it', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'svd', name: 'Smith & Van Dyck 1865', language: 'ar', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
 ];
 
 const DEFAULT_SETTINGS: AppSettings = {

@@ -19,6 +19,7 @@ import type { ReadingEntry, BibleVersion, BiblePassage, ReadingContext } from "@
 import { getBook } from "@/features/bible";
 import { useI18n, useBookName, useBooks, useContextName } from "@/contexts/I18nContext";
 import { formatDate } from "@/lib/i18n/format";
+import { textDirection } from "@/lib/i18n/locales";
 import ContextPicker from "@/components/ContextPicker";
 
 export default function ReadingDetailPage() {
@@ -408,7 +409,11 @@ export default function ReadingDetailPage() {
                 {t.readingDetail.textUnavailable}
               </p>
             ) : (
-              <div className="text-sm leading-relaxed">
+              // Le sens d'écriture suit la version lue, pas l'interface.
+              <div
+                className="text-sm leading-relaxed"
+                dir={textDirection(version?.language ?? "fr")}
+              >
                 {passages.map((p) => (
                   <p key={`${p.chapter}-${p.verse}`} className="mb-1">
                     <sup className="text-xs text-gray-400 me-1">

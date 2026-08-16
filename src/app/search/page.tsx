@@ -7,6 +7,7 @@ import type { BibleVersion, BiblePassage } from "@/lib/storage";
 
 import { BOOKS } from "@/features/bible";
 import { useI18n, useBookName, useBooks } from "@/contexts/I18nContext";
+import { textDirection } from "@/lib/i18n/locales";
 
 type Mode = "reference" | "keyword";
 
@@ -37,6 +38,14 @@ export default function SearchPage() {
   const books = useBooks();
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
+
+  /**
+   * Le sens d'écriture du texte affiché suit la **version**, pas l'interface :
+   * la Smith & Van Dyck se lit de droite à gauche même dans une application
+   * réglée en français.
+   */
+  const sensDuTexte = (versionId: string) =>
+    textDirection(versions.find((v) => v.id === versionId)?.language ?? "fr");
 
   const [mode, setMode] = useState<Mode>("reference");
 
@@ -220,7 +229,7 @@ export default function SearchPage() {
                 {getBookName(refBook)} {refChapter}
                 {refVerse ? `:${refVerse}` : ""} — {t.search.verseCount(refResults.length)}
               </p>
-              <div className="text-sm leading-relaxed mb-4">
+              <div className="text-sm leading-relaxed mb-4" dir={sensDuTexte(refVersion)}>
                 {refResults.map((p) => (
                   <span key={`${p.chapter}-${p.verse}`}>
                     <sup className="text-xs text-gray-400 me-0.5">{p.verse}</sup>
@@ -281,7 +290,9 @@ export default function SearchPage() {
                       <span className="font-medium text-[--primary]">
                         {getBookName(p.book)} {p.chapter}:{p.verse}
                       </span>{" "}
-                      <span className="text-gray-700">{highlightText(p.text, kwQuery)}</span>
+                      <span className="text-gray-700" dir={sensDuTexte(p.versionId)}>
+                        {highlightText(p.text, kwQuery)}
+                      </span>
                     </div>
                     <button onClick={() => openAddForm({
                       book: p.book,
