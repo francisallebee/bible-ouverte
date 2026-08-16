@@ -192,6 +192,15 @@ coûterait une passe complète sur les 19 écrans.
     `.next/server/app/…​.html` avant de conclure qu'une page est à l'abri, et ne
     pas se fier à une protection fortuite qu'un crochet retiré ferait tomber.
 
+13. **Ajouter une version de la Bible demande trois gestes, pas deux.** Une
+    entrée dans `scripts/download-bible-versions.mjs` pour produire le fichier,
+    une ligne dans `TEXT_VERSIONS` (`lib/storage/seed.ts`) pour qu'elle
+    apparaisse aux Réglages, et une dans `VERSIONS` (`features/bible/import.ts`)
+    pour que `loadData` sache où le chercher. Oublier la troisième donne une
+    version qui s'affiche, se laisse cocher, et échoue au téléchargement sans
+    autre explication — c'est arrivé le 16 août 2026, en production.
+    `import.test.ts` compare désormais les deux tables dans les deux sens.
+
 ## Commandes
 
 ```bash

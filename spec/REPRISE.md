@@ -494,6 +494,21 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   cache local qui rattrape son retard doit d'abord regarder ce qu'il rattrape.
   Tout arbitrage suppose une date **des deux côtés** — celle de la modification,
   pas celle de la poussée.
+- **Une version de la Bible se déclare en trois endroits, et l'oubli du
+  troisième ne se voit qu'à l'usage.** Le 16 août 2026, les quatre versions non
+  françaises sont parties en production déclarées dans le script et dans
+  `TEXT_VERSIONS`, mais pas dans le `VERSIONS` de `features/bible/import.ts`.
+  Elles s'affichaient aux Réglages, se laissaient cocher, et `loadData` levait
+  « Version inconnue » : le `catch` de l'écran remettait la case décochée, si
+  bien que le seul symptôme visible était un message d'échec de téléchargement.
+  Ni le typage ni les tests ne pouvaient l'attraper, les deux tables étant
+  indépendantes. `import.test.ts` les compare désormais dans les deux sens.
+
+  **Sur qui l'a vu** : l'agent l'a trouvé par la lecture, en cherchant où son
+  propre travail n'était pas vérifié — la ligne « l'activation importe le texte
+  : non vérifié » de sa réserve. Mais c'est **le propriétaire du dépôt** qui l'a
+  constaté à l'écran, en cochant une case, avant que le correctif soit poussé.
+  Les deux comptent, et pas de la même façon.
 - **Sous RLS, un `delete` qui ne correspond à rien réussit sans erreur.**
   Ajouter `.select()` pour distinguer une suppression d'un refus silencieux.
 - **L'espace disque n'est pas rendu immédiatement** quand on désactive une
