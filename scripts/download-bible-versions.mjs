@@ -137,6 +137,24 @@ const VERSIONS = [
     source: 'scrollmapper',
     scrollmapperFile: 'SpaRV.json',
   },
+  /**
+   * La huitième française, ajoutée le 16 août 2026.
+   *
+   * Elle a été retenue contre quatre autres versions françaises du même dépôt —
+   * Genève 1669, Oltramare 1874, Stapfer 1889, Synodale 1921 — qui annoncent
+   * toutes 66 livres et 31 102 versets mais dont **l'Ancien Testament est
+   * entièrement vide** : ce sont des Nouveaux Testaments, avec des cases
+   * blanches pour le reste. Un comptage les déclare complètes ; seule la
+   * lecture de Genèse 1:1 les démasque.
+   */
+  {
+    id: 'annotee',
+    name: 'Bible Annotée de Neuchâtel 1900',
+    lang: 'fr',
+    output: 'annotee.json',
+    source: 'scrollmapper',
+    scrollmapperFile: 'FreBBB.json',
+  },
 ];
 
 async function fetchJson(url) {

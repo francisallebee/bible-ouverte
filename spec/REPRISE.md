@@ -494,6 +494,25 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   cache local qui rattrape son retard doit d'abord regarder ce qu'il rattrape.
   Tout arbitrage suppose une date **des deux côtés** — celle de la modification,
   pas celle de la poussée.
+- **Compter les versets ne dit pas qu'ils portent du texte.** Le 16 août 2026,
+  quatre versions françaises de `scrollmapper` — Genève 1669, Oltramare 1874,
+  Stapfer 1889, Synodale 1921 — annonçaient chacune **66 livres et 31 102
+  versets**, exactement comme les versions saines. Leur Ancien Testament était
+  entièrement vide : des versets présents, au texte réduit à la chaîne vide. Ce
+  sont des Nouveaux Testaments, ce que leur titre disait d'ailleurs, complétés
+  par des cases blanches.
+
+  Le contrôle qui avait validé la King James, Diodati et la Van Dyck — compter
+  les chapitres des livres qui avaient trahi Sacy — les aurait déclarées
+  complètes. **Il faut lire Genèse 1:1**, et compter les versets vides sur toute
+  la version. C'est ce contrôle-là qui a retenu la Bible Annotée de Neuchâtel,
+  seule des cinq à avoir zéro verset vide.
+
+  Il a aussi servi à revérifier les quatre versions déjà livrées : `kjv`,
+  `diodati` et `svd` en ont **zéro**, et la Reina-Valera **18**, tous aux
+  jonctions de chapitre — Jonas 1:17 vide et son texte dans Jonas 2:1. C'est une
+  différence de versification entre traditions, comme Malachie à 3 chapitres
+  dans Crampon et Darby, et non un manque.
 - **Une version de la Bible se déclare en trois endroits, et l'oubli du
   troisième ne se voit qu'à l'usage.** Le 16 août 2026, les quatre versions non
   françaises sont parties en production déclarées dans le script et dans

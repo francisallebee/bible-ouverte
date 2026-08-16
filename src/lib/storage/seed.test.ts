@@ -100,7 +100,7 @@ describe('seedIfNeeded', () => {
     expect(stores.contexts.get('meditation')).toMatchObject({ emoji: '🕊️' });
     // Sept françaises, puis l'anglais, l'italien, l'arabe et l'espagnol depuis
     // le 16 août 2026 — les cinq langues que l'interface parle.
-    expect(stores.bible_versions.size).toBe(11);
+    expect(stores.bible_versions.size).toBe(12);
   });
 
   it("n'active que la version par défaut à l'installation", async () => {

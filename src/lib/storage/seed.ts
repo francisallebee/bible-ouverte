@@ -67,6 +67,7 @@ export const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'diodati', name: 'Giovanni Diodati 1649', language: 'it', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
   { id: 'svd', name: 'Smith & Van Dyck 1865', language: 'ar', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
   { id: 'rv1909', name: 'Reina-Valera 1909', language: 'es', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'annotee', name: 'Bible Annotée de Neuchâtel 1900', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
 ];
 
 const DEFAULT_SETTINGS: AppSettings = {

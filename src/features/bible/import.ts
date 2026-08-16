@@ -59,6 +59,7 @@ export const VERSIONS: { id: string; file: string }[] = [
   { id: 'diodati', file: 'diodati.json' },
   { id: 'svd', file: 'svd.json' },
   { id: 'rv1909', file: 'rv1909.json' },
+  { id: 'annotee', file: 'annotee.json' },
 ];
 
 async function loadData(versionId: string): Promise<SourceBible> {
