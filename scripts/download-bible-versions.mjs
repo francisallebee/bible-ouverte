@@ -129,6 +129,14 @@ const VERSIONS = [
     output: 'svd.json',
     source: 'midvash',
   },
+  {
+    id: 'rv1909',
+    name: 'Reina-Valera 1909',
+    lang: 'es',
+    output: 'rv1909.json',
+    source: 'scrollmapper',
+    scrollmapperFile: 'SpaRV.json',
+  },
 ];
 
 async function fetchJson(url) {
@@ -155,6 +163,39 @@ async function downloadFromMidvash(slug, lang = 'fr') {
     console.log(`  ✓ ${bookMeta.abbr}`);
   }
   return books;
+}
+
+/**
+ * `scrollmapper/bible_databases` — 140 versions, et la seule source trouvée
+ * pour l'espagnol : `midvash` porte 22 langues, mais pas la sienne.
+ *
+ * Le fichier est d'un seul tenant, et ses livres portent des noms anglais
+ * (« Revelation of John » et non « Rev »). La correspondance se fait donc par
+ * **position** : les deux listes suivent l'ordre canonique et comptent 66
+ * entrées, ce que la garde ci-dessous vérifie plutôt que de le supposer.
+ */
+async function downloadFromScrollmapper(fichier) {
+  const url = `https://raw.githubusercontent.com/scrollmapper/bible_databases/master/formats/json/${fichier}`;
+  const raw = await fetchJson(url);
+
+  if (raw.books.length !== OSIS_BOOKS.length) {
+    throw new Error(
+      `${fichier} : ${raw.books.length} livres au lieu de ${OSIS_BOOKS.length}`,
+    );
+  }
+
+  return raw.books.map((livre, i) => {
+    const meta = OSIS_BOOKS[i];
+    console.log(`  ✓ ${meta.abbr}`);
+    return {
+      abbreviation: meta.abbr,
+      name: meta.name,
+      chapters: livre.chapters.map((ch) => ({
+        chapter: ch.chapter,
+        verses: ch.verses.map((v) => ({ verse: v.verse, text: v.text })),
+      })),
+    };
+  });
 }
 
 async function downloadFromSourceforge(sourceforgeFile) {
@@ -237,6 +278,8 @@ async function main() {
       books = await downloadFromMidvash(version.slug, version.lang ?? 'fr');
     } else if (version.source === 'sourceforge') {
       books = await downloadFromSourceforge(version.sourceforgeFile);
+    } else if (version.source === 'scrollmapper') {
+      books = await downloadFromScrollmapper(version.scrollmapperFile);
     }
 
     const bible = {

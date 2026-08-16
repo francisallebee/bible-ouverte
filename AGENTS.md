@@ -33,11 +33,18 @@ une migration SQL**, pas par un composant.
 
 L'interface est traduite, **et le texte biblique l'est désormais aussi, en
 partie** : depuis le 16 août 2026, `public/bibles/` porte sept versions
-françaises, une anglaise (King James 1611), une italienne (Diodati 1649) et une
-arabe (Smith & Van Dyck 1865). Toutes du domaine public, toutes complètes —
-leurs 66 livres et les chapitres qui avaient trahi Sacy ont été comptés avant
-téléchargement. **L'espagnol manque** : la source `midvash/bible-data` porte 22
-langues, mais pas la sienne.
+françaises, une anglaise (King James 1611), une italienne (Diodati 1649), une
+arabe (Smith & Van Dyck 1865) et une espagnole (Reina-Valera 1909) — **une par
+langue de l'interface**. Toutes du domaine public, toutes complètes : leurs 66
+livres et les chapitres qui avaient trahi Sacy ont été comptés avant
+téléchargement.
+
+Deux sources, et la seconde a été trouvée parce que la première ne suffisait
+pas. `midvash/bible-data` porte 22 langues mais pas l'espagnol ;
+`scrollmapper/bible_databases` en porte 140 versions, dont la Reina-Valera. Ses
+livres n'ont pas d'abréviation et portent des noms anglais, si bien que la
+correspondance s'y fait **par position** — les deux listes suivant l'ordre
+canonique, ce que le script vérifie plutôt que de le supposer.
 
 Deux choses ne se confondent pas : **la langue de l'interface et celle du texte
 lu**. Un lecteur peut consulter la Van Dyck dans une application réglée en
@@ -122,7 +129,7 @@ coûterait une passe complète sur les 19 écrans.
 | `src/lib/i18n/` | Langues, dictionnaires, noms de livres et de contextes, dates |
 | `src/contexts/` | Fournisseurs React : session (`AuthContext`), langue (`I18nContext`) |
 | `src/features/bible/` | Livres, classification, import des versions |
-| `public/bibles/` | 10 versions libres de droits : 7 fr, 1 en, 1 it, 1 ar (69 Mo) |
+| `public/bibles/` | 11 versions libres de droits, une par langue : 7 fr, 1 en, 1 it, 1 ar, 1 es (75 Mo) |
 | `supabase/migrations/` | Schéma et RLS, appliqués dans l'ordre des noms |
 | `scripts/` | Téléchargement et conversion des textes bibliques |
 

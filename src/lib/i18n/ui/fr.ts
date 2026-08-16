@@ -67,7 +67,7 @@ export const fr = {
      * 2026. Le dire ici plutôt que de laisser l'utilisateur le découvrir.
      */
     bibleLanguages:
-      'Le texte biblique existe en français, anglais, italien et arabe. '
+      'Le texte biblique existe dans les cinq langues de l\'application. '
       + 'Choisis les versions à garder sur cet appareil dans les Réglages.',
   },
 

@@ -61,7 +61,7 @@ export const it: Dictionary = {
     title: 'Lingua',
     subtitle: "La lingua dell'applicazione.",
     bibleLanguages:
-      'Il testo biblico è disponibile in francese, inglese, italiano e arabo. '
+      'Il testo biblico è disponibile in tutte e cinque le lingue dell\'app. '
       + 'Scegli nelle Impostazioni quali versioni tenere su questo dispositivo.',
   },
 
