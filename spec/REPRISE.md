@@ -415,6 +415,7 @@ interrompu avant la fin. Les previews passent par git.
 | Poids de `public/bibles/` | 47 → **75 Mo** ; la Van Dyck seule fait **10 Mo**, l'arabe vocalisé coûtant 2 octets par caractère | 16 août |
 | Reina-Valera 1909 | 66 livres, 31 102 versets — trouvée dans `scrollmapper`, `midvash` n'ayant pas d'espagnol | 16 août |
 | Bible Annotée de Neuchâtel 1900 | 66 livres, 31 102 versets, **0 vide** — la 8ᵉ française | 16 août |
+| Import d'une version à l'écran | **vu fonctionner** par le propriétaire du dépôt, sur la Bible Annotée | 16 août |
 | Quatre autres françaises de `scrollmapper` | 66 livres annoncés, **Ancien Testament entièrement vide** — écartées | 16 août |
 | Versets vides des versions livrées | kjv 0, diodati 0, svd 0, rv1909 **18**, tous aux jonctions de chapitre | 16 août |
 | Droits des versions demandées | **9 sur 11 sous droits** (SBG, ABF, Biblica) ; Fillion et Vigouroux libres mais sans source structurée | 16 août |
@@ -532,6 +533,12 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   : non vérifié » de sa réserve. Mais c'est **le propriétaire du dépôt** qui l'a
   constaté à l'écran, en cochant une case, avant que le correctif soit poussé.
   Les deux comptent, et pas de la même façon.
+
+  **Le correctif est validé en usage** : la Bible Annotée de Neuchâtel a été
+  cochée et téléchargée avec succès le 16 août 2026, par le propriétaire du
+  dépôt. Le chemin complet — case cochée, fichier récupéré, 31 102 versets
+  écrits dans IndexedDB — fonctionne donc de bout en bout. C'est la première
+  version ajoutée après la règle 13, et la seule dont l'import ait été vu.
 - **Sous RLS, un `delete` qui ne correspond à rien réussit sans erreur.**
   Ajouter `.select()` pour distinguer une suppression d'un refus silencieux.
 - **L'espace disque n'est pas rendu immédiatement** quand on désactive une
