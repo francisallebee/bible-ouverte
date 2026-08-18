@@ -30,12 +30,12 @@ action hors du dépôt.
    `/auth/login` l'a été, faute de session côté agent. Les propriétés logiques
    y tiennent ; rien ne dit qu'elles tiennent ailleurs. Une trentaine de
    classes physiques subsistent dans 14 fichiers — piste, pas verdict.
-4. **Les actions de l'écran Administration ont été exercées le 18 août 2026**,
-   par l'agent, sur le compte de test *Teste* — voir la section dédiée plus
-   bas. Suspendre, réactiver, promouvoir, rétrograder et changer le statut
-   d'un ticket : les cinq passent, chacune vue à l'écran **et** confirmée en
-   base. **Reste la suppression d'un compte**, non exercée : elle est
-   irréversible et détruirait le compte de test.
+4. **Les actions de l'écran Administration ont toutes été exercées le 18 août
+   2026**, par l'agent, sur le compte de test *Teste* — voir la section dédiée
+   plus bas. Suspendre, réactiver, promouvoir, rétrograder, changer le statut
+   d'un ticket et supprimer un compte : les six passent, chacune vue à l'écran
+   **et** confirmée en base. Le compte de test a été consommé par la
+   suppression ; en recréer un pour la prochaine vérification.
    S'y ajoutaient trois chemins déjà connus. **Le changement de mot de passe a
    été exercé le 16 août 2026, par le propriétaire du dépôt et non par
    l'agent**, depuis l'écran Profil et sur son compte réel — il fonctionne.
@@ -699,8 +699,18 @@ requête en base, les deux comptant séparément :
 | Rétrograder | `PATCH` 200 | `is_admin: false` | retour à « User », carte à « 1 admin » |
 | Statut d'un ticket | `PATCH` 200 | 8 ouverts, 2 en cours, 2 résolus, 4 clos | badge « en cours », filtres recomptés |
 
-**La suppression d'un compte n'a pas été exercée** : elle est irréversible et
-détruirait le compte de test.
+| Supprimer | `DELETE` 200 | compte auth, profil et ses 11 contextes partis ; 110/110, aucun orphelin | 110 lignes, *Teste* absent, cartes à 110 et 928 |
+
+La boîte de confirmation portait bien « Supprimer Teste et toutes ses
+données ? ». Sa réponse a été fournie par une substitution de `window.confirm`,
+le propriétaire du dépôt ayant donné son accord dans la conversation : c'est le
+`DELETE` qui est éprouvé, pas le clic sur le bouton natif.
+
+Le compte de test est donc **consommé**. En recréer un avant la prochaine
+vérification — ce qui éprouvera au passage la confirmation d'adresse et
+l'alerte d'inscription. La ligne de `new_user_alerts` qui portait l'ancien
+compte reste en base, sans effet : un nouveau compte aura un autre
+identifiant.
 
 ### Deux pièges de la séance, à ne pas repayer
 

@@ -273,9 +273,10 @@ npm test           # vitest
   deux onglets et le tableau. Tous les écrans de l'application ont donc
   désormais été vus. **Ses actions ont été exercées le 18 août 2026**, par
   l'agent, sur le compte de test *Teste* : suspendre, réactiver, promouvoir,
-  rétrograder et changer le statut d'un ticket passent toutes, chacune vue à
-  l'écran **et** confirmée en base. **Reste la suppression d'un compte**, non
-  exercée : irréversible, elle détruirait le compte de test. Voir un écran
+  rétrograder, changer le statut d'un ticket et **supprimer un compte** passent
+  toutes, chacune vue à l'écran **et** confirmée en base. Plus aucune action de
+  cet écran n'est inconnue. Le compte de test a été consommé par la
+  suppression : en recréer un pour la prochaine vérification. Voir un écran
   s'afficher n'est pas voir ses boutons agir — et un `200` sur l'action ne dit
   rien de la relecture qui suit, voir `spec/REPRISE.md`.
   Hors de cet écran, **le changement de mot de passe a été exercé le 16 août
