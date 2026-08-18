@@ -22,6 +22,7 @@ aucune donnée.
 | `20260813120000_push_notifications.sql` | `push_subscriptions` et `notification_log`, avec leur RLS |
 | `20260813160000_notification_data.sql` | `notification_data()` : les agrégats des cinq déclencheurs |
 | `20260814140000_new_user_alerts.sql` | `new_user_alerts` : mémoire des inscriptions déjà signalées, amorcée avec les comptes existants |
+| `20260818200000_tickets_closed_lock.sql` | Un ticket clos n'accepte plus de réponse : `guard_ticket_update` lève, sauf pour l'administrateur |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -579,6 +580,45 @@ sont pas décrits ici. Leurs policies méritent le même audit que les tables : 
 route `/api/admin/users/[id]` y range les fichiers sous un préfixe `{user_id}/`,
 et rien dans le dépôt ne garantit qu'un utilisateur ne peut pas lire le préfixe
 d'un autre.
+
+## La clôture d'un ticket
+
+Appliquée le 18 août 2026 par l'outil MCP, et figurant donc dans
+`supabase_migrations`.
+
+Le statut d'un ticket appartenait déjà au seul administrateur :
+`guard_ticket_update` restaure `status` depuis l'ancienne ligne pour tout
+appelant ordinaire. Ce qui manquait, c'est la conséquence — un ticket clos
+restait ouvert aux commentaires, `replies` étant précisément la colonne que le
+garde laisse passer.
+
+Masquer le champ de saisie dans l'écran Support n'aurait rien valu : le
+navigateur parle directement à Supabase avec la clé anon, et un appel depuis la
+console contourne n'importe quel composant. Le refus vient donc de la base.
+
+**Le refus est une exception, pas une restauration silencieuse**, contrairement
+aux autres colonnes de ce garde. Les deux ne jouent pas le même rôle : une
+colonne restaurée corrige une écriture illégitime dont l'auteur n'a pas à être
+averti, tandis qu'une réponse refusée doit remonter à celui qui l'a rédigée.
+`addReply` écrit désormais le distant **avant** le cache et rend un booléen —
+sans quoi la réponse s'afficherait puis disparaîtrait à la synchronisation
+suivante, sans un mot.
+
+Les trois règles ont été éprouvées sur la base réelle, sous
+`set local role authenticated` avec `request.jwt.claims` posé :
+
+| Essai | Résultat |
+|---|---|
+| Compte ordinaire, réponse sur un ticket **clos** | `P0001 : ticket clos : plus aucune réponse ne peut y être ajoutée` |
+| Compte ordinaire, réponse sur un ticket **ouvert** | passe |
+| Compte ordinaire tentant `status = 'closed'` | statut restauré à `open` |
+
+**Piège rencontré** : le premier essai a « réussi » sur un ticket clos, ce qui
+semblait démentir la migration. Le compte choisi était l'administrateur, qui
+sort de la fonction avant tout contrôle. Vérifier `is_admin` du cobaye avant de
+conclure. Second piège, plus discret : `set local request.jwt.claims` doit être
+posé **avant** `set local role authenticated`, sinon `auth.uid()` reste nul et
+l'essai mesure le chemin service_role sans le dire.
 
 ## Choix assumés
 

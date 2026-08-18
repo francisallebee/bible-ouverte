@@ -9,6 +9,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { useI18n } from '@/contexts/I18nContext'
 import { formatDate } from '@/lib/i18n/format'
+import { TICKET_STATUSES, TICKET_STATUS_BADGE } from '@/lib/tickets'
 
 /* ---------- types ---------- */
 type AdminUser = {
@@ -34,14 +35,6 @@ const CATEGORIES: Record<string, { icon: any }> = {
   suggestion: { icon: Lightbulb },
 }
 
-const STATUS_OPTIONS = ['open', 'in_progress', 'resolved', 'closed']
-
-const STATUS_BADGE: Record<string, string> = {
-  open: 'text-yellow-600 bg-yellow-50',
-  in_progress: 'text-blue-600 bg-blue-50',
-  resolved: 'text-green-600 bg-green-50',
-  closed: 'text-gray-500 bg-gray-100',
-}
 
 /**
  * Une réponse non lue est une panne invisible.
@@ -255,10 +248,10 @@ export default function AdminPage() {
               className={`px-3 py-1.5 rounded-lg text-xs border ${!statusFilter ? 'border-[--primary] bg-[--primary] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
               {t.admin.allTickets(tickets.length)}
             </button>
-            {STATUS_OPTIONS.map(s => (
+            {TICKET_STATUSES.map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
                 className={`px-3 py-1.5 rounded-lg text-xs border ${statusFilter === s ? 'border-[--primary] bg-[--primary] text-white' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
-                {t.admin.ticketStatuses[s] ?? s} ({tickets.filter(x => x.status === s).length})
+                {t.common.ticketStatuses[s] ?? s} ({tickets.filter(x => x.status === s).length})
               </button>
             ))}
           </div>
@@ -286,8 +279,8 @@ export default function AdminPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_BADGE[ticket.status] || ''}`}>
-                              {t.admin.ticketStatuses[ticket.status] ?? ticket.status}
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${TICKET_STATUS_BADGE[ticket.status] || ''}`}>
+                              {t.common.ticketStatuses[ticket.status] ?? ticket.status}
                             </span>
                             <span className="text-xs text-gray-400">{t.admin.categories[ticket.type] ?? ticket.type}</span>
                           </div>
@@ -311,11 +304,11 @@ export default function AdminPage() {
                           <ChevronDown className="w-4 h-4" />
                         </button>
                         <div className="absolute end-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[140px] hidden group-hover:block z-10">
-                          {STATUS_OPTIONS.map(s => (
+                          {TICKET_STATUSES.map(s => (
                             <button key={s} onClick={() => handleTicketStatus(ticket.id, s)}
                               className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 ${ticket.status === s ? 'font-medium text-[--primary]' : 'text-gray-600'}`}>
-                              {STATUS_BADGE[s] && <span className={`inline-block w-2 h-2 rounded-full mr-2 ${STATUS_BADGE[s].replace('text-', 'bg-').split(' ')[0]}`} />}
-                              {t.admin.ticketStatuses[s] ?? s}
+                              {TICKET_STATUS_BADGE[s] && <span className={`inline-block w-2 h-2 rounded-full mr-2 ${TICKET_STATUS_BADGE[s].replace('text-', 'bg-').split(' ')[0]}`} />}
+                              {t.common.ticketStatuses[s] ?? s}
                             </button>
                           ))}
                         </div>

@@ -90,6 +90,12 @@ const nataij = (n: number) => pluriel(n, {
 
 export const ar: Dictionary = {
   common: {
+    ticketStatuses: {
+      open: 'مفتوحة',
+      in_progress: 'قيد المعالجة',
+      resolved: 'محلولة',
+      closed: 'مغلقة',
+    } as Record<string, string>,
     save: 'حفظ',
     cancel: 'إلغاء',
     delete: 'حذف',
@@ -556,6 +562,9 @@ export const ar: Dictionary = {
     } as Record<string, string>,
   },
   support: {
+    replyFailed: 'لم يُحفظ الرد. قد تكون الرسالة مغلقة، أو انقطع الاتصال.',
+    closedSection: (n: number) => `مغلقة (${n})`,
+    closedNotice: 'هذه الرسالة مغلقة. لا يمكن إعادة فتحها إلا لمشرف.',
     title: 'الدعم والاقتراحات',
     subtitle: 'أبلغ عن خلل أو اقترح تحسينًا',
     newMessage: 'رسالة جديدة',
@@ -733,12 +742,6 @@ export const ar: Dictionary = {
     by: (name: string) => `بواسطة ${name}`,
     replyCount: (n: number) => `${n} ${ruddod(n)}`,
     categories: { bug: 'خلل', suggestion: 'اقتراح' } as Record<string, string>,
-    ticketStatuses: {
-      open: 'مفتوحة',
-      in_progress: 'قيد المعالجة',
-      resolved: 'محلولة',
-      closed: 'مغلقة',
-    } as Record<string, string>,
   },
   planDetail: {
     notFound: 'الخطة غير موجودة.',

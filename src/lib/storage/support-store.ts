@@ -125,10 +125,27 @@ export async function deleteTicket(id: number): Promise<boolean> {
   return true;
 }
 
-export async function addReply(ticketId: number, text: string, isAdmin: boolean, userName: string): Promise<void> {
+/**
+ * Ajoute une réponse à un ticket. Renvoie faux si elle n'a pas été écrite.
+ *
+ * Le distant passe **avant** le cache, contrairement au reste de
+ * `src/lib/storage/` : pour les tickets, c'est le cloud qui fait foi, et
+ * `syncTickets` remplace le cache par l'état distant à chaque lecture. Une
+ * réponse écrite localement avant l'aller-retour resterait donc affichée
+ * jusqu'à la synchronisation suivante, qui la ferait disparaître sans un mot.
+ *
+ * Le cas n'est plus théorique depuis la migration
+ * `20260818200000_tickets_closed_lock` : `guard_ticket_update` refuse par une
+ * exception toute réponse sur un ticket clos. C'est ce refus que le booléen
+ * fait remonter jusqu'à l'écran.
+ *
+ * Hors ligne, ou pour un ticket jamais poussé, on retombe sur l'écriture locale
+ * seule — `syncTickets` la poussera à la prochaine occasion.
+ */
+export async function addReply(ticketId: number, text: string, isAdmin: boolean, userName: string): Promise<boolean> {
   const db = await getDB();
   const ticket = await db.get('support_tickets', ticketId);
-  if (!ticket) return;
+  if (!ticket) return false;
   const userId = await getCurrentUserId();
   const reply: SupportReply = {
     id: crypto.randomUUID(),
@@ -139,8 +156,12 @@ export async function addReply(ticketId: number, text: string, isAdmin: boolean,
     createdAt: new Date().toISOString(),
   };
   const replies = [...(ticket.replies ?? []), reply];
-  await db.put('support_tickets', { ...ticket, replies });
+
   if (isOnline() && ticket.synced) {
-    supabaseUpdate(ticketId, { replies, updatedAt: new Date().toISOString() }).catch(() => {});
+    const ecrit = await supabaseUpdate(ticketId, { replies, updatedAt: new Date().toISOString() });
+    if (!ecrit) return false;
   }
+
+  await db.put('support_tickets', { ...ticket, replies });
+  return true;
 }

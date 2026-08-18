@@ -16,6 +16,12 @@ import { PASSWORD_MIN_LENGTH } from '@/lib/auth/password'
 
 export const fr = {
   common: {
+    ticketStatuses: {
+      open: 'ouvert',
+      in_progress: 'en cours',
+      resolved: 'résolu',
+      closed: 'clos',
+    } as Record<string, string>,
     save: 'Enregistrer',
     cancel: 'Annuler',
     delete: 'Supprimer',
@@ -502,6 +508,11 @@ export const fr = {
     } as Record<string, string>,
   },
   support: {
+    replyFailed:
+      'Réponse non enregistrée. Le message est peut-être clos, ou la connexion perdue.',
+    closedSection: (n: number) => `Clos (${n})`,
+    closedNotice:
+      'Ce message est clos. Seul un administrateur peut le rouvrir.',
     title: 'Support & Suggestions',
     subtitle: 'Signale un bug ou propose une amélioration',
     newMessage: 'Nouveau message',
@@ -689,12 +700,6 @@ export const fr = {
     by: (name: string) => `Par ${name}`,
     replyCount: (n: number) => `${n} réponse${n > 1 ? 's' : ''}`,
     categories: { bug: 'Bug', suggestion: 'Suggestion' } as Record<string, string>,
-    ticketStatuses: {
-      open: 'ouvert',
-      in_progress: 'en cours',
-      resolved: 'résolu',
-      closed: 'clos',
-    } as Record<string, string>,
   },
   planDetail: {
     notFound: 'Plan introuvable.',

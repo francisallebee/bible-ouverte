@@ -15,6 +15,12 @@ import { PASSWORD_MIN_LENGTH } from '@/lib/auth/password'
 
 export const es: Dictionary = {
   common: {
+    ticketStatuses: {
+      open: 'abierto',
+      in_progress: 'en curso',
+      resolved: 'resuelto',
+      closed: 'cerrado',
+    } as Record<string, string>,
     save: 'Guardar',
     cancel: 'Cancelar',
     delete: 'Eliminar',
@@ -497,6 +503,11 @@ export const es: Dictionary = {
     } as Record<string, string>,
   },
   support: {
+    replyFailed:
+      'Respuesta no guardada. El mensaje puede estar cerrado, o se perdió la conexión.',
+    closedSection: (n: number) => `Cerrados (${n})`,
+    closedNotice:
+      'Este mensaje está cerrado. Solo un administrador puede reabrirlo.',
     title: 'Soporte y sugerencias',
     subtitle: 'Informa de un error o propón una mejora',
     newMessage: 'Nuevo mensaje',
@@ -678,12 +689,6 @@ export const es: Dictionary = {
     by: (name: string) => `Por ${name}`,
     replyCount: (n: number) => `${n} ${n !== 1 ? 'respuestas' : 'respuesta'}`,
     categories: { bug: 'Error', suggestion: 'Sugerencia' } as Record<string, string>,
-    ticketStatuses: {
-      open: 'abierto',
-      in_progress: 'en curso',
-      resolved: 'resuelto',
-      closed: 'cerrado',
-    } as Record<string, string>,
   },
   planDetail: {
     notFound: 'Plan no encontrado.',

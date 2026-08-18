@@ -15,6 +15,12 @@ import { PASSWORD_MIN_LENGTH } from '@/lib/auth/password'
 
 export const it: Dictionary = {
   common: {
+    ticketStatuses: {
+      open: 'aperto',
+      in_progress: 'in corso',
+      resolved: 'risolto',
+      closed: 'chiuso',
+    } as Record<string, string>,
     save: 'Salva',
     cancel: 'Annulla',
     delete: 'Elimina',
@@ -496,6 +502,11 @@ export const it: Dictionary = {
     } as Record<string, string>,
   },
   support: {
+    replyFailed:
+      'Risposta non salvata. Il messaggio potrebbe essere chiuso, o la connessione persa.',
+    closedSection: (n: number) => `Chiusi (${n})`,
+    closedNotice:
+      'Questo messaggio è chiuso. Solo un amministratore può riaprirlo.',
     title: 'Assistenza e suggerimenti',
     subtitle: 'Segnala un bug o proponi un miglioramento',
     newMessage: 'Nuovo messaggio',
@@ -677,12 +688,6 @@ export const it: Dictionary = {
     by: (name: string) => `Di ${name}`,
     replyCount: (n: number) => `${n} ${n !== 1 ? 'risposte' : 'risposta'}`,
     categories: { bug: 'Bug', suggestion: 'Suggerimento' } as Record<string, string>,
-    ticketStatuses: {
-      open: 'aperto',
-      in_progress: 'in corso',
-      resolved: 'risolto',
-      closed: 'chiuso',
-    } as Record<string, string>,
   },
   planDetail: {
     notFound: 'Piano non trovato.',
