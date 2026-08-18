@@ -324,6 +324,11 @@ npm test           # vitest
   `notification_data()` devra remonter `settings.language` et
   `send-notifications` porter ses propres dictionnaires. C'est le seul endroit
   où la traduction sort du navigateur.
+  Troisième endroit hors du dépôt : les **gabarits de courriel de Supabase
+  Auth**, passés de l'anglais au français le 18 août 2026 depuis le tableau de
+  bord. Un gabarit unique par type de message, donc du français pour tout le
+  monde — l'utilisateur arabophone reçoit toujours autre chose que sa langue.
+  Supabase Auth n'en sert qu'un ; ce point n'a pas de correctif dans le dépôt.
 - **La réversion de langue est mesurée et corrigée**, le 15 août 2026 au soir.
   La piste était la bonne : `getSettings` poussait une ligne locale `_dirty`
   **sans jamais lire le distant**, si bien qu'un appareil dont la poussée avait

@@ -44,11 +44,13 @@ action hors du dépôt.
 5. **La réversion de langue est expliquée et corrigée** — voir la section dédiée
    plus bas. Reste à la voir à l'écran, connecté : le correctif est éprouvé en
    laboratoire, pas encore en usage. Trois appareils sont concernés.
-6. **Un mot de passe est à changer.** Celui du compte propriétaire est apparu en
-   clair dans les journaux du serveur de développement le 15 août 2026, par une
-   soumission de formulaire non hydratée. Le défaut de code est corrigé
-   (règle 12 d'`AGENTS.md`), l'exposition ne l'est pas : rien n'annule ce qui a
-   déjà été écrit dans un journal ou un historique.
+6. **Le mot de passe exposé a été changé**, le 18 août 2026, par le propriétaire
+   du dépôt. Celui du compte propriétaire était apparu en clair dans les
+   journaux du serveur de développement le 15 août 2026, par une soumission de
+   formulaire non hydratée. Le défaut de code avait été corrigé aussitôt
+   (règle 12 d'`AGENTS.md`) ; l'exposition, elle, ne s'annule pas — rien n'efface
+   ce qui a déjà été écrit dans un journal ou un historique, seule la rotation
+   du secret ferme le sujet. C'est fait.
 7. **Deux migrations ont été appliquées par exécution SQL directe**, l'outil de
    migration ayant été refusé à l'époque : `20260809100000_meditation_emoji.sql`
    et `20260809140000_plan_reading_context.sql`. Elles ne figurent donc pas dans

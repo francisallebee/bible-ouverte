@@ -551,12 +551,18 @@ distinct de l'adresse d'expédition, et il se lit dans *SMTP & API → SMTP*.
 
 ### Ce qui restera à faire après la bascule
 
-**Les gabarits ne sont pas traduits.** Ils vivent dans *Authentication → Emails
-→ Templates* et sont en anglais par défaut. Basculer le SMTP ne les touche pas.
-Un utilisateur peut donc lire une interface en arabe et recevoir sa
-confirmation en anglais — même limite que les notifications push : le courriel
-part du serveur, qui ne connaît pas la langue choisie. C'est le troisième
-endroit où la traduction sort du navigateur.
+**Les gabarits ont été traduits en français**, le 18 août 2026, par le
+propriétaire du dépôt, dans *Authentication → Emails → Templates* — ils sont en
+anglais à l'installation, et basculer le SMTP ne les touche pas.
+
+**Ce n'est pas pour autant une internationalisation.** Le gabarit est unique :
+il porte désormais le français au lieu de l'anglais, et un utilisateur qui lit
+l'interface en arabe reçoit toujours sa confirmation dans une langue qui n'est
+pas la sienne. La limite est la même que pour les notifications push — le
+courriel part du serveur, qui ne connaît pas la langue choisie. C'est le
+troisième endroit où la traduction sort du navigateur, et le seul des trois qui
+n'ait pas de solution dans le dépôt : Supabase Auth ne sert qu'un gabarit par
+type de message.
 
 **L'expéditeur vérifié est le maillon à surveiller.** Brevo refuse d'expédier
 depuis une adresse non validée, en SMTP comme en API. C'est déjà le suspect
