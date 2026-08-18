@@ -52,7 +52,7 @@ export const fr = {
     plans: 'Plans de lecture',
     search: 'Recherche biblique',
     progress: 'Progression',
-    history: 'Historique',
+    history: 'Mes lectures',
     stats: 'Statistiques',
     settings: 'Réglages',
     roadmap: 'Feuille de route',
@@ -136,7 +136,7 @@ export const fr = {
   },
 
   history: {
-    title: 'Historique',
+    title: 'Mes lectures',
     select: 'Sélectionner',
     selectedCount: (n: number) => `${n} sélectionnée${n > 1 ? 's' : ''}`,
     selectAll: (n: number) => `Tout sélectionner (${n})`,

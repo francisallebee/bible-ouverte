@@ -51,7 +51,7 @@ export const es: Dictionary = {
     plans: 'Planes de lectura',
     search: 'Búsqueda bíblica',
     progress: 'Progreso',
-    history: 'Historial',
+    history: 'Mis lecturas',
     stats: 'Estadísticas',
     settings: 'Ajustes',
     roadmap: 'Hoja de ruta',
@@ -130,7 +130,7 @@ export const es: Dictionary = {
   },
 
   history: {
-    title: 'Historial',
+    title: 'Mis lecturas',
     select: 'Seleccionar',
     selectedCount: (n: number) => `${n} ${n !== 1 ? 'seleccionadas' : 'seleccionada'}`,
     selectAll: (n: number) => `Seleccionar todo (${n})`,

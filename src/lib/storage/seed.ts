@@ -26,6 +26,7 @@ export const PLAN_CONTEXT_ID = 'plan-lecture';
 
 const DEFAULT_CONTEXTS: ReadingContext[] = [
   { id: PLAN_CONTEXT_ID, name: 'Plan de lecture', slug: 'plan-lecture', color: '#3498db', icon: 'tag', emoji: '📅', isSystemDefault: true },
+  { id: 'bible', name: 'Bible', slug: 'bible', color: '#6d4c41', icon: 'tag', emoji: '📖', isSystemDefault: true },
   { id: 'meditation', name: 'Méditation', slug: 'meditation', color: '#2ecc71', icon: 'tag', emoji: '🕊️', isSystemDefault: true },
   { id: 'eglise', name: 'Église', slug: 'eglise', color: '#7b68ee', icon: 'tag', emoji: '⛪', isSystemDefault: true },
   { id: 'predication', name: 'Prédication', slug: 'predication', color: '#9b59b6', icon: 'tag', emoji: '🎤', isSystemDefault: true },

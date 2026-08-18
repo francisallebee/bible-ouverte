@@ -43,7 +43,7 @@ export const en: Dictionary = {
     plans: 'Reading plans',
     search: 'Bible search',
     progress: 'Progress',
-    history: 'History',
+    history: 'My readings',
     stats: 'Statistics',
     settings: 'Settings',
     roadmap: 'Roadmap',
@@ -121,7 +121,7 @@ export const en: Dictionary = {
   },
 
   history: {
-    title: 'History',
+    title: 'My readings',
     select: 'Select',
     selectedCount: (n: number) => `${n} selected`,
     selectAll: (n: number) => `Select all (${n})`,

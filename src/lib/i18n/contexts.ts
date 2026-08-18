@@ -15,6 +15,7 @@
 import type { Locale } from './locales'
 
 const CONTEXTS_FR = {
+  bible: 'Bible',
   'plan-lecture': 'Plan de lecture',
   meditation: 'Méditation',
   eglise: 'Église',
@@ -33,6 +34,7 @@ export type ContextSlug = keyof typeof CONTEXTS_FR
 type ContextNames = Record<ContextSlug, string>
 
 const CONTEXTS_EN: ContextNames = {
+  bible: 'Bible',
   'plan-lecture': 'Reading plan',
   meditation: 'Meditation',
   eglise: 'Church',

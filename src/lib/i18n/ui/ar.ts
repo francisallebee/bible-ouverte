@@ -126,7 +126,7 @@ export const ar: Dictionary = {
     plans: 'خطط القراءة',
     search: 'البحث في الكتاب المقدس',
     progress: 'التقدم',
-    history: 'السجل',
+    history: 'قراءاتي',
     stats: 'الإحصائيات',
     settings: 'الإعدادات',
     roadmap: 'خارطة الطريق',
@@ -204,7 +204,7 @@ export const ar: Dictionary = {
   },
 
   history: {
-    title: 'السجل',
+    title: 'قراءاتي',
     select: 'تحديد',
     selectedCount: (n: number) => `${n} ${pluriel(n, {
       zero: 'محددة', un: 'محددة واحدة', deux: 'محددتان',
