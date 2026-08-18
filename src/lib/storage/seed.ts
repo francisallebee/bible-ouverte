@@ -2,7 +2,7 @@ import type { AppSettings, BibleVersion, ReadingContext } from './types';
 import { getDB } from './db';
 import { importEnabledBibleData } from '@/features/bible/import';
 import { deleteContext as deleteContextRemote } from '@/lib/supabase/store';
-import { repairNahumAbbreviation } from './passage-store';
+import { repairNahumAbbreviation, removeDuplicatePassages } from './passage-store';
 
 /**
  * Contextes de lecture proposés par défaut.
@@ -107,6 +107,12 @@ async function runSeed(): Promise<void> {
     await ensureVersionsExist(db);
     await ensureContextsExist(db);
     await repairNahumAbbreviation();
+    // Les appareils touchés par le double import gardent leurs doublons : la
+    // lecture les masque déjà, cette reprise rend l'espace. Sans effet une
+    // fois passée — la détection tient à un chapitre témoin.
+    for (const v of TEXT_VERSIONS) {
+      await removeDuplicatePassages(v.id);
+    }
     await importTexts();
     return;
   }

@@ -115,9 +115,12 @@ export async function importBibleVersion(versionId: string): Promise<number> {
     }
   }
 
-  await bulkAddPassages(passages);
+  // `bulkAddPassages` recompte dans sa propre transaction et renonce si la
+  // version est arrivée entre-temps : le comptage ci-dessus ne protège que
+  // d'un travail inutile, pas d'un doublon.
+  const ecrits = await bulkAddPassages(versionId, passages);
   present.add(versionId);
-  return passages.length;
+  return ecrits;
 }
 
 /**

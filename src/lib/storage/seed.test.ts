@@ -8,12 +8,14 @@ import { seedIfNeeded } from './seed';
 
 const importEnabledBibleData = vi.fn(async () => ({}));
 const repairNahumAbbreviation = vi.fn(async () => {});
+const removeDuplicatePassages = vi.fn(async () => 0);
 
 vi.mock('@/features/bible/import', () => ({
   importEnabledBibleData: () => importEnabledBibleData(),
 }));
 vi.mock('./passage-store', () => ({
   repairNahumAbbreviation: () => repairNahumAbbreviation(),
+  removeDuplicatePassages: () => removeDuplicatePassages(),
 }));
 vi.mock('@/lib/supabase/store', () => ({
   deleteContext: vi.fn(async () => true),
@@ -52,6 +54,7 @@ beforeEach(() => {
   importEnabledBibleData.mockClear();
   importEnabledBibleData.mockImplementation(async () => ({}));
   repairNahumAbbreviation.mockClear();
+  removeDuplicatePassages.mockClear();
 });
 
 afterEach(() => {
