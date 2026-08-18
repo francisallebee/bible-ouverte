@@ -20,10 +20,11 @@ action hors du dépôt.
    dans une clé, un secret déposé à vide, et onze comptes perdus puis rendus.
    Elle passe désormais par le **SMTP d'o2switch**, sur le domaine du projet.
 
-   Reste à faire, sans urgence : **retirer `BREVO_API_KEY`** des secrets, que la
-   fonction n'utilise plus. Et si tu veux recevoir l'alerte ailleurs que sur
-   l'adresse d'expédition, changer `NEW_USER_ALERT_TO` — il vaut aujourd'hui la
-   même adresse que `NEW_USER_ALERT_FROM`.
+   `BREVO_API_KEY` a été retiré ; les cinq secrets utiles — `SMTP_HOST`,
+   `SMTP_USER`, `SMTP_PASSWORD`, `NEW_USER_ALERT_FROM` et `NEW_USER_ALERT_TO` —
+   sont tous renseignés, aucun vide. Seul reste au choix : `NEW_USER_ALERT_TO`
+   vaut la même adresse que l'expéditeur, ce qui fait un envoi à soi-même. À
+   changer si tu préfères recevoir ailleurs.
 
 3. **Dix-huit écrans sur dix-neuf n'ont jamais été vus en arabe.** Seul
    `/auth/login` l'a été, faute de session côté agent. Les propriétés logiques
@@ -333,6 +334,13 @@ Pour travailler quand la box filtre : **partage de connexion iPhone**. Pour
 régler durablement, c'est le contrôle parental ou le filtrage de la box, sur
 `http://192.168.1.254`.
 
+**Le filtrage porte sur le nom d'hôte exact, et non sur le domaine.** Mesuré le
+18 août : `supabase.com` est refusé mais `api.supabase.com` répond — si bien que
+la CLI Supabase, qui n'appelle que le second, fonctionne depuis la box. Seul le
+tableau de bord est inaccessible. Ne pas conclure d'un hôte bloqué que tout le
+domaine l'est : c'est la variante fine de « un chemin bloqué n'est pas toute la
+carte ».
+
 ### Une fausse piste coûteuse : les extensions Surfshark
 
 Elle a occupé plusieurs échanges, elle est consignée pour ne pas être reprise.
@@ -404,6 +412,7 @@ interrompu avant la fin. Les previews passent par git.
 | Carte de saisie de Nouvelle lecture, sur 375 px | 686 → 596 px, sept listes déroulantes ramenées à trois | 13 août |
 | Apostrophes doublées dans Louis Segond 1910 | 48 028 occurrences, dans le fichier source et non à l'affichage | 13 août |
 | Filtrage de la box | github/supabase/vercel refusés sur 443, github:80 et gitlab:443 passent | 13 août |
+| Finesse du filtrage | **`api.supabase.com` passe** quand `supabase.com` est refusé — c'est le nom d'hôte exact qui est filtré, pas le domaine. La CLI Supabase fonctionne donc depuis la box | 18 août |
 | Le même Mac en partage de connexion | `github.com` à `200` en 124 ms, `git push` immédiat | 13 août |
 | Fonction `send-notifications` | `200` et `{"candidats":0,…}` avec le bon secret, `401` sans | 13 août |
 | Comptes et alertes en attente | 102 profils, 99 traces — 3 comptes à annoncer | 15 août |
