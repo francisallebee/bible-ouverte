@@ -13,18 +13,18 @@ action hors du dépôt.
 1. **Le réseau domestique filtre github, supabase et vercel.** Tant que ce n'est
    pas réglé sur la box, travailler en **partage de connexion iPhone** : c'est
    mesuré, tout repasse. Voir la section dédiée plus bas.
-2. **Il ne manque plus qu'un secret à l'alerte d'inscription :
-   `BREVO_API_KEY`.** `NEW_USER_ALERT_FROM`, `NEW_USER_ALERT_TO` et le
-   planificateur `alerte-nouvel-utilisateur` sont en place. Un agent ne dépose
-   pas de clé d'API. Commande dans `supabase/README.md`.
+2. **L'alerte d'inscription fonctionne**, depuis le 18 août 2026 à 11:00 UTC.
+   Courriel reçu, onze inscriptions annoncées d'un coup. Trois jours auront été
+   nécessaires, et le récit vaut d'être lu dans `supabase/README.md` : Brevo
+   abandonné pour sa liste blanche d'IP, un caractère typographique invisible
+   dans une clé, un secret déposé à vide, et onze comptes perdus puis rendus.
+   Elle passe désormais par le **SMTP d'o2switch**, sur le domaine du projet.
 
-   **L'essai est déjà prêt, sans rien créer** : au 15 août, `profiles` compte
-   102 lignes et `new_user_alerts` 99 — **trois comptes réels attendent d'être
-   annoncés**, le plus ancien du 14 août 21 h 42, le plus récent du 15 août
-   8 h 32. Dès le dépôt de la clé, le premier passage du cron enverra un
-   courriel les nommant tous les trois. Inutile de créer un compte de test.
-   Si rien n'arrive dans le quart d'heure, c'est la validation de l'expéditeur
-   chez Brevo qui est en cause — le point resté non vérifié.
+   Reste à faire, sans urgence : **retirer `BREVO_API_KEY`** des secrets, que la
+   fonction n'utilise plus. Et si tu veux recevoir l'alerte ailleurs que sur
+   l'adresse d'expédition, changer `NEW_USER_ALERT_TO` — il vaut aujourd'hui la
+   même adresse que `NEW_USER_ALERT_FROM`.
+
 3. **Dix-huit écrans sur dix-neuf n'ont jamais été vus en arabe.** Seul
    `/auth/login` l'a été, faute de session côté agent. Les propriétés logiques
    y tiennent ; rien ne dit qu'elles tiennent ailleurs. Une trentaine de
@@ -416,6 +416,9 @@ interrompu avant la fin. Les previews passent par git.
 | Reina-Valera 1909 | 66 livres, 31 102 versets — trouvée dans `scrollmapper`, `midvash` n'ayant pas d'espagnol | 16 août |
 | Bible Annotée de Neuchâtel 1900 | 66 livres, 31 102 versets, **0 vide** — la 8ᵉ française | 16 août |
 | Import d'une version à l'écran | **vu fonctionner** par le propriétaire du dépôt, sur la Bible Annotée | 16 août |
+| Alerte d'inscription | **reçue**, 11 inscriptions annoncées — SMTP o2switch, port 465 | 18 août |
+| Port 465 depuis une fonction Edge | **il sort**, contrairement à ce qu'annonce la documentation Supabase | 18 août |
+| Liste blanche d'IP de Brevo | 7 refus, 7 adresses différentes en 2 jours, toutes dans `2a05:d01c:76e:790…` | 18 août |
 | Quatre autres françaises de `scrollmapper` | 66 livres annoncés, **Ancien Testament entièrement vide** — écartées | 16 août |
 | Versets vides des versions livrées | kjv 0, diodati 0, svd 0, rv1909 **18**, tous aux jonctions de chapitre | 16 août |
 | Droits des versions demandées | **9 sur 11 sous droits** (SBG, ABF, Biblica) ; Fillion et Vigouroux libres mais sans source structurée | 16 août |

@@ -11,6 +11,7 @@
 // par les tests de `npm test`.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 import { comptesASignaler, composeNewUserEmail } from './message.ts'
 import type { NouveauCompte } from './message.ts'
 
@@ -25,15 +26,36 @@ Deno.serve(async (req) => {
     return new Response('unauthorized', { status: 401 })
   }
 
-  const cle = Deno.env.get('BREVO_API_KEY')
+  /**
+   * Envoi par SMTP, chez l'hébergeur du domaine — et non par une API tierce.
+   *
+   * Brevo a été abandonné le 18 août 2026 après trois jours d'échecs : son
+   * compte n'accepte les appels que depuis des adresses IP autorisées, et les
+   * fonctions Edge en changent à chaque exécution. Sept refus, sept adresses ;
+   * ni les autoriser une à une ni vider la liste n'y a rien fait.
+   *
+   * Le SMTP d'o2switch n'a pas cette contrainte, et l'adresse d'expédition
+   * appartient enfin au domaine du projet.
+   *
+   * **Le port 465 est un pari mesuré.** La documentation de Supabase annonce
+   * les ports 25, 465 et 587 fermés en sortie ; leur propre exemple
+   * `send-email-smtp` s'en sert pourtant, et des déploiements réels le
+   * confirment sur 465 avec TLS. Si la connexion est refusée, le journal le
+   * dira sans ambiguïté et il faudra revenir à une API HTTP.
+   */
+  const smtpHote = Deno.env.get('SMTP_HOST')
+  const smtpUtilisateur = Deno.env.get('SMTP_USER')
+  const smtpMotDePasse = Deno.env.get('SMTP_PASSWORD')
   const expediteur = Deno.env.get('NEW_USER_ALERT_FROM')
   const destinataire = Deno.env.get('NEW_USER_ALERT_TO')
 
-  // Nommer précisément ce qui manque, et non les trois d'un bloc : ces secrets
-  // se déposent en plusieurs fois, et un message groupé laisse chercher lequel
+  // Nommer précisément ce qui manque, et non tout d'un bloc : ces secrets se
+  // déposent en plusieurs fois, et un message groupé laisse chercher lequel
   // n'est pas passé.
   const manquants = [
-    ['BREVO_API_KEY', cle],
+    ['SMTP_HOST', smtpHote],
+    ['SMTP_USER', smtpUtilisateur],
+    ['SMTP_PASSWORD', smtpMotDePasse],
     ['NEW_USER_ALERT_FROM', expediteur],
     ['NEW_USER_ALERT_TO', destinataire],
   ].filter(([, valeur]) => !valeur).map(([nom]) => nom)
@@ -118,29 +140,72 @@ Deno.serve(async (req) => {
   const courriel = composeNewUserEmail(aAnnoncer)
   if (!courriel) return Response.json({ nouveaux: 0, envoye: false })
 
-  const reponse = await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: {
-      'api-key': cle,
-      'content-type': 'application/json',
-      accept: 'application/json',
+  /**
+   * Retire les traces que ce passage vient d'écrire.
+   *
+   * L'écriture précède l'envoi pour empêcher les doublons, et cela ne change
+   * pas. Mais rien ne la défaisait quand l'envoi échouait : le compte restait
+   * réputé annoncé sans l'avoir été, et le passage suivant rendait
+   * `{"nouveaux":0}` — un succès franc qui ne prouvait rien. Onze inscriptions
+   * ont été perdues ainsi entre le 16 et le 18 août 2026, pendant que Brevo
+   * refusait pour une raison sans rapport.
+   *
+   * Ne sont retirées que les lignes de ce passage — `retenus` vient du
+   * `.select()` de l'upsert — jamais celles d'un passage concurrent ni
+   * l'amorçage.
+   */
+  async function oublierLesTraces(): Promise<void> {
+    const ids = [...retenus]
+    if (ids.length === 0) return
+    const { error } = await supabase
+      .from('new_user_alerts')
+      .delete()
+      .in('user_id', ids)
+    if (error) {
+      // Le pire cas : l'envoi a échoué ET la trace reste. Le dire, faute de
+      // pouvoir mieux — c'est ce silence-là qui a coûté onze comptes.
+      console.error('traces non retirées après échec', error.message, ids)
+    }
+  }
+
+  /**
+   * L'envoi lui-même.
+   *
+   * `denomailer` ouvre une connexion TCP chiffrée, l'authentifie, transmet le
+   * message et referme. Tout y est enveloppé dans un `try` : une connexion
+   * refusée, un mot de passe rejeté ou un expéditeur inconnu du serveur lèvent
+   * tous, et chacun doit rendre les traces plutôt que de perdre les comptes.
+   */
+  const client = new SMTPClient({
+    connection: {
+      hostname: smtpHote!,
+      // 465 impose TLS dès la connexion, sans négociation préalable — c'est ce
+      // que sert o2switch, et le seul port qui ait des chances de sortir.
+      port: 465,
+      tls: true,
+      auth: {
+        username: smtpUtilisateur!,
+        password: smtpMotDePasse!,
+      },
     },
-    body: JSON.stringify({
-      sender: { email: expediteur, name: 'Bible Ouverte' },
-      to: [{ email: destinataire }],
-      subject: courriel.subject,
-      textContent: courriel.text,
-      htmlContent: courriel.html,
-    }),
   })
 
-  if (!reponse.ok) {
-    // Les traces sont déjà écrites : ces comptes ne seront pas réannoncés au
-    // passage suivant. C'est le choix assumé partout ici — un manque plutôt
-    // qu'un doublon — mais il mérite d'être visible dans les journaux.
-    const detail = await reponse.text()
-    console.error('brevo a refusé l\'envoi', reponse.status, detail)
-    return new Response(`brevo : ${reponse.status}`, { status: 502 })
+  try {
+    await client.send({
+      from: `Bible Ouverte <${expediteur}>`,
+      to: destinataire!,
+      subject: courriel.subject,
+      content: courriel.text,
+      html: courriel.html,
+    })
+  } catch (err) {
+    await oublierLesTraces()
+    console.error('envoi smtp impossible', err)
+    return new Response(`smtp : ${err instanceof Error ? err.message : err}`, { status: 502 })
+  } finally {
+    // La fermeture peut lever à son tour sans que l'envoi ait échoué : ne pas
+    // la laisser masquer un succès.
+    try { await client.close() } catch { /* connexion déjà tombée */ }
   }
 
   return Response.json({

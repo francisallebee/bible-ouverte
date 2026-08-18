@@ -342,32 +342,53 @@ les comptes existants**. C'est son point important : sans cela, le premier
 passage aurait considéré chacun des 99 comptes déjà inscrits comme une
 nouveauté.
 
-### Les trois secrets
+### Les cinq secrets
 
-À déposer une fois, comme ceux des notifications. La clé Brevo ne doit jamais
-entrer dans le dépôt, **ni dans une conversation** : trois l'ont déjà été et
-ont dû être révoquées. Un agent ne dépose pas de clé — c'est une commande pour
-le propriétaire.
+À déposer une fois, **par le tableau de bord** — *Edge Functions → Secrets*.
+Trois tentatives en ligne de commande ont échoué le 16 août là où le navigateur
+a réussi du premier coup : le terminal dépose une valeur vide sans rien dire,
+et `supabase secrets list` ne montre qu'un hachage.
 
-`BREVO_API_KEY` attend une clé **API v3**, préfixée `xkeysib-`. Une clé **SMTP**
-(`xsmtpsib-`) est un autre objet, destiné au relais d'authentification : voir
-« Les courriels d'authentification » plus bas, où les deux sont distinguées.
+| Secret | Valeur |
+|---|---|
+| `SMTP_HOST` | `nom-serveur.o2switch.net` |
+| `SMTP_USER` | l'adresse complète, qui sert d'identifiant |
+| `SMTP_PASSWORD` | le mot de passe de cette adresse |
+| `NEW_USER_ALERT_FROM` | une adresse du domaine hébergé |
+| `NEW_USER_ALERT_TO` | où recevoir l'alerte |
 
-```bash
-supabase secrets set \
-  BREVO_API_KEY="…" \
-  NEW_USER_ALERT_FROM="…" \
-  NEW_USER_ALERT_TO="…" \
-  --project-ref nttasjckcmoqvjchxbzf
-```
+Aucun mot de passe ni aucune clé ne passe par un agent : c'est une commande
+pour le propriétaire. Quatre clés ont dû être révoquées cette semaine pour
+avoir transité par une conversation.
 
-`NEW_USER_ALERT_FROM` doit être une adresse **vérifiée chez Brevo**, sans quoi
-l'envoi est refusé. Les deux adresses passent par des secrets et non par le
-code : le dépôt est public, et ce sont des données personnelles.
+**Vérifier un dépôt sans voir les valeurs** : `supabase secrets list` rend le
+SHA-256 de chacune. Le digest de la chaîne vide vaut
+`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` — c'est
+ainsi qu'un secret déposé à vide s'est révélé, après deux heures de recherche
+du côté du réseau. Comparer un digest à celui d'une adresse connue permet
+aussi d'identifier une valeur sans la lire.
 
-Le contrôle d'accès réutilise `NOTIFY_CRON_SECRET` — c'est le même
-planificateur qui appelle les deux fonctions. `verify_jwt` doit rester à
-`false`, pour la raison déjà exposée plus haut.
+### Pourquoi le SMTP, et pas une API
+
+Brevo a été essayé trois jours durant, et abandonné le 18 août 2026. Son
+compte n'accepte les appels que depuis des **adresses IP autorisées**, et les
+fonctions Edge en changent à chaque exécution : sept refus, sept adresses
+différentes, toutes dans `2a05:d01c:76e:790…`. Les autoriser une à une ne sert
+à rien — le préfixe se répète mais le suffixe est neuf à chaque fois — et vider
+la liste ne désactive pas le blocage.
+
+Le SMTP de l'hébergeur n'a pas cette contrainte, et l'adresse d'expédition
+appartient enfin au domaine du projet.
+
+**Le port 465 sort des fonctions Edge, c'est mesuré.** La documentation de
+Supabase annonce les ports 25, 465 et 587 fermés en sortie ; leur propre
+exemple `send-email-smtp` s'en sert pourtant, et l'envoi du 18 août 2026 à
+11:00 l'a confirmé — courriel reçu, aucune erreur au journal. Ne pas croire
+cette page sans essayer.
+
+`denomailer` ouvre la connexion, l'authentifie et la referme. Tout est
+enveloppé dans un `try` : connexion refusée, mot de passe rejeté ou expéditeur
+inconnu lèvent tous, et chacun doit rendre les traces.
 
 ### Le planificateur
 
