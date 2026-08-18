@@ -237,6 +237,12 @@ npm test           # vitest
   Reste à traiter : chaque écran resynchronise contextes, lectures et réglages
   à son ouverture sans mémoire de ce qui vient d'être récupéré — une vingtaine
   d'appels pour environ cinq secondes cumulées sur trois navigations.
+  **Le même défaut, à une autre échelle, a paralysé l'écran Administration** :
+  `GET /api/admin/users` comptait par une requête PostgREST par ligne et par
+  table, soit 337 allers-retours et de 19,5 à 94 secondes mesurées au
+  navigateur. Ramené à sept requêtes le 18 août 2026. La leçon vaut au-delà de
+  cette route : **un comptage dans une boucle sur les lignes est une requête
+  par ligne**, et rien ne le signale tant que la table est petite.
 - Les déploiements de preview Vercel ont été débloqués le 13 août 2026 :
   `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` sont désormais
   dans l'environnement Preview, en plus du `export const dynamic =
@@ -265,9 +271,13 @@ npm test           # vitest
 - L'écran **Administration a enfin été vu fonctionner**, le 15 août 2026, et par
   l'agent cette fois : 101 comptes, 111 lectures, 7 plans, 808 contextes, les
   deux onglets et le tableau. Tous les écrans de l'application ont donc
-  désormais été vus. **Mais aucune de ses actions n'a été exercée** — suspendre,
-  promouvoir, supprimer un compte, changer le statut d'un ticket restent non
-  essayés. Voir un écran s'afficher n'est pas voir ses boutons agir.
+  désormais été vus. **Ses actions ont été exercées le 18 août 2026**, par
+  l'agent, sur le compte de test *Teste* : suspendre, réactiver, promouvoir,
+  rétrograder et changer le statut d'un ticket passent toutes, chacune vue à
+  l'écran **et** confirmée en base. **Reste la suppression d'un compte**, non
+  exercée : irréversible, elle détruirait le compte de test. Voir un écran
+  s'afficher n'est pas voir ses boutons agir — et un `200` sur l'action ne dit
+  rien de la relecture qui suit, voir `spec/REPRISE.md`.
   Hors de cet écran, **le changement de mot de passe a été exercé le 16 août
   2026** depuis Profil, sur un compte réel, par le propriétaire du dépôt. Il
   reste la suppression d'un ticket support et la suppression en bloc de

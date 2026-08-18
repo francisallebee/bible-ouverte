@@ -30,9 +30,12 @@ action hors du dépôt.
    `/auth/login` l'a été, faute de session côté agent. Les propriétés logiques
    y tiennent ; rien ne dit qu'elles tiennent ailleurs. Une trentaine de
    classes physiques subsistent dans 14 fichiers — piste, pas verdict.
-4. **Les actions de l'écran Administration n'ont jamais été exercées** :
-   suspendre, promouvoir, supprimer un compte, changer le statut d'un ticket.
-   L'écran s'affiche (vu le 15 août), ce qui n'est pas la même chose.
+4. **Les actions de l'écran Administration ont été exercées le 18 août 2026**,
+   par l'agent, sur le compte de test *Teste* — voir la section dédiée plus
+   bas. Suspendre, réactiver, promouvoir, rétrograder et changer le statut
+   d'un ticket : les cinq passent, chacune vue à l'écran **et** confirmée en
+   base. **Reste la suppression d'un compte**, non exercée : elle est
+   irréversible et détruirait le compte de test.
    S'y ajoutaient trois chemins déjà connus. **Le changement de mot de passe a
    été exercé le 16 août 2026, par le propriétaire du dépôt et non par
    l'agent**, depuis l'écran Profil et sur son compte réel — il fonctionne.
@@ -610,6 +613,110 @@ est fermé, GitLab qui passe quand GitHub est bloqué — et il est tombé
 définitivement au premier changement de réseau. **Quand une hypothèse désigne un
 composant, chercher d'abord l'essai qui l'éliminerait** : ici, basculer de
 réseau coûtait trente secondes et aurait tranché d'emblée.
+
+## L'écran Administration ne reflétait plus Supabase — mesuré et corrigé
+
+Le 18 août 2026, par l'agent, session connectée, en partage de connexion
+iPhone. Trois symptômes étaient rapportés : le compte créé ce jour-là
+n'apparaissait pas, les actions semblaient sans effet, les changements de
+statut des tickets ne se voyaient pas.
+
+**Un seul défaut les produit tous les trois, et ce n'est aucun des deux qui
+avaient été identifiés dans le code.**
+
+### Ce que la mesure a écarté avant de chercher ailleurs
+
+Sur la base réelle, et non par lecture des migrations :
+
+| Soupçon | Mesure | Verdict |
+|---|---|---|
+| Ligne `profiles` manquante | 111 comptes, 111 profils, aucun orphelin des deux côtés | écarté |
+| GRANT colonne sur `profiles` | `service_role` garde l'UPDATE table **et** colonne, `is_admin` et `suspended` compris | écarté |
+| Trigger `guard_profile_privileges` | UPDATE à blanc sous `set local role service_role` : passe sur `profiles` **et** sur `tickets`, `auth.uid()` y vaut bien null | écarté |
+| Migration 002 rejouée par-dessus 003 | les gardes vivantes appellent `private.is_admin()` | écarté |
+| **Le service worker** | `isCacheable()` exclut explicitement `/api/` | écarté |
+
+Le dernier était le meilleur candidat : un service worker qui met en cache les
+`GET` d'API expliquait les trois symptômes d'un coup, et un `cache: 'no-store'`
+ne l'aurait pas corrigé, puisqu'il n'agit que sur le cache HTTP. Il fallait le
+lire pour le savoir.
+
+### Ce que le navigateur a montré
+
+Le `PATCH` d'une suspension rend **200**. La base change dans la seconde. Et
+l'écran ne bouge pas — pendant très longtemps.
+
+Le relevé `performance.getEntriesByType('resource')` donne la réponse :
+
+| Appel | Durée mesurée |
+|---|---|
+| `PATCH /api/admin/users/{id}` | 3,4 à 12,4 s |
+| `GET /api/admin/users` | **19,5 à 94 s** |
+
+`GET /api/admin/users` comptait lectures, plans et contextes par une requête
+PostgREST **par ligne et par table** : 111 profils fois trois tables, soit 333
+allers-retours, plus quatre pour les totaux. L'action réussissait, puis
+`loadData()` laissait l'écran sur « Chargement… » une minute et demie.
+
+Sur Vercel, la fonction dépasse son délai maximum et rend un 504 : le tableau
+ne se rafraîchit **jamais**. D'où les trois symptômes — l'action paraît sans
+effet, le compte du jour n'apparaît pas, le statut du ticket ne se voit pas
+changer. Un seul défaut, trois visages.
+
+Après réécriture — lecture de la seule colonne `user_id`, comptage en mémoire,
+`range()` par pages de 1000 pour ne pas se faire tronquer par le plafond
+PostgREST — : **5,4 s** pour une relecture à chaud, seule. Sept requêtes au
+lieu de 337. Le gain sur Vercel, où la fonction est proche de Supabase, n'est
+pas mesuré.
+
+Les chiffres rendus sont identiques à ceux d'avant, contrôlés contre la base :
+111 comptes, 161 lectures, 10 plans, 2676 jours, 939 contextes, 19 actifs sur
+7 jours, 1 admin — et au détail, Teste à 11 contextes, Nicolas à 3 lectures.
+
+### Les deux défauts qui avaient été identifiés dans le code
+
+Ils étaient réels, et ils ont été corrigés — mais **aucun des deux n'était la
+cause**. C'est leur conjonction qui rendait le diagnostic impossible : les
+trois actions ne lisaient jamais leur réponse, si bien qu'un 403 ou un 504
+rendait le même écran qu'un succès. Corrigés d'abord, ils n'ont rien réparé ;
+ils ont rendu la mesure lisible.
+
+Un troisième défaut a été trouvé en passant : `listUsers()` était appelé sans
+argument, donc sur la pagination par défaut de GoTrue — une page. Au-delà, les
+comptes n'avaient ni adresse ni date de connexion.
+
+### Les actions, enfin exercées
+
+Le 18 août 2026, par l'agent, sur le compte de test *Teste*
+(`francisallebee@icloud.com`). Chacune vue à l'écran **et** confirmée par une
+requête en base, les deux comptant séparément :
+
+| Action | Réseau | Base | Écran |
+|---|---|---|---|
+| Suspendre | `PATCH` 200 | `suspended: true`, `banned_until` en 2126 | badge « Suspendu », ligne grisée, compteur à 1 |
+| Réactiver | `PATCH` 200 | `suspended: false`, `banned_until: null` | retour à « Hors ligne », compteur à 0 |
+| Promouvoir | `PATCH` 200 | `is_admin: true` | badge vert « Admin », carte à « 2 admin » |
+| Rétrograder | `PATCH` 200 | `is_admin: false` | retour à « User », carte à « 1 admin » |
+| Statut d'un ticket | `PATCH` 200 | 8 ouverts, 2 en cours, 2 résolus, 4 clos | badge « en cours », filtres recomptés |
+
+**La suppression d'un compte n'a pas été exercée** : elle est irréversible et
+détruirait le compte de test.
+
+### Deux pièges de la séance, à ne pas repayer
+
+**Une capture d'écran prise trop tôt ment.** La rétrogradation a été déclarée
+sans effet sur la foi d'un écran figé sur l'état précédent — le corps de la
+réponse portait pourtant `is_admin: false`, et le DOM relu quelques secondes
+plus tard disait « User ». Lire le DOM, pas l'image, quand la relecture dure
+des dizaines de secondes.
+
+**Le panneau Navigateur n'envoie pas les coordonnées de la page.** Un facteur
+d'échelle d'environ 2,95 s'applique entre ce qui est envoyé et ce qui arrive :
+des clics visant un bouton tombaient hors de l'écran, sur `<html>`, sans la
+moindre erreur. Un clic par `ref` ne corrige rien — il passe par le même
+chemin. Calibrer sur deux points avec un écouteur `click` en capture, qui rend
+`clientX/clientY` et la cible réelle, avant de conclure qu'un bouton ne réagit
+pas.
 
 ## Vérification visuelle
 
