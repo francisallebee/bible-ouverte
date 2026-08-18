@@ -49,42 +49,66 @@ export async function GET(request: NextRequest) {
   // (session de l'appelant) : la RLS filtrerait chaque requête sur les lignes de
   // l'administrateur lui-même, et le tableau afficherait 0 pour tout le monde
   // sauf lui.
-  const countFor = async (table: string, userId: string) => {
-    const { count } = await admin
-      .from(table).select('*', { count: 'exact', head: true }).eq('user_id', userId)
-    return count ?? 0
+  //
+  // Ils tenaient auparavant en une requête par ligne et par table — 111 profils
+  // fois trois tables, soit 333 allers-retours PostgREST, plus quatre pour les
+  // totaux. Mesuré au navigateur le 18 août 2026 : la route mettait de 19 à 94
+  // secondes à répondre. Sur Vercel, la fonction dépasse son délai maximum et
+  // rend un 504 : le tableau ne se rafraîchit jamais, et une action qui a bel
+  // et bien réussi paraît sans effet.
+  //
+  // On lit désormais la seule colonne `user_id` et on compte en mémoire : une
+  // requête par table, quelques milliers de lignes. `range()` parce que
+  // PostgREST plafonne une réponse à 1000 lignes — sans lui, les comptages
+  // seraient silencieusement tronqués dès que la table dépasse ce seuil.
+  const PAGE = 1000
+
+  const countByUser = async (table: string) => {
+    const parUtilisateur = new Map<string, number>()
+    let total = 0
+    for (let debut = 0; ; debut += PAGE) {
+      const { data, error } = await admin
+        .from(table).select('user_id').range(debut, debut + PAGE - 1)
+      if (error) throw new Error(`${table} : ${error.message}`)
+      for (const ligne of data ?? []) {
+        total++
+        if (!ligne.user_id) continue
+        parUtilisateur.set(ligne.user_id, (parUtilisateur.get(ligne.user_id) ?? 0) + 1)
+      }
+      if ((data?.length ?? 0) < PAGE) break
+    }
+    return { parUtilisateur, total }
   }
 
-  const enriched = await Promise.all((profiles || []).map(async (p) => {
-    const [readings, plans, contexts] = await Promise.all([
-      countFor('readings', p.id),
-      countFor('plans', p.id),
-      countFor('contexts', p.id),
+  let readingsBy, plansBy, contextsBy, totalPlanDays
+  try {
+    const [r, pl, c, jours] = await Promise.all([
+      countByUser('readings'),
+      countByUser('plans'),
+      countByUser('contexts'),
+      admin.from('plan_days').select('*', { count: 'exact', head: true }),
     ])
+    readingsBy = r; plansBy = pl; contextsBy = c
+    totalPlanDays = jours.count ?? 0
+  } catch (e: any) {
+    return errorResponse(e?.message || 'Comptage impossible')
+  }
 
+  const enriched = profiles.map((p) => {
     const authData = authMap.get(p.id)
     return {
       ...p,
       email: authData?.email ?? null,
       lastSignIn: authData?.lastSignIn ?? null,
-      readings,
-      plans,
-      contexts,
+      readings: readingsBy.parUtilisateur.get(p.id) ?? 0,
+      plans: plansBy.parUtilisateur.get(p.id) ?? 0,
+      contexts: contextsBy.parUtilisateur.get(p.id) ?? 0,
     }
-  }))
+  })
 
-  // Global stats
-  const countAll = async (table: string) => {
-    const { count } = await admin.from(table).select('*', { count: 'exact', head: true })
-    return count ?? 0
-  }
-
-  const [totalReadings, totalPlans, totalContexts, totalPlanDays] = await Promise.all([
-    countAll('readings'),
-    countAll('plans'),
-    countAll('contexts'),
-    countAll('plan_days'),
-  ])
+  const totalReadings = readingsBy.total
+  const totalPlans = plansBy.total
+  const totalContexts = contextsBy.total
   const activeUsers = enriched.filter(u => u.lastSignIn && new Date(u.lastSignIn) > new Date(Date.now() - 7 * 86400000)).length
 
   return successResponse({
