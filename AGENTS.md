@@ -342,5 +342,8 @@ npm test           # vitest
   **Conséquence assumée** : une modification faite hors ligne et jamais poussée
   est abandonnée si le serveur a reçu autre chose entre-temps. C'est le
   dernier-écrivain-gagne, et c'est ce qui surprend le moins l'utilisateur.
-  **Non vérifié au navigateur** : le chemin corrigé demande une session
-  connectée, que l'agent n'a pas.
+  **Vu fonctionner le 18 août 2026, par le propriétaire du dépôt** : deux
+  appareils, un même compte, la langue se synchronise. Le chemin corrigé
+  demandait une session connectée, que l'agent n'avait pas — c'est donc une
+  preuve d'écran qui ne vient pas de lui, comme celles des notifications push
+  et du parcours découverte.

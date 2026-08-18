@@ -41,9 +41,10 @@ action hors du dépôt.
    l'agent**, depuis l'écran Profil et sur son compte réel — il fonctionne.
    Restent donc la suppression d'un ticket support et la suppression en bloc
    dans l'historique.
-5. **La réversion de langue est expliquée et corrigée** — voir la section dédiée
-   plus bas. Reste à la voir à l'écran, connecté : le correctif est éprouvé en
-   laboratoire, pas encore en usage. Trois appareils sont concernés.
+5. **La réversion de langue est corrigée et vue fonctionner**, le 18 août 2026,
+   par le propriétaire du dépôt : deux appareils, un même compte, la langue se
+   synchronise. Voir la section dédiée plus bas. Le correctif était éprouvé en
+   laboratoire depuis le 15 août ; il l'est désormais en usage.
 6. **Le mot de passe exposé a été changé**, le 18 août 2026, par le propriétaire
    du dépôt. Celui du compte propriétaire était apparu en clair dans les
    journaux du serveur de développement le 15 août 2026, par une soumission de
@@ -135,8 +136,12 @@ Deux choix à connaître :
   c'est ce qui surprend le moins : l'utilisateur retrouve partout la dernière
   chose qu'il a réglée.
 
-Ce qui reste à faire : **le voir à l'écran**, connecté, sur les trois appareils.
-Le laboratoire dit que la règle est juste, pas que l'application la suit.
+**Vu à l'écran le 18 août 2026, par le propriétaire du dépôt** : deux appareils,
+un même compte, la langue se synchronise. C'est ce qui manquait — le laboratoire
+disait que la règle était juste, pas que l'application la suivait ; il le dit
+maintenant. Le troisième appareil n'a pas été repassé, et il n'a pas à l'être :
+la règle éprouvée est celle qui départage deux appareils, et deux suffisent à la
+mettre en défaut.
 
 ### L'espagnol et l'italien, livrés le 15 août
 
@@ -748,8 +753,9 @@ section des actions en attente.
 Le 15 août également, **les 19 écrans ont été repassés dans les deux langues**,
 par l'agent, pour la vague 4.
 
-**Vus fonctionner le 14 août 2026, par le propriétaire du dépôt et non par
-l'agent** : les **notifications push** sur iPhone, et le **parcours découverte**.
+**Vus fonctionner par le propriétaire du dépôt et non par l'agent** : les
+**notifications push** sur iPhone et le **parcours découverte**, le 14 août
+2026 ; la **synchronisation de la langue entre deux appareils**, le 18 août.
 C'est la même distinction que pour les plans libres — une preuve d'écran vaut
 par qui l'a vue, et l'agent n'avait alors jamais eu de session pour la produire
 lui-même.
