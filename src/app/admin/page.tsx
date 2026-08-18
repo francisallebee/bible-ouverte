@@ -43,6 +43,31 @@ const STATUS_BADGE: Record<string, string> = {
   closed: 'text-gray-500 bg-gray-100',
 }
 
+/**
+ * Une réponse non lue est une panne invisible.
+ *
+ * Les trois actions de cet écran — promouvoir, suspendre, changer le statut
+ * d'un ticket — lançaient leur `fetch` sans jamais regarder ce qui revenait :
+ * un 403 de `checkAdmin` ou un 500 de la base rendaient exactement le même
+ * écran qu'un succès. Seule la suppression testait `res.error`.
+ *
+ * `cache: 'no-store'` sur les lectures pour la raison symétrique : une réponse
+ * servie par le cache du navigateur affiche un état que le serveur n'a plus.
+ */
+async function api(url: string, init?: RequestInit): Promise<{ data?: any; error?: string }> {
+  try {
+    const res = await fetch(url, { cache: 'no-store', ...init })
+    const body = await res.json().catch(() => null)
+    if (!res.ok) return { error: body?.error || `HTTP ${res.status}` }
+    if (body?.error) return { error: body.error }
+    return { data: body?.data }
+  } catch (e: any) {
+    // `String(e)` et non `e.message` : un rejet sans message rendrait une
+    // erreur vide, que l'appelant prendrait pour un succès.
+    return { error: e?.message || String(e) }
+  }
+}
+
 /* ---------- components ---------- */
 function StatCard({ icon, label, value, sub, color }: {
   icon: React.ReactNode; label: string; value: number; sub?: string; color: string
@@ -72,47 +97,57 @@ export default function AdminPage() {
   /* tickets state */
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loadingTickets, setLoadingTickets] = useState(false)
+  const [ticketsError, setTicketsError] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
   /* load users */
   const loadData = async () => {
     setLoading(true); setError('')
-    const res = await fetch('/api/admin/users').then(r => r.json())
+    const res = await api('/api/admin/users')
     if (res.error) { setError(res.error); setLoading(false); return }
-    setUsers(res.data.users || []); setStats(res.data.stats || null); setLoading(false)
+    setUsers(res.data?.users || []); setStats(res.data?.stats || null); setLoading(false)
   }
 
   /* load tickets */
   const loadTickets = async () => {
-    setLoadingTickets(true)
-    const res = await fetch('/api/admin/tickets').then(r => r.json())
+    setLoadingTickets(true); setTicketsError('')
+    const res = await api('/api/admin/tickets')
+    if (res.error) { setTicketsError(res.error); setTickets([]); setLoadingTickets(false); return }
     setTickets(res.data || []); setLoadingTickets(false)
   }
 
   useEffect(() => { loadData() }, [])
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(t.admin.confirmDelete(name))) return
+  const patchUser = async (id: string, body: Record<string, unknown>) => {
     setActionId(id)
-    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' }).then(r => r.json())
+    const res = await api(`/api/admin/users/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
     if (res.error) { alert(res.error); setActionId(null); return }
     await loadData(); setActionId(null)
   }
 
-  const handleToggleAdmin = async (id: string, current: boolean) => {
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(t.admin.confirmDelete(name))) return
     setActionId(id)
-    await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_admin: !current }) })
+    const res = await api(`/api/admin/users/${id}`, { method: 'DELETE' })
+    if (res.error) { alert(res.error); setActionId(null); return }
     await loadData(); setActionId(null)
   }
 
-  const handleToggleSuspend = async (id: string, current: boolean) => {
-    setActionId(id)
-    await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ suspended: !current }) })
-    await loadData(); setActionId(null)
-  }
+  const handleToggleAdmin = (id: string, current: boolean) => patchUser(id, { is_admin: !current })
+
+  const handleToggleSuspend = (id: string, current: boolean) => patchUser(id, { suspended: !current })
 
   const handleTicketStatus = async (id: number, status: string) => {
-    await fetch('/api/admin/tickets', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
+    const res = await api('/api/admin/tickets', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    })
+    if (res.error) { alert(res.error); return }
     await loadTickets()
   }
 
@@ -227,6 +262,10 @@ export default function AdminPage() {
               </button>
             ))}
           </div>
+
+          {ticketsError && (
+            <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{ticketsError}</p>
+          )}
 
           {loadingTickets ? (
             <p className="text-gray-500">{t.common.loading}</p>

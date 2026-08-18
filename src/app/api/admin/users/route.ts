@@ -1,4 +1,5 @@
 import { type NextRequest } from 'next/server'
+import type { User } from '@supabase/supabase-js'
 import { createApiClient, requireUser, errorResponse, successResponse } from '@/lib/supabase/api-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -19,8 +20,22 @@ export async function GET(request: NextRequest) {
   if (!profile?.is_admin) return errorResponse('Accès refusé', 403)
 
   // Auth users (emails, last_sign_in)
-  const { data: authUsers } = await admin.auth.admin.listUsers()
-  const authMap = new Map((authUsers?.users || []).map(au => [au.id, {
+  //
+  // `listUsers()` sans argument s'en remet à la pagination par défaut de
+  // GoTrue : une seule page. Les comptes au-delà n'avaient alors ni adresse ni
+  // date de connexion — colonne « — » et « Jamais » dans le tableau, et un
+  // compte des actifs sur 7 jours faussé d'autant. On parcourt les pages
+  // jusqu'à en recevoir une incomplète.
+  const authUsers: User[] = []
+  for (let page = 1; page <= 50; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 })
+    if (error) return errorResponse(error.message)
+    const batch = data?.users ?? []
+    authUsers.push(...batch)
+    if (batch.length < 200) break
+  }
+
+  const authMap = new Map(authUsers.map(au => [au.id, {
     email: au.email,
     lastSignIn: au.last_sign_in_at,
     createdAt: au.created_at,
