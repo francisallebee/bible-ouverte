@@ -130,6 +130,7 @@ coûterait une passe complète sur les 19 écrans.
 | `src/lib/i18n/` | Langues, dictionnaires, noms de livres et de contextes, dates |
 | `src/contexts/` | Fournisseurs React : session (`AuthContext`), langue (`I18nContext`) |
 | `src/features/bible/` | Livres, classification, import des versions |
+| `src/components/BookPicker.tsx`, `PassagePicker.tsx` | Le choix d'un livre, d'un chapitre et d'un verset — mêmes fenêtres partout |
 | `public/bibles/` | 12 versions libres de droits : 8 fr, 1 en, 1 it, 1 ar, 1 es (82 Mo) |
 | `supabase/migrations/` | Schéma et RLS, appliqués dans l'ordre des noms |
 | `scripts/` | Téléchargement et conversion des textes bibliques |
@@ -201,6 +202,25 @@ coûterait une passe complète sur les 19 écrans.
     version qui s'affiche, se laisse cocher, et échoue au téléchargement sans
     autre explication — c'est arrivé le 16 août 2026, en production.
     `import.test.ts` compare désormais les deux tables dans les deux sens.
+
+14. **Un nom de classe Tailwind écrit hors des dossiers scannés n'existe pas.**
+    `tailwind.config.ts` liste `src/app`, `src/components`, `src/features` — et
+    `src/lib` depuis le 18 août 2026, parce que la table des couleurs de statut
+    de ticket y a déménagé. Sans cette ligne, les classes sont purgées : le
+    badge perd sa couleur, et en mode sombre son texte devient invisible sur un
+    fond resté clair. Rien ne le signale — ni `tsc`, ni `eslint`, ni les tests.
+    Corollaire : **une classe construite à l'exécution n'existe jamais**, où
+    qu'elle soit écrite. `\`bg-${couleur}-600\`` ou
+    `classe.replace('text-', 'bg-')` ne sont pas des noms de classes pour
+    Tailwind, qui ne lit que des chaînes littérales.
+
+15. **Le mode sombre est une liste de remaps, pas un thème.** `html.dark`
+    réécrit des classes Tailwind une par une dans `globals.css`. Une variante
+    est une classe distincte : `html.dark .bg-gray-100` ne couvre pas
+    `.hover\:bg-gray-100:hover`. C'est ainsi que la barre latérale est restée
+    illisible au survol — texte presque blanc sur fond presque blanc, contraste
+    1,01. Toute classe grise ajoutée à un composant doit être vérifiée dans ce
+    bloc, **y compris ses variantes `hover:`**.
 
 ## Commandes
 

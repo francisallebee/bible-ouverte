@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, Plus, SlidersHorizontal, Loader2 } from 'lucide-react'
+import { Plus, SlidersHorizontal, Loader2 } from 'lucide-react'
 import { getBook } from '@/features/bible'
-import { useT, useBooks, useBookName } from '@/contexts/I18nContext'
+import { useT, useBookName } from '@/contexts/I18nContext'
 import PassagePicker, { describeRange } from '@/components/PassagePicker'
+import BookPicker from '@/components/BookPicker'
 
 export interface PlanEntryDraft {
   book: string
@@ -29,7 +30,6 @@ export default function PlanEntryAdder({
   onAdd: (entry: PlanEntryDraft) => Promise<void>
 }) {
   const t = useT()
-  const books = useBooks()
   const getBookName = useBookName()
   const [book, setBook] = useState('')
   const [chapterStart, setChapterStart] = useState(1)
@@ -70,17 +70,7 @@ export default function PlanEntryAdder({
     <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
       <p className="text-sm font-medium mb-3 text-[--text]">{t.components.addPassage}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="relative">
-          <select value={book} onChange={(e) => selectBook(e.target.value)}
-            aria-label={t.components.book}
-            className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] appearance-none cursor-pointer">
-            <option value="">{t.components.selectBook}</option>
-            {books.map((b) => (
-              <option key={b.abbreviation} value={b.abbreviation}>{b.name}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[--text-secondary] pointer-events-none" />
-        </div>
+        <BookPicker value={book} onSelect={selectBook} ariaLabel={t.components.book} />
 
         <button type="button" onClick={() => setPickerOpen(true)} disabled={!book}
           className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">

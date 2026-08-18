@@ -88,6 +88,30 @@ export async function getPassagesByRange(
  * Renvoie le nombre de versets réellement écrits — zéro si la version était
  * déjà là.
  */
+/**
+ * Les versets d'un intervalle, chapitres multiples compris.
+ *
+ * Le premier chapitre commence au verset demandé, le dernier s'y arrête, et
+ * ceux du milieu sont pris en entier — `999` plutôt qu'un comptage, la borne
+ * haute d'`IDBKeyRange` n'ayant pas besoin d'être exacte.
+ *
+ * Cette boucle vivait dans l'écran Nouvelle lecture ; Recherche biblique en a
+ * besoin depuis qu'elle emploie le même sélecteur.
+ */
+export async function getPassagesForRange(
+  versionId: string,
+  book: string,
+  range: { chapterStart: number; chapterEnd: number; verseStart: number; verseEnd: number },
+): Promise<BiblePassage[]> {
+  const resultats: BiblePassage[] = [];
+  for (let ch = range.chapterStart; ch <= range.chapterEnd; ch++) {
+    const vs = ch === range.chapterStart ? range.verseStart : 1;
+    const ve = ch === range.chapterEnd ? range.verseEnd : 999;
+    resultats.push(...(await getPassagesByRange(versionId, book, ch, vs, ve)));
+  }
+  return resultats;
+}
+
 export async function bulkAddPassages(
   versionId: string,
   passages: BiblePassage[],

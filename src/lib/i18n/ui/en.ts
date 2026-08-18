@@ -610,6 +610,15 @@ export const en: Dictionary = {
     selectBookFirst: 'Select a book first',
     addToList: 'Add to the list',
   },
+  bookPicker: {
+    placeholder: 'Select a book',
+    dialogLabel: 'Choose a book',
+    search: 'Search for a book…',
+    oldTestament: 'Old Testament',
+    newTestament: 'New Testament',
+    noMatch: 'No matching book',
+  },
+
   passagePicker: {
     dialogLabel: (bookName: string) => `Chapters and verses — ${bookName}`,
     chapter: 'Chapter',

@@ -646,6 +646,15 @@ export const fr = {
     selectBookFirst: "Sélectionne d'abord un livre",
     addToList: 'Ajouter à la liste',
   },
+  bookPicker: {
+    placeholder: 'Sélectionner un livre',
+    dialogLabel: 'Choisir un livre',
+    search: 'Rechercher un livre…',
+    oldTestament: 'Ancien Testament',
+    newTestament: 'Nouveau Testament',
+    noMatch: 'Aucun livre ne correspond',
+  },
+
   passagePicker: {
     dialogLabel: (bookName: string) => `Chapitres et versets — ${bookName}`,
     chapter: 'Chapitre',

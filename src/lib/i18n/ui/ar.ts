@@ -688,6 +688,15 @@ export const ar: Dictionary = {
     selectBookFirst: 'اختر سفرًا أولًا',
     addToList: 'إضافة إلى القائمة',
   },
+  bookPicker: {
+    placeholder: 'اختر سفرًا',
+    dialogLabel: 'اختيار سفر',
+    search: 'ابحث عن سفر…',
+    oldTestament: 'العهد القديم',
+    newTestament: 'العهد الجديد',
+    noMatch: 'لا يوجد سفر مطابق',
+  },
+
   passagePicker: {
     dialogLabel: (bookName: string) => `الإصحاحات والأعداد — ${bookName}`,
     chapter: 'الإصحاح',

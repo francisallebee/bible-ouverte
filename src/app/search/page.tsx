@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Search, BookOpen, BookPlus, BookText, FileText } from "lucide-react";
-import { seedIfNeeded, getEnabledVersions, addReading, getPassages, getPassagesByRange, searchPassages, getSettings } from "@/lib/storage";
+import { seedIfNeeded, getEnabledVersions, addReading, getPassagesForRange, searchPassages, getSettings } from "@/lib/storage";
 import type { BibleVersion, BiblePassage } from "@/lib/storage";
 
-import { BOOKS } from "@/features/bible";
-import { useI18n, useBookName, useBooks } from "@/contexts/I18nContext";
+import { getBook } from "@/features/bible";
+import BookPicker from "@/components/BookPicker";
+import PassagePicker, { describeRange, type PassageRange } from "@/components/PassagePicker";
+import { useI18n, useBookName } from "@/contexts/I18nContext";
 import { textDirection } from "@/lib/i18n/locales";
 
 type Mode = "reference" | "keyword";
@@ -35,7 +37,6 @@ interface AddTarget {
 export default function SearchPage() {
   const { t } = useI18n();
   const getBookName = useBookName();
-  const books = useBooks();
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -50,8 +51,19 @@ export default function SearchPage() {
   const [mode, setMode] = useState<Mode>("reference");
 
   const [refBook, setRefBook] = useState("");
-  const [refChapter, setRefChapter] = useState(1);
-  const [refVerse, setRefVerse] = useState<number | undefined>();
+  /**
+   * Un intervalle, et non plus un chapitre plus un verset facultatif.
+   *
+   * C'est ce que rend `PassagePicker`, désormais partagé avec Nouvelle lecture
+   * et l'ajout d'un passage à un plan : même geste, mêmes possibilités. La
+   * recherche gagne au passage les intervalles, que les deux listes
+   * déroulantes ne savaient pas exprimer — et perd leur défaut, qui proposait
+   * 200 versets quel que soit le chapitre.
+   */
+  const [refRange, setRefRange] = useState<PassageRange>({
+    chapterStart: 1, chapterEnd: 1, verseStart: 1, verseEnd: 1,
+  });
+  const [refPickerOpen, setRefPickerOpen] = useState(false);
   const [refVersion, setRefVersion] = useState("");
   const [refResults, setRefResults] = useState<BiblePassage[]>([]);
   const [refLoading, setRefLoading] = useState(false);
@@ -88,11 +100,7 @@ export default function SearchPage() {
     if (!refBook || !refVersion) return;
     setRefLoading(true);
     try {
-      if (refVerse) {
-        setRefResults(await getPassagesByRange(refVersion, refBook, refChapter, refVerse, refVerse));
-      } else {
-        setRefResults(await getPassages(refVersion, refBook, refChapter));
-      }
+      setRefResults(await getPassagesForRange(refVersion, refBook, refRange));
     } catch { setRefResults([]); }
     setRefLoading(false);
   }
@@ -173,39 +181,24 @@ export default function SearchPage() {
       {mode === "reference" ? (
         <div>
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.book}</label>
-                <select value={refBook} onChange={(e) => setRefBook(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  <option value="">{t.search.select}</option>
-                  {books.map((b) => (
-                    <option key={b.abbreviation} value={b.abbreviation}>{b.name}</option>
-                  ))}
-                </select>
+                <BookPicker value={refBook} onSelect={(b) => {
+                  setRefBook(b);
+                  setRefRange({ chapterStart: 1, chapterEnd: 1, verseStart: 1, verseEnd: 1 });
+                  setRefResults([]);
+                }} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.chapter}</label>
-                <select value={refChapter} onChange={(e) => setRefChapter(Number(e.target.value))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  <option value="">Tous</option>
-                  {refBook && (() => {
-                    const book = BOOKS.find(b => b.abbreviation === refBook);
-                    return book ? Array.from({ length: book.chapters }, (_, i) => i + 1).map(n => (
-                      <option key={n} value={n}>{n}</option>
-                    )) : null;
-                  })()}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.verse}</label>
-                <select value={refVerse ?? ""} onChange={(e) => setRefVerse(e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  <option value="">Tous</option>
-                  {Array.from({ length: 200 }, (_, i) => i + 1).map(n => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
+                <button type="button" onClick={() => setRefPickerOpen(true)} disabled={!refBook}
+                  className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
+                  <span className={refBook ? "truncate" : "truncate text-[--text-secondary]"}>
+                    {refBook ? describeRange(getBookName(refBook), refRange) : t.search.select}
+                  </span>
+                  <BookText className="w-4 h-4 text-[--text-secondary] shrink-0" />
+                </button>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.version}</label>
@@ -226,8 +219,7 @@ export default function SearchPage() {
           ) : refResults.length > 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <p className="font-medium mb-3">
-                {getBookName(refBook)} {refChapter}
-                {refVerse ? `:${refVerse}` : ""} — {t.search.verseCount(refResults.length)}
+                {describeRange(getBookName(refBook), refRange)} — {t.search.verseCount(refResults.length)}
               </p>
               <div className="text-sm leading-relaxed mb-4" dir={sensDuTexte(refVersion)}>
                 {refResults.map((p) => (
@@ -239,10 +231,10 @@ export default function SearchPage() {
               </div>
               <button onClick={() => openAddForm({
                 book: refBook,
-                chapterStart: refChapter,
-                chapterEnd: refChapter,
-                verseStart: refVerse ?? 1,
-                verseEnd: refVerse ?? refResults[refResults.length - 1]?.verse ?? 1,
+                chapterStart: refRange.chapterStart,
+                chapterEnd: refRange.chapterEnd,
+                verseStart: refRange.verseStart,
+                verseEnd: refRange.verseEnd,
                 versionId: refVersion,
                 passageText: refResults.map((p) => `[${p.verse}] ${p.text}`).join("\n"),
               })}
@@ -363,6 +355,19 @@ export default function SearchPage() {
           </div>
         </div>
       )}
+      <PassagePicker
+        open={refPickerOpen && !!refBook}
+        book={refBook}
+        bookName={getBookName(refBook)}
+        versionId={refVersion}
+        maxChapters={getBook(refBook)?.chapters ?? 150}
+        chapterStart={refRange.chapterStart}
+        chapterEnd={refRange.chapterEnd}
+        verseStart={refRange.verseStart}
+        verseEnd={refRange.verseEnd}
+        onClose={() => setRefPickerOpen(false)}
+        onValidate={(r) => { setRefRange(r); setRefResults([]); setRefPickerOpen(false); }}
+      />
     </div>
   );
 }

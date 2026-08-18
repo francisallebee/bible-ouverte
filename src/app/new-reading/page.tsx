@@ -4,20 +4,21 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookPlus, Link as LinkIcon, ImageIcon, Camera, Upload,
-  X, ExternalLink, Plus, Music, ChevronDown, Trash2, Layers, SlidersHorizontal,
+  X, ExternalLink, Plus, Music, Trash2, Layers, SlidersHorizontal,
 } from "lucide-react";
 import {
-  seedIfNeeded, getEnabledVersions, getPassagesByRange, addReading, getSettings,
+  seedIfNeeded, getEnabledVersions, getPassagesForRange, addReading, getSettings,
   getAllContexts,
 } from "@/lib/storage";
 import type { BibleVersion, ReadingLink, BiblePassage, ReadingContext } from "@/lib/storage";
 import { getBook } from "@/features/bible";
 import type { BibleBook } from "@/features/bible";
-import { useI18n, useBookName, useBooks } from "@/contexts/I18nContext";
+import { useI18n, useBookName } from "@/contexts/I18nContext";
 import { textDirection } from "@/lib/i18n/locales";
 import AudioRecorder from "@/components/AudioRecorder";
 import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange } from "@/components/PassagePicker";
+import BookPicker from "@/components/BookPicker";
 import { resizeImage } from "@/lib/image-utils";
 
 /** Un passage mis de côté, en attente de l'enregistrement global. */
@@ -47,7 +48,6 @@ export default function NewReadingPage() {
   const router = useRouter();
   const { t } = useI18n();
   const getBookName = useBookName();
-  const books = useBooks();
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -93,19 +93,14 @@ export default function NewReadingPage() {
     (async () => {
       setLoadingPassage(true);
       try {
-        const results: BiblePassage[] = [];
         // Dérivés ici plutôt que repris de cEnd/vEnd : l'effet dépend alors
         // uniquement d'états bruts, tous listés dans son tableau de dépendances.
-        const cStart = chapterStart;
-        const cEndVal = chapterEnd ?? chapterStart;
-        const vEndVal = verseEnd ?? verseStart;
-        for (let ch = cStart; ch <= cEndVal; ch++) {
-          const vs = ch === cStart ? verseStart : 1;
-          const ve = ch === cEndVal ? vEndVal : 999;
-          const chPassages = await getPassagesByRange(versionId, book, ch, vs, ve);
-          results.push(...chPassages);
-        }
-        setPassages(results);
+        setPassages(await getPassagesForRange(versionId, book, {
+          chapterStart,
+          chapterEnd: chapterEnd ?? chapterStart,
+          verseStart,
+          verseEnd: verseEnd ?? verseStart,
+        }));
       } catch {
         setPassages([]);
       }
@@ -270,16 +265,7 @@ export default function NewReadingPage() {
 
             <div>
               <label className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.book}</label>
-              <div className="relative">
-                <select value={book} onChange={(e) => selectBook(e.target.value)}
-                  className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] appearance-none cursor-pointer">
-                  <option value="">{t.newReading.selectBook}</option>
-                  {books.map((b) => (
-                    <option key={b.abbreviation} value={b.abbreviation}>{b.name}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[--text-secondary] pointer-events-none" />
-              </div>
+              <BookPicker value={book} onSelect={selectBook} />
             </div>
 
             <div>
