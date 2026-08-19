@@ -54,6 +54,42 @@ body {
 [data-preset="tablet"] input, [data-preset="tablet"] select,
 [data-preset="tablet"] textarea { min-height: 40px !important; }
 
+/* ---------------------------------------------------------------------------
+ * Les champs de date sous Safari iOS
+ *
+ * Safari y rend `input[type="date"]` avec le format long de la locale — « 19
+ * août 2026 » là où Chrome écrit « 19/08/2026 » — et donne à cette valeur une
+ * largeur intrinsèque qu'il refuse de réduire. `w-full` ne contraint alors
+ * rien : le champ sort de sa carte, en portrait comme en paysage.
+ *
+ * Constaté sur capture d'un iPhone le 19 août 2026, et **non reproductible sur
+ * un navigateur de bureau** : à 320 comme à 375 px, Chrome tient le champ à un
+ * pixel près dans son cadre. C'est le rendu WebKit qui diffère, pas la largeur
+ * disponible — chercher plus loin que la mise en page aurait été une perte de
+ * temps.
+ *
+ * On vise les parties internes du contrôle plutôt que `appearance: none`, qui
+ * retirerait aussi l'icône de calendrier là où elle s'affiche très bien.
+ */
+input[type="date"] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  /* Centrée par défaut sur iOS — seule valeur de toute la carte à l'être,
+     quand les autres champs commencent au bord. */
+  text-align: start;
+  /* La largeur qui poussait le champ hors de son cadre. */
+  min-width: 0;
+  margin: 0;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  min-width: 0;
+  padding: 0;
+}
+
 html.dark {
   --primary-light: #1a2840;
   --accent-light: #1e1a3a;
