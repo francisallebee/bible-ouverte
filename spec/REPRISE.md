@@ -26,11 +26,16 @@ action hors du dépôt.
    vaut la même adresse que l'expéditeur, ce qui fait un envoi à soi-même. À
    changer si tu préfères recevoir ailleurs.
 
-3. **Le catalan : aucun texte du domaine public n'a été trouvé.** Cherché le
-   19 août 2026, sur les cinq sources qui pouvaient en porter un. Le
-   propriétaire avait demandé qu'on cherche le texte **avant** d'ajouter la
-   langue, `AGENTS.md` promettant une version biblique par langue d'interface.
-   La réponse est non, et c'est à lui de trancher la suite.
+3. **Le catalan est en pause, sur décision du propriétaire du dépôt, le
+   19 août 2026 — jusqu'à nouvel ordre.** Ne pas le reprendre sans qu'il le
+   demande, et surtout ne pas relancer la recherche : elle est faite, et son
+   résultat est ci-dessous. L'item 26 de la feuille de route reste à *projet*,
+   ce qui est désormais son état exact et non un retard.
+
+   **Aucun texte du domaine public n'a été trouvé.** Cherché le 19 août 2026,
+   sur les cinq sources qui pouvaient en porter un. Le propriétaire avait
+   demandé qu'on cherche le texte **avant** d'ajouter la langue, `AGENTS.md`
+   promettant une version biblique par langue d'interface. La réponse est non.
 
    | Source | Catalan ? |
    |---|---|
@@ -51,9 +56,11 @@ action hors du dépôt.
    raison qui a fait écarter quatre versions françaises de `scrollmapper` le
    16 août. La Bible de Valence de 1478 ne survit qu'à l'état de fragment.
 
-   Ce qui reste à décider, et qui n'est pas de l'agent : accepter un Nouveau
-   Testament seul, assouplir la promesse d'une version par langue, obtenir une
-   licence auprès de l'IBEC ou de l'ABCat, ou laisser le catalan en projet.
+   Les quatre options restent ouvertes pour le jour où le sujet reprendra :
+   accepter un Nouveau Testament seul, assouplir la promesse d'une version par
+   langue, obtenir une licence auprès de l'IBEC ou de l'ABCat, ou laisser le
+   catalan en projet. **Aucune n'est à instruire tant que le propriétaire ne
+   le demande pas.**
 
 4. **La revue de l'arabe est en pause, sur décision du propriétaire du dépôt,
    le 19 août 2026 — jusqu'à nouvel ordre.** Ne pas la reprendre sans qu'il le
@@ -493,6 +500,8 @@ interrompu avant la fin. Les previews passent par git.
 | Écart entre livres | un chapitre des Psaumes fait **268** mots, un chapitre des Rois **1 015** — facteur 3,8, d'où une table par livre et non une moyenne | 19 août |
 | `verseEnd` à 200 en base | **valeur de repli** de `PassagePicker` quand le texte n'est pas téléchargé (`FALLBACK_VERSES`) — Psaumes 1:1-200 existe pour de vrai | 19 août |
 | Estimation sur les 166 lectures réelles | 39,6 h au total ; Genèse entière à **231 min**, quand les bibles audio l'annoncent vers 3 h 50 | 19 août |
+| Déclencheur `roadmap-done`, en conditions réelles | items 29 et 30 passés à *terminé* à 19:42 UTC, **notifiés à 19:45** — 5 comptes abonnés, deux lignes chacun, une par item | 19 août |
+| Changement de statut d'un ticket | **ne notifie rien** : `supportReplies` de `notification_data()` ne lit que `replies`, jamais `status` | 19 août |
 | Portée de cet identifiant | c'est l'identifiant **Supabase** — `rowToEntry` reprend `row.id` comme clé locale —, donc stable d'un appareil à l'autre | 19 août |
 | Pastille de palier, contraste | `text-orange-600` sur `bg-orange-50` : **3,35** — porté à `orange-700`, **4,88** | 19 août |
 | Badges débloqués, mode sombre | texte hérité `--text` sur `bg-yellow-50` : **1,06** — calculé sur le CSS produit, **pas vu à l'écran** | 19 août |
