@@ -90,6 +90,34 @@ input[type="date"]::-webkit-datetime-edit {
   padding: 0;
 }
 
+/* Et pour iOS, la propriété qui manquait.
+ *
+ * Les trois règles ci-dessus n'ont rien changé sur iPhone — vérifié le
+ * 19 août 2026, le correctif déployé et la version confirmée chargée par un
+ * autre changement du même lot. Ce qui empêche vraiment le contrôle de se
+ * dimensionner lui-même, c'est `-webkit-appearance: none` ; elle avait été
+ * écartée parce qu'elle retire l'icône de calendrier.
+ *
+ * `@supports (-webkit-touch-callout: none)` ne s'applique qu'à WebKit mobile :
+ * le bureau garde donc son icône, et seul l'endroit où le champ débordait est
+ * touché. Un navigateur de bureau ne peut pas éprouver ce bloc — il ne le voit
+ * pas.
+ */
+@supports (-webkit-touch-callout: none) {
+  input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    /* Sans `block`, iOS le rend en ligne et lui rend sa largeur intrinsèque. */
+    display: block;
+    width: 100%;
+  }
+
+  input[type="date"]::-webkit-date-and-time-value {
+    width: 100%;
+    text-align: start;
+  }
+}
+
 html.dark {
   --primary-light: #1a2840;
   --accent-light: #1e1a3a;
