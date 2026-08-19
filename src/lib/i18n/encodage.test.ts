@@ -24,7 +24,7 @@ const DOSSIER = join(process.cwd(), 'src/lib/i18n/ui')
 function segmentsDegrades(contenu: string): string[] {
   const suites = contenu.match(/[-ÿ]+/g) ?? []
   return suites.filter((suite) => {
-    const octets = Uint8Array.from([...suite].map((c) => c.charCodeAt(0)))
+    const octets = Uint8Array.from(Array.from(suite, (c: string) => c.charCodeAt(0)))
     try {
       const relu = new TextDecoder('utf-8', { fatal: true }).decode(octets)
       return relu !== suite
