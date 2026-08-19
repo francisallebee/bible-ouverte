@@ -153,6 +153,24 @@ export const en: Dictionary = {
   },
 
   settings: {
+    goalUnitLabels: {
+      chapters: 'Chapters',
+      verses: 'Verses',
+    } as Record<string, string>,
+    goalUnit: 'Unit',
+    goalPeriod: 'Period',
+    goalTarget: 'Target',
+    goalUnits: {
+      chapters: 'chapters',
+      verses: 'verses',
+    } as Record<string, string>,
+    goalPeriods: {
+      day: 'per day',
+      week: 'per week',
+      month: 'per month',
+      year: 'per year',
+    } as Record<string, string>,
+    goalSummary2: (n: number, u: string, p: string) => `${n} ${u} ${p}`,
     fontPreview:
       'For God so loved the world that he gave his only Son.',
     uiScaleLabel: 'Interface size',
@@ -379,6 +397,7 @@ export const en: Dictionary = {
   } as Record<string, string>,
 
   progress: {
+    goalUnitPeriod: (u: string, p: string) => `${u} ${p}`,
     title: 'My progress',
     level: (n: number) => `Level ${n}`,
     chaptersOf: (read: number, next: number) => `${read} / ${next} chapters`,

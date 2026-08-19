@@ -170,9 +170,22 @@ export interface PlanDay {
   synced?: boolean;
 }
 
+/**
+ * L'ancienne forme de l'objectif, qui ne connaissait que le jour.
+ *
+ * Conservée parce que les comptes existants la portent en base : la conversion
+ * se fait à la lecture, par `normaliserObjectif`, et non par une réécriture.
+ */
 export interface ReadingGoal {
   type: "chapters-per-day" | "verses-per-day";
   target: number;
+}
+
+/** La forme actuelle : une unité, une période, une cible. */
+export interface Objectif {
+  unite: "chapters" | "verses";
+  periode: "day" | "week" | "month" | "year";
+  cible: number;
 }
 
 export interface RoadmapItem {
@@ -218,7 +231,7 @@ export interface AppSettings {
   offlineModeEnabled: boolean;
   firstLaunchCompleted: boolean;
 
-  readingGoal?: ReadingGoal;
+  readingGoal?: ReadingGoal | Objectif;
   audioSpeed?: number;
   /**
    * Minutes d'inactivité avant déconnexion. 0 ou absent : jamais — c'est la

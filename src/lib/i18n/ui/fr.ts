@@ -168,6 +168,24 @@ export const fr = {
   },
 
   settings: {
+    goalUnitLabels: {
+      chapters: 'Chapitres',
+      verses: 'Versets',
+    } as Record<string, string>,
+    goalUnit: 'Unité',
+    goalPeriod: 'Période',
+    goalTarget: 'Cible',
+    goalUnits: {
+      chapters: 'chapitres',
+      verses: 'versets',
+    } as Record<string, string>,
+    goalPeriods: {
+      day: 'par jour',
+      week: 'par semaine',
+      month: 'par mois',
+      year: 'par an',
+    } as Record<string, string>,
+    goalSummary2: (n: number, u: string, p: string) => `${n} ${u} ${p}`,
     fontPreview:
       'Car Dieu a tant aimé le monde qu’il a donné son Fils unique.',
     uiScaleLabel: 'Taille de l’interface',
@@ -403,6 +421,7 @@ export const fr = {
   } as Record<string, string>,
 
   progress: {
+    goalUnitPeriod: (u: string, p: string) => `${u} ${p}`,
     title: 'Ma progression',
     level: (n: number) => `Niveau ${n}`,
     chaptersOf: (read: number, next: number) => `${read} / ${next} chapitres`,

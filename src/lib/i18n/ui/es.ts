@@ -162,6 +162,24 @@ export const es: Dictionary = {
   },
 
   settings: {
+    goalUnitLabels: {
+      chapters: 'Capítulos',
+      verses: 'Versículos',
+    } as Record<string, string>,
+    goalUnit: 'Unidad',
+    goalPeriod: 'Periodo',
+    goalTarget: 'Objetivo',
+    goalUnits: {
+      chapters: 'capítulos',
+      verses: 'versículos',
+    } as Record<string, string>,
+    goalPeriods: {
+      day: 'al día',
+      week: 'a la semana',
+      month: 'al mes',
+      year: 'al año',
+    } as Record<string, string>,
+    goalSummary2: (n: number, u: string, p: string) => `${n} ${u} ${p}`,
     fontPreview:
       'Porque tanto amó Dios al mundo que dio a su Hijo único.',
     uiScaleLabel: 'Tamaño de la interfaz',
@@ -397,6 +415,7 @@ export const es: Dictionary = {
   } as Record<string, string>,
 
   progress: {
+    goalUnitPeriod: (u: string, p: string) => `${u} ${p}`,
     title: 'Mi progreso',
     level: (n: number) => `Nivel ${n}`,
     chaptersOf: (read: number, next: number) => `${read} / ${next} capítulos`,

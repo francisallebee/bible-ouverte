@@ -18,6 +18,7 @@ import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion } from "@/lib/storage";
 import { COLOR_THEMES, applyColorTheme, applyTheme, CUSTOM_THEME_ID, DEFAULT_CUSTOM } from "@/lib/themes";
 import { NAV_LINKS } from "@/components/Sidebar";
+import { normaliserObjectif, type Objectif } from "@/lib/objectifs/objectifs";
 import {
   FONTS, DEFAULT_FONT_ID, applyFonts,
   UI_SCALES, DEFAULT_UI_SCALE, READING_SIZES, DEFAULT_READING_SIZE,
@@ -151,6 +152,14 @@ export default function SettingsPage() {
     });
     setSettings((prev) => (prev ? { ...prev, [champ]: id } : prev));
     await updateSettings({ [champ]: id });
+  }
+
+  const objectif = normaliserObjectif(settings?.readingGoal);
+
+  async function changerObjectif(part: Partial<Objectif>) {
+    const readingGoal: Objectif = { ...objectif, ...part };
+    setSettings((prev) => (prev ? { ...prev, readingGoal } : prev));
+    await updateSettings({ readingGoal });
   }
 
   async function terminerPersonnalisation() {
@@ -513,44 +522,48 @@ export default function SettingsPage() {
           <p className="text-sm text-[--text-secondary] mb-3">
             {t.settings.goalHint}
           </p>
-          <div className="flex items-center gap-3 flex-wrap">
-            <select
-              value={settings?.readingGoal?.type ?? "chapters-per-day"}
-              onChange={async (e) => {
-                const type = e.target.value as "chapters-per-day" | "verses-per-day";
-                const target = settings?.readingGoal?.target ?? 1;
-                await updateSettings({ readingGoal: { type, target } });
-                const s = await getSettings();
-                setSettings(s ?? null);
-              }}
-              className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
-            >
-              <option value="chapters-per-day">{t.settings.goalChapters}</option>
-              <option value="verses-per-day">{t.settings.goalVerses}</option>
-            </select>
-            <input
-              type="number"
-              min={1}
-              value={settings?.readingGoal?.target ?? 1}
-              onChange={async (e) => {
-                const target = Math.max(1, Number(e.target.value));
-                const type = settings?.readingGoal?.type ?? "chapters-per-day";
-                await updateSettings({ readingGoal: { type, target } });
-                const s = await getSettings();
-                setSettings(s ?? null);
-              }}
-              className="w-20 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
-            />
-            <span className="text-sm text-[--text-secondary]">{t.settings.perDay}</span>
+          {/* Trois réglages plutôt qu'un : l'unité, la période et la cible.
+              L'ancien réglage « par jour » des comptes existants est converti
+              à la lecture par `normaliserObjectif`, jamais réécrit en base. */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label htmlFor="objectif-unite" className="block text-xs font-medium text-[--text-secondary] mb-1">
+                {t.settings.goalUnit}
+              </label>
+              <select id="objectif-unite" value={objectif.unite}
+                onChange={(e) => changerObjectif({ unite: e.target.value as typeof objectif.unite })}
+                className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
+                {/* Les libellés ne portent plus la période : elle est réglée
+                    à côté, et « Versets / jour » avec « par semaine » se
+                    contredirait. */}
+                <option value="chapters">{t.settings.goalUnitLabels.chapters}</option>
+                <option value="verses">{t.settings.goalUnitLabels.verses}</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="objectif-periode" className="block text-xs font-medium text-[--text-secondary] mb-1">
+                {t.settings.goalPeriod}
+              </label>
+              <select id="objectif-periode" value={objectif.periode}
+                onChange={(e) => changerObjectif({ periode: e.target.value as typeof objectif.periode })}
+                className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
+                {(["day", "week", "month", "year"] as const).map((p) => (
+                  <option key={p} value={p}>{t.settings.goalPeriods[p]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="objectif-cible" className="block text-xs font-medium text-[--text-secondary] mb-1">
+                {t.settings.goalTarget}
+              </label>
+              <input id="objectif-cible" type="number" min={1} value={objectif.cible}
+                onChange={(e) => changerObjectif({ cible: Math.max(1, Number(e.target.value)) })}
+                className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]" />
+            </div>
           </div>
-          {settings?.readingGoal && (
-            <p className="text-xs text-[--text-secondary] mt-2">
-              {t.settings.goalSummary(
-                settings.readingGoal.target,
-                settings.readingGoal.type === "chapters-per-day",
-              )}
-            </p>
-          )}
+          <p className="text-xs text-[--text-secondary] mt-2">
+            {t.settings.goalSummary2(objectif.cible, t.settings.goalUnits[objectif.unite], t.settings.goalPeriods[objectif.periode])}
+          </p>
         </SectionCard>
 
         <SectionCard icon={BookOpen} title={t.settings.versions}>

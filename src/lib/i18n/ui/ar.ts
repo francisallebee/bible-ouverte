@@ -238,6 +238,24 @@ export const ar: Dictionary = {
   },
 
   settings: {
+    goalUnitLabels: {
+      chapters: 'الأصحاح',
+      verses: 'الآيات',
+    } as Record<string, string>,
+    goalUnit: 'الوحدة',
+    goalPeriod: 'المدّة',
+    goalTarget: 'الهدف',
+    goalUnits: {
+      chapters: 'أصحاحًا',
+      verses: 'آية',
+    } as Record<string, string>,
+    goalPeriods: {
+      day: 'يوميًا',
+      week: 'أسبوعيًا',
+      month: 'شهريًا',
+      year: 'سنويًا',
+    } as Record<string, string>,
+    goalSummary2: (n: number, u: string, p: string) => `${n} ${u} ${p}`,
     fontPreview:
       'لأنه هكذا أحب الله العالم حتى بذل ابنه الوحيد.',
     uiScaleLabel: 'حجم الواجهة',
@@ -456,6 +474,7 @@ export const ar: Dictionary = {
   } as Record<string, string>,
 
   progress: {
+    goalUnitPeriod: (u: string, p: string) => `${u} ${p}`,
     title: 'تقدّمي',
     level: (n: number) => `المستوى ${n}`,
     chaptersOf: (read: number, next: number) => `${read} / ${next} إصحاحًا`,
