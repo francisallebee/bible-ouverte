@@ -10,7 +10,10 @@ import {
 } from "@/lib/storage";
 import type { ReadingEntry, AppSettings, ReadingContext } from "@/lib/storage";
 import { BOOKS } from "@/features/bible";
-import { normaliserObjectif, progressionDe, aujourdhui } from "@/lib/objectifs/objectifs";
+import {
+  normaliserObjectif, progressionDe, aujourdhui,
+  calculerSeries, prochainPalier, paliersAtteints,
+} from "@/lib/objectifs/objectifs";
 import { useI18n, useBookName, useContextName } from "@/contexts/I18nContext";
 import type { Dictionary } from "@/lib/i18n/ui/fr";
 import {
@@ -24,50 +27,6 @@ interface CategoryProgress {
   books: string[];
   totalChapters: number;
   readChapters: number;
-}
-
-interface StreakInfo {
-  current: number;
-  longest: number;
-}
-
-function calcStreaks(readings: ReadingEntry[]): StreakInfo {
-  const dates = Array.from(new Set(readings.map((r) => r.date))).sort();
-  if (dates.length === 0) return { current: 0, longest: 0 };
-  let current = 1;
-  let longest = 1;
-  let streak = 1;
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  const lastDate = dates[dates.length - 1];
-
-  if (lastDate !== today && lastDate !== yesterday) current = 0;
-
-  for (let i = 1; i < dates.length; i++) {
-    const prev = new Date(dates[i - 1]);
-    const curr = new Date(dates[i]);
-    const diff = (curr.getTime() - prev.getTime()) / 86400000;
-    if (diff === 1) {
-      streak++;
-      longest = Math.max(longest, streak);
-    } else {
-      streak = 1;
-    }
-  }
-
-  if (lastDate === today || lastDate === yesterday) {
-    const revDates = [...dates].reverse();
-    current = 1;
-    for (let i = 1; i < revDates.length; i++) {
-      const prev = new Date(revDates[i - 1]);
-      const curr = new Date(revDates[i]);
-      const diff = (prev.getTime() - curr.getTime()) / 86400000;
-      if (diff === 1) current++;
-      else break;
-    }
-  }
-
-  return { current, longest };
 }
 
 interface Badge {
@@ -203,8 +162,22 @@ export default function ProgressPage() {
   }, [readings]);
 
   const categoriesWithReads = categories.filter((c) => c.readChapters > 0).length;
-  const streaks = useMemo(() => calcStreaks(readings), [readings]);
-  const badges = useMemo(() => getBadges(chapterCount, streaks.longest, categoriesWithReads, categories.length), [chapterCount, streaks.longest, categoriesWithReads, categories.length]);
+
+  /**
+   * Les séries viennent de `lib/objectifs`, testées, et non plus d'un calcul
+   * local. Celui qu'elles remplacent comparait `toISOString().slice(0, 10)` —
+   * une date **UTC** — aux dates civiles locales des lectures : passé minuit
+   * dans un fuseau en avance, la série courante retombait à zéro alors que la
+   * lecture du jour était bien enregistrée.
+   *
+   * Elles portent aussi la tolérance d'un jour, que le calcul local n'avait
+   * pas. C'est la même série qui nourrit l'affichage, les paliers **et** les
+   * badges : deux définitions sur un même écran finiraient par se contredire.
+   */
+  const series = useMemo(() => calculerSeries(readings, aujourdhui()), [readings]);
+  const palierSuivant = useMemo(() => prochainPalier(series.courante), [series.courante]);
+  const paliers = useMemo(() => paliersAtteints(series.meilleure), [series.meilleure]);
+  const badges = useMemo(() => getBadges(chapterCount, series.meilleure, categoriesWithReads, categories.length), [chapterCount, series.meilleure, categoriesWithReads, categories.length]);
   const level = useMemo(() => getLevel(chapterCount), [chapterCount]);
   const goal = settings?.readingGoal;
 
@@ -285,8 +258,39 @@ export default function ProgressPage() {
             <Flame className="w-5 h-5 text-orange-500" />
             <span className="text-xs uppercase tracking-wider text-gray-500">{t.progress.currentStreak}</span>
           </div>
-          <p className="text-3xl font-bold text-orange-500">{streaks.current}<span className="text-lg font-normal text-gray-400 ms-1">{t.progress.days}</span></p>
-          <p className="text-xs text-gray-400 mt-1">{t.progress.bestStreak(streaks.longest)}</p>
+          <p className="text-3xl font-bold text-orange-500">{series.courante}<span className="text-lg font-normal text-gray-400 ms-1">{t.progress.days}</span></p>
+          <p className="text-xs text-gray-400 mt-1">{t.progress.bestStreak(series.meilleure)}</p>
+
+          {/* Paliers de série. La barre vise le prochain depuis la série
+              courante ; les pastilles récompensent la meilleure, qu'une
+              coupure ne doit pas effacer. */}
+          <div className="mt-3">
+            {palierSuivant !== null ? (
+              <>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-orange-500 rounded-full transition-[width] duration-700"
+                    style={{ width: `${Math.min(100, (series.courante / palierSuivant) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{t.progress.nextMilestone(palierSuivant)}</p>
+              </>
+            ) : (
+              <p className="text-xs text-gray-400">{t.progress.allMilestones}</p>
+            )}
+            {paliers.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {paliers.map((palier) => (
+                  <span
+                    key={palier}
+                    className="text-[10px] font-semibold rounded-full border border-orange-200 bg-orange-50 text-orange-700 px-2 py-0.5"
+                  >
+                    {t.progress.milestoneReached(palier)}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">

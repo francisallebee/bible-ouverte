@@ -334,6 +334,14 @@ npm test           # vitest
   Vérifié, non supposé. Les trois autres composants serveur de `src/app/` sont
   propres — et `soutenir/page.tsx` montre le cas où le serveur se justifie : il
   porte un `metadata`, qu'un composant client n'a pas le droit d'exporter.
+- **Les badges débloqués sont probablement illisibles en mode sombre.** Ils
+  portent `bg-yellow-50`, qu'aucune règle `html.dark` ne remappe — le bloc ne
+  réécrit que les gris —, et leur nom n'a pas de classe de couleur : il hérite
+  donc de `--text`, presque blanc. Contraste calculé sur le CSS produit :
+  **1,06**, le même chiffre que la barre latérale de la règle 15. Ce n'est pas
+  vu à l'écran, `/progress` demandant une session ; c'est calculé. Le correctif
+  tient en une classe de couleur explicite sur le texte, comme les pastilles de
+  palier voisines.
 - **La traduction ne couvre pas tout, et le reste est délibéré.** La page de
   présentation `/` et les titres d'onglet (`metadata`) restent français : ils
   sont rendus côté serveur, un visiteur sans session n'a pas de réglage de

@@ -458,6 +458,9 @@ interrompu avant la fin. Les previews passent par git.
 | Persistance de la langue | écrite dans la colonne `jsonb`, relue après rechargement complet | 15 août |
 | Réglages portant une langue, en base | **1 ligne sur 102**, à `fr`, écrite à 14:07:26 UTC | 15 août |
 | Réversion de langue | reproduite en test : un `en` local en attente écrasait un `fr` distant plus récent | 15 août |
+| Séries de l'écran Progression | un second calcul, `calcStreaks`, vivait encore dans la page — **UTC contre dates locales**, et sans la tolérance | 19 août |
+| Pastille de palier, contraste | `text-orange-600` sur `bg-orange-50` : **3,35** — porté à `orange-700`, **4,88** | 19 août |
+| Badges débloqués, mode sombre | texte hérité `--text` sur `bg-yellow-50` : **1,06** — calculé sur le CSS produit, **pas vu à l'écran** | 19 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -582,6 +585,21 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   (`src/app/progress/page.tsx`, qui parcourt `chapterStart..chapterEnd`). Cocher
   Jean 3:16-18 marque tout Jean 3 comme lu. Les plans libres, qui portent enfin
   des versets, rendent ce comportement bien plus visible qu'avant.
+- **Extraire un module ne retire pas le calcul qu'il remplace.** `lib/objectifs`
+  a été livré le 19 août avec `calculerSeries`, testé, et sa raison d'être
+  écrite en tête de fichier : l'ancien calcul comparait une date **UTC** aux
+  dates civiles locales des lectures. L'écran Progression, lui, a continué
+  d'appeler son `calcStreaks` local — le défaut décrit dans le module vivait
+  encore dans la page qui l'avait motivé. Ni `tsc`, ni `eslint`, ni les tests
+  ne signalent une fonction exportée que personne n'appelle. Après extraction,
+  chercher les appelants de ce qu'on remplace, pas seulement les appelants du
+  neuf.
+- **Une classe de couleur n'est pas remappée en mode sombre.** Le bloc
+  `html.dark` de `globals.css` ne réécrit que les gris. Un fond coloré clair y
+  reste clair, et tout texte qui n'a pas de classe de couleur hérite de
+  `--text`, presque blanc : c'est la règle 15 sous un autre visage. Poser la
+  couleur du texte **explicitement** sur un fond coloré, et la mesurer.
+
 - **Un thème appliqué à la main dans chaque écran finit par diverger.** Les
   trois endroits qui posaient la classe `dark` séparément passent désormais par
   `applyTheme()` de `lib/themes.ts` ; le mode « Système » n'aurait pas pu être
@@ -784,3 +802,12 @@ lui-même.
 
 L'abonnement suppose que l'application soit installée sur l'écran d'accueil et
 lancée depuis son icône : iOS ne délivre rien à un onglet Safari.
+
+**Les paliers de série n'ont pas été vus à l'écran**, le 19 août 2026. Le calcul
+est couvert par les tests du module, les classes Tailwind sont bien produites —
+relevé dans la feuille servie par le serveur de développement, `text-orange-700`
+comprise —, et les contrastes sont calculés sur les valeurs réelles. Mais
+`/progress` demande une session, et l'agent n'en a pas : le navigateur le renvoie
+sur `/auth/login`. Ce qui n'est donc pas vérifié : la mise en page de la carte
+une fois les pastilles ajoutées, son aspect en mode sombre, et son rendu en
+arabe. C'est une preuve d'écran qui reste à faire, par le propriétaire du dépôt.

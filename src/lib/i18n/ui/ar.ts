@@ -88,6 +88,13 @@ const nataij = (n: number) => pluriel(n, {
   peu: 'نتائج', beaucoup: 'نتيجة', autre: 'نتيجة',
 })
 
+/* Les paliers de série valent 7, 30, 100 et 365 : à eux seuls ils traversent
+ * trois des six formes — أيام pour 7, يومًا pour 30 et 365, يوم pour 100. */
+const ayyam = (n: number) => pluriel(n, {
+  zero: 'يوم', un: 'يوم واحد', deux: 'يومان',
+  peu: 'أيام', beaucoup: 'يومًا', autre: 'يوم',
+})
+
 export const ar: Dictionary = {
   common: {
     ticketStatuses: {
@@ -481,6 +488,9 @@ export const ar: Dictionary = {
     currentStreak: 'التتابع الحالي',
     days: 'أيام',
     bestStreak: (n: number) => `الأفضل: ${n} يومًا`,
+    nextMilestone: (n: number) => `المرحلة التالية: ${n} ${ayyam(n)}`,
+    allMilestones: 'تم بلوغ جميع المراحل',
+    milestoneReached: (n: number) => `${n} ${ayyam(n)}`,
     chaptersRead: 'الإصحاحات المقروءة',
     booksStarted: (n: number) => `${n} ${asfar(n)} بُدئ بها`,
     dailyGoal: 'هدف اليوم',
@@ -518,10 +528,10 @@ export const ar: Dictionary = {
       'two-fifty': { name: 'كاتب', description: 'قراءة 250 إصحاحًا' },
       'five-hundred': { name: 'مُعلِّم الناموس', description: 'قراءة 500 إصحاح' },
       thousand: { name: 'حارس', description: 'قراءة 1000 إصحاح' },
-      'streak-3': { name: 'منتظم', description: '3 أيام متتالية' },
-      'streak-7': { name: 'مثابر', description: '7 أيام متتالية' },
-      'streak-30': { name: 'لا يُوقَف', description: '30 يومًا متتاليًا' },
-      'streak-100': { name: 'أسطورة حية', description: '100 يوم متتالٍ' },
+      'streak-3': { name: 'منتظم', description: 'سلسلة من 3 أيام' },
+      'streak-7': { name: 'مثابر', description: 'سلسلة من 7 أيام' },
+      'streak-30': { name: 'لا يُوقَف', description: 'سلسلة من 30 يومًا' },
+      'streak-100': { name: 'أسطورة حية', description: 'سلسلة من 100 يوم' },
       'category-all': { name: 'القانون كاملًا', description: 'القراءة في كل الفئات' },
       'category-half': { name: 'في منتصف الطريق', description: 'القراءة في نصف الفئات' },
     },
