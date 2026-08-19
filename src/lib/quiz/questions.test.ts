@@ -11,6 +11,8 @@ function aleaFixe(suite: number[]): Alea {
   return () => suite[i++ % suite.length]
 }
 
+const PONCTUATION = /[.,;:!?()\[\]«»"'\u2019\u2018\u201c\u201d\u2014\u2013-]/g;
+
 const v = (book: string, chapter: number, verse: number, text: string): BiblePassage =>
   ({ versionId: 'ls1910', book, chapter, verse, text } as BiblePassage)
 
@@ -78,13 +80,13 @@ describe('question à trou', () => {
   it('masque un mot et le met dans les choix', () => {
     const q = questionTrou(options())!
     expect(q.enonce).toContain('……')
-    expect(q.source.text).toContain(q.choix[q.bonne].replace(/[^\p{L}\p{M}]/gu, ''))
+    expect(q.source.text).toContain(q.choix[q.bonne].replace(PONCTUATION, ''))
   })
 
   it('ne masque jamais un mot outil', () => {
     // Retirer « et » ou « la » ne demande aucune connaissance du texte.
     const q = questionTrou(options())!
-    const masque = q.choix[q.bonne].replace(/[^\p{L}\p{M}]/gu, '')
+    const masque = q.choix[q.bonne].replace(PONCTUATION, '')
     expect(masque.length).toBeGreaterThanOrEqual(5)
   })
 

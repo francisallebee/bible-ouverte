@@ -62,11 +62,13 @@ function propositions(
   combien: number,
   alea: Alea,
 ): { choix: string[]; bonne: number } | null {
-  const distincts = [...new Set(leurresPossibles)].filter((x) => x !== bonne);
+  const distincts = Array.from(new Set(leurresPossibles)).filter((x) => x !== bonne);
   if (distincts.length < combien - 1) return null;
   const choix = melange([bonne, ...melange(distincts, alea).slice(0, combien - 1)], alea);
   return { choix, bonne: choix.indexOf(bonne) };
 }
+
+const PONCTUATION = /[.,;:!?()\[\]«»"'\u2019\u2018\u201c\u201d\u2014\u2013-]/g;
 
 /** Les mots d'un verset, ponctuation comprise, pour le retrait d'un mot. */
 function mots(texte: string): string[] {
@@ -82,7 +84,7 @@ function mots(texte: string): string[] {
  */
 function motRetirable(liste: string[]): number[] {
   return liste
-    .map((m, i) => ({ m: m.replace(/[^\p{L}\p{M}]/gu, ''), i }))
+    .map((m, i) => ({ m: m.replace(PONCTUATION, ''), i }))
     .filter(({ m }) => m.length >= 5)
     .map(({ i }) => i);
 }
