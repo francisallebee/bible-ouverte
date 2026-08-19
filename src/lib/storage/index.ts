@@ -12,3 +12,4 @@ export * from './plan-export';
 export * from './user-id';
 export * from './roadmap-store';
 export * from './support-store';
+export * from './game-store';

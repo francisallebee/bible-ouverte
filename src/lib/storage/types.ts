@@ -91,6 +91,32 @@ export interface ReadingPlan {
   synced?: boolean;
 }
 
+/** Le genre d'une partie. Non contraint côté base : ajouter un jeu ne doit rien migrer. */
+export type GameKind = 'quiz' | 'memorisation' | 'verset-du-jour';
+
+/**
+ * Une partie jouée, quel que soit le jeu.
+ *
+ * `details` porte ce qui est propre à chaque jeu — le genre des questions
+ * ratées, le nombre d'indices demandés — de sorte qu'ajouter un jeu ne demande
+ * ni migration ni colonne. Voir `20260819160000_game_sessions.sql`.
+ */
+export interface GameSession {
+  id?: number;
+  userId: string;
+  kind: GameKind | string;
+  score: number;
+  total: number;
+  /** Le passage travaillé, quand il y en a un. Absent pour un quizz, qui en couvre plusieurs. */
+  book?: string;
+  chapter?: number;
+  verse?: number;
+  details?: Record<string, unknown>;
+  createdAt: string;
+  /** true si la ligne existe dans Supabase (flag local uniquement) */
+  synced?: boolean;
+}
+
 export interface PlanDay {
   id?: number;
   planId: number;

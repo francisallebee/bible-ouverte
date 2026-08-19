@@ -556,3 +556,59 @@ export async function deleteTicketRemote(id: number): Promise<boolean> {
     return (data?.length ?? 0) > 0
   }, false)
 }
+
+// ---------------------------------------------------------------------------
+// Parties jouées
+// ---------------------------------------------------------------------------
+
+export interface GameSessionRow {
+  id: number
+  user_id: string
+  kind: string
+  score: number
+  total: number
+  book: string | null
+  chapter: number | null
+  verse: number | null
+  details: Record<string, unknown> | null
+  createdAt: string
+}
+
+export async function insertGameSession(
+  partie: { kind: string; score: number; total: number; book?: string; chapter?: number; verse?: number; details?: Record<string, unknown>; createdAt: string },
+): Promise<GameSessionRow | null> {
+  return tryAuthenticated(async () => {
+    const supabase = createClient()
+    const userId = await getUserId()
+    if (!userId) return null
+    const { data, error } = await supabase
+      .from('game_sessions')
+      .insert({
+        user_id: userId,
+        kind: partie.kind,
+        score: partie.score,
+        total: partie.total,
+        book: partie.book ?? null,
+        chapter: partie.chapter ?? null,
+        verse: partie.verse ?? null,
+        details: partie.details ?? null,
+        createdAt: partie.createdAt,
+      })
+      .select()
+      .single()
+    if (error) return null
+    return data as GameSessionRow
+  }, null)
+}
+
+/** Rend `null` quand le distant n'a pas répondu, pour que le cache local serve. */
+export async function fetchGameSessions(kind?: string): Promise<GameSessionRow[] | null> {
+  return tryAuthenticated(async () => {
+    const supabase = createClient()
+    let requete = supabase.from('game_sessions').select('*').order('createdAt', { ascending: false })
+    if (kind) requete = requete.eq('kind', kind)
+    const { data, error } = await requete
+    if (error) return null
+    return (data as GameSessionRow[]) ?? []
+  }, null)
+}

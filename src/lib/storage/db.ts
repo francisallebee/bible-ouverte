@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase, type DBSchema } from 'idb';
-import type { AppSettings, BiblePassage, BibleVersion, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket } from './types';
+import type { AppSettings, BiblePassage, BibleVersion, GameSession, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket } from './types';
 
 interface BibleOuverteDB extends DBSchema {
   readings: {
@@ -54,13 +54,20 @@ interface BibleOuverteDB extends DBSchema {
     value: SupportTicket;
     autoIncrement: true;
   };
+  game_sessions: {
+    key: number;
+    value: GameSession;
+    indexes: {
+      'by-kind-date': [string, string];
+    };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<BibleOuverteDB>> | null = null;
 
 export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 7, {
+    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 8, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const readingsStore = db.createObjectStore('readings', {
@@ -111,6 +118,17 @@ export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
             keyPath: 'id',
             autoIncrement: true,
           });
+        }
+
+        if (oldVersion < 8) {
+          // Les parties jouées : quizz, mémorisation, verset du jour. L'index
+          // porte le genre et la date, qui est exactement ce que lit l'écran
+          // des statistiques — par jeu, du plus récent au plus ancien.
+          const parties = db.createObjectStore('game_sessions', {
+            keyPath: 'id',
+            autoIncrement: true,
+          });
+          parties.createIndex('by-kind-date', ['kind', 'createdAt']);
         }
       },
     });

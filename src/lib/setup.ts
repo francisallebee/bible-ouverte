@@ -24,6 +24,7 @@ export const HIDEABLE_PAGES = [
   '/progress',
   '/history',
   '/stats',
+  '/quiz',
   '/roadmap',
   '/support',
   '/soutenir',
