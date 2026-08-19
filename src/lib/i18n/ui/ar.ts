@@ -206,6 +206,10 @@ export const ar: Dictionary = {
   },
 
   history: {
+    groupBy: 'التجميع حسب',
+    byDate: 'التاريخ',
+    byBook: 'السفر',
+    byContext: 'السياق',
     title: 'قراءاتي',
     select: 'تحديد',
     selectedCount: (n: number) => `${n} ${pluriel(n, {

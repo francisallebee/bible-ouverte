@@ -139,6 +139,10 @@ export const fr = {
   },
 
   history: {
+    groupBy: 'Regrouper par',
+    byDate: 'Date',
+    byBook: 'Livre',
+    byContext: 'Contexte',
     title: 'Mes lectures',
     select: 'Sélectionner',
     selectedCount: (n: number) => `${n} sélectionnée${n > 1 ? 's' : ''}`,

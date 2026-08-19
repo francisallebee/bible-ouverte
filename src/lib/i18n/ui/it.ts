@@ -132,6 +132,10 @@ export const it: Dictionary = {
   },
 
   history: {
+    groupBy: 'Raggruppa per',
+    byDate: 'Data',
+    byBook: 'Libro',
+    byContext: 'Contesto',
     title: 'Le mie letture',
     select: 'Seleziona',
     selectedCount: (n: number) => `${n} ${n !== 1 ? 'selezionate' : 'selezionata'}`,

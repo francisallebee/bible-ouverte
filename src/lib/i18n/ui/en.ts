@@ -124,6 +124,10 @@ export const en: Dictionary = {
   },
 
   history: {
+    groupBy: 'Group by',
+    byDate: 'Date',
+    byBook: 'Book',
+    byContext: 'Context',
     title: 'My readings',
     select: 'Select',
     selectedCount: (n: number) => `${n} selected`,
