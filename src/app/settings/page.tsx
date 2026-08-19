@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass, Languages } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass, Languages, LayoutList, Check } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion } from "@/lib/storage";
 import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,8 @@ import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion } from "@/lib/storage";
 import { COLOR_THEMES, applyColorTheme, applyTheme } from "@/lib/themes";
+import { NAV_LINKS } from "@/components/Sidebar";
+import { HIDEABLE_PAGES, isPageVisible, shouldForceSetup } from "@/lib/setup";
 import { AUTO_LOGOUT_CHOICES } from "@/lib/auto-logout";
 import {
   notificationStatus, readDeviceState, requestNotificationPermission, showTestNotification,
@@ -97,6 +99,24 @@ export default function SettingsPage() {
       );
     }
     setBusyVersion(null);
+  }
+
+  /** Le passage obligé n'est en cours que pour un compte neuf qui n'a pas validé. */
+  const personnalisationEnCours = shouldForceSetup(user?.created_at, settings);
+
+  async function basculerPage(href: string, visible: boolean) {
+    const actuelles = settings?.hiddenPages ?? [];
+    const hiddenPages = visible
+      ? actuelles.filter((p) => p !== href)
+      : [...actuelles.filter((p) => p !== href), href];
+    await updateSettings({ hiddenPages });
+    setSettings((prev) => (prev ? { ...prev, hiddenPages } : prev));
+  }
+
+  async function terminerPersonnalisation() {
+    const setupCompletedAt = new Date().toISOString();
+    await updateSettings({ setupCompletedAt });
+    setSettings((prev) => (prev ? { ...prev, setupCompletedAt } : prev));
   }
 
   useEffect(() => {
@@ -287,6 +307,13 @@ export default function SettingsPage() {
           {t.settings.subtitle}
         </p>
       </div>
+
+      {personnalisationEnCours && (
+        <div className="mb-6 rounded-xl border border-[--primary]/20 bg-[--primary-light] p-5">
+          <p className="font-semibold text-[--primary] mb-1">{t.settings.setupTitle}</p>
+          <p className="text-sm text-[--text-secondary]">{t.settings.setupHint}</p>
+        </div>
+      )}
 
       <div className="space-y-4">
         <SectionCard icon={Languages} title={t.language.title}>
@@ -628,6 +655,28 @@ export default function SettingsPage() {
           )}
         </SectionCard>
 
+        <SectionCard icon={LayoutList} title={t.settings.pages}>
+          <p className="text-sm text-[--text-secondary] mb-3">
+            {t.settings.pagesHint}
+          </p>
+          <div className="space-y-1">
+            {NAV_LINKS.filter((l) => (HIDEABLE_PAGES as readonly string[]).includes(l.href)).map((lien) => {
+              const visible = isPageVisible(lien.href, settings?.hiddenPages);
+              const Icone = lien.icon;
+              return (
+                <label key={lien.href}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <input type="checkbox" checked={visible}
+                    onChange={(e) => basculerPage(lien.href, e.target.checked)}
+                    className="accent-[--primary] w-4 h-4 shrink-0" />
+                  <Icone className="w-4 h-4 text-[--text-secondary] shrink-0" />
+                  <span className="text-sm text-[--text]">{lien.label(t)}</span>
+                </label>
+              );
+            })}
+          </div>
+        </SectionCard>
+
         <SectionCard icon={Compass} title={t.settings.tour}>
           <p className="text-sm text-[--text-secondary] mb-3">
             {t.settings.tourHint}
@@ -723,6 +772,18 @@ export default function SettingsPage() {
             </div>
           </dl>
         </SectionCard>
+
+        {/* En bas, et non dans le bandeau d'en-tête : le bouton doit se
+            mériter par le parcours des réglages, pas se cliquer d'emblée. */}
+        {personnalisationEnCours && (
+          <button
+            onClick={terminerPersonnalisation}
+            className="w-full flex items-center justify-center gap-2 bg-[--primary] text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-[--primary-hover] transition-colors"
+          >
+            <Check className="w-4 h-4" />
+            {t.settings.setupDone}
+          </button>
+        )}
       </div>
     </div>
   );

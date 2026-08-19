@@ -14,13 +14,14 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useT } from "@/contexts/I18nContext";
 import type { Dictionary } from "@/lib/i18n/ui/fr";
+import { isPageVisible } from "@/lib/setup";
 
 /**
  * Le libellé est désigné par sa clé, et non écrit ici : la liste est constante,
  * la traduction ne l'est pas. `label` reçoit le dictionnaire et y puise —
  * ainsi une clé renommée casse la compilation plutôt que l'affichage.
  */
-const links: {
+export const NAV_LINKS: {
   href: string
   label: (t: Dictionary) => string
   icon: React.ComponentType<{ className?: string }>
@@ -40,7 +41,7 @@ const links: {
   { href: "/admin", label: (t) => t.nav.admin, icon: Shield, adminOnly: true },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ hiddenPages }: { hiddenPages?: string[] }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -93,8 +94,9 @@ export default function Sidebar() {
         </Link>
 
         <div className="flex flex-col gap-0.5 flex-1">
-          {links
+          {NAV_LINKS
             .filter(l => !l.adminOnly || isAdmin)
+            .filter(l => isPageVisible(l.href, hiddenPages))
             .map(({ href, label, icon: Icon }) => {
             const active = pathname === href || (href !== "/" && pathname.startsWith(href));
             return (

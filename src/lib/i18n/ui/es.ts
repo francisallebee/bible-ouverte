@@ -159,6 +159,15 @@ export const es: Dictionary = {
   },
 
   settings: {
+    pages: 'Páginas visibles',
+    pagesHint:
+      'Elige qué páginas quedan en el menú. Ajustes y Nueva lectura siempre '
+      + 'están disponibles.',
+    setupTitle: 'Personaliza tu aplicación',
+    setupHint:
+      'Tómate un momento para elegir el idioma, el tema, tu objetivo y las '
+      + 'páginas que quieres ver. No volveremos a preguntártelo.',
+    setupDone: 'Terminar la personalización',
     title: 'Ajustes',
     subtitle: 'Personaliza tu experiencia',
     active: 'Activo',

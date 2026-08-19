@@ -26,10 +26,21 @@ action hors du dépôt.
    vaut la même adresse que l'expéditeur, ce qui fait un envoi à soi-même. À
    changer si tu préfères recevoir ailleurs.
 
-3. **Dix-huit écrans sur dix-neuf n'ont jamais été vus en arabe.** Seul
-   `/auth/login` l'a été, faute de session côté agent. Les propriétés logiques
-   y tiennent ; rien ne dit qu'elles tiennent ailleurs. Une trentaine de
-   classes physiques subsistent dans 14 fichiers — piste, pas verdict.
+3. **La revue de l'arabe est en pause, sur décision du propriétaire du dépôt,
+   le 19 août 2026 — jusqu'à nouvel ordre.** Ne pas la reprendre sans qu'il le
+   demande : la tentation est forte, c'est la dette la plus voyante de ce
+   document.
+
+   L'état, pour quand elle reprendra. Dix-huit écrans sur dix-neuf n'ont
+   jamais été vus en arabe ; seul `/auth/login` l'a été, faute de session côté
+   agent à l'époque. Les propriétés logiques y tiennent ; rien ne dit qu'elles
+   tiennent ailleurs. Une trentaine de classes physiques subsistent dans 14
+   fichiers — piste, pas verdict.
+
+   **Le périmètre a grandi depuis** : trois fenêtres surgissantes
+   (`BookPicker`, `PassagePreview`, `PassageSearch`), l'arbre de « Mes
+   lectures » dont le retrait des niveaux est posé en `paddingInlineStart`, et
+   la section des pages masquables. Aucun n'a été vu en RTL.
 4. **Les actions de l'écran Administration ont toutes été exercées le 18 août
    2026**, par l'agent, sur le compte de test *Teste* — voir la section dédiée
    plus bas. Suspendre, réactiver, promouvoir, rétrograder, changer le statut

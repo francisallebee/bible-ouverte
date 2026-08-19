@@ -199,6 +199,17 @@ export interface AppSettings {
    */
   tourCompletedAt?: string;
   /**
+   * Pages retirées du menu par l'utilisateur, par `href`. Une page absente de
+   * cette liste est visible : le défaut est « tout visible », y compris pour
+   * une page ajoutée après que l'utilisateur a enregistré sa liste.
+   */
+  hiddenPages?: string[];
+  /**
+   * Quand l'utilisateur a validé sa personnalisation. Voir `lib/setup.ts` :
+   * seuls les comptes créés après la livraison y sont conduits.
+   */
+  setupCompletedAt?: string;
+  /**
    * Langue de l'interface, en code court : `fr`, `en`, `es`, `it`, `ar`.
    *
    * Absente : la langue du navigateur décide, et le français en dernier

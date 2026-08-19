@@ -165,6 +165,15 @@ export const fr = {
   },
 
   settings: {
+    pages: 'Pages visibles',
+    pagesHint:
+      'Choisis les pages à garder dans le menu. Réglages et Nouvelle lecture '
+      + 'restent toujours accessibles.',
+    setupTitle: 'Personnalise ton application',
+    setupHint:
+      'Prends un moment pour régler la langue, le thème, ton objectif et les '
+      + 'pages que tu veux voir. Tu ne repasseras pas par ici.',
+    setupDone: 'Terminer la personnalisation',
     title: 'Réglages',
     subtitle: 'Personnalise ton expérience',
     active: 'Actif',

@@ -150,6 +150,15 @@ export const en: Dictionary = {
   },
 
   settings: {
+    pages: 'Visible pages',
+    pagesHint:
+      'Choose which pages stay in the menu. Settings and New reading are '
+      + 'always available.',
+    setupTitle: 'Personalise your app',
+    setupHint:
+      'Take a moment to set the language, theme, your goal and the pages you '
+      + 'want to see. You will not be asked again.',
+    setupDone: 'Finish setup',
     title: 'Settings',
     subtitle: 'Make the app your own',
     active: 'Active',
