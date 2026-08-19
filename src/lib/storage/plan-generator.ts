@@ -88,7 +88,7 @@ function splitChapters(chapters: number, parts: number): { start: number; end: n
  * UTC, et `setDate`, qui raisonne en heure locale : dans un fuseau en retard sur
  * UTC, chaque date repartait d'un jour en arrière.
  */
-function addDays(startDate: string, offset: number): string {
+export function addDays(startDate: string, offset: number): string {
   const [y, m, d] = startDate.slice(0, 10).split('-').map(Number);
   const base = Date.UTC(y, m - 1, d);
   return new Date(base + offset * 86400000).toISOString().slice(0, 10);

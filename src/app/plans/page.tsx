@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, Plus, Calendar, Trash2, ListChecks } from "lucide-react";
 import { seedIfNeeded, getEnabledVersions, getAllPlans, addPlan, deletePlan, generatePlanDays, addPlanDays, getCurrentUserId, getSettings } from "@/lib/storage";
+import { PLAN_TEMPLATES, templateDays, type PlanTemplate } from "@/lib/plans/catalog";
+import { templatePlanDays, templateDayRows, templateRealDays } from "@/lib/plans/from-template";
 import type { BibleVersion, ReadingPlan, PlanDuration, PlanKind } from "@/lib/storage";
 import { useI18n } from "@/contexts/I18nContext";
 import { formatDate } from "@/lib/i18n/format";
@@ -104,6 +106,51 @@ export default function PlansPage() {
     setShowForm(false);
     setFormName("");
     await load();
+  }
+
+  /** Durée retenue pour chaque modèle à flux, avant démarrage. */
+  const [dureeModele, setDureeModele] = useState<Record<string, number>>({});
+  const [modeleEnCours, setModeleEnCours] = useState<string | null>(null);
+
+  /**
+   * Démarre un plan bâti sur un modèle du catalogue.
+   *
+   * `totalDays` reçoit les jours **réellement produits** et non la durée
+   * demandée : les journées vides sont écartées, et un plan peut donc être plus
+   * court que la durée choisie. C'est la même règle que pour les plans
+   * engendrés depuis une sélection de livres.
+   */
+  async function handleStartTemplate(modele: PlanTemplate) {
+    if (!formVersion) return;
+    setModeleEnCours(modele.id);
+    try {
+      const duree = modele.kind === "streams"
+        ? (dureeModele[modele.id] ?? modele.durations[0])
+        : undefined;
+      const debut = new Date().toISOString().slice(0, 10);
+      const jours = templatePlanDays(modele, debut, duree);
+      const userId = await getCurrentUserId();
+      const now = new Date().toISOString();
+
+      const planId = await addPlan({
+        userId,
+        name: t.planCatalog.plans[modele.id]?.name ?? modele.id,
+        versionId: formVersion,
+        kind: "scheduled",
+        duration: "custom",
+        customDays: templateRealDays(modele, duree),
+        startDate: debut,
+        totalDays: jours.length,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      await addPlanDays(templateDayRows(jours).map((d) => ({ ...d, planId, userId })));
+      await load();
+    } catch (e) {
+      console.error(e);
+    }
+    setModeleEnCours(null);
   }
 
   async function handleDelete(id: number) {
@@ -252,6 +299,57 @@ export default function PlansPage() {
           </div>
         </div>
       )}
+
+      {/* Le catalogue, avant la liste : c'est la porte d'entrée pour qui n'a
+          encore aucun plan, et elle ne doit pas se mériter par un défilement. */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold mb-1">{t.planCatalog.title}</h2>
+        <p className="text-sm text-gray-500 mb-4">{t.planCatalog.hint}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {PLAN_TEMPLATES.map((modele) => {
+            const libelle = t.planCatalog.plans[modele.id];
+            const duree = modele.kind === "streams"
+              ? (dureeModele[modele.id] ?? modele.durations[0])
+              : undefined;
+            return (
+              <div key={modele.id} className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-3">
+                <div>
+                  <p className="font-medium text-gray-900">
+                    <span aria-hidden="true">{modele.emoji} </span>
+                    {libelle?.name ?? modele.id}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-0.5">{libelle?.description}</p>
+                </div>
+                <div className="flex items-center gap-2 mt-auto flex-wrap">
+                  {modele.kind === "streams" ? (
+                    <select
+                      value={duree}
+                      aria-label={t.planCatalog.duration}
+                      onChange={(e) => setDureeModele((p) => ({ ...p, [modele.id]: Number(e.target.value) }))}
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                    >
+                      {modele.durations.map((n) => (
+                        <option key={n} value={n}>{t.planCatalog.dayCount(n)}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-xs text-gray-400">
+                      {t.planCatalog.dayCount(templateDays(modele))}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => handleStartTemplate(modele)}
+                    disabled={!formVersion || modeleEnCours !== null}
+                    className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50 transition-colors ms-auto"
+                  >
+                    {modeleEnCours === modele.id ? t.plans.creating : t.planCatalog.start}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {plans.length === 0 ? (
         <div className="text-center py-12">

@@ -1004,6 +1004,25 @@ export const fr = {
     hyperlegible: 'Hyperlisible',
   } as Record<string, string>,
 
+  planCatalog: {
+    title: 'Plans proposés',
+    hint:
+      'Des plans prêts à l’emploi. Ils sont engendrés par l’application, non repris d’un calendrier publié.',
+    start: 'Démarrer',
+    duration: 'Durée',
+    dayCount: (n: number) => `${n} jours`,
+    plans: {
+      'at-evangiles-psaumes': { name: 'Ancien Testament, Évangiles et Psaumes', description: 'Chaque jour un passage de l’histoire d’Israël, un des Évangiles et un psaume.' },
+      'nouveau-testament': { name: 'Le Nouveau Testament', description: 'Les vingt-sept livres, de Matthieu à l’Apocalypse, dans l’ordre.' },
+      'evangiles-psaumes': { name: 'Les Évangiles et les Psaumes', description: 'Deux flux en parallèle, pour une lecture courte et quotidienne.' },
+      'sagesse': { name: 'Un proverbe par jour', description: 'Les trente et un chapitres des Proverbes, un par jour du mois.' },
+      'priere': { name: 'La prière', description: 'Quinze passages où l’Écriture prie, de Salomon à Jésus.' },
+      'esperance': { name: 'L’espérance', description: 'Quatorze passages pour les temps où l’on attend.' },
+      'pardon': { name: 'Le pardon', description: 'Onze passages sur la faute reconnue et la grâce reçue.' },
+      'confiance': { name: 'Psaumes de confiance', description: 'Huit psaumes à relire quand la peur se rapproche.' },
+    } as Record<string, { name: string; description: string }>,
+  },
+
   colorThemes: {
     rubis: 'Rubis',
     turquoise: 'Turquoise',

@@ -1025,6 +1025,25 @@ export const ar: Dictionary = {
     hyperlegible: 'عالية الوضوح',
   } as Record<string, string>,
 
+  planCatalog: {
+    title: 'خطط مقترحة',
+    hint:
+      'خطط جاهزة للاستعمال. يولّدها التطبيق، ولم تُنقل عن تقويم منشور.',
+    start: 'ابدأ',
+    duration: 'المدّة',
+    dayCount: (n: number) => `${n} يومًا`,
+    plans: {
+      'at-evangiles-psaumes': { name: 'العهد القديم والأناجيل والمزامير', description: 'كل يوم مقطع من تاريخ إسرائيل، وآخر من الأناجيل، ومزمور.' },
+      'nouveau-testament': { name: 'العهد الجديد', description: 'الأسفار السبعة والعشرون، من متى إلى الرؤيا، بالترتيب.' },
+      'evangiles-psaumes': { name: 'الأناجيل والمزامير', description: 'مساران متوازيان، لقراءة يومية قصيرة.' },
+      'sagesse': { name: 'مثل كل يوم', description: 'أصحاحات الأمثال الواحد والثلاثون، واحد لكل يوم من الشهر.' },
+      'priere': { name: 'الصلاة', description: 'خمسة عشر مقطعًا يصلّي فيها الكتاب، من سليمان إلى يسوع.' },
+      'esperance': { name: 'الرجاء', description: 'أربعة عشر مقطعًا لأوقات الانتظار.' },
+      'pardon': { name: 'المغفرة', description: 'أحد عشر مقطعًا عن الخطأ المعترف به والنعمة المقبولة.' },
+      'confiance': { name: 'مزامير الثقة', description: 'ثمانية مزامير تُقرأ حين يقترب الخوف.' },
+    } as Record<string, { name: string; description: string }>,
+  },
+
   colorThemes: {
     rubis: 'ياقوتي',
     turquoise: 'فيروزي',

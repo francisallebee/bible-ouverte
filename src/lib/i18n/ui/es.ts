@@ -996,6 +996,25 @@ export const es: Dictionary = {
     hyperlegible: 'Hiperlegible',
   } as Record<string, string>,
 
+  planCatalog: {
+    title: 'Planes propuestos',
+    hint:
+      'Planes listos para usar. Los genera la aplicación; no proceden de un calendario publicado.',
+    start: 'Empezar',
+    duration: 'Duración',
+    dayCount: (n: number) => `${n} días`,
+    plans: {
+      'at-evangiles-psaumes': { name: 'Antiguo Testamento, Evangelios y Salmos', description: 'Cada día un pasaje de la historia de Israel, uno de los Evangelios y un salmo.' },
+      'nouveau-testament': { name: 'El Nuevo Testamento', description: 'Los veintisiete libros, de Mateo al Apocalipsis, en orden.' },
+      'evangiles-psaumes': { name: 'Evangelios y Salmos', description: 'Dos corrientes en paralelo, para una lectura breve y diaria.' },
+      'sagesse': { name: 'Un proverbio al día', description: 'Los treinta y un capítulos de Proverbios, uno por día del mes.' },
+      'priere': { name: 'La oración', description: 'Quince pasajes donde la Escritura ora, de Salomón a Jesús.' },
+      'esperance': { name: 'La esperanza', description: 'Catorce pasajes para los tiempos de espera.' },
+      'pardon': { name: 'El perdón', description: 'Once pasajes sobre la falta reconocida y la gracia recibida.' },
+      'confiance': { name: 'Salmos de confianza', description: 'Ocho salmos para releer cuando el miedo se acerca.' },
+    } as Record<string, { name: string; description: string }>,
+  },
+
   colorThemes: {
     rubis: 'Rubí',
     turquoise: 'Turquesa',
