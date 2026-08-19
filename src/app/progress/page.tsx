@@ -7,12 +7,14 @@ import {
 } from "lucide-react";
 import {
   seedIfNeeded, getAllReadings, getSettings, getAllContexts,
+  getAllPlans, getPlanDays,
 } from "@/lib/storage";
 import type { ReadingEntry, AppSettings, ReadingContext } from "@/lib/storage";
 import { BOOKS } from "@/features/bible";
+import { readingIdsOf } from "@/lib/storage/plan-passages";
 import {
   normaliserObjectif, progressionDe, aujourdhui,
-  calculerSeries, prochainPalier, paliersAtteints,
+  calculerSeries, prochainPalier, paliersAtteints, filtrerParPortee,
 } from "@/lib/objectifs/objectifs";
 import { useI18n, useBookName, useContextName } from "@/contexts/I18nContext";
 import type { Dictionary } from "@/lib/i18n/ui/fr";
@@ -221,10 +223,50 @@ export default function ProgressPage() {
    * enregistrée en soirée pouvait être comptée le mauvais jour.
    */
   const objectif = useMemo(() => normaliserObjectif(goal), [goal]);
-  const goalProgress = useMemo(
-    () => progressionDe(readings, objectif, aujourdhui()),
-    [readings, objectif],
+
+  /**
+   * La portée « par plan » demande une résolution asynchrone, et c'est le
+   * point à comprendre : **aucune colonne ne relie une lecture à un plan**, et
+   * le contexte « Plan de lecture » est le même pour tous. Le seul lien est
+   * `plan_days.readingId`, posé au cochage — d'où cette lecture des jours du
+   * plan pour en tirer l'ensemble des identifiants.
+   */
+  const planId = objectif.portee?.type === "plan" ? objectif.portee.planId : null;
+  const [idsDuPlan, setIdsDuPlan] = useState<ReadonlySet<number> | undefined>(undefined);
+  const [nomDuPlan, setNomDuPlan] = useState("");
+
+  useEffect(() => {
+    if (planId === null) {
+      setIdsDuPlan(undefined);
+      setNomDuPlan("");
+      return;
+    }
+    let vivant = true;
+    (async () => {
+      const [jours, plans] = await Promise.all([getPlanDays(planId), getAllPlans()]);
+      if (!vivant) return;
+      setIdsDuPlan(new Set(jours.flatMap((j) => readingIdsOf(j))));
+      setNomDuPlan(plans.find((p) => p.id === planId)?.name ?? "");
+    })();
+    return () => { vivant = false; };
+  }, [planId]);
+
+  const lecturesDeLObjectif = useMemo(
+    () => filtrerParPortee(readings, objectif.portee, idsDuPlan),
+    [readings, objectif.portee, idsDuPlan],
   );
+  const goalProgress = useMemo(
+    () => progressionDe(lecturesDeLObjectif, objectif, aujourdhui()),
+    [lecturesDeLObjectif, objectif],
+  );
+
+  /** Ce que l'objectif vise, nommé — vide quand il porte sur tout. */
+  const nomDeLaPortee = useMemo(() => {
+    const portee = objectif.portee;
+    if (portee?.type === "livre") return getBookName(portee.livre);
+    if (portee?.type === "plan") return nomDuPlan;
+    return "";
+  }, [objectif.portee, getBookName, nomDuPlan]);
 
   if (!loaded) return <p className="text-gray-500">{t.common.loading}</p>;
 
@@ -311,6 +353,9 @@ export default function ProgressPage() {
             <>
               <p className="text-3xl font-bold text-green-600">{goalProgress.fait}<span className="text-lg font-normal text-gray-400 ml-1">/ {goalProgress.cible}</span></p>
               <p className="text-xs text-gray-400 mt-1">{t.progress.goalUnitPeriod(t.settings.goalUnits[objectif.unite], t.settings.goalPeriods[objectif.periode])}</p>
+              {nomDeLaPortee && (
+                <p className="text-xs text-gray-400">{t.progress.goalScope(nomDeLaPortee)}</p>
+              )}
             </>
           ) : (
             <p className="text-sm text-gray-400">{t.progress.noGoal}</p>
@@ -341,6 +386,11 @@ export default function ProgressPage() {
               <p className="text-sm text-gray-500">
                 {t.progress.goalToday(goalProgress.fait, goalProgress.cible, objectif.unite === "chapters")}
               </p>
+              {/* Sans cette mention, un objectif restreint à un livre affiche
+                  un compte plus bas que l'écran voisin, et rien ne le dit. */}
+              {nomDeLaPortee && (
+                <p className="text-xs text-gray-400 mt-0.5">{t.progress.goalScope(nomDeLaPortee)}</p>
+              )}
             </div>
           </div>
         </div>

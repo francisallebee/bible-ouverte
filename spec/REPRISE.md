@@ -459,6 +459,8 @@ interrompu avant la fin. Les previews passent par git.
 | Réglages portant une langue, en base | **1 ligne sur 102**, à `fr`, écrite à 14:07:26 UTC | 15 août |
 | Réversion de langue | reproduite en test : un `en` local en attente écrasait un `fr` distant plus récent | 15 août |
 | Séries de l'écran Progression | un second calcul, `calcStreaks`, vivait encore dans la page — **UTC contre dates locales**, et sans la tolérance | 19 août |
+| Ce qui relie une lecture à un plan | **rien** : pas de colonne, et le contexte « Plan de lecture » est commun à tous. Seul `plan_days.readingId`, posé au cochage | 19 août |
+| Portée de cet identifiant | c'est l'identifiant **Supabase** — `rowToEntry` reprend `row.id` comme clé locale —, donc stable d'un appareil à l'autre | 19 août |
 | Pastille de palier, contraste | `text-orange-600` sur `bg-orange-50` : **3,35** — porté à `orange-700`, **4,88** | 19 août |
 | Badges débloqués, mode sombre | texte hérité `--text` sur `bg-yellow-50` : **1,06** — calculé sur le CSS produit, **pas vu à l'écran** | 19 août |
 
@@ -585,6 +587,15 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   (`src/app/progress/page.tsx`, qui parcourt `chapterStart..chapterEnd`). Cocher
   Jean 3:16-18 marque tout Jean 3 comme lu. Les plans libres, qui portent enfin
   des versets, rendent ce comportement bien plus visible qu'avant.
+- **Un jour de plan coché hors ligne perd son lien avec sa lecture.** Le
+  cochage enregistre `plan_days.readingId` avec l'identifiant que la lecture
+  porte *à cet instant* — temporaire tant qu'elle n'est pas poussée. La
+  synchronisation lui donne ensuite l'identifiant Supabase, supprime la ligne
+  locale et n'a aucune raison de revenir sur `plan_days`. Le défaut est
+  antérieur aux objectifs à portée : il touche déjà le décochage, qui supprime
+  les lectures par ces mêmes identifiants. Il se voit maintenant d'un endroit
+  de plus — un objectif « par plan » cesse de compter ce jour-là.
+
 - **Extraire un module ne retire pas le calcul qu'il remplace.** `lib/objectifs`
   a été livré le 19 août avec `calculerSeries`, testé, et sa raison d'être
   écrite en tête de fichier : l'ancien calcul comparait une date **UTC** aux
@@ -802,6 +813,14 @@ lui-même.
 
 L'abonnement suppose que l'application soit installée sur l'écran d'accueil et
 lancée depuis son icône : iOS ne délivre rien à un onglet Safari.
+
+**Les objectifs à portée n'ont pas été vus à l'écran** non plus, et pour la même
+raison : `/settings` comme `/progress` demandent une session. Ce qui est
+vérifié : le filtre est couvert par huit tests, dont celui qui exige qu'un plan
+non résolu compte **zéro** plutôt que tout ; `tsc` garantit les cinq
+dictionnaires ; l'aller-retour UTF-8 est propre. Ce qui ne l'est pas : les deux
+listes déroulantes ajoutées aux Réglages, le récapitulatif, et la mention
+« Dans … » sur Progression.
 
 **Les paliers de série n'ont pas été vus à l'écran**, le 19 août 2026. Le calcul
 est couvert par les tests du module, les classes Tailwind sont bien produites —

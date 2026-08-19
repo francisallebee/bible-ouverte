@@ -263,6 +263,12 @@ export const ar: Dictionary = {
       year: 'سنويًا',
     } as Record<string, string>,
     goalSummary2: (n: number, u: string, p: string) => `${n} ${u} ${p}`,
+    goalScope: 'ما يُحتسب',
+    goalScopes: { toutes: 'كل القراءات', livre: 'سفر واحد', plan: 'خطة قراءة واحدة' },
+    goalScopeBook: 'السفر',
+    goalScopePlan: 'الخطة',
+    goalScopeMissing: 'خطة محذوفة',
+    goalScopeSummary: (nom: string) => ` — في ${nom}`,
     fontPreview:
       'لأنه هكذا أحب الله العالم حتى بذل ابنه الوحيد.',
     uiScaleLabel: 'حجم الواجهة',
@@ -482,6 +488,7 @@ export const ar: Dictionary = {
 
   progress: {
     goalUnitPeriod: (u: string, p: string) => `${u} ${p}`,
+    goalScope: (nom: string) => `في ${nom}`,
     title: 'تقدّمي',
     level: (n: number) => `المستوى ${n}`,
     chaptersOf: (read: number, next: number) => `${read} / ${next} إصحاحًا`,

@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass, Languages, LayoutList, Check, Type } from "lucide-react";
-import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion } from "@/lib/storage";
+import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion, getAllPlans } from "@/lib/storage";
 import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 import { useAuth } from "@/contexts/AuthContext";
-import { useI18n } from "@/contexts/I18nContext";
+import { useI18n, useBooks } from "@/contexts/I18nContext";
 import { AVAILABLE_LOCALES } from "@/lib/i18n/ui";
 import type { Locale } from "@/lib/i18n/locales";
 import { formatDate, formatNumber } from "@/lib/i18n/format";
@@ -15,10 +15,10 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
-import type { AppSettings, BibleVersion } from "@/lib/storage";
+import type { AppSettings, BibleVersion, ReadingPlan } from "@/lib/storage";
 import { COLOR_THEMES, applyColorTheme, applyTheme, CUSTOM_THEME_ID, DEFAULT_CUSTOM } from "@/lib/themes";
 import { NAV_LINKS } from "@/components/Sidebar";
-import { normaliserObjectif, type Objectif } from "@/lib/objectifs/objectifs";
+import { normaliserObjectif, PORTEE_PAR_DEFAUT, type Objectif, type Portee } from "@/lib/objectifs/objectifs";
 import {
   FONTS, DEFAULT_FONT_ID, applyFonts,
   UI_SCALES, DEFAULT_UI_SCALE, READING_SIZES, DEFAULT_READING_SIZE,
@@ -35,6 +35,7 @@ import type { DeviceNotificationState } from "@/lib/notifications";
 
 export default function SettingsPage() {
   const { t, locale, setLocale } = useI18n();
+  const livres = useBooks();
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [verseCount, setVerseCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
@@ -47,6 +48,8 @@ export default function SettingsPage() {
   const router = useRouter();
 
   const [versions, setVersions] = useState<BibleVersion[]>([]);
+  // Les plans ne servent qu'au choix de la portée de l'objectif.
+  const [plans, setPlans] = useState<ReadingPlan[]>([]);
   const [busyVersion, setBusyVersion] = useState<string | null>(null);
   const [versionError, setVersionError] = useState("");
 
@@ -162,6 +165,47 @@ export default function SettingsPage() {
     await updateSettings({ readingGoal });
   }
 
+  /**
+   * Changer de type de portée lui donne aussitôt un paramètre valide.
+   *
+   * Une portée « par livre » sans livre, ou « par plan » sans plan, ne compte
+   * rien : l'écran Progression afficherait zéro sans que rien ne l'explique.
+   * Le choix précédent est conservé quand on revient dessus.
+   */
+  async function changerPortee(type: Portee["type"]) {
+    if (type === "livre") {
+      const livre = objectif.portee?.type === "livre" ? objectif.portee.livre : "GEN";
+      await changerObjectif({ portee: { type: "livre", livre } });
+      return;
+    }
+    if (type === "plan") {
+      const premier = plans[0]?.id;
+      // Sans aucun plan, l'option n'est pas proposée ; par sécurité on retombe
+      // sur « toutes » plutôt que d'enregistrer une portée qui ne vise rien.
+      if (premier === undefined) {
+        await changerObjectif({ portee: PORTEE_PAR_DEFAUT });
+        return;
+      }
+      const planId = objectif.portee?.type === "plan" ? objectif.portee.planId : premier;
+      await changerObjectif({ portee: { type: "plan", planId } });
+      return;
+    }
+    await changerObjectif({ portee: PORTEE_PAR_DEFAUT });
+  }
+
+  /** Le nom de ce que la portée vise, pour le récapitulatif. */
+  function nomDeLaPortee(portee: Portee | undefined): string {
+    if (portee?.type === "livre") {
+      return livres.find((l) => l.abbreviation === portee.livre)?.name ?? portee.livre;
+    }
+    if (portee?.type === "plan") {
+      // Un plan supprimé depuis le réglage de l'objectif ne se retrouve plus :
+      // le dire plutôt que d'afficher un nom vide.
+      return plans.find((pl) => pl.id === portee.planId)?.name ?? t.settings.goalScopeMissing;
+    }
+    return "";
+  }
+
   async function terminerPersonnalisation() {
     const setupCompletedAt = new Date().toISOString();
     await updateSettings({ setupCompletedAt });
@@ -182,6 +226,9 @@ export default function SettingsPage() {
       setDeviceNotif(readDeviceState());
       setLoaded(true);
       await loadVersions();
+      // Après le premier rendu, comme les versions : les plans ne servent qu'au
+      // choix de la portée de l'objectif, et rien ne doit attendre cet appel.
+      setPlans(await getAllPlans());
     })();
   }, []);
 
@@ -561,8 +608,60 @@ export default function SettingsPage() {
                 className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]" />
             </div>
           </div>
+          {/* Ce que l'objectif compte.
+              « Toutes » est le comportement d'origine, et le défaut des
+              objectifs enregistrés avant cette évolution — aucune réécriture
+              en base, la portée absente se lit comme « toutes ».
+              L'option « plan » n'apparaît que s'il existe un plan : proposer
+              une portée qui ne vise rien afficherait zéro sans l'expliquer. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+            <div>
+              <label htmlFor="objectif-portee" className="block text-xs font-medium text-[--text-secondary] mb-1">
+                {t.settings.goalScope}
+              </label>
+              <select id="objectif-portee" value={objectif.portee?.type ?? "toutes"}
+                onChange={(e) => changerPortee(e.target.value as Portee["type"])}
+                className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
+                <option value="toutes">{t.settings.goalScopes.toutes}</option>
+                <option value="livre">{t.settings.goalScopes.livre}</option>
+                {plans.length > 0 && (
+                  <option value="plan">{t.settings.goalScopes.plan}</option>
+                )}
+              </select>
+            </div>
+            {objectif.portee?.type === "livre" && (
+              <div>
+                <label htmlFor="objectif-livre" className="block text-xs font-medium text-[--text-secondary] mb-1">
+                  {t.settings.goalScopeBook}
+                </label>
+                <select id="objectif-livre" value={objectif.portee.livre}
+                  onChange={(e) => changerObjectif({ portee: { type: "livre", livre: e.target.value } })}
+                  className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
+                  {livres.map((l) => (
+                    <option key={l.abbreviation} value={l.abbreviation}>{l.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {objectif.portee?.type === "plan" && (
+              <div>
+                <label htmlFor="objectif-plan" className="block text-xs font-medium text-[--text-secondary] mb-1">
+                  {t.settings.goalScopePlan}
+                </label>
+                <select id="objectif-plan" value={objectif.portee.planId}
+                  onChange={(e) => changerObjectif({ portee: { type: "plan", planId: Number(e.target.value) } })}
+                  className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
+                  {plans.map((pl) => (
+                    <option key={pl.id} value={pl.id}>{pl.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
           <p className="text-xs text-[--text-secondary] mt-2">
             {t.settings.goalSummary2(objectif.cible, t.settings.goalUnits[objectif.unite], t.settings.goalPeriods[objectif.periode])}
+            {objectif.portee && objectif.portee.type !== "toutes"
+              && t.settings.goalScopeSummary(nomDeLaPortee(objectif.portee))}
           </p>
         </SectionCard>
 

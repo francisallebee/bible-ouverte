@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   normaliserObjectif, OBJECTIF_PAR_DEFAUT, debutDePeriode, apportDe,
   progressionDe, calculerSeries, prochainPalier, paliersAtteints, aujourdhui,
+  filtrerParPortee, PORTEE_PAR_DEFAUT,
 } from './objectifs'
 import type { ReadingEntry } from '@/lib/storage/types'
 
@@ -14,12 +15,12 @@ const lecture = (date: string, cs: number, ce = cs, vs = 1, ve = 1): ReadingEntr
 describe('reprise des anciens réglages', () => {
   it('convertit la forme « chapitres par jour »', () => {
     expect(normaliserObjectif({ type: 'chapters-per-day', target: 3 }))
-      .toEqual({ unite: 'chapters', periode: 'day', cible: 3 })
+      .toEqual({ unite: 'chapters', periode: 'day', cible: 3, portee: PORTEE_PAR_DEFAUT })
   })
 
   it('convertit la forme « versets par jour »', () => {
     expect(normaliserObjectif({ type: 'verses-per-day', target: 120 }))
-      .toEqual({ unite: 'verses', periode: 'day', cible: 120 })
+      .toEqual({ unite: 'verses', periode: 'day', cible: 120, portee: PORTEE_PAR_DEFAUT })
   })
 
   it('rend le défaut plutôt que rien quand aucun objectif n’est réglé', () => {
@@ -30,7 +31,18 @@ describe('reprise des anciens réglages', () => {
 
   it('laisse intact un objectif déjà à la forme actuelle', () => {
     const o = { unite: 'verses' as const, periode: 'week' as const, cible: 50 }
-    expect(normaliserObjectif(o)).toBe(o)
+    // La portée manquante est complétée : l'appelant n'a pas plus à distinguer
+    // « sans portée » de « toutes » qu'il n'avait à distinguer « sans objectif »
+    // de « objectif par défaut ». Ce n'est donc plus le même objet.
+    expect(normaliserObjectif(o)).toEqual({ ...o, portee: PORTEE_PAR_DEFAUT })
+  })
+
+  it('conserve une portée déjà réglée plutôt que de la remplacer', () => {
+    const o = {
+      unite: 'chapters' as const, periode: 'month' as const, cible: 12,
+      portee: { type: 'livre' as const, livre: 'JHN' },
+    }
+    expect(normaliserObjectif(o).portee).toEqual({ type: 'livre', livre: 'JHN' })
   })
 })
 
@@ -155,6 +167,59 @@ describe('séries', () => {
   it('franchit un changement d’année sans casser', () => {
     const l = ['2025-12-31', '2026-01-01'].map((d) => lecture(d, 1))
     expect(calculerSeries(l, '2026-01-01').courante).toBe(2)
+  })
+})
+
+describe('portée d’un objectif', () => {
+  const dansJean = (id: number): ReadingEntry => ({
+    ...lecture('2026-08-19', 3), id, book: 'JHN',
+  })
+  const dansGenese = (id: number): ReadingEntry => ({ ...lecture('2026-08-19', 1), id })
+
+  it('ne filtre rien quand la portée vaut « toutes »', () => {
+    const l = [dansJean(1), dansGenese(2)]
+    expect(filtrerParPortee(l, PORTEE_PAR_DEFAUT)).toHaveLength(2)
+  })
+
+  it('ne filtre rien quand la portée est absente — les objectifs d’avant', () => {
+    const l = [dansJean(1), dansGenese(2)]
+    expect(filtrerParPortee(l, undefined)).toHaveLength(2)
+  })
+
+  it('retient le seul livre visé, par son abréviation USFM', () => {
+    const retenues = filtrerParPortee(
+      [dansJean(1), dansGenese(2), dansJean(3)], { type: 'livre', livre: 'JHN' },
+    )
+    expect(retenues.map((l) => l.id)).toEqual([1, 3])
+  })
+
+  it('retient les lectures du plan, par leurs identifiants', () => {
+    const retenues = filtrerParPortee(
+      [dansJean(1), dansGenese(2), dansJean(3)],
+      { type: 'plan', planId: 7 }, new Set([2, 3]),
+    )
+    expect(retenues.map((l) => l.id)).toEqual([2, 3])
+  })
+
+  it('ne compte rien plutôt que tout quand le plan n’est pas résolu', () => {
+    // Rendre la liste entière afficherait le total de toutes les lectures
+    // sous le nom d’un plan, sans que rien ne le signale.
+    expect(filtrerParPortee([dansJean(1)], { type: 'plan', planId: 7 })).toEqual([])
+  })
+
+  it('ignore une lecture sans identifiant local', () => {
+    const sansId = { ...lecture('2026-08-19', 1) }
+    expect(filtrerParPortee([sansId], { type: 'plan', planId: 7 }, new Set([1]))).toEqual([])
+  })
+
+  it('se combine à la progression sans que celle-ci connaisse la portée', () => {
+    const l = [dansJean(1), dansGenese(2)]
+    const p = progressionDe(
+      filtrerParPortee(l, { type: 'livre', livre: 'JHN' }),
+      { unite: 'chapters', periode: 'day', cible: 1 }, '2026-08-19',
+    )
+    expect(p.fait).toBe(1)
+    expect(p.atteint).toBe(true)
   })
 })
 

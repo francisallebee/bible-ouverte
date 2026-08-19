@@ -186,6 +186,12 @@ export const fr = {
       year: 'par an',
     } as Record<string, string>,
     goalSummary2: (n: number, u: string, p: string) => `${n} ${u} ${p}`,
+    goalScope: 'Ce qui est compté',
+    goalScopes: { toutes: 'Toutes les lectures', livre: 'Un livre', plan: 'Un plan de lecture' },
+    goalScopeBook: 'Livre',
+    goalScopePlan: 'Plan',
+    goalScopeMissing: 'plan supprimé',
+    goalScopeSummary: (nom: string) => ` — dans ${nom}`,
     fontPreview:
       'Car Dieu a tant aimé le monde qu’il a donné son Fils unique.',
     uiScaleLabel: 'Taille de l’interface',
@@ -422,6 +428,7 @@ export const fr = {
 
   progress: {
     goalUnitPeriod: (u: string, p: string) => `${u} ${p}`,
+    goalScope: (nom: string) => `Dans ${nom}`,
     title: 'Ma progression',
     level: (n: number) => `Niveau ${n}`,
     chaptersOf: (read: number, next: number) => `${read} / ${next} chapitres`,

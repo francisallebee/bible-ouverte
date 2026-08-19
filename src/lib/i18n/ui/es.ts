@@ -180,6 +180,12 @@ export const es: Dictionary = {
       year: 'al año',
     } as Record<string, string>,
     goalSummary2: (n: number, u: string, p: string) => `${n} ${u} ${p}`,
+    goalScope: 'Lo que se cuenta',
+    goalScopes: { toutes: 'Todas las lecturas', livre: 'Un libro', plan: 'Un plan de lectura' },
+    goalScopeBook: 'Libro',
+    goalScopePlan: 'Plan',
+    goalScopeMissing: 'plan eliminado',
+    goalScopeSummary: (nom: string) => ` — en ${nom}`,
     fontPreview:
       'Porque tanto amó Dios al mundo que dio a su Hijo único.',
     uiScaleLabel: 'Tamaño de la interfaz',
@@ -416,6 +422,7 @@ export const es: Dictionary = {
 
   progress: {
     goalUnitPeriod: (u: string, p: string) => `${u} ${p}`,
+    goalScope: (nom: string) => `En ${nom}`,
     title: 'Mi progreso',
     level: (n: number) => `Nivel ${n}`,
     chaptersOf: (read: number, next: number) => `${read} / ${next} capítulos`,

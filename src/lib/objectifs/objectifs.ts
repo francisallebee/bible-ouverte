@@ -1,4 +1,4 @@
-import type { Objectif, ReadingEntry, ReadingGoal } from '@/lib/storage/types';
+import type { Objectif, Portee, ReadingEntry, ReadingGoal } from '@/lib/storage/types';
 
 /**
  * Les objectifs de lecture : périodes, progression et séries.
@@ -13,9 +13,13 @@ import type { Objectif, ReadingEntry, ReadingGoal } from '@/lib/storage/types';
 export type UniteObjectif = Objectif['unite'];
 export type PeriodeObjectif = Objectif['periode'];
 
-export type { Objectif };
+export type { Objectif, Portee };
 
-export const OBJECTIF_PAR_DEFAUT: Objectif = { unite: 'chapters', periode: 'day', cible: 1 };
+export const PORTEE_PAR_DEFAUT: Portee = { type: 'toutes' };
+
+export const OBJECTIF_PAR_DEFAUT: Objectif = {
+  unite: 'chapters', periode: 'day', cible: 1, portee: PORTEE_PAR_DEFAUT,
+};
 
 /**
  * Ramène un réglage enregistré à la forme actuelle.
@@ -28,11 +32,12 @@ export const OBJECTIF_PAR_DEFAUT: Objectif = { unite: 'chapters', periode: 'day'
  */
 export function normaliserObjectif(brut: ReadingGoal | Objectif | undefined | null): Objectif {
   if (!brut) return OBJECTIF_PAR_DEFAUT;
-  if ('unite' in brut) return brut;
+  if ('unite' in brut) return { ...brut, portee: brut.portee ?? PORTEE_PAR_DEFAUT };
   return {
     unite: brut.type === 'verses-per-day' ? 'verses' : 'chapters',
     periode: 'day',
     cible: brut.target,
+    portee: PORTEE_PAR_DEFAUT,
   };
 }
 
@@ -77,6 +82,37 @@ export function apportDe(lecture: ReadingEntry, unite: UniteObjectif): number {
     return Math.max(1, lecture.chapterEnd - lecture.chapterStart + 1);
   }
   return Math.max(1, lecture.verseEnd - lecture.verseStart + 1);
+}
+
+/**
+ * Les lectures que la portée retient.
+ *
+ * Ce module ignore délibérément les plans : il ne sait pas les lire, et il
+ * n'existe de toute façon aucune colonne qui relie une lecture à l'un d'eux.
+ * L'appelant résout le plan en identifiants — `readingIdsOf` de
+ * `storage/plan-passages.ts` le fait pour chaque jour coché — et les passe ici.
+ *
+ * **Un plan dont on ne connaît pas encore les lectures ne compte rien.** Rendre
+ * la liste entière serait pire qu'un zéro : l'écran afficherait le total de
+ * toutes les lectures sous le nom d'un plan, et rien ne le signalerait.
+ *
+ * Limite héritée, et mesurée : `readingId` porte l'identifiant **Supabase**,
+ * `rowToEntry` reprenant `row.id` comme clé locale — la portée tient donc d'un
+ * appareil à l'autre. Mais un jour coché **hors ligne** retient l'identifiant
+ * temporaire de la lecture, que la synchronisation remplace ensuite sans
+ * revenir sur `plan_days` : ce jour-là cesse d'être compté. Le défaut existe
+ * déjà pour le décochage, qui supprime les lectures par ces mêmes
+ * identifiants ; il n'est pas introduit ici.
+ */
+export function filtrerParPortee(
+  lectures: ReadingEntry[],
+  portee: Portee | undefined,
+  idsDuPlan?: ReadonlySet<number>,
+): ReadingEntry[] {
+  if (!portee || portee.type === 'toutes') return lectures;
+  if (portee.type === 'livre') return lectures.filter((l) => l.book === portee.livre);
+  if (!idsDuPlan) return [];
+  return lectures.filter((l) => typeof l.id === 'number' && idsDuPlan.has(l.id));
 }
 
 export interface Progression {

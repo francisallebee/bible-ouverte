@@ -181,11 +181,37 @@ export interface ReadingGoal {
   target: number;
 }
 
-/** La forme actuelle : une unité, une période, une cible. */
+/**
+ * Ce qu'un objectif compte.
+ *
+ * `toutes` est le défaut et l'unique forme d'avant le 19 août 2026 : un
+ * objectif sans portée en base se relit ainsi, sans réécriture, comme
+ * l'ancienne forme `ReadingGoal`.
+ *
+ * Les deux autres ne se mesurent pas de la même façon, et c'est le point à
+ * connaître avant d'y toucher :
+ *
+ * - **Par livre**, le filtre porte sur `readings.book`, qui stocke
+ *   l'abréviation USFM (`GEN`, `JHN`). Aucune ligne n'est concernée par une
+ *   traduction, et le libellé se retrouve par `i18n/books.ts`.
+ * - **Par plan**, il n'existe **aucune** colonne reliant une lecture à un
+ *   plan, et le contexte « Plan de lecture » est le même pour tous. Le seul
+ *   lien est `plan_days.readingId`, posé au cochage. C'est donc l'appelant qui
+ *   résout le plan en identifiants de lectures ; l'objectif ne connaît pas les
+ *   plans.
+ */
+export type Portee =
+  | { type: "toutes" }
+  | { type: "livre"; livre: string }
+  | { type: "plan"; planId: number };
+
+/** La forme actuelle : une unité, une période, une cible, et ce qu'on compte. */
 export interface Objectif {
   unite: "chapters" | "verses";
   periode: "day" | "week" | "month" | "year";
   cible: number;
+  /** Absente sur les objectifs enregistrés avant le 19 août 2026. */
+  portee?: Portee;
 }
 
 export interface RoadmapItem {
