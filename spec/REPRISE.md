@@ -756,9 +756,17 @@ par l'agent, pour la vague 4.
 **Vus fonctionner par le propriétaire du dépôt et non par l'agent** : les
 **notifications push** sur iPhone et le **parcours découverte**, le 14 août
 2026 ; la **synchronisation de la langue entre deux appareils**, le 18 août ;
-l'**aperçu du texte en fenêtre** et le **contexte de lecture depuis Recherche
-biblique**, le 19 août — la session du navigateur d'essai avait été perdue au
-redémarrage du serveur, et l'agent ne peut pas s'y reconnecter seul.
+l'**aperçu du texte en fenêtre**, le **contexte de lecture depuis Recherche
+biblique**, la **recherche d'un passage sans quitter Nouvelle lecture** avec son
+garde-fou de sortie, et les **trois axes de classement de Mes lectures**, le
+19 août — la session du navigateur d'essai avait été perdue au redémarrage du
+serveur, et l'agent ne peut pas s'y reconnecter seul.
+
+Le dernier compte double, et c'était la réserve la plus sérieuse : le rendu de
+`/history` a été remanié en profondeur — bloc des entrées extrait, rendu
+récursif, trois niveaux d'imbrication. `typecheck`, `lint`, les 225 tests et le
+build de production disent qu'il se construit ; ils ne disaient rien de son
+aspect. Seul l'écran pouvait le dire, et il l'a dit.
 C'est la même distinction que pour les plans libres — une preuve d'écran vaut
 par qui l'a vue, et l'agent n'avait alors jamais eu de session pour la produire
 lui-même.
