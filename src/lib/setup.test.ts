@@ -14,7 +14,7 @@ describe('pages masquables', () => {
   })
 
   it('laisse masquer les neuf autres', () => {
-    expect(HIDEABLE_PAGES).toHaveLength(10)
+    expect(HIDEABLE_PAGES).toHaveLength(11)
     for (const href of HIDEABLE_PAGES) expect(isHideable(href)).toBe(true)
   })
 

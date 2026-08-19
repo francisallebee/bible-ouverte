@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BookPlus, Search, History, BarChart3,
   BookOpen, Settings, Menu, X, Trophy, LogOut, Shield,
-  User, Route, MessageCircle, Heart, Sparkles,
+  User, Route, MessageCircle, Heart, Sparkles, Sun,
 } from "lucide-react";
 import { seedIfNeeded } from "@/lib/storage";
 import { APP_VERSION } from "@/lib/version";
@@ -34,6 +34,7 @@ export const NAV_LINKS: {
   { href: "/history", label: (t) => t.nav.history, icon: History },
   { href: "/stats", label: (t) => t.nav.stats, icon: BarChart3 },
   { href: "/quiz", label: (t) => t.nav.quiz, icon: Sparkles },
+  { href: "/verset-du-jour", label: (t) => t.nav.versetDuJour, icon: Sun },
   { href: "/settings", label: (t) => t.nav.settings, icon: Settings },
   { href: "/roadmap", label: (t) => t.nav.roadmap, icon: Route },
   { href: "/support", label: (t) => t.nav.support, icon: MessageCircle },

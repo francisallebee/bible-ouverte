@@ -46,6 +46,7 @@ export const en: Dictionary = {
     history: 'My readings',
     stats: 'Statistics',
     quiz: 'Quiz',
+    versetDuJour: 'Verse of the day',
     settings: 'Settings',
     roadmap: 'Roadmap',
     support: 'Support',
@@ -986,6 +987,22 @@ export const en: Dictionary = {
     garamond: 'Garamond',
     hyperlegible: 'Hyperlegible',
   } as Record<string, string>,
+
+  versetDuJour: {
+    title: 'Verse of the day',
+    subtitle: 'A verse drawn from your readings, the same all day.',
+    duJour: 'Today',
+    marquerLu: 'I have read this verse',
+    enregistrement: 'Saving…',
+    dejaLu: 'Read today',
+    ajouteAuxLectures: 'It will be added to your readings, context “Bible”.',
+    noteLecture: 'Verse of the day',
+    pasDeVerset: 'No verse to offer',
+    pasDeVersetAide: 'The verse of the day is drawn from your readings. Record one and come back.',
+    statJours: 'Days followed',
+    statTotal: 'Verses read',
+    prochainDemain: (d: string) => `A new verse tomorrow — today, ${d}`,
+  },
 
   quiz: {
     title: 'Revision quiz',

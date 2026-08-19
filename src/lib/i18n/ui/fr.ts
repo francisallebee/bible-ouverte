@@ -55,6 +55,7 @@ export const fr = {
     history: 'Mes lectures',
     stats: 'Statistiques',
     quiz: 'Quizz',
+    versetDuJour: 'Verset du jour',
     settings: 'Réglages',
     roadmap: 'Feuille de route',
     support: 'Support',
@@ -1024,6 +1025,22 @@ export const fr = {
     garamond: 'Garamond',
     hyperlegible: 'Hyperlisible',
   } as Record<string, string>,
+
+  versetDuJour: {
+    title: 'Verset du jour',
+    subtitle: 'Un verset tiré de tes lectures, le même toute la journée.',
+    duJour: 'Aujourd’hui',
+    marquerLu: 'J’ai lu ce verset',
+    enregistrement: 'Enregistrement…',
+    dejaLu: 'Lu aujourd’hui',
+    ajouteAuxLectures: 'Il sera ajouté à tes lectures, contexte « Bible ».',
+    noteLecture: 'Verset du jour',
+    pasDeVerset: 'Aucun verset à proposer',
+    pasDeVersetAide: 'Le verset du jour se tire de tes lectures. Enregistres-en une et reviens.',
+    statJours: 'Jours suivis',
+    statTotal: 'Versets lus',
+    prochainDemain: (d: string) => `Un nouveau verset demain — aujourd’hui, ${d}`,
+  },
 
   quiz: {
     title: 'Quizz de révision',

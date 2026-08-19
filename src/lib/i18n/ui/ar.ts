@@ -129,6 +129,7 @@ export const ar: Dictionary = {
     history: 'قراءاتي',
     stats: 'الإحصائيات',
     quiz: 'اختبار',
+    versetDuJour: 'آية اليوم',
     settings: 'الإعدادات',
     roadmap: 'خارطة الطريق',
     support: 'الدعم',
@@ -1045,6 +1046,22 @@ export const ar: Dictionary = {
     garamond: 'Garamond',
     hyperlegible: 'عالية الوضوح',
   } as Record<string, string>,
+
+  versetDuJour: {
+    title: 'آية اليوم',
+    subtitle: 'آية من قراءاتك، نفسها طوال اليوم.',
+    duJour: 'اليوم',
+    marquerLu: 'قرأت هذه الآية',
+    enregistrement: 'جارٍ الحفظ…',
+    dejaLu: 'قُرئت اليوم',
+    ajouteAuxLectures: 'ستُضاف إلى قراءاتك، ضمن سياق «الكتاب المقدس».',
+    noteLecture: 'آية اليوم',
+    pasDeVerset: 'لا توجد آية لعرضها',
+    pasDeVersetAide: 'تُؤخذ آية اليوم من قراءاتك. سجّل قراءة ثم عد.',
+    statJours: 'الأيام المتابَعة',
+    statTotal: 'الآيات المقروءة',
+    prochainDemain: (d: string) => `آية جديدة غدًا — اليوم، ${d}`,
+  },
 
   quiz: {
     title: 'اختبار المراجعة',

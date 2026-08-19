@@ -54,6 +54,7 @@ export const it: Dictionary = {
     history: 'Le mie letture',
     stats: 'Statistiche',
     quiz: 'Quiz',
+    versetDuJour: 'Versetto del giorno',
     settings: 'Impostazioni',
     roadmap: 'Tabella di marcia',
     support: 'Assistenza',
@@ -1013,6 +1014,22 @@ export const it: Dictionary = {
     garamond: 'Garamond',
     hyperlegible: 'Iperleggibile',
   } as Record<string, string>,
+
+  versetDuJour: {
+    title: 'Versetto del giorno',
+    subtitle: 'Un versetto tratto dalle tue letture, lo stesso per tutto il giorno.',
+    duJour: 'Oggi',
+    marquerLu: 'Ho letto questo versetto',
+    enregistrement: 'Salvataggio…',
+    dejaLu: 'Letto oggi',
+    ajouteAuxLectures: 'Sarà aggiunto alle tue letture, contesto «Bibbia».',
+    noteLecture: 'Versetto del giorno',
+    pasDeVerset: 'Nessun versetto da proporre',
+    pasDeVersetAide: 'Il versetto del giorno è tratto dalle tue letture. Registrane una e torna.',
+    statJours: 'Giorni seguiti',
+    statTotal: 'Versetti letti',
+    prochainDemain: (d: string) => `Un nuovo versetto domani — oggi, ${d}`,
+  },
 
   quiz: {
     title: 'Quiz di ripasso',
