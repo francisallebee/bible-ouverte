@@ -112,6 +112,46 @@ describe('les noms de contextes', () => {
     expect(contextName('en', 'zoom', 'ZOOM', false)).toBe('ZOOM')
   })
 
+  const SLUGS_SYSTEME = [
+    'bible', 'plan-lecture', 'meditation', 'eglise', 'predication', 'livre',
+    'livre-audio', 'revue', 'podcast', 'radio', 'youtube', 'autre',
+  ]
+
+  it('traduit les douze contextes dans les cinq langues', () => {
+    // Le registre était `Partial` jusqu'au 19 août 2026 : l'espagnol,
+    // l'italien et l'arabe retombaient en français sans que rien ne le dise.
+    // Le typage l'interdit désormais ; ce test le dit à l'exécution.
+    for (const { code } of LOCALES) {
+      for (const slug of SLUGS_SYSTEME) {
+        expect(contextName(code, slug, 'REPLI', true), `${code}/${slug}`).not.toBe('REPLI')
+      }
+    }
+  })
+
+  it('ne laisse aucun contexte en français hors du français', () => {
+    // Les valeurs identiques au français sont légitimes mais **nommées** : un
+    // oubli ne peut pas se cacher derrière « c'est le même mot ». Même méthode
+    // que le relevé des 11 valeurs identiques de l'espagnol, le 15 août 2026.
+    const identiquesLegitimes: Record<string, string[]> = {
+      en: ['bible', 'radio', 'podcast', 'youtube'],
+      es: ['radio', 'youtube'],
+      it: ['radio', 'podcast', 'youtube'],
+      ar: [],
+    }
+    for (const { code } of LOCALES.filter((l) => l.code !== 'fr')) {
+      const tolerees = new Set(identiquesLegitimes[code])
+      for (const slug of SLUGS_SYSTEME) {
+        const traduit = contextName(code, slug, '', true)
+        const francais = contextName('fr', slug, '', true)
+        if (tolerees.has(slug)) {
+          expect(traduit, `${code}/${slug} déclaré identique`).toBe(francais)
+        } else {
+          expect(traduit, `${code}/${slug}`).not.toBe(francais)
+        }
+      }
+    }
+  })
+
   it('garde le nom stocké pour un slug système inconnu', () => {
     expect(contextName('en', 'inconnu', 'Quelque chose', true)).toBe('Quelque chose')
   })

@@ -300,7 +300,8 @@ export default function AdminPage() {
                       </div>
                       {/* Status selector */}
                       <div className="relative group shrink-0">
-                        <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400">
+                        <button aria-label={t.admin.changeStatus}
+                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400">
                           <ChevronDown className="w-4 h-4" />
                         </button>
                         <div className="absolute end-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[140px] hidden group-hover:block z-10">

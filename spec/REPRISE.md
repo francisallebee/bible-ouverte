@@ -600,6 +600,15 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   les lectures par ces mêmes identifiants. Il se voit maintenant d'un endroit
   de plus — un objectif « par plan » cesse de compter ce jour-là.
 
+- **Un `Partial<Record<…>>` désarme le garde-fou qui tient tout le reste.**
+  `BY_LOCALE` de `i18n/contexts.ts` n'avait que `fr` et `en` : les douze
+  contextes système retombaient en français en espagnol, en italien et en
+  arabe, sur trois écrans, et rien ne le signalait. Le typage qui fait échouer
+  la compilation sur une clé de dictionnaire oubliée est exactement le même —
+  il n'était simplement pas armé ici. Passé en `Record` complet le 19 août
+  2026, avec les trois tables manquantes. **Chercher les `Partial` et les
+  `as Record<string, string>` avant de croire qu'une traduction est complète.**
+
 - **Extraire un module ne retire pas le calcul qu'il remplace.** `lib/objectifs`
   a été livré le 19 août avec `calculerSeries`, testé, et sa raison d'être
   écrite en tête de fichier : l'ancien calcul comparait une date **UTC** aux

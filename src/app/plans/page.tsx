@@ -378,8 +378,12 @@ export default function PlansPage() {
                       {isFree ? t.plans.freePlan : t.plans.scheduledSummary(durationLabel, plan.totalDays)}
                     </p>
                   </div>
+                  {/* Le bouton n'a qu'une icône : sans libellé, un lecteur
+                      d'écran n'annonce rien. Ses homologues du détail d'un
+                      plan et des Réglages en portaient un ; celui-ci non. */}
                   <button
                     onClick={() => setDeleteConfirm(plan.id as number)}
+                    aria-label={t.plans.deletePlan(plan.name)}
                     className="text-gray-400 hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />

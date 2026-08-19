@@ -478,6 +478,7 @@ export const ar: Dictionary = {
       `${duration} · ${days} يومًا`,
     undated: 'بلا تاريخ',
     deleteTitle: 'حذف هذه الخطة؟',
+    deletePlan: (nom: string) => `حذف خطة ${nom}`,
     deleteHint: 'هذا الإجراء لا رجعة فيه.',
   },
 
@@ -811,6 +812,7 @@ export const ar: Dictionary = {
     colEmail: 'البريد',
     colRole: 'الدور',
     colStatus: 'الحالة',
+    changeStatus: 'تغيير الحالة',
     colPlans: 'الخطط',
     colLastSignIn: 'الاتصال',
     colActions: 'الإجراءات',

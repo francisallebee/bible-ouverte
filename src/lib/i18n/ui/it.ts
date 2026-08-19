@@ -406,6 +406,7 @@ export const it: Dictionary = {
       `${duration} · ${days} giorni`,
     undated: 'Senza data',
     deleteTitle: 'Eliminare questo piano?',
+    deletePlan: (nom: string) => `Elimina il piano ${nom}`,
     deleteHint: 'Questa azione è irreversibile.',
   },
 
@@ -750,6 +751,7 @@ export const it: Dictionary = {
     colEmail: 'Email',
     colRole: 'Ruolo',
     colStatus: 'Stato',
+    changeStatus: 'Cambia stato',
     colPlans: 'Piani',
     colLastSignIn: 'Accesso',
     colActions: 'Azioni',

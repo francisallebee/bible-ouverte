@@ -413,6 +413,7 @@ export const fr = {
       `${duration} · ${days} jours`,
     undated: 'Sans date',
     deleteTitle: 'Supprimer ce plan ?',
+    deletePlan: (nom: string) => `Supprimer le plan ${nom}`,
     deleteHint: 'Cette action est irréversible.',
   },
 
@@ -762,6 +763,7 @@ export const fr = {
     colEmail: 'Email',
     colRole: 'Rôle',
     colStatus: 'Statut',
+    changeStatus: 'Changer le statut',
     colPlans: 'Plans',
     colLastSignIn: 'Connexion',
     colActions: 'Actions',
