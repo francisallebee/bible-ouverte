@@ -26,7 +26,36 @@ action hors du dépôt.
    vaut la même adresse que l'expéditeur, ce qui fait un envoi à soi-même. À
    changer si tu préfères recevoir ailleurs.
 
-3. **La revue de l'arabe est en pause, sur décision du propriétaire du dépôt,
+3. **Le catalan : aucun texte du domaine public n'a été trouvé.** Cherché le
+   19 août 2026, sur les cinq sources qui pouvaient en porter un. Le
+   propriétaire avait demandé qu'on cherche le texte **avant** d'ajouter la
+   langue, `AGENTS.md` promettant une version biblique par langue d'interface.
+   La réponse est non, et c'est à lui de trancher la suite.
+
+   | Source | Catalan ? |
+   |---|---|
+   | `ebible.org`, catalogue `translations.csv` | **aucune ligne** — c'est pourtant le plus gros fonds sous licence libre |
+   | `seven1m/open-bibles`, 45 langues | aucune |
+   | `midvash/bible-data`, 22 langues — notre première source | aucune |
+   | `scrollmapper/bible_databases`, ~50 langues — notre seconde | aucune, du klingon au gotique mais pas de catalan |
+   | CrossWire / SWORD | la **Bíblia Evangèlica Catalana** existe, mais **© IBEC 2000** : CrossWire n'a qu'une autorisation de module, pas une licence de redistribution |
+
+   Sous droits également : la **BCI** de 1993 (Associació Bíblica de
+   Catalunya), et la Bíblia de Montserrat. Le *Corpus Biblicum Catalanicum*
+   publie des éditions critiques imprimées, sans texte intégral libre annoncé.
+
+   **Le seul texte libre par l'âge est un Nouveau Testament** : *Lo Nou
+   Testament* de Josep Melcior Prat, Londres 1832, pour la British and Foreign
+   Bible Society. Aucune numérisation structurée n'a été trouvée — et un
+   Nouveau Testament seul ne tiendrait pas la promesse d'`AGENTS.md`, la même
+   raison qui a fait écarter quatre versions françaises de `scrollmapper` le
+   16 août. La Bible de Valence de 1478 ne survit qu'à l'état de fragment.
+
+   Ce qui reste à décider, et qui n'est pas de l'agent : accepter un Nouveau
+   Testament seul, assouplir la promesse d'une version par langue, obtenir une
+   licence auprès de l'IBEC ou de l'ABCat, ou laisser le catalan en projet.
+
+4. **La revue de l'arabe est en pause, sur décision du propriétaire du dépôt,
    le 19 août 2026 — jusqu'à nouvel ordre.** Ne pas la reprendre sans qu'il le
    demande : la tentation est forte, c'est la dette la plus voyante de ce
    document.
@@ -41,7 +70,7 @@ action hors du dépôt.
    (`BookPicker`, `PassagePreview`, `PassageSearch`), l'arbre de « Mes
    lectures » dont le retrait des niveaux est posé en `paddingInlineStart`, et
    la section des pages masquables. Aucun n'a été vu en RTL.
-4. **Les actions de l'écran Administration ont toutes été exercées le 18 août
+5. **Les actions de l'écran Administration ont toutes été exercées le 18 août
    2026**, par l'agent, sur le compte de test *Teste* — voir la section dédiée
    plus bas. Suspendre, réactiver, promouvoir, rétrograder, changer le statut
    d'un ticket et supprimer un compte : les six passent, chacune vue à l'écran
@@ -52,18 +81,18 @@ action hors du dépôt.
    l'agent**, depuis l'écran Profil et sur son compte réel — il fonctionne.
    Restent donc la suppression d'un ticket support et la suppression en bloc
    dans l'historique.
-5. **La réversion de langue est corrigée et vue fonctionner**, le 18 août 2026,
+6. **La réversion de langue est corrigée et vue fonctionner**, le 18 août 2026,
    par le propriétaire du dépôt : deux appareils, un même compte, la langue se
    synchronise. Voir la section dédiée plus bas. Le correctif était éprouvé en
    laboratoire depuis le 15 août ; il l'est désormais en usage.
-6. **Le mot de passe exposé a été changé**, le 18 août 2026, par le propriétaire
+7. **Le mot de passe exposé a été changé**, le 18 août 2026, par le propriétaire
    du dépôt. Celui du compte propriétaire était apparu en clair dans les
    journaux du serveur de développement le 15 août 2026, par une soumission de
    formulaire non hydratée. Le défaut de code avait été corrigé aussitôt
    (règle 12 d'`AGENTS.md`) ; l'exposition, elle, ne s'annule pas — rien n'efface
    ce qui a déjà été écrit dans un journal ou un historique, seule la rotation
    du secret ferme le sujet. C'est fait.
-7. **Deux migrations ont été appliquées par exécution SQL directe**, l'outil de
+8. **Deux migrations ont été appliquées par exécution SQL directe**, l'outil de
    migration ayant été refusé à l'époque : `20260809100000_meditation_emoji.sql`
    et `20260809140000_plan_reading_context.sql`. Elles ne figurent donc pas dans
    la table `supabase_migrations` du projet. Les fichiers sont au dépôt et
