@@ -2,7 +2,7 @@ import type { AppSettings, BibleVersion, ReadingContext } from './types';
 import { getDB } from './db';
 import { importEnabledBibleData } from '@/features/bible/import';
 import { deleteContext as deleteContextRemote } from '@/lib/supabase/store';
-import { repairNahumAbbreviation, removeDuplicatePassages } from './passage-store';
+import { repairNahumAbbreviation, removeDuplicatePassages, repairDoubledApostrophes } from './passage-store';
 
 /**
  * Contextes de lecture proposés par défaut.
@@ -112,6 +112,9 @@ async function runSeed(): Promise<void> {
     // fois passée — la détection tient à un chapitre témoin.
     for (const v of TEXT_VERSIONS) {
       await removeDuplicatePassages(v.id);
+      // Les apostrophes échappées en SQL, restées dans les caches constitués
+      // avant la correction des fichiers de `public/bibles/`.
+      await repairDoubledApostrophes(v.id);
     }
     await importTexts();
     return;

@@ -163,6 +163,22 @@ async function fetchJson(url) {
   return res.json();
 }
 
+/**
+ * Défait l'échappement SQL des apostrophes.
+ *
+ * Plusieurs sources exposent des textes extraits d'un dump SQL, où une
+ * apostrophe s'écrit doublée. Sans ce nettoyage, la Louis Segond arrivait avec
+ * « l''abîme » et « Qu''il » dans 22 538 de ses 31 102 versets — soit près des
+ * trois quarts de la version par défaut. Le défaut ne s'est vu qu'une fois le
+ * texte affiché en gros caractères dans le quizz.
+ *
+ * L'apostrophe doublée n'a aucun sens dans les langues servies ici : le
+ * remplacement est sans risque, et ne dépend pas de la source.
+ */
+function nettoyerTexte(texte) {
+  return typeof texte === 'string' ? texte.replace(/''/g, "'") : texte;
+}
+
 function countVerses(books) {
   return books.reduce((sum, b) => sum + b.chapters.reduce((s, c) => s + c.verses.length, 0), 0);
 }
@@ -175,7 +191,7 @@ async function downloadFromMidvash(slug, lang = 'fr') {
     const raw = await fetchJson(url);
     const chapters = raw.chapters.map((ch) => ({
       chapter: ch.chapter,
-      verses: ch.verses.map((v) => ({ verse: v.number, text: v.text })),
+      verses: ch.verses.map((v) => ({ verse: v.number, text: nettoyerTexte(v.text) })),
     }));
     books.push({ abbreviation: bookMeta.abbr, name: bookMeta.name, chapters });
     console.log(`  ✓ ${bookMeta.abbr}`);
@@ -210,7 +226,7 @@ async function downloadFromScrollmapper(fichier) {
       name: meta.name,
       chapters: livre.chapters.map((ch) => ({
         chapter: ch.chapter,
-        verses: ch.verses.map((v) => ({ verse: v.verse, text: v.text })),
+        verses: ch.verses.map((v) => ({ verse: v.verse, text: nettoyerTexte(v.text) })),
       })),
     };
   });
@@ -252,7 +268,7 @@ async function downloadFromSourceforge(sourceforgeFile) {
     const byChapter = {};
     for (const v of verses) {
       if (!byChapter[v.chapter]) byChapter[v.chapter] = [];
-      byChapter[v.chapter].push({ verse: v.verse, text: v.text });
+      byChapter[v.chapter].push({ verse: v.verse, text: nettoyerTexte(v.text) });
     }
     for (const [chNum, chVerses] of Object.entries(byChapter)) {
       chapters.push({ chapter: Number(chNum), verses: chVerses });

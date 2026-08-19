@@ -252,6 +252,47 @@ export async function repairNahumAbbreviation(): Promise<number> {
   return repaired;
 }
 
+/**
+ * Défait les apostrophes doublées restées dans le cache d'un appareil.
+ *
+ * Le texte source portait un échappement SQL — « l''abîme » pour « l'abîme » —
+ * dans près des trois quarts des versets de la Louis Segond. Les fichiers de
+ * `public/bibles/` sont corrigés, mais un appareil qui a déjà importé la
+ * version garde son cache : `importBibleVersion` ne rejoue rien dès qu'une
+ * version compte au moins un verset. Cette reprise corrige en place, ce qui
+ * évite de réimporter 31 000 versets.
+ *
+ * La détection est bon marché : un chapitre témoin suffit à savoir si une
+ * version est concernée, le défaut étant réparti sur tout le texte.
+ *
+ * Sans effet une fois passée — elle ne trouve plus aucune apostrophe doublée.
+ */
+export async function repairDoubledApostrophes(versionId: string): Promise<number> {
+  const temoin = await getPassages(versionId, 'GEN', 1);
+  if (!temoin.some((p) => p.text.includes("''"))) return 0;
+
+  const db = await getDB();
+  const tx = db.transaction('bible_passages', 'readwrite');
+  const index = tx.objectStore('bible_passages').index('by-version-book-chapter-verse');
+  const range = IDBKeyRange.bound(
+    [versionId, '', 0, 0],
+    [versionId, '\uffff', Infinity, Infinity],
+  );
+
+  let repares = 0;
+  let cursor = await index.openCursor(range);
+  while (cursor) {
+    const p = cursor.value;
+    if (p.text.includes("''")) {
+      await cursor.update({ ...p, text: p.text.replace(/''/g, "'") });
+      repares++;
+    }
+    cursor = await cursor.continue();
+  }
+  await tx.done;
+  return repares;
+}
+
 export async function searchPassages(
   versionId: string,
   query: string,
