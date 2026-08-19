@@ -91,6 +91,28 @@ export interface ReadingPlan {
   synced?: boolean;
 }
 
+/**
+ * Un verset en cours d'apprentissage, et son échéance.
+ *
+ * L'état, pas la trace : il change à chaque séance. Les séances elles-mêmes
+ * sont journalisées dans `GameSession`.
+ */
+export interface MemorisedVerse {
+  id?: number;
+  userId: string;
+  book: string;
+  chapter: number;
+  verse: number;
+  versionId: string;
+  niveau: number;
+  /** Jour civil de la prochaine révision, `AAAA-MM-JJ`. */
+  prochain: string;
+  createdAt: string;
+  updatedAt: string;
+  /** true si la ligne existe dans Supabase (flag local uniquement) */
+  synced?: boolean;
+}
+
 /** Le genre d'une partie. Non contraint côté base : ajouter un jeu ne doit rien migrer. */
 export type GameKind = 'quiz' | 'memorisation' | 'verset-du-jour';
 

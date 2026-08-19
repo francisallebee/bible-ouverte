@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase, type DBSchema } from 'idb';
-import type { AppSettings, BiblePassage, BibleVersion, GameSession, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket } from './types';
+import type { AppSettings, BiblePassage, BibleVersion, GameSession, MemorisedVerse, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket } from './types';
 
 interface BibleOuverteDB extends DBSchema {
   readings: {
@@ -61,13 +61,20 @@ interface BibleOuverteDB extends DBSchema {
       'by-kind-date': [string, string];
     };
   };
+  memorised_verses: {
+    key: number;
+    value: MemorisedVerse;
+    indexes: {
+      'by-prochain': string;
+    };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<BibleOuverteDB>> | null = null;
 
 export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 8, {
+    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 9, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const readingsStore = db.createObjectStore('readings', {
@@ -129,6 +136,16 @@ export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
             autoIncrement: true,
           });
           parties.createIndex('by-kind-date', ['kind', 'createdAt']);
+        }
+
+        if (oldVersion < 9) {
+          // Les versets en cours d'apprentissage. L'index porte l'échéance,
+          // qui est ce que l'écran interroge : « qu'est-ce qui est dû ? ».
+          const memorises = db.createObjectStore('memorised_verses', {
+            keyPath: 'id',
+            autoIncrement: true,
+          });
+          memorises.createIndex('by-prochain', 'prochain');
         }
       },
     });

@@ -612,3 +612,71 @@ export async function fetchGameSessions(kind?: string): Promise<GameSessionRow[]
     return (data as GameSessionRow[]) ?? []
   }, null)
 }
+
+// ---------------------------------------------------------------------------
+// Versets en cours d'apprentissage
+// ---------------------------------------------------------------------------
+
+export interface MemorisedRow {
+  id: number
+  user_id: string
+  book: string
+  chapter: number
+  verse: number
+  versionId: string
+  niveau: number
+  prochain: string
+  createdAt: string
+  updatedAt: string
+}
+
+export async function fetchMemorised(): Promise<MemorisedRow[] | null> {
+  return tryAuthenticated(async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('memorised_verses').select('*').order('prochain', { ascending: true })
+    if (error) return null
+    return (data as MemorisedRow[]) ?? []
+  }, null)
+}
+
+export async function insertMemorised(
+  v: { book: string; chapter: number; verse: number; versionId: string; niveau: number; prochain: string; createdAt: string; updatedAt: string },
+): Promise<MemorisedRow | null> {
+  return tryAuthenticated(async () => {
+    const supabase = createClient()
+    const userId = await getUserId()
+    if (!userId) return null
+    // Les colonnes sont nommées une à une, jamais étalées : l'objet local porte
+    // aussi `userId` et `synced`, qui ne sont pas des colonnes. Les étaler
+    // faisait rejeter l'insertion par PostgREST — en silence, puisque l'écriture
+    // locale réussissait et que l'écran n'en montrait rien.
+    const { data, error } = await supabase
+      .from('memorised_verses')
+      .insert({
+        user_id: userId,
+        book: v.book,
+        chapter: v.chapter,
+        verse: v.verse,
+        versionId: v.versionId,
+        niveau: v.niveau,
+        prochain: v.prochain,
+        createdAt: v.createdAt,
+        updatedAt: v.updatedAt,
+      })
+      .select()
+      .single()
+    if (error) return null
+    return data as MemorisedRow
+  }, null)
+}
+
+export async function updateMemorisedRemote(
+  id: number, data: Partial<MemorisedRow>,
+): Promise<boolean> {
+  return tryAuthenticated(() => update<MemorisedRow>('memorised_verses', id, data), false)
+}
+
+export async function deleteMemorisedRemote(id: number): Promise<boolean> {
+  return tryAuthenticated(() => remove('memorised_verses', id), false)
+}
