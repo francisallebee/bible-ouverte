@@ -159,6 +159,11 @@ export const es: Dictionary = {
   },
 
   settings: {
+    fontPreview:
+      'Porque tanto amó Dios al mundo que dio a su Hijo único.',
+    uiScaleLabel: 'Tamaño de la interfaz',
+    readingSizeLabel: 'Tamaño del texto bíblico',
+    readingStyleLabel: 'Estilo del texto bíblico',
     fontsTitle: 'Fuentes',
     fontsHint:
       'Dos ajustes: uno para los menús, otro para el texto bíblico. El árabe conserva la fuente de tu dispositivo, que ninguna de estas cubre.',
@@ -988,6 +993,21 @@ export const es: Dictionary = {
     next: 'Siguiente',
     finish: 'Terminar',
   },
+  fontSizes: {
+    'compact': 'Compacto',
+    'normal': 'Normal',
+    'grand': 'Grande',
+    'tres-grand': 'Muy grande',
+    'geant': 'Gigante',
+  } as Record<string, string>,
+
+  fontStyles: {
+    'normal': 'Normal',
+    'italique': 'Cursiva',
+    'gras': 'Negrita',
+    'gras-italique': 'Negrita cursiva',
+  } as Record<string, string>,
+
   fonts: {
     systeme: 'Sistema',
     inter: 'Inter',

@@ -158,6 +158,11 @@ export const it: Dictionary = {
   },
 
   settings: {
+    fontPreview:
+      'Dio infatti ha tanto amato il mondo da dare il suo Figlio unigenito.',
+    uiScaleLabel: 'Dimensione dell’interfaccia',
+    readingSizeLabel: 'Dimensione del testo biblico',
+    readingStyleLabel: 'Stile del testo biblico',
     fontsTitle: 'Caratteri',
     fontsHint:
       'Due impostazioni: una per i menu, l’altra per il testo biblico. L’arabo mantiene il carattere del tuo dispositivo, che nessuno di questi copre.',
@@ -985,6 +990,21 @@ export const it: Dictionary = {
     next: 'Successivo',
     finish: 'Termina',
   },
+  fontSizes: {
+    'compact': 'Compatto',
+    'normal': 'Normale',
+    'grand': 'Grande',
+    'tres-grand': 'Molto grande',
+    'geant': 'Gigante',
+  } as Record<string, string>,
+
+  fontStyles: {
+    'normal': 'Normale',
+    'italique': 'Corsivo',
+    'gras': 'Grassetto',
+    'gras-italique': 'Grassetto corsivo',
+  } as Record<string, string>,
+
   fonts: {
     systeme: 'Sistema',
     inter: 'Inter',

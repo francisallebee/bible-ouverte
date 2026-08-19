@@ -133,14 +133,32 @@ input[type="date"]::-webkit-datetime-edit {
 :root {
   --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-reading: var(--font-ui);
+  --font-reading-size: 1rem;
+  --font-reading-style: normal;
+  --font-reading-weight: 400;
 }
 
 body {
   font-family: var(--font-ui);
 }
 
+/* La taille l'emporte sur la classe Tailwind portée par le même élément.
+ *
+ * `.texte-biblique` et `.text-sm` ont la même spécificité ; c'est l'ordre qui
+ * tranche, et ce bloc vient après `@tailwind utilities`. Les versets, qui
+ * n'ont pas de classe de taille propre, en héritent. */
 .texte-biblique {
   font-family: var(--font-reading);
+  font-size: var(--font-reading-size);
+  font-style: var(--font-reading-style);
+  font-weight: var(--font-reading-weight);
+}
+
+/* Le numéro de verset ne suit pas le gras ni l'italique : il repère, il ne se
+   lit pas. Sa taille, en revanche, suit celle du texte, étant en `em`. */
+.texte-biblique sup {
+  font-style: normal;
+  font-weight: 400;
 }
 
 html.dark {

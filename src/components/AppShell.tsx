@@ -41,7 +41,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       const s = await getSettings()
       if (cancelled) return
       if (s?.colorTheme) applyColorTheme(s.colorTheme, s.customColors)
-      applyFonts(s?.uiFont, s?.readingFont)
+      applyFonts({
+        uiFont: s?.uiFont,
+        readingFont: s?.readingFont,
+        uiScale: s?.uiScale,
+        readingSize: s?.readingSize,
+        readingStyle: s?.readingStyle,
+      })
       applyTheme(s?.theme)
       setAutoLogoutMinutes(s?.autoLogoutMinutes ?? 0)
       setHiddenPages(s?.hiddenPages)

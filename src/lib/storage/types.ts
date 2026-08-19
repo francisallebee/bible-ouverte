@@ -229,6 +229,12 @@ export interface AppSettings {
   uiFont?: string;
   /** Police du texte biblique, réglée séparément de celle de l'interface. */
   readingFont?: string;
+  /** Échelle de l'interface — voir `UI_SCALES` dans `lib/fonts.ts`. */
+  uiScale?: string;
+  /** Taille du texte biblique, indépendante de celle de l'interface. */
+  readingSize?: string;
+  /** Style du texte biblique : normal, italique, gras, gras italique. */
+  readingStyle?: string;
   /**
    * Langue de l'interface, en code court : `fr`, `en`, `es`, `it`, `ar`.
    *

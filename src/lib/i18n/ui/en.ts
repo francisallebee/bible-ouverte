@@ -150,6 +150,11 @@ export const en: Dictionary = {
   },
 
   settings: {
+    fontPreview:
+      'For God so loved the world that he gave his only Son.',
+    uiScaleLabel: 'Interface size',
+    readingSizeLabel: 'Biblical text size',
+    readingStyleLabel: 'Biblical text style',
     fontsTitle: 'Fonts',
     fontsHint:
       'Two settings: one for the menus, one for the biblical text. Arabic keeps your device’s font, which none of these cover.',
@@ -958,6 +963,21 @@ export const en: Dictionary = {
     next: 'Next',
     finish: 'Finish',
   },
+  fontSizes: {
+    'compact': 'Compact',
+    'normal': 'Normal',
+    'grand': 'Large',
+    'tres-grand': 'Very large',
+    'geant': 'Huge',
+  } as Record<string, string>,
+
+  fontStyles: {
+    'normal': 'Normal',
+    'italique': 'Italic',
+    'gras': 'Bold',
+    'gras-italique': 'Bold italic',
+  } as Record<string, string>,
+
   fonts: {
     systeme: 'System',
     inter: 'Inter',

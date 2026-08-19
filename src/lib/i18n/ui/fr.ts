@@ -165,6 +165,11 @@ export const fr = {
   },
 
   settings: {
+    fontPreview:
+      'Car Dieu a tant aimé le monde qu’il a donné son Fils unique.',
+    uiScaleLabel: 'Taille de l’interface',
+    readingSizeLabel: 'Taille du texte biblique',
+    readingStyleLabel: 'Style du texte biblique',
     fontsTitle: 'Polices',
     fontsHint:
       'Deux réglages : l’un pour les menus, l’autre pour le texte biblique. L’arabe garde la police de ton appareil, qu’aucune de celles-ci ne couvre.',
@@ -996,6 +1001,21 @@ export const fr = {
     next: 'Suivant',
     finish: 'Terminer',
   },
+  fontSizes: {
+    'compact': 'Compact',
+    'normal': 'Normal',
+    'grand': 'Grand',
+    'tres-grand': 'Très grand',
+    'geant': 'Géant',
+  } as Record<string, string>,
+
+  fontStyles: {
+    'normal': 'Normal',
+    'italique': 'Italique',
+    'gras': 'Gras',
+    'gras-italique': 'Gras italique',
+  } as Record<string, string>,
+
   fonts: {
     systeme: 'Système',
     inter: 'Inter',

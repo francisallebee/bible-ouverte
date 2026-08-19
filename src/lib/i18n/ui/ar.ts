@@ -235,6 +235,11 @@ export const ar: Dictionary = {
   },
 
   settings: {
+    fontPreview:
+      'لأنه هكذا أحب الله العالم حتى بذل ابنه الوحيد.',
+    uiScaleLabel: 'حجم الواجهة',
+    readingSizeLabel: 'حجم النص الكتابي',
+    readingStyleLabel: 'نمط النص الكتابي',
     fontsTitle: 'الخطوط',
     fontsHint:
       'إعدادان: واحد للقوائم وآخر للنص الكتابي. تحتفظ العربية بخط جهازك، فلا يغطيها أيّ من هذه الخطوط.',
@@ -1017,6 +1022,21 @@ export const ar: Dictionary = {
     next: 'التالي',
     finish: 'إنهاء',
   },
+  fontSizes: {
+    'compact': 'مضغوط',
+    'normal': 'عادي',
+    'grand': 'كبير',
+    'tres-grand': 'كبير جدًا',
+    'geant': 'ضخم',
+  } as Record<string, string>,
+
+  fontStyles: {
+    'normal': 'عادي',
+    'italique': 'مائل',
+    'gras': 'عريض',
+    'gras-italique': 'عريض مائل',
+  } as Record<string, string>,
+
   fonts: {
     systeme: 'النظام',
     inter: 'Inter',

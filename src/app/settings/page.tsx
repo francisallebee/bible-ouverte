@@ -18,7 +18,11 @@ import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion } from "@/lib/storage";
 import { COLOR_THEMES, applyColorTheme, applyTheme, CUSTOM_THEME_ID, DEFAULT_CUSTOM } from "@/lib/themes";
 import { NAV_LINKS } from "@/components/Sidebar";
-import { FONTS, DEFAULT_FONT_ID, applyFonts } from "@/lib/fonts";
+import {
+  FONTS, DEFAULT_FONT_ID, applyFonts,
+  UI_SCALES, DEFAULT_UI_SCALE, READING_SIZES, DEFAULT_READING_SIZE,
+  READING_STYLES, DEFAULT_READING_STYLE,
+} from "@/lib/fonts";
 import { HIDEABLE_PAGES, isPageVisible, shouldForceSetup } from "@/lib/setup";
 import { AUTO_LOGOUT_CHOICES } from "@/lib/auto-logout";
 import {
@@ -130,11 +134,21 @@ export default function SettingsPage() {
     await updateSettings({ customColors, colorTheme: CUSTOM_THEME_ID });
   }
 
-  async function changerPolice(champ: "uiFont" | "readingFont", id: string) {
-    applyFonts(
-      champ === "uiFont" ? id : settings?.uiFont,
-      champ === "readingFont" ? id : settings?.readingFont,
-    );
+  type ChampTypo = "uiFont" | "readingFont" | "uiScale" | "readingSize" | "readingStyle";
+
+  /**
+   * Applique tout de suite, enregistre ensuite — comme pour les couleurs.
+   * Choisir une taille sans la voir n'aurait aucun sens.
+   */
+  async function changerTypo(champ: ChampTypo, id: string) {
+    applyFonts({
+      uiFont: settings?.uiFont,
+      readingFont: settings?.readingFont,
+      uiScale: settings?.uiScale,
+      readingSize: settings?.readingSize,
+      readingStyle: settings?.readingStyle,
+      [champ]: id,
+    });
     setSettings((prev) => (prev ? { ...prev, [champ]: id } : prev));
     await updateSettings({ [champ]: id });
   }
@@ -450,7 +464,7 @@ export default function SettingsPage() {
                 <select
                   id={`police-${champ}`}
                   value={settings?.[champ] ?? DEFAULT_FONT_ID}
-                  onChange={(e) => changerPolice(champ, e.target.value)}
+                  onChange={(e) => changerTypo(champ, e.target.value)}
                   className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
                 >
                   {FONTS.map((police) => (
@@ -462,6 +476,37 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+            {([
+              ["uiScale", t.settings.uiScaleLabel, UI_SCALES, DEFAULT_UI_SCALE, t.fontSizes],
+              ["readingSize", t.settings.readingSizeLabel, READING_SIZES, DEFAULT_READING_SIZE, t.fontSizes],
+              ["readingStyle", t.settings.readingStyleLabel, READING_STYLES, DEFAULT_READING_STYLE, t.fontStyles],
+            ] as const).map(([champ, libelle, choix, defaut, libelles]) => (
+              <div key={champ}>
+                <label htmlFor={`typo-${champ}`} className="block text-xs font-medium text-[--text-secondary] mb-1">
+                  {libelle}
+                </label>
+                <select
+                  id={`typo-${champ}`}
+                  value={settings?.[champ] ?? defaut}
+                  onChange={(e) => changerTypo(champ, e.target.value)}
+                  className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
+                >
+                  {choix.map((c) => (
+                    <option key={c.id} value={c.id}>{libelles[c.id] ?? c.id}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+
+          {/* Un aperçu, parce qu'un nom de taille ne dit rien : « Grand » se
+              juge sur un verset, pas dans une liste déroulante. */}
+          <p className="texte-biblique mt-4 rounded-lg border border-[--border] p-3 text-[--text]">
+            <sup className="text-xs text-[--text-secondary] me-0.5">16</sup>
+            {t.settings.fontPreview}
+          </p>
         </SectionCard>
 
         <SectionCard icon={Target} title={t.settings.goal}>
