@@ -6,6 +6,7 @@ import { History, BookPlus, ChevronRight, ChevronDown, CheckSquare, Trash2, Tag,
 import { seedIfNeeded, getAllReadings, getAllVersions, getAllContexts, deleteReading, updateReading } from "@/lib/storage";
 import type { ReadingEntry, BibleVersion, ReadingContext } from "@/lib/storage";
 import { sortContexts } from "@/components/ContextPicker";
+import BookPicker from "@/components/BookPicker";
 import { useI18n, useBookName, useBooks, useContextName } from "@/contexts/I18nContext";
 import { isOldTestament } from "@/features/bible";
 import { formatDate } from "@/lib/i18n/format";
@@ -530,18 +531,17 @@ export default function HistoryPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[160px] sm:min-w-[200px] w-full sm:w-auto"
         />
-        <select
-          value={bookFilter}
-          onChange={(e) => setBookFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-        >
-          <option value="">{t.history.allBooks}</option>
-          {books.map((b) => (
-            <option key={b.abbreviation} value={b.abbreviation}>
-              {b.name}
-            </option>
-          ))}
-        </select>
+        {/* La même fenêtre que Nouvelle lecture, Recherche biblique et l'ajout
+            à un plan — deux testaments, filtre par nom. Ici c'est un filtre,
+            d'où le « tous les livres » que le formulaire de saisie n'a pas. */}
+        <div className="min-w-[12rem]">
+          <BookPicker
+            value={bookFilter}
+            onSelect={setBookFilter}
+            emptyLabel={t.history.allBooks}
+            ariaLabel={t.history.allBooks}
+          />
+        </div>
         <input
           type="date"
           value={dateStart}

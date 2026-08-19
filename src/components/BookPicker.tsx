@@ -11,6 +11,15 @@ interface Props {
   disabled?: boolean
   /** Pour les écrans où le champ n'a pas de `<label>` au-dessus. */
   ariaLabel?: string
+  /**
+   * Libellé de l'absence de choix — « Tous les livres » pour un filtre.
+   *
+   * Fourni, il ajoute une entrée en tête de la fenêtre qui rend `''`, et il
+   * remplace le texte du bouton quand rien n'est choisi. Absent, choisir un
+   * livre reste obligatoire : c'est le cas des formulaires de saisie, où un
+   * passage sans livre n'a pas de sens.
+   */
+  emptyLabel?: string
 }
 
 type Testament = 'old' | 'new'
@@ -33,7 +42,7 @@ type Testament = 'old' | 'new'
  * ce qui garantit que les trois écrans affichent la même chose. Un simple
  * modal exporté aurait laissé chacun redessiner son déclencheur.
  */
-export default function BookPicker({ value, onSelect, disabled, ariaLabel }: Props) {
+export default function BookPicker({ value, onSelect, disabled, ariaLabel, emptyLabel }: Props) {
   const t = useT()
   const books = useBooks()
   const [open, setOpen] = useState(false)
@@ -74,7 +83,7 @@ export default function BookPicker({ value, onSelect, disabled, ariaLabel }: Pro
       <button type="button" onClick={() => setOpen(true)} disabled={disabled} aria-label={ariaLabel}
         className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
         <span className={selected ? 'truncate' : 'truncate text-[--text-secondary]'}>
-          {selected?.name ?? t.bookPicker.placeholder}
+          {selected?.name ?? emptyLabel ?? t.bookPicker.placeholder}
         </span>
         <ChevronDown className="w-4 h-4 text-[--text-secondary] shrink-0" />
       </button>
@@ -116,6 +125,18 @@ export default function BookPicker({ value, onSelect, disabled, ariaLabel }: Pro
                     </button>
                   ))}
                 </div>
+              )}
+
+              {emptyLabel && (
+                <button type="button" aria-pressed={!value}
+                  onClick={() => { onSelect(''); setOpen(false) }}
+                  className={`w-full rounded-lg px-3 py-2 text-sm text-start transition-colors ${
+                    value
+                      ? 'border border-[--border] text-[--text] hover:border-[--primary] hover:text-[--primary]'
+                      : 'bg-[--primary] text-white font-medium'
+                  }`}>
+                  {emptyLabel}
+                </button>
               )}
 
               {visibles.length === 0 ? (
