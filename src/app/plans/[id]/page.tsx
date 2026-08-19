@@ -19,6 +19,7 @@ import { formatDate } from "@/lib/i18n/format";
 import PlanEntryAdder from "@/components/PlanEntryAdder";
 import type { PlanEntryDraft } from "@/components/PlanEntryAdder";
 import { describeRange } from "@/components/PassagePicker";
+import { dayPassages, readingIdsOf } from "@/lib/storage/plan-passages";
 import type { ReadingPlan, PlanDay, BibleVersion, PlanDuration } from "@/lib/storage";
 
 /** Les durées proposées. Leurs libellés vivent dans les dictionnaires. */
@@ -100,31 +101,51 @@ export default function PlanDetailPage() {
   const pageCount = Math.ceil(days.length / DAYS_PER_PAGE);
   const pageDays = days.slice(currentPage * DAYS_PER_PAGE, (currentPage + 1) * DAYS_PER_PAGE);
 
-  /** Coche une entrée : enregistre la lecture correspondante à la date donnée. */
+  /**
+   * Coche une entrée : enregistre **une lecture par passage** à la date donnée.
+   *
+   * Une par passage, et non une par jour : c'est la règle du reste du produit,
+   * les statistiques, la progression et les plans raisonnant tous par lecture.
+   * Chaque passage retient son identifiant, sans quoi décocher un jour à
+   * plusieurs passages en laisserait derrière lui dans l'historique.
+   */
   async function markRead(day: PlanDay, date: string) {
     setTogglingDay(day.day);
     try {
-      const readingId = await addReading({
+      const passages = dayPassages(day);
+      const ecrits = [];
+      for (const passage of passages) {
+        const readingId = await addReading({
+          date,
+          book: passage.book,
+          chapterStart: passage.chapterStart,
+          chapterEnd: passage.chapterEnd,
+          // Les plans datés raisonnent au chapitre et posent 1:1 ; les plans
+          // libres portent le passage exact qu'on a choisi.
+          verseStart: passage.verseStart ?? 1,
+          verseEnd: passage.verseEnd ?? 1,
+          passageText: "",
+          translationId: plan!.versionId,
+          tags: ["general"],
+          // Rattachée au contexte « Plan de lecture » : sans lui, ces lectures
+          // s'accumulaient sous « Sans contexte » et y représentaient
+          // l'essentiel du total, ce qui rendait la répartition illisible.
+          contextId: PLAN_CONTEXT_ID,
+          notes: plan!.kind === "free"
+            ? `Plan : ${plan!.name}`
+            : `Plan : ${plan!.name} (jour ${day.day})`,
+        });
+        ecrits.push({ ...passage, readingId: readingId as number });
+      }
+      const updatedDay: PlanDay = {
+        ...day,
         date,
-        book: day.book,
-        chapterStart: day.chapterStart,
-        chapterEnd: day.chapterEnd,
-        // Les plans datés raisonnent au chapitre et posent 1:1 ; les plans
-        // libres portent le passage exact qu'on a choisi.
-        verseStart: day.verseStart ?? 1,
-        verseEnd: day.verseEnd ?? 1,
-        passageText: "",
-        translationId: plan!.versionId,
-        tags: ["general"],
-        // Rattachée au contexte « Plan de lecture » : sans lui, ces lectures
-        // s'accumulaient sous « Sans contexte » et y représentaient
-        // l'essentiel du total, ce qui rendait la répartition illisible.
-        contextId: PLAN_CONTEXT_ID,
-        notes: plan!.kind === "free"
-          ? `Plan : ${plan!.name}`
-          : `Plan : ${plan!.name} (jour ${day.day})`,
-      });
-      const updatedDay: PlanDay = { ...day, date, isRead: true, readingId: readingId as number };
+        isRead: true,
+        // La colonne garde la première : c'est ce que lit un appareil resté
+        // sur l'ancienne version.
+        readingId: ecrits[0].readingId,
+        ...(ecrits.length > 1 ? { passages: ecrits } : {}),
+      };
       await updatePlanDay(updatedDay);
       setDays((prev) => prev.map((d) => (d.day === day.day ? updatedDay : d)));
     } catch (e) {
@@ -136,9 +157,16 @@ export default function PlanDetailPage() {
   async function unmarkRead(day: PlanDay) {
     setTogglingDay(day.day);
     try {
-      if (day.readingId) await deleteReading(day.readingId);
+      // Toutes les lectures du jour, et pas seulement celle de la colonne.
+      for (const id of readingIdsOf(day)) await deleteReading(id);
       const updatedDay: PlanDay = { ...day, isRead: false };
       delete updatedDay.readingId;
+      if (updatedDay.passages) {
+        updatedDay.passages = updatedDay.passages.map(({ readingId, ...reste }) => {
+          void readingId;
+          return reste;
+        });
+      }
       // Un plan libre n'a pas de date prévue : la décocher doit la reprendre,
       // sinon la ligne continuerait d'annoncer un jour de lecture démenti.
       if (plan?.kind === "free") updatedDay.date = "";
@@ -419,16 +447,23 @@ export default function PlanDetailPage() {
                       <span className="text-xs text-gray-400">{t.planDetail.notReadYet}</span>
                     )}
                   </div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {isFree
-                      ? describeRange(getBookName(day.book), {
-                          chapterStart: day.chapterStart,
-                          chapterEnd: day.chapterEnd,
-                          verseStart: day.verseStart ?? 1,
-                          verseEnd: day.verseEnd ?? 1,
-                        })
-                      : `${getBookName(day.book)} ${day.chapterStart}${day.chapterEnd !== day.chapterStart ? `-${day.chapterEnd}` : ""}`}
-                  </p>
+                  {/* Tous les passages du jour : un plan classique en fait lire
+                      plusieurs, d'un livre différent chacun. Un jour à passage
+                      unique rend exactement la même ligne qu'avant. */}
+                  <div className="text-sm font-medium text-gray-900 space-y-0.5">
+                    {dayPassages(day).map((passage, i) => (
+                      <p key={`${passage.book}-${passage.chapterStart}-${i}`}>
+                        {isFree
+                          ? describeRange(getBookName(passage.book), {
+                              chapterStart: passage.chapterStart,
+                              chapterEnd: passage.chapterEnd,
+                              verseStart: passage.verseStart ?? 1,
+                              verseEnd: passage.verseEnd ?? 1,
+                            })
+                          : `${getBookName(passage.book)} ${passage.chapterStart}${passage.chapterEnd !== passage.chapterStart ? `-${passage.chapterEnd}` : ""}`}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </button>
               {isFree && (

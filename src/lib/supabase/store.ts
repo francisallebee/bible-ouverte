@@ -1,3 +1,4 @@
+import type { PlanPassage } from '@/lib/storage/plan-passages'
 import { createClient } from './client'
 
 let authedUserId: string | null = null
@@ -233,6 +234,12 @@ export interface PlanDayRow {
   verseEnd: number
   isRead: boolean
   readingId: number | null
+  /**
+   * Passages du jour, quand il y en a plusieurs. Nulle sur les lignes écrites
+   * avant la migration `20260819120000` — voir `dayPassages`, qui reconstitue
+   * alors le passage unique depuis les colonnes.
+   */
+  passages: PlanPassage[] | null
 }
 
 export async function fetchPlanDays(planId: number): Promise<PlanDayRow[] | null> {

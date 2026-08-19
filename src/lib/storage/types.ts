@@ -1,3 +1,5 @@
+import type { PlanPassage } from './plan-passages';
+
 import type { Locale } from "@/lib/i18n/locales";
 
 export type DisplayPreset = "smartphone" | "tablet" | "desktop";
@@ -105,6 +107,15 @@ export interface PlanDay {
   /** 1 sur les plans datés, qui raisonnent au chapitre. */
   verseStart: number;
   verseEnd: number;
+  /**
+   * Les passages du jour, quand il y en a plusieurs.
+   *
+   * Absente, la journée n'en compte qu'un, décrit par les colonnes ci-dessus —
+   * qui portent de toute façon le premier passage. Voir `dayPassages` dans
+   * `plan-passages.ts` : c'est lui qui lit les deux formes, et rien d'autre ne
+   * doit connaître cette distinction.
+   */
+  passages?: PlanPassage[];
   isRead: boolean;
   readingId?: number;
   /** true si la ligne existe dans Supabase (flag local uniquement) */
