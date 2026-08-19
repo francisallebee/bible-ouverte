@@ -95,6 +95,11 @@ const ayyam = (n: number) => pluriel(n, {
   peu: 'أيام', beaucoup: 'يومًا', autre: 'يوم',
 })
 
+const daqaiq = (n: number) => pluriel(n, {
+  zero: 'دقيقة', un: 'دقيقة واحدة', deux: 'دقيقتان',
+  peu: 'دقائق', beaucoup: 'دقيقة', autre: 'دقيقة',
+})
+
 export const ar: Dictionary = {
   common: {
     ticketStatuses: {
@@ -248,6 +253,7 @@ export const ar: Dictionary = {
     goalUnitLabels: {
       chapters: 'الأصحاح',
       verses: 'الآيات',
+      minutes: 'الدقائق',
     } as Record<string, string>,
     goalUnit: 'الوحدة',
     goalPeriod: 'المدّة',
@@ -255,6 +261,7 @@ export const ar: Dictionary = {
     goalUnits: {
       chapters: 'أصحاحًا',
       verses: 'آية',
+      minutes: 'دقيقة',
     } as Record<string, string>,
     goalPeriods: {
       day: 'يوميًا',
@@ -264,6 +271,8 @@ export const ar: Dictionary = {
     } as Record<string, string>,
     goalSummary2: (n: number, u: string, p: string) => `${n} ${u} ${p}`,
     goalScope: 'ما يُحتسب',
+    goalMinutesHint: (mots: number) =>
+      `تُقدَّر الدقائق من عدد كلمات المقطع، بمعدل ${mots} كلمة في الدقيقة. لا شيء يُقاس بالتوقيت.`,
     goalScopes: { toutes: 'كل القراءات', livre: 'سفر واحد', plan: 'خطة قراءة واحدة' },
     goalScopeBook: 'السفر',
     goalScopePlan: 'الخطة',
@@ -500,14 +509,14 @@ export const ar: Dictionary = {
     milestoneReached: (n: number) => `${n} ${ayyam(n)}`,
     chaptersRead: 'الإصحاحات المقروءة',
     booksStarted: (n: number) => `${n} ${asfar(n)} بُدئ بها`,
-    dailyGoal: 'هدف اليوم',
+    dailyGoal: 'الهدف',
     chaptersToday: 'إصحاحًا اليوم',
     versesToday: 'عددًا اليوم',
     noGoal: 'لم يُحدَّد أي هدف',
     goalReached: 'تحقّق الهدف! 🎉',
     goalAlmost: 'بقي القليل من الجهد',
-    goalToday: (current: number, target: number, chapters: boolean) =>
-      `${current} / ${target} ${chapters ? isahat(target) : aadad(target)} اليوم`,
+    goalToday: (current: number, target: number, unite: string, periode: string) =>
+      `${current} / ${target} ${unite === 'chapters' ? isahat(target) : unite === 'verses' ? aadad(target) : daqaiq(target)} ${periode}`,
     oldTestament: 'العهد القديم',
     newTestament: 'العهد الجديد',
     chaptersOfTotal: (read: number, total: number) => `${read} / ${total} إصحاحًا`,

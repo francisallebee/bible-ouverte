@@ -207,7 +207,11 @@ export type Portee =
 
 /** La forme actuelle : une unité, une période, une cible, et ce qu'on compte. */
 export interface Objectif {
-  unite: "chapters" | "verses";
+  /**
+   * `minutes` n'est pas chronométré : il est **estimé** d'après ce qui a été
+   * lu, à partir du poids en mots du livre. Voir `objectifs/mots.ts`.
+   */
+  unite: "chapters" | "verses" | "minutes";
   periode: "day" | "week" | "month" | "year";
   cible: number;
   /** Absente sur les objectifs enregistrés avant le 19 août 2026. */

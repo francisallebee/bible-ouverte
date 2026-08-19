@@ -1,4 +1,5 @@
 import type { Objectif, Portee, ReadingEntry, ReadingGoal } from '@/lib/storage/types';
+import { MOTS_PAR_LIVRE, MOTS_DEFAUT } from './mots';
 
 /**
  * Les objectifs de lecture : périodes, progression et séries.
@@ -70,8 +71,49 @@ export function debutDePeriode(jour: string, periode: PeriodeObjectif): string {
   return new Date(d.getTime() - recul * 86400000).toISOString().slice(0, 10);
 }
 
-/** Ce qu'une lecture apporte, selon l'unité de l'objectif. */
+/**
+ * La vitesse de lecture retenue pour l'estimation, en mots par minute.
+ *
+ * C'est une **convention**, pas une mesure : personne ici n'a chronométré de
+ * lecteur. 150 mots par minute correspond à une lecture attentive ou à voix
+ * haute, plus lente que les 200 à 250 d'une lecture de prose ordinaire — ce
+ * qui paraît juste pour un texte qu'on relit et qu'on médite. Un lecteur que
+ * l'estimation ne satisfait pas ajuste sa cible, qui est dans la même unité.
+ */
+export const MOTS_PAR_MINUTE = 150;
+
+/**
+ * Combien de mots pèse le passage d'une lecture.
+ *
+ * La table vient de `mots.ts`, mesurée sur Louis Segond 1910. Elle est par
+ * livre parce qu'une moyenne unique se trompait d'un facteur quatre entre les
+ * Psaumes et les Rois.
+ */
+function motsDe(lecture: ReadingEntry): number {
+  const poids = MOTS_PAR_LIVRE[lecture.book] ?? MOTS_DEFAUT;
+  if (lecture.chapterEnd !== lecture.chapterStart) {
+    return Math.max(1, lecture.chapterEnd - lecture.chapterStart + 1) * poids.chapitre;
+  }
+  const versets = Math.max(1, lecture.verseEnd - lecture.verseStart + 1);
+  // Un passage tenant dans un chapitre ne peut pas peser plus qu'un chapitre.
+  // Ce n'est pas une précaution théorique : `PassagePicker` propose 200 versets
+  // quand le texte n'est pas téléchargé (`FALLBACK_VERSES`), et la base en
+  // porte la trace — Psaumes 1:1-200, 1 Samuel 18:1-200, Genèse 20:1-200 parmi
+  // les 166 lectures enregistrées. Sans cette borne, le Psaume 1 vaudrait
+  // trente minutes.
+  return Math.min(versets * poids.verset, poids.chapitre);
+}
+
+/**
+ * Ce qu'une lecture apporte, selon l'unité de l'objectif.
+ *
+ * Les chapitres et les versets sont des entiers ; les **minutes ne le sont
+ * pas**, et ne doivent pas l'être ici. Arrondir chaque lecture ferait de trois
+ * versets lus séparément trois minutes ; c'est `progressionDe` qui arrondit,
+ * une fois la somme faite.
+ */
 export function apportDe(lecture: ReadingEntry, unite: UniteObjectif): number {
+  if (unite === 'minutes') return motsDe(lecture) / MOTS_PAR_MINUTE;
   if (unite === 'chapters') {
     return Math.max(1, lecture.chapterEnd - lecture.chapterStart + 1);
   }
@@ -129,9 +171,11 @@ export function progressionDe(
   lectures: ReadingEntry[], objectif: Objectif, jour: string,
 ): Progression {
   const depuis = debutDePeriode(jour, objectif.periode);
-  const fait = lectures
+  // L'arrondi vient après la somme, jamais avant : voir `apportDe`. Sur les
+  // chapitres et les versets, déjà entiers, il ne change rien.
+  const fait = Math.round(lectures
     .filter((l) => l.date >= depuis && l.date <= jour)
-    .reduce((n, l) => n + apportDe(l, objectif.unite), 0);
+    .reduce((n, l) => n + apportDe(l, objectif.unite), 0));
   const cible = Math.max(1, objectif.cible);
   return {
     fait,

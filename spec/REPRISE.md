@@ -460,6 +460,10 @@ interrompu avant la fin. Les previews passent par git.
 | Réversion de langue | reproduite en test : un `en` local en attente écrasait un `fr` distant plus récent | 15 août |
 | Séries de l'écran Progression | un second calcul, `calcStreaks`, vivait encore dans la page — **UTC contre dates locales**, et sans la tolérance | 19 août |
 | Ce qui relie une lecture à un plan | **rien** : pas de colonne, et le contexte « Plan de lecture » est commun à tous. Seul `plan_days.readingId`, posé au cochage | 19 août |
+| Poids de la Bible en mots | Louis Segond 1910 : **722 968 mots**, 31 102 versets, 1 189 chapitres — 608 mots par chapitre en moyenne | 19 août |
+| Écart entre livres | un chapitre des Psaumes fait **268** mots, un chapitre des Rois **1 015** — facteur 3,8, d'où une table par livre et non une moyenne | 19 août |
+| `verseEnd` à 200 en base | **valeur de repli** de `PassagePicker` quand le texte n'est pas téléchargé (`FALLBACK_VERSES`) — Psaumes 1:1-200 existe pour de vrai | 19 août |
+| Estimation sur les 166 lectures réelles | 39,6 h au total ; Genèse entière à **231 min**, quand les bibles audio l'annoncent vers 3 h 50 | 19 août |
 | Portée de cet identifiant | c'est l'identifiant **Supabase** — `rowToEntry` reprend `row.id` comme clé locale —, donc stable d'un appareil à l'autre | 19 août |
 | Pastille de palier, contraste | `text-orange-600` sur `bg-orange-50` : **3,35** — porté à `orange-700`, **4,88** | 19 août |
 | Badges débloqués, mode sombre | texte hérité `--text` sur `bg-yellow-50` : **1,06** — calculé sur le CSS produit, **pas vu à l'écran** | 19 août |
@@ -813,6 +817,12 @@ lui-même.
 
 L'abonnement suppose que l'application soit installée sur l'écran d'accueil et
 lancée depuis son icône : iOS ne délivre rien à un onglet Safari.
+
+**L'objectif en minutes n'a pas été vu à l'écran** non plus. Ce qui est vérifié :
+l'estimation a été passée sur les **166 lectures réelles** de la base, et ses
+ordres de grandeur tiennent — Genèse entière à 231 minutes contre les 3 h 50
+qu'annoncent les bibles audio. Ce qui ne l'est pas : la liste déroulante à trois
+unités, et la phrase qui prévient que rien n'est chronométré.
 
 **Les objectifs à portée n'ont pas été vus à l'écran** non plus, et pour la même
 raison : `/settings` comme `/progress` demandent une session. Ce qui est

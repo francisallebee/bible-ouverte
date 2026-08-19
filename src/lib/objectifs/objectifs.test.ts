@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest'
 import {
   normaliserObjectif, OBJECTIF_PAR_DEFAUT, debutDePeriode, apportDe,
   progressionDe, calculerSeries, prochainPalier, paliersAtteints, aujourdhui,
-  filtrerParPortee, PORTEE_PAR_DEFAUT,
+  filtrerParPortee, PORTEE_PAR_DEFAUT, MOTS_PAR_MINUTE,
 } from './objectifs'
+import { MOTS_PAR_LIVRE, MOTS_DEFAUT } from './mots'
 import type { ReadingEntry } from '@/lib/storage/types'
 
 const lecture = (date: string, cs: number, ce = cs, vs = 1, ve = 1): ReadingEntry => ({
@@ -90,6 +91,63 @@ describe('apport d’une lecture', () => {
     // Sans consulter le texte, on ne sait pas combien de versets il porte :
     // on retient au moins un par chapitre plutôt que d'inventer.
     expect(apportDe(lecture('2026-08-19', 1, 4, 1, 2), 'verses')).toBe(4)
+  })
+})
+
+describe('minutes estimées', () => {
+  it('estime d’après le poids du livre, et non d’une moyenne unique', () => {
+    // Genèse et Psaumes ne pèsent pas pareil : c'est toute la raison de la
+    // table par livre. Un chapitre de chacun ne peut pas rendre le même temps.
+    const gen = apportDe({ ...lecture('2026-08-19', 1, 2) }, 'minutes')
+    const psa = apportDe({ ...lecture('2026-08-19', 1, 2), book: 'PSA' }, 'minutes')
+    expect(gen).toBeCloseTo((2 * MOTS_PAR_LIVRE.GEN.chapitre) / MOTS_PAR_MINUTE)
+    expect(psa).toBeCloseTo((2 * MOTS_PAR_LIVRE.PSA.chapitre) / MOTS_PAR_MINUTE)
+    expect(gen).toBeGreaterThan(psa)
+  })
+
+  it('compte au verset quand la lecture tient dans un chapitre', () => {
+    const dix = apportDe({ ...lecture('2026-08-19', 1, 1, 1, 10) }, 'minutes')
+    expect(dix).toBeCloseTo((10 * MOTS_PAR_LIVRE.GEN.verset) / MOTS_PAR_MINUTE)
+  })
+
+  it('retombe sur la moyenne générale pour un livre hors table', () => {
+    const inconnu = apportDe({ ...lecture('2026-08-19', 1, 1, 1, 4), book: 'XYZ' }, 'minutes')
+    expect(inconnu).toBeCloseTo((4 * MOTS_DEFAUT.verset) / MOTS_PAR_MINUTE)
+  })
+
+  it('ne fait jamais peser un passage plus qu’un chapitre entier', () => {
+    // `PassagePicker` propose 200 versets quand le texte n'est pas téléchargé,
+    // et la base en porte la trace : Psaumes 1:1-200 existe pour de vrai.
+    const psaume = apportDe(
+      { ...lecture('2026-08-19', 1, 1, 1, 200), book: 'PSA' }, 'minutes',
+    )
+    expect(psaume).toBeCloseTo(MOTS_PAR_LIVRE.PSA.chapitre / MOTS_PAR_MINUTE)
+    expect(psaume).toBeLessThan(3)
+  })
+
+  it('n’arrondit pas chaque lecture, mais la somme', () => {
+    // Trois versets lus séparément pèsent moins d'une minute à eux trois.
+    // Arrondir lecture par lecture en aurait fait trois.
+    const trois = [
+      { ...lecture('2026-08-19', 1, 1, 1, 1) },
+      { ...lecture('2026-08-19', 2, 2, 1, 1) },
+      { ...lecture('2026-08-19', 3, 3, 1, 1) },
+    ]
+    const p = progressionDe(trois, { unite: 'minutes', periode: 'day', cible: 10 }, '2026-08-19')
+    const attendu = Math.round((3 * MOTS_PAR_LIVRE.GEN.verset) / MOTS_PAR_MINUTE)
+    expect(p.fait).toBe(attendu)
+    expect(p.fait).toBeLessThan(3)
+  })
+
+  it('rend toujours un entier, comme pour les autres unités', () => {
+    const p = progressionDe([lecture('2026-08-19', 1, 3)],
+      { unite: 'minutes', periode: 'day', cible: 30 }, '2026-08-19')
+    expect(Number.isInteger(p.fait)).toBe(true)
+  })
+
+  it('laisse les chapitres et les versets intacts malgré l’arrondi', () => {
+    const l = [lecture('2026-08-19', 1, 5)]
+    expect(progressionDe(l, { unite: 'chapters', periode: 'day', cible: 1 }, '2026-08-19').fait).toBe(5)
   })
 })
 

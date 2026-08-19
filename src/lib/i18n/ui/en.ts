@@ -156,6 +156,7 @@ export const en: Dictionary = {
     goalUnitLabels: {
       chapters: 'Chapters',
       verses: 'Verses',
+      minutes: 'Minutes',
     } as Record<string, string>,
     goalUnit: 'Unit',
     goalPeriod: 'Period',
@@ -163,6 +164,7 @@ export const en: Dictionary = {
     goalUnits: {
       chapters: 'chapters',
       verses: 'verses',
+      minutes: 'minutes',
     } as Record<string, string>,
     goalPeriods: {
       day: 'per day',
@@ -172,6 +174,8 @@ export const en: Dictionary = {
     } as Record<string, string>,
     goalSummary2: (n: number, u: string, p: string) => `${n} ${u} ${p}`,
     goalScope: 'What counts',
+    goalMinutesHint: (mots: number) =>
+      `Minutes are estimated from the passage’s word count, at ${mots} words per minute. Nothing is timed.`,
     goalScopes: { toutes: 'All readings', livre: 'One book', plan: 'One reading plan' },
     goalScopeBook: 'Book',
     goalScopePlan: 'Plan',
@@ -416,14 +420,14 @@ export const en: Dictionary = {
     milestoneReached: (n: number) => `${n} days`,
     chaptersRead: 'Chapters read',
     booksStarted: (n: number) => `${n} book${n > 1 ? 's' : ''} started`,
-    dailyGoal: 'Today’s goal',
+    dailyGoal: 'Goal',
     chaptersToday: 'chapters today',
     versesToday: 'verses today',
     noGoal: 'No goal set',
     goalReached: 'Goal reached! 🎉',
     goalAlmost: 'Almost there',
-    goalToday: (current: number, target: number, chapters: boolean) =>
-      `${current} / ${target} ${chapters ? 'chapters' : 'verses'} today`,
+    goalToday: (current: number, target: number, unite: string, periode: string) =>
+      `${current} / ${target} ${unite === 'chapters' ? 'chapters' : unite === 'verses' ? 'verses' : 'minutes'} ${periode}`,
     oldTestament: 'Old Testament',
     newTestament: 'New Testament',
     chaptersOfTotal: (read: number, total: number) => `${read} / ${total} chapters`,

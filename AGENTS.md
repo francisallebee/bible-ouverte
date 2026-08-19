@@ -133,7 +133,7 @@ coûterait une passe complète sur les 19 écrans.
 | `src/components/BookPicker.tsx`, `PassagePicker.tsx` | Le choix d'un livre, d'un chapitre et d'un verset — mêmes fenêtres partout |
 | `public/bibles/` | 12 versions libres de droits : 8 fr, 1 en, 1 it, 1 ar, 1 es (82 Mo) |
 | `supabase/migrations/` | Schéma et RLS, appliqués dans l'ordre des noms |
-| `scripts/` | Téléchargement et conversion des textes bibliques |
+| `scripts/` | Téléchargement et conversion des textes bibliques, mesure du poids en mots |
 
 ## Règles
 

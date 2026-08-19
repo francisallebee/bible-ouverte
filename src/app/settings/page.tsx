@@ -18,7 +18,10 @@ import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion, ReadingPlan } from "@/lib/storage";
 import { COLOR_THEMES, applyColorTheme, applyTheme, CUSTOM_THEME_ID, DEFAULT_CUSTOM } from "@/lib/themes";
 import { NAV_LINKS } from "@/components/Sidebar";
-import { normaliserObjectif, PORTEE_PAR_DEFAUT, type Objectif, type Portee } from "@/lib/objectifs/objectifs";
+import {
+  normaliserObjectif, PORTEE_PAR_DEFAUT, MOTS_PAR_MINUTE,
+  type Objectif, type Portee,
+} from "@/lib/objectifs/objectifs";
 import {
   FONTS, DEFAULT_FONT_ID, applyFonts,
   UI_SCALES, DEFAULT_UI_SCALE, READING_SIZES, DEFAULT_READING_SIZE,
@@ -585,6 +588,8 @@ export default function SettingsPage() {
                     contredirait. */}
                 <option value="chapters">{t.settings.goalUnitLabels.chapters}</option>
                 <option value="verses">{t.settings.goalUnitLabels.verses}</option>
+                {/* Estimé, jamais chronométré : voir `objectifs/mots.ts`. */}
+                <option value="minutes">{t.settings.goalUnitLabels.minutes}</option>
               </select>
             </div>
             <div>
@@ -658,6 +663,11 @@ export default function SettingsPage() {
               </div>
             )}
           </div>
+          {objectif.unite === "minutes" && (
+            <p className="text-xs text-[--text-secondary] mt-2">
+              {t.settings.goalMinutesHint(MOTS_PAR_MINUTE)}
+            </p>
+          )}
           <p className="text-xs text-[--text-secondary] mt-2">
             {t.settings.goalSummary2(objectif.cible, t.settings.goalUnits[objectif.unite], t.settings.goalPeriods[objectif.periode])}
             {objectif.portee && objectif.portee.type !== "toutes"

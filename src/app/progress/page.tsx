@@ -384,7 +384,7 @@ export default function ProgressPage() {
                 {goalProgress.fait >= goalProgress.cible ? t.progress.goalReached : t.progress.goalAlmost}
               </p>
               <p className="text-sm text-gray-500">
-                {t.progress.goalToday(goalProgress.fait, goalProgress.cible, objectif.unite === "chapters")}
+                {t.progress.goalToday(goalProgress.fait, goalProgress.cible, objectif.unite, t.settings.goalPeriods[objectif.periode])}
               </p>
               {/* Sans cette mention, un objectif restreint à un livre affiche
                   un compte plus bas que l'écran voisin, et rien ne le dit. */}

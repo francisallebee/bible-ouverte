@@ -171,6 +171,7 @@ export const fr = {
     goalUnitLabels: {
       chapters: 'Chapitres',
       verses: 'Versets',
+      minutes: 'Minutes',
     } as Record<string, string>,
     goalUnit: 'Unité',
     goalPeriod: 'Période',
@@ -178,6 +179,7 @@ export const fr = {
     goalUnits: {
       chapters: 'chapitres',
       verses: 'versets',
+      minutes: 'minutes',
     } as Record<string, string>,
     goalPeriods: {
       day: 'par jour',
@@ -187,6 +189,8 @@ export const fr = {
     } as Record<string, string>,
     goalSummary2: (n: number, u: string, p: string) => `${n} ${u} ${p}`,
     goalScope: 'Ce qui est compté',
+    goalMinutesHint: (mots: number) =>
+      `Les minutes sont estimées d’après le nombre de mots du passage, à ${mots} mots par minute. Rien n’est chronométré.`,
     goalScopes: { toutes: 'Toutes les lectures', livre: 'Un livre', plan: 'Un plan de lecture' },
     goalScopeBook: 'Livre',
     goalScopePlan: 'Plan',
@@ -440,14 +444,14 @@ export const fr = {
     milestoneReached: (n: number) => `${n} jours`,
     chaptersRead: 'Chapitres lus',
     booksStarted: (n: number) => `${n} livre${n > 1 ? 's' : ''} entamé${n > 1 ? 's' : ''}`,
-    dailyGoal: 'Objectif du jour',
+    dailyGoal: 'Objectif',
     chaptersToday: "chapitres aujourd'hui",
     versesToday: "versets aujourd'hui",
     noGoal: 'Aucun objectif défini',
     goalReached: 'Objectif atteint ! 🎉',
     goalAlmost: "Encore un peu d'effort",
-    goalToday: (current: number, target: number, chapters: boolean) =>
-      `${current} / ${target} ${chapters ? 'chapitres' : 'versets'} aujourd'hui`,
+    goalToday: (current: number, target: number, unite: string, periode: string) =>
+      `${current} / ${target} ${unite === 'chapters' ? 'chapitres' : unite === 'verses' ? 'versets' : 'minutes'} ${periode}`,
     oldTestament: 'Ancien Testament',
     newTestament: 'Nouveau Testament',
     chaptersOfTotal: (read: number, total: number) => `${read} / ${total} chapitres`,
