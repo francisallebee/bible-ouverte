@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookPlus, Link as LinkIcon, ImageIcon, Camera, Upload,
-  X, ExternalLink, Plus, Music, Trash2, Layers, SlidersHorizontal, BookOpenText,
+  X, ExternalLink, Plus, Music, Trash2, Layers, SlidersHorizontal, BookOpenText, Search,
 } from "lucide-react";
 import {
   seedIfNeeded, getEnabledVersions, getPassagesForRange, addReading, getSettings,
@@ -20,6 +20,7 @@ import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange } from "@/components/PassagePicker";
 import BookPicker from "@/components/BookPicker";
 import PassagePreview from "@/components/PassagePreview";
+import PassageSearch from "@/components/PassageSearch";
 import { resizeImage } from "@/lib/image-utils";
 
 /** Un passage mis de côté, en attente de l'enregistrement global. */
@@ -75,6 +76,7 @@ export default function NewReadingPage() {
   const [loadingPassage, setLoadingPassage] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const [linkUrl, setLinkUrl] = useState("");
   const [linkTitle, setLinkTitle] = useState("");
@@ -195,6 +197,62 @@ export default function NewReadingPage() {
   // « Ajouter ce passage » avant d'enregistrer une lecture unique.
   const toSave = [...pending, ...(currentPassage() ? [currentPassage()!] : [])];
 
+  /**
+   * Ce qui serait perdu en quittant la page.
+   *
+   * La date et la version ne comptent pas : elles ont une valeur par défaut et
+   * n'ont donc rien d'un travail en cours.
+   */
+  const enCours =
+    Boolean(book) || notes.trim().length > 0 || links.length > 0
+    || photos.length > 0 || Boolean(audio) || pending.length > 0;
+
+  // Une fois la lecture enregistrée, la navigation qui suit n'a plus rien à
+  // faire confirmer — c'est nous qui la déclenchons.
+  const enregistre = useRef(false);
+
+  useEffect(() => {
+    if (!enCours) return;
+    const avantFermeture = (e: BeforeUnloadEvent) => {
+      if (enregistre.current) return;
+      // Les navigateurs imposent leur propre message depuis longtemps ; seul le
+      // fait d'annuler l'événement compte.
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", avantFermeture);
+    return () => window.removeEventListener("beforeunload", avantFermeture);
+  }, [enCours]);
+
+  /**
+   * La même garde pour la navigation interne.
+   *
+   * L'App Router n'expose aucun événement de navigation annulable — il n'a pas
+   * d'équivalent au `routeChangeStart` du Pages Router, et `useBlocker` de
+   * React Router n'existe pas ici. Le seul point d'accroche est donc le clic
+   * sur le lien, intercepté en phase de capture avant que `next/link` ne le
+   * traite. Un changement d'onglet du navigateur ou un bouton « précédent »
+   * passent au travers : le premier est couvert par `beforeunload`, le second
+   * ne l'est pas, et c'est une limite assumée.
+   */
+  useEffect(() => {
+    if (!enCours) return;
+    const auClic = (e: MouseEvent) => {
+      if (enregistre.current || e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const lien = (e.target as HTMLElement | null)?.closest?.("a");
+      if (!lien) return;
+      const href = lien.getAttribute("href");
+      if (!href || !href.startsWith("/") || href === "/new-reading") return;
+      if (lien.getAttribute("target") === "_blank") return;
+      if (confirm(t.newReading.leaveWarning)) return;
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    document.addEventListener("click", auClic, true);
+    return () => document.removeEventListener("click", auClic, true);
+  }, [enCours, t]);
+
   async function handleSave() {
     if (toSave.length === 0 || !versionId) return;
     setSaving(true);
@@ -221,6 +279,7 @@ export default function NewReadingPage() {
       });
     }
 
+    enregistre.current = true;
     setSaving(false);
     router.push("/");
   }
@@ -282,6 +341,12 @@ export default function NewReadingPage() {
                 <SlidersHorizontal className="w-4 h-4 text-[--text-secondary] shrink-0" />
               </button>
             </div>
+
+            <button type="button" onClick={() => setSearchOpen(true)}
+              className="w-full flex items-center justify-center gap-2 border border-[--border] rounded-lg px-3 py-2.5 text-sm text-[--primary] hover:border-[--primary] transition-colors">
+              <Search className="w-4 h-4" />
+              {t.passageSearch.open}
+            </button>
 
             <button type="button" onClick={() => setPreviewOpen(true)} disabled={!book}
               className="w-full flex items-center justify-center gap-2 border border-[--border] rounded-lg px-3 py-2.5 text-sm text-[--primary] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
@@ -488,6 +553,21 @@ export default function NewReadingPage() {
         onEdit={() => { setPreviewOpen(false); setPickerOpen(true); }}
         onValidate={() => setPreviewOpen(false)}
         onClose={() => setPreviewOpen(false)}
+      />
+
+      <PassageSearch
+        open={searchOpen}
+        versionId={versionId}
+        versionLanguage={versions.find((v) => v.id === versionId)?.language ?? "fr"}
+        onClose={() => setSearchOpen(false)}
+        onPick={(p) => {
+          setBook(p.book);
+          setChapterStart(p.chapterStart);
+          setChapterEnd(p.chapterEnd);
+          setVerseStart(p.verseStart);
+          setVerseEnd(p.verseEnd);
+          setSearchOpen(false);
+        }}
       />
     </div>
   );

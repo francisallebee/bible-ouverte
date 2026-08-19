@@ -179,6 +179,7 @@ export const ar: Dictionary = {
     saveMany: (n: number) => `حفظ ${n} ${lectures(n)}`,
     preview: 'معاينة النص',
     previewOpen: 'عرض النص',
+    leaveWarning: 'قراءتك غير محفوظة. مغادرة هذه الصفحة ستفقدها. متابعة؟',
     previewEmpty: 'اختر سفرًا لعرض المعاينة.',
     previewUnavailable: 'النص غير متاح لهذا المرجع.',
     summary: 'ملخص ما أدخلته',
@@ -697,6 +698,12 @@ export const ar: Dictionary = {
     oldTestament: 'العهد القديم',
     newTestament: 'العهد الجديد',
     noMatch: 'لا يوجد سفر مطابق',
+  },
+
+  passageSearch: {
+    title: 'البحث عن مقطع',
+    open: 'البحث عن مقطع',
+    use: 'استخدام هذا المقطع',
   },
 
   passagePicker: {

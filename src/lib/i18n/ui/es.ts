@@ -105,6 +105,8 @@ export const es: Dictionary = {
     saveMany: (n: number) => `Guardar las ${n} lecturas`,
     preview: 'Vista previa del texto',
     previewOpen: 'Ver el texto',
+    leaveWarning:
+      'Tu lectura no está guardada. Salir de esta página la perderá. ¿Continuar?',
     previewEmpty: 'Selecciona un libro para ver la vista previa.',
     previewUnavailable: 'Texto no disponible para esta referencia.',
     summary: 'Resumen de lo introducido',
@@ -644,6 +646,12 @@ export const es: Dictionary = {
     oldTestament: 'Antiguo Testamento',
     newTestament: 'Nuevo Testamento',
     noMatch: 'Ningún libro coincide',
+  },
+
+  passageSearch: {
+    title: 'Buscar un pasaje',
+    open: 'Buscar un pasaje',
+    use: 'Usar este pasaje',
   },
 
   passagePicker: {

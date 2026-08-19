@@ -111,6 +111,8 @@ export const fr = {
     saveMany: (n: number) => `Enregistrer les ${n} lectures`,
     preview: 'Aperçu du texte',
     previewOpen: 'Voir le texte',
+    leaveWarning:
+      'Ta lecture n’est pas enregistrée. Quitter cette page la perdra. Continuer ?',
     previewEmpty: "Sélectionne un livre pour voir l'aperçu.",
     previewUnavailable: 'Texte non disponible pour cette référence.',
     summary: 'Résumé de la saisie',
@@ -655,6 +657,12 @@ export const fr = {
     oldTestament: 'Ancien Testament',
     newTestament: 'Nouveau Testament',
     noMatch: 'Aucun livre ne correspond',
+  },
+
+  passageSearch: {
+    title: 'Rechercher un passage',
+    open: 'Rechercher un passage',
+    use: 'Utiliser ce passage',
   },
 
   passagePicker: {

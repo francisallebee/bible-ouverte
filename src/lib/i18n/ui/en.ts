@@ -96,6 +96,8 @@ export const en: Dictionary = {
     saveMany: (n: number) => `Save all ${n} readings`,
     preview: 'Text preview',
     previewOpen: 'View the text',
+    leaveWarning:
+      'Your reading is not saved. Leaving this page will discard it. Continue?',
     previewEmpty: 'Select a book to see the preview.',
     previewUnavailable: 'No text available for this reference.',
     summary: 'Entry summary',
@@ -619,6 +621,12 @@ export const en: Dictionary = {
     oldTestament: 'Old Testament',
     newTestament: 'New Testament',
     noMatch: 'No matching book',
+  },
+
+  passageSearch: {
+    title: 'Search for a passage',
+    open: 'Search for a passage',
+    use: 'Use this passage',
   },
 
   passagePicker: {
