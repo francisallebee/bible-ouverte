@@ -110,6 +110,7 @@ export const fr = {
     saveOne: 'Enregistrer la lecture',
     saveMany: (n: number) => `Enregistrer les ${n} lectures`,
     preview: 'Aperçu du texte',
+    previewOpen: 'Voir le texte',
     previewEmpty: "Sélectionne un livre pour voir l'aperçu.",
     previewUnavailable: 'Texte non disponible pour cette référence.',
     summary: 'Résumé de la saisie',
@@ -422,6 +423,7 @@ export const fr = {
     },
   },
   search: {
+    context: 'Contexte (optionnel)',
     title: 'Recherche biblique',
     modeReference: 'Référence',
     modeKeyword: 'Libre',

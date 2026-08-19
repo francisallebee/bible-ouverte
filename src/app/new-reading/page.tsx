@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookPlus, Link as LinkIcon, ImageIcon, Camera, Upload,
-  X, ExternalLink, Plus, Music, Trash2, Layers, SlidersHorizontal,
+  X, ExternalLink, Plus, Music, Trash2, Layers, SlidersHorizontal, BookOpenText,
 } from "lucide-react";
 import {
   seedIfNeeded, getEnabledVersions, getPassagesForRange, addReading, getSettings,
@@ -19,6 +19,7 @@ import AudioRecorder from "@/components/AudioRecorder";
 import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange } from "@/components/PassagePicker";
 import BookPicker from "@/components/BookPicker";
+import PassagePreview from "@/components/PassagePreview";
 import { resizeImage } from "@/lib/image-utils";
 
 /** Un passage mis de côté, en attente de l'enregistrement global. */
@@ -73,6 +74,7 @@ export default function NewReadingPage() {
   const [passages, setPassages] = useState<BiblePassage[]>([]);
   const [loadingPassage, setLoadingPassage] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const [linkUrl, setLinkUrl] = useState("");
   const [linkTitle, setLinkTitle] = useState("");
@@ -281,6 +283,12 @@ export default function NewReadingPage() {
               </button>
             </div>
 
+            <button type="button" onClick={() => setPreviewOpen(true)} disabled={!book}
+              className="w-full flex items-center justify-center gap-2 border border-[--border] rounded-lg px-3 py-2.5 text-sm text-[--primary] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
+              <BookOpenText className="w-4 h-4" />
+              {t.newReading.previewOpen}
+            </button>
+
             <div>
               <label className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.version}</label>
               <select value={versionId} onChange={(e) => setVersionId(e.target.value)}
@@ -426,51 +434,23 @@ export default function NewReadingPage() {
         </div>
 
         <div className="lg:sticky lg:top-10 lg:self-start">
-          <h2 className="font-semibold text-sm text-[--text-secondary] mb-3 uppercase tracking-wider">{t.newReading.preview}</h2>
           {!book ? (
             <div className="bg-[--surface] rounded-xl border border-[--border] p-8 text-center">
               <BookPlus className="w-10 h-10 text-gray-300 mx-auto mb-3" />
               <p className="text-[--text-secondary] text-sm">{t.newReading.previewEmpty}</p>
             </div>
-          ) : loadingPassage ? (
-            <div className="bg-[--surface] rounded-xl border border-[--border] p-8 flex items-center justify-center">
-              <div className="animate-spin w-5 h-5 border-2 border-[--primary] border-t-transparent rounded-full" />
-            </div>
-          ) : passages.length === 0 ? (
-            <div className="bg-[--surface] rounded-xl border border-[--border] p-8 text-center">
-              <p className="text-[--text-secondary] text-sm">{t.newReading.previewUnavailable}</p>
-            </div>
           ) : (
-            <>
-              <div className="bg-[--surface] rounded-xl border border-[--border] p-5 text-sm leading-relaxed shadow-[--shadow]">
-                <p className="font-semibold mb-3 text-[--primary] border-b border-[--border] pb-2">
-                  {/* Les deux-points manquaient entre le chapitre et le verset,
-                      et l'aperçu de Jean 3:16-18 s'annonçait « Jean 316:18 ». */}
-                  {describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
-                  <span className="text-[--text-secondary] font-normal ms-2">— {versions.find(v => v.id === versionId)?.name || versionId}</span>
-                </p>
-                {/* Le sens d'écriture suit la version choisie, pas l'interface. */}
-                <div
-                  className="space-y-1"
-                  dir={textDirection(versions.find((v) => v.id === versionId)?.language ?? "fr")}
-                >
-                  {passages.map((p) => (
-                    <p key={`${p.chapter}-${p.verse}`} className="leading-relaxed">
-                      <sup className="text-xs text-[--text-secondary] me-0.5">{p.verse}</sup>
-                      {p.text}
-                    </p>
-                  ))}
-                </div>
-              </div>
-              <div className="bg-[--primary-light] rounded-xl border border-[--primary]/10 p-4 text-sm text-[--text] mt-4 space-y-1">
-                <p className="font-medium text-[--primary]">{t.newReading.summary}</p>
-                <p className="text-[--text-secondary]">{getBookName(book) || "?"} {chapterStart}{cEnd !== chapterStart ? `-${cEnd}` : ""}:{verseStart}{vEnd !== verseStart ? `-${vEnd}` : ""}</p>
-                {notes && <p className="flex items-center gap-1.5"><span className="text-base">📝</span> {notes}</p>}
-                {links.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">🔗</span> {t.newReading.linkCount(links.length)}</p>}
-                {photos.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">📷</span> {t.newReading.photoCount(photos.length)}</p>}
-                {audio && <p className="flex items-center gap-1.5"><span className="text-base">🎵</span> {t.newReading.audioAttached}</p>}
-              </div>
-            </>
+            <div className="bg-[--primary-light] rounded-xl border border-[--primary]/10 p-4 text-sm text-[--text] space-y-1">
+              <p className="font-medium text-[--primary]">{t.newReading.summary}</p>
+              <p className="text-[--text-secondary]">
+                {describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
+                <span className="ms-2">— {versions.find((v) => v.id === versionId)?.name || versionId}</span>
+              </p>
+              {notes && <p className="flex items-center gap-1.5"><span className="text-base">📝</span> {notes}</p>}
+              {links.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">🔗</span> {t.newReading.linkCount(links.length)}</p>}
+              {photos.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">📷</span> {t.newReading.photoCount(photos.length)}</p>}
+              {audio && <p className="flex items-center gap-1.5"><span className="text-base">🎵</span> {t.newReading.audioAttached}</p>}
+            </div>
           )}
         </div>
       </div>
@@ -492,7 +472,22 @@ export default function NewReadingPage() {
           setVerseStart(r.verseStart);
           setVerseEnd(r.verseEnd);
           setPickerOpen(false);
+          // On enchaîne sur le texte : c'est pour le lire qu'on vient de le
+          // désigner, et la fenêtre porte le bouton qui le valide.
+          setPreviewOpen(true);
         }}
+      />
+
+      <PassagePreview
+        open={previewOpen && !!book}
+        title={describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
+        versionName={versions.find((v) => v.id === versionId)?.name || versionId}
+        dir={textDirection(versions.find((v) => v.id === versionId)?.language ?? "fr")}
+        passages={passages}
+        loading={loadingPassage}
+        onEdit={() => { setPreviewOpen(false); setPickerOpen(true); }}
+        onValidate={() => setPreviewOpen(false)}
+        onClose={() => setPreviewOpen(false)}
       />
     </div>
   );

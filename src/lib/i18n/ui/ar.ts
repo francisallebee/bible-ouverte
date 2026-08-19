@@ -178,6 +178,7 @@ export const ar: Dictionary = {
     saveOne: 'حفظ القراءة',
     saveMany: (n: number) => `حفظ ${n} ${lectures(n)}`,
     preview: 'معاينة النص',
+    previewOpen: 'عرض النص',
     previewEmpty: 'اختر سفرًا لعرض المعاينة.',
     previewUnavailable: 'النص غير متاح لهذا المرجع.',
     summary: 'ملخص ما أدخلته',
@@ -480,6 +481,7 @@ export const ar: Dictionary = {
     },
   },
   search: {
+    context: 'السياق (اختياري)',
     title: 'البحث في الكتاب المقدس',
     modeReference: 'مرجع',
     modeKeyword: 'حر',

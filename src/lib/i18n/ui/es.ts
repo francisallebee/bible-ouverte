@@ -104,6 +104,7 @@ export const es: Dictionary = {
     saveOne: 'Guardar la lectura',
     saveMany: (n: number) => `Guardar las ${n} lecturas`,
     preview: 'Vista previa del texto',
+    previewOpen: 'Ver el texto',
     previewEmpty: 'Selecciona un libro para ver la vista previa.',
     previewUnavailable: 'Texto no disponible para esta referencia.',
     summary: 'Resumen de lo introducido',
@@ -417,6 +418,7 @@ export const es: Dictionary = {
     },
   },
   search: {
+    context: 'Contexto (opcional)',
     title: 'Búsqueda bíblica',
     modeReference: 'Referencia',
     modeKeyword: 'Libre',

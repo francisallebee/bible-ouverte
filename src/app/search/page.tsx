@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Search, BookOpen, BookPlus, BookText, FileText } from "lucide-react";
-import { seedIfNeeded, getEnabledVersions, addReading, getPassagesForRange, searchPassages, getSettings } from "@/lib/storage";
-import type { BibleVersion, BiblePassage } from "@/lib/storage";
+import { seedIfNeeded, getEnabledVersions, addReading, getPassagesForRange, searchPassages, getSettings, getAllContexts } from "@/lib/storage";
+import type { BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
 
 import { getBook } from "@/features/bible";
 import BookPicker from "@/components/BookPicker";
+import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange, type PassageRange } from "@/components/PassagePicker";
 import { useI18n, useBookName } from "@/contexts/I18nContext";
 import { textDirection } from "@/lib/i18n/locales";
@@ -75,7 +76,9 @@ export default function SearchPage() {
   const [kwCount, setKwCount] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
+  const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [addTarget, setAddTarget] = useState<AddTarget | null>(null);
+  const [addContextId, setAddContextId] = useState("");
   const [addDate, setAddDate] = useState("");
   const [addNotes, setAddNotes] = useState("");
   const [addSaving, setAddSaving] = useState(false);
@@ -84,8 +87,9 @@ export default function SearchPage() {
   useEffect(() => {
     (async () => {
       await seedIfNeeded();
-      const vers = await getEnabledVersions();
+      const [vers, ctxs] = await Promise.all([getEnabledVersions(), getAllContexts()]);
       setVersions(vers);
+      setContexts(ctxs);
       if (vers.length > 0) {
         const s = await getSettings();
         const defId = s?.defaultVersionId || vers[0].id;
@@ -126,6 +130,7 @@ export default function SearchPage() {
   function openAddForm(target: AddTarget) {
     setAddTarget(target);
     setAddDate(new Date().toISOString().slice(0, 10));
+    setAddContextId("");
     setAddNotes("");
     setAddDone("");
   }
@@ -148,7 +153,7 @@ export default function SearchPage() {
       passageText,
       translationId: addTarget.versionId,
       tags: [],
-      contextId: "",
+      contextId: addContextId,
       notes: addNotes,
     });
     setAddSaving(false);
@@ -332,6 +337,16 @@ export default function SearchPage() {
                     <input type="date" value={addDate}
                       onChange={(e) => setAddDate(e.target.value)}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                  </div>
+                  <div>
+                    <label htmlFor="search-add-context" className="block text-xs font-medium text-gray-500 mb-1">{t.search.context}</label>
+                    <ContextPicker
+                      id="search-add-context"
+                      contexts={contexts}
+                      value={addContextId}
+                      onChange={setAddContextId}
+                      onContextAdded={(created) => setContexts((prev) => [...prev, created])}
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.notes}</label>

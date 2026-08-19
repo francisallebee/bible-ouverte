@@ -95,6 +95,7 @@ export const en: Dictionary = {
     saveOne: 'Save reading',
     saveMany: (n: number) => `Save all ${n} readings`,
     preview: 'Text preview',
+    previewOpen: 'View the text',
     previewEmpty: 'Select a book to see the preview.',
     previewUnavailable: 'No text available for this reference.',
     summary: 'Entry summary',
@@ -397,6 +398,7 @@ export const en: Dictionary = {
     },
   },
   search: {
+    context: 'Context (optional)',
     title: 'Bible search',
     modeReference: 'Reference',
     modeKeyword: 'Free text',
