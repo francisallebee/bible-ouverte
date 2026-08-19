@@ -210,6 +210,15 @@ export interface AppSettings {
    */
   setupCompletedAt?: string;
   /**
+   * Les deux couleurs de la charte personnalisée. Les trois autres nuances
+   * s'en déduisent — voir `derivedColors` dans `lib/themes.ts`.
+   */
+  customColors?: { primary: string; accent: string };
+  /** Police de l'interface, par identifiant — voir `lib/fonts.ts`. */
+  uiFont?: string;
+  /** Police du texte biblique, réglée séparément de celle de l'interface. */
+  readingFont?: string;
+  /**
    * Langue de l'interface, en code court : `fr`, `en`, `es`, `it`, `ar`.
    *
    * Absente : la langue du navigateur décide, et le français en dernier

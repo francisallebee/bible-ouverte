@@ -411,7 +411,7 @@ export default function ReadingDetailPage() {
             ) : (
               // Le sens d'écriture suit la version lue, pas l'interface.
               <div
-                className="text-sm leading-relaxed"
+                className="texte-biblique text-sm leading-relaxed"
                 dir={textDirection(version?.language ?? "fr")}
               >
                 {passages.map((p) => (

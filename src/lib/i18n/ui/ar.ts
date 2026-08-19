@@ -235,6 +235,15 @@ export const ar: Dictionary = {
   },
 
   settings: {
+    fontsTitle: 'الخطوط',
+    fontsHint:
+      'إعدادان: واحد للقوائم وآخر للنص الكتابي. تحتفظ العربية بخط جهازك، فلا يغطيها أيّ من هذه الخطوط.',
+    fontUi: 'الواجهة',
+    fontReading: 'النص الكتابي',
+    customTheme: 'ÙÙØ­Ø© ÙØ®ØµÙØµØ©',
+    customThemeHint: 'Ø§Ø®ØªØ± ÙÙÙÙÙØ ØªÙØ´ØªÙÙ Ø§ÙØ¯Ø±Ø¬Ø§Øª ÙÙÙÙØ§.',
+    customPrimary: 'Ø§ÙÙÙÙ Ø§ÙØ£Ø³Ø§Ø³Ù',
+    customAccent: 'ÙÙÙ Ø§ÙØªÙÙÙØ²',
     pages: 'الصفحات الظاهرة',
     pagesHint: 'اختر الصفحات التي تبقى في القائمة. الإعدادات والقراءة الجديدة متاحتان دائمًا.',
     setupTitle: 'خصّص تطبيقك',
@@ -1008,7 +1017,21 @@ export const ar: Dictionary = {
     next: 'التالي',
     finish: 'إنهاء',
   },
+  fonts: {
+    systeme: 'النظام',
+    inter: 'Inter',
+    lora: 'Lora',
+    garamond: 'Garamond',
+    hyperlegible: 'عالية الوضوح',
+  } as Record<string, string>,
+
   colorThemes: {
+    rubis: 'ياقوتي',
+    turquoise: 'فيروزي',
+    indigo: 'نيلي',
+    rose: 'وردي',
+    cafe: 'بنّي',
+    perso: 'مخصّصة',
     marine: 'أزرق بحري',
     foret: 'غابة',
     pourpre: 'أرجواني',

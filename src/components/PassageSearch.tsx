@@ -135,7 +135,7 @@ export default function PassageSearch({ open, versionId, versionLanguage, onPick
               </button>
 
               {apercu.length > 0 && (
-                <div className="border border-[--border] rounded-lg p-3 text-sm space-y-1 max-h-52 overflow-y-auto" dir={dir}>
+                <div className="texte-biblique border border-[--border] rounded-lg p-3 text-sm space-y-1 max-h-52 overflow-y-auto" dir={dir}>
                   {apercu.map((p) => (
                     <p key={`${p.chapter}-${p.verse}`} className="leading-relaxed text-[--text]">
                       <sup className="text-xs text-[--text-secondary] me-0.5">{p.verse}</sup>
@@ -177,7 +177,7 @@ export default function PassageSearch({ open, versionId, versionLanguage, onPick
                         <span className="block text-xs font-medium text-[--primary]">
                           {getBookName(p.book)} {p.chapter}:{p.verse}
                         </span>
-                        <span className="block text-sm text-[--text] line-clamp-2" dir={dir}>{p.text}</span>
+                        <span className="texte-biblique block text-sm text-[--text] line-clamp-2" dir={dir}>{p.text}</span>
                       </button>
                     ))}
                   </div>

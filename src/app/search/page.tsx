@@ -226,7 +226,7 @@ export default function SearchPage() {
               <p className="font-medium mb-3">
                 {describeRange(getBookName(refBook), refRange)} — {t.search.verseCount(refResults.length)}
               </p>
-              <div className="text-sm leading-relaxed mb-4" dir={sensDuTexte(refVersion)}>
+              <div className="texte-biblique text-sm leading-relaxed mb-4" dir={sensDuTexte(refVersion)}>
                 {refResults.map((p) => (
                   <span key={`${p.chapter}-${p.verse}`}>
                     <sup className="text-xs text-gray-400 me-0.5">{p.verse}</sup>
@@ -287,7 +287,7 @@ export default function SearchPage() {
                       <span className="font-medium text-[--primary]">
                         {getBookName(p.book)} {p.chapter}:{p.verse}
                       </span>{" "}
-                      <span className="text-gray-700" dir={sensDuTexte(p.versionId)}>
+                      <span className="texte-biblique text-gray-700" dir={sensDuTexte(p.versionId)}>
                         {highlightText(p.text, kwQuery)}
                       </span>
                     </div>

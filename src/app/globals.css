@@ -118,6 +118,31 @@ input[type="date"]::-webkit-datetime-edit {
   }
 }
 
+/* ---------------------------------------------------------------------------
+ * Les deux polices réglables
+ *
+ * `--font-ui` et `--font-reading` sont posées sur `<html>` par `applyFonts`, à
+ * partir des réglages. Les valeurs de repli ci-dessous servent avant que les
+ * réglages soient lus — sans elles, le premier rendu se ferait dans la police
+ * par défaut du navigateur, puis sauterait.
+ *
+ * `.texte-biblique` est le seul endroit à connaître : tout bloc de versets la
+ * porte, et changer de police ne demande donc pas de savoir quels écrans en
+ * affichent.
+ */
+:root {
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-reading: var(--font-ui);
+}
+
+body {
+  font-family: var(--font-ui);
+}
+
+.texte-biblique {
+  font-family: var(--font-reading);
+}
+
 html.dark {
   --primary-light: #1a2840;
   --accent-light: #1e1a3a;

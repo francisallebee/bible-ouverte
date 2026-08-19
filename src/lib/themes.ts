@@ -67,13 +67,121 @@ export const COLOR_THEMES: ColorTheme[] = [
       'accent-light': '#ebf4ff',
     },
   },
+  {
+    id: 'rubis',
+    emoji: '🍷',
+    colors: {
+      primary: '#8c1c2f',
+      'primary-hover': '#a52a41',
+      'primary-light': '#fbeaed',
+      accent: '#c2410c',
+      'accent-light': '#fdeee6',
+    },
+  },
+  {
+    id: 'turquoise',
+    emoji: '🐚',
+    colors: {
+      primary: '#0f6f77',
+      'primary-hover': '#158892',
+      'primary-light': '#e6f4f5',
+      accent: '#0891b2',
+      'accent-light': '#e5f6fb',
+    },
+  },
+  {
+    id: 'indigo',
+    emoji: '🌌',
+    colors: {
+      primary: '#3730a3',
+      'primary-hover': '#4c46bd',
+      'primary-light': '#eeedfa',
+      accent: '#7c3aed',
+      'accent-light': '#f2ecfe',
+    },
+  },
+  {
+    id: 'rose',
+    emoji: '🌸',
+    colors: {
+      primary: '#9d2263',
+      'primary-hover': '#b82c76',
+      'primary-light': '#fceaf2',
+      accent: '#db2777',
+      'accent-light': '#fdebf3',
+    },
+  },
+  {
+    id: 'cafe',
+    emoji: '☕',
+    colors: {
+      primary: '#5a3a26',
+      'primary-hover': '#734b31',
+      'primary-light': '#f4eee9',
+      accent: '#a16207',
+      'accent-light': '#fbf3e3',
+    },
+  },
 ]
 
-export function applyColorTheme(themeId: string) {
-  const theme = COLOR_THEMES.find(t => t.id === themeId)
-  if (!theme) return
+/** L'identifiant de la charte définie par l'utilisateur lui-même. */
+export const CUSTOM_THEME_ID = 'perso'
+
+/** Les deux couleurs qu'il choisit ; le reste s'en déduit. */
+export interface CustomColors {
+  primary: string
+  accent: string
+}
+
+export const DEFAULT_CUSTOM: CustomColors = { primary: '#1e3a5f', accent: '#7b68ee' }
+
+function versCanaux(hex: string): [number, number, number] | null {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return null
+  const n = parseInt(m[1], 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
+function versHex([r, g, b]: [number, number, number]): string {
+  const c = (v: number) => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, '0')
+  return `#${c(r)}${c(g)}${c(b)}`
+}
+
+/** Mélange vers le blanc : `part` à 0 rend la couleur, à 1 rend du blanc. */
+function versLeBlanc(canaux: [number, number, number], part: number): [number, number, number] {
+  return canaux.map((v) => v + (255 - v) * part) as [number, number, number]
+}
+
+/**
+ * Complète deux couleurs en une charte entière.
+ *
+ * L'utilisateur n'en choisit que deux : demander cinq nuances cohérentes à
+ * quelqu'un qui veut juste « du vert » serait lui confier un travail de
+ * coloriste. Le survol s'éclaircit légèrement, les fonds beaucoup — ce sont les
+ * mêmes rapports que dans les dix chartes livrées, relevés sur elles.
+ *
+ * Une valeur illisible retombe sur la charte par défaut plutôt que de poser des
+ * variables vides, qui laisseraient l'application sans couleur du tout.
+ */
+export function derivedColors(custom: CustomColors): ColorTheme['colors'] {
+  const p = versCanaux(custom.primary) ?? versCanaux(DEFAULT_CUSTOM.primary)!
+  const a = versCanaux(custom.accent) ?? versCanaux(DEFAULT_CUSTOM.accent)!
+  return {
+    primary: versHex(p),
+    'primary-hover': versHex(versLeBlanc(p, 0.18)),
+    'primary-light': versHex(versLeBlanc(p, 0.92)),
+    accent: versHex(a),
+    'accent-light': versHex(versLeBlanc(a, 0.93)),
+  }
+}
+
+export function applyColorTheme(themeId: string, custom?: CustomColors) {
+  const colors = themeId === CUSTOM_THEME_ID
+    ? derivedColors(custom ?? DEFAULT_CUSTOM)
+    : COLOR_THEMES.find(t => t.id === themeId)?.colors
+  if (!colors) return
   const root = document.documentElement
-  Object.entries(theme.colors).forEach(([key, val]) => {
+  Object.entries(colors).forEach(([key, val]) => {
     root.style.setProperty(`--${key}`, val)
   })
 }

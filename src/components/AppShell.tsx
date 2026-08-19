@@ -9,6 +9,7 @@ import SetupGate from '@/components/SetupGate'
 import LayoutClient from '@/lib/pwa/layout-client'
 import { getSettings, SETTINGS_CHANGED } from '@/lib/storage'
 import { applyColorTheme, applyTheme, watchSystemTheme } from '@/lib/themes'
+import { applyFonts } from '@/lib/fonts'
 import { syncDeviceSubscription } from '@/lib/notifications'
 import { APP_VERSION } from '@/lib/version'
 
@@ -39,7 +40,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     const load = async () => {
       const s = await getSettings()
       if (cancelled) return
-      if (s?.colorTheme) applyColorTheme(s.colorTheme)
+      if (s?.colorTheme) applyColorTheme(s.colorTheme, s.customColors)
+      applyFonts(s?.uiFont, s?.readingFont)
       applyTheme(s?.theme)
       setAutoLogoutMinutes(s?.autoLogoutMinutes ?? 0)
       setHiddenPages(s?.hiddenPages)

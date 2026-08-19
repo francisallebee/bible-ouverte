@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass, Languages, LayoutList, Check } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass, Languages, LayoutList, Check, Type } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion } from "@/lib/storage";
 import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,8 +16,9 @@ import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion } from "@/lib/storage";
-import { COLOR_THEMES, applyColorTheme, applyTheme } from "@/lib/themes";
+import { COLOR_THEMES, applyColorTheme, applyTheme, CUSTOM_THEME_ID, DEFAULT_CUSTOM } from "@/lib/themes";
 import { NAV_LINKS } from "@/components/Sidebar";
+import { FONTS, DEFAULT_FONT_ID, applyFonts } from "@/lib/fonts";
 import { HIDEABLE_PAGES, isPageVisible, shouldForceSetup } from "@/lib/setup";
 import { AUTO_LOGOUT_CHOICES } from "@/lib/auto-logout";
 import {
@@ -113,6 +114,31 @@ export default function SettingsPage() {
     setSettings((prev) => (prev ? { ...prev, hiddenPages } : prev));
   }
 
+  const couleursPerso = settings?.customColors ?? DEFAULT_CUSTOM;
+
+  /**
+   * Applique tout de suite, enregistre ensuite.
+   *
+   * Choisir une couleur sans la voir n'aurait aucun sens : l'aperçu, c'est
+   * l'application elle-même. `applyColorTheme` ne touche que des variables
+   * CSS, donc le rendu suit le curseur sans attendre l'écriture.
+   */
+  async function changerCouleurPerso(champ: "primary" | "accent", valeur: string) {
+    const customColors = { ...couleursPerso, [champ]: valeur };
+    applyColorTheme(CUSTOM_THEME_ID, customColors);
+    setSettings((prev) => (prev ? { ...prev, customColors, colorTheme: CUSTOM_THEME_ID } : prev));
+    await updateSettings({ customColors, colorTheme: CUSTOM_THEME_ID });
+  }
+
+  async function changerPolice(champ: "uiFont" | "readingFont", id: string) {
+    applyFonts(
+      champ === "uiFont" ? id : settings?.uiFont,
+      champ === "readingFont" ? id : settings?.readingFont,
+    );
+    setSettings((prev) => (prev ? { ...prev, [champ]: id } : prev));
+    await updateSettings({ [champ]: id });
+  }
+
   async function terminerPersonnalisation() {
     const setupCompletedAt = new Date().toISOString();
     await updateSettings({ setupCompletedAt });
@@ -129,7 +155,7 @@ export default function SettingsPage() {
       setSettings(s ?? null);
       setVerseCount(vc);
       applyTheme(s?.theme);
-      if (s?.colorTheme) applyColorTheme(s.colorTheme);
+      if (s?.colorTheme) applyColorTheme(s.colorTheme, s?.customColors);
       setDeviceNotif(readDeviceState());
       setLoaded(true);
       await loadVersions();
@@ -271,7 +297,7 @@ export default function SettingsPage() {
     await updateSettings({ colorTheme: themeId });
     const s = await getSettings();
     setSettings(s ?? null);
-    applyColorTheme(themeId);
+    applyColorTheme(themeId, s?.customColors);
   }
 
   function SectionCard({ icon: Icon, title, children, className = "" }: { icon: React.ComponentType<{ className?: string }>, title: string, children: React.ReactNode, className?: string }) {
@@ -355,7 +381,11 @@ export default function SettingsPage() {
           <div className="flex flex-wrap gap-3">
             {/* `charte` et non `t` : `t` est désormais le dictionnaire, et la
                 variable de boucle le masquait dans tout ce bloc. */}
-            {COLOR_THEMES.map(charte => {
+            {[...COLOR_THEMES, {
+              id: CUSTOM_THEME_ID,
+              emoji: '🎨',
+              colors: { ...DEFAULT_CUSTOM, ...couleursPerso },
+            }].map(charte => {
               const active = (settings?.colorTheme || 'marine') === charte.id;
               return (
                 <button key={charte.id} onClick={() => handleColorThemeChange(charte.id)}
@@ -379,6 +409,58 @@ export default function SettingsPage() {
                 </button>
               );
             })}
+          </div>
+        </SectionCard>
+
+        <SectionCard icon={Palette} title={t.settings.customTheme}>
+          <p className="text-sm text-[--text-secondary] mb-3">
+            {t.settings.customThemeHint}
+          </p>
+          <div className="flex flex-wrap gap-4">
+            {([
+              ["primary", t.settings.customPrimary],
+              ["accent", t.settings.customAccent],
+            ] as const).map(([champ, libelle]) => (
+              <label key={champ} className="flex items-center gap-2.5 text-sm text-[--text]">
+                <input
+                  type="color"
+                  value={couleursPerso[champ]}
+                  onChange={(e) => changerCouleurPerso(champ, e.target.value)}
+                  className="w-10 h-10 rounded-lg border border-[--border] bg-[--surface] cursor-pointer p-1"
+                />
+                {libelle}
+              </label>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard icon={Type} title={t.settings.fontsTitle}>
+          <p className="text-sm text-[--text-secondary] mb-3">
+            {t.settings.fontsHint}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {([
+              ["uiFont", t.settings.fontUi],
+              ["readingFont", t.settings.fontReading],
+            ] as const).map(([champ, libelle]) => (
+              <div key={champ}>
+                <label htmlFor={`police-${champ}`} className="block text-xs font-medium text-[--text-secondary] mb-1">
+                  {libelle}
+                </label>
+                <select
+                  id={`police-${champ}`}
+                  value={settings?.[champ] ?? DEFAULT_FONT_ID}
+                  onChange={(e) => changerPolice(champ, e.target.value)}
+                  className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
+                >
+                  {FONTS.map((police) => (
+                    <option key={police.id} value={police.id}>
+                      {t.fonts[police.id] ?? police.id}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
           </div>
         </SectionCard>
 

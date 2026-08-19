@@ -158,6 +158,15 @@ export const it: Dictionary = {
   },
 
   settings: {
+    fontsTitle: 'Caratteri',
+    fontsHint:
+      'Due impostazioni: una per i menu, l’altra per il testo biblico. L’arabo mantiene il carattere del tuo dispositivo, che nessuno di questi copre.',
+    fontUi: 'Interfaccia',
+    fontReading: 'Testo biblico',
+    customTheme: 'Tavolozza personalizzata',
+    customThemeHint: 'Scegli due colori; le sfumature ne derivano.',
+    customPrimary: 'Colore principale',
+    customAccent: 'Colore d’accento',
     pages: 'Pagine visibili',
     pagesHint:
       'Scegli quali pagine restano nel menu. Impostazioni e Nuova lettura '
@@ -976,7 +985,21 @@ export const it: Dictionary = {
     next: 'Successivo',
     finish: 'Termina',
   },
+  fonts: {
+    systeme: 'Sistema',
+    inter: 'Inter',
+    lora: 'Lora',
+    garamond: 'Garamond',
+    hyperlegible: 'Iperleggibile',
+  } as Record<string, string>,
+
   colorThemes: {
+    rubis: 'Rubino',
+    turquoise: 'Turchese',
+    indigo: 'Indaco',
+    rose: 'Rosa',
+    cafe: 'Caffè',
+    perso: 'Personalizzata',
     marine: 'Blu marino',
     foret: 'Foresta',
     pourpre: 'Porpora',

@@ -75,7 +75,7 @@ export default function PassagePreview({
               {t.newReading.previewUnavailable}
             </p>
           ) : (
-            <div className="space-y-1 text-sm leading-relaxed text-[--text]" dir={dir}>
+            <div className="texte-biblique space-y-1 text-sm leading-relaxed text-[--text]" dir={dir}>
               {passages.map((p) => (
                 <p key={`${p.chapter}-${p.verse}`} className="leading-relaxed">
                   <sup className="text-xs text-[--text-secondary] me-0.5">{p.verse}</sup>

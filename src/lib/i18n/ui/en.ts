@@ -150,6 +150,15 @@ export const en: Dictionary = {
   },
 
   settings: {
+    fontsTitle: 'Fonts',
+    fontsHint:
+      'Two settings: one for the menus, one for the biblical text. Arabic keeps your device’s font, which none of these cover.',
+    fontUi: 'Interface',
+    fontReading: 'Biblical text',
+    customTheme: 'Custom palette',
+    customThemeHint: 'Pick two colours; the shades follow.',
+    customPrimary: 'Main colour',
+    customAccent: 'Accent colour',
     pages: 'Visible pages',
     pagesHint:
       'Choose which pages stay in the menu. Settings and New reading are '
@@ -949,7 +958,21 @@ export const en: Dictionary = {
     next: 'Next',
     finish: 'Finish',
   },
+  fonts: {
+    systeme: 'System',
+    inter: 'Inter',
+    lora: 'Lora',
+    garamond: 'Garamond',
+    hyperlegible: 'Hyperlegible',
+  } as Record<string, string>,
+
   colorThemes: {
+    rubis: 'Ruby',
+    turquoise: 'Turquoise',
+    indigo: 'Indigo',
+    rose: 'Rose',
+    cafe: 'Coffee',
+    perso: 'Custom',
     marine: 'Navy',
     foret: 'Forest',
     pourpre: 'Purple',

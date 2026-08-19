@@ -165,6 +165,15 @@ export const fr = {
   },
 
   settings: {
+    fontsTitle: 'Polices',
+    fontsHint:
+      'Deux réglages : l’un pour les menus, l’autre pour le texte biblique. L’arabe garde la police de ton appareil, qu’aucune de celles-ci ne couvre.',
+    fontUi: 'Interface',
+    fontReading: 'Texte biblique',
+    customTheme: 'Charte personnalisÃ©e',
+    customThemeHint: 'Choisis deux couleurs ; les nuances s’en dÃ©duisent.',
+    customPrimary: 'Couleur principale',
+    customAccent: 'Couleur d’accent',
     pages: 'Pages visibles',
     pagesHint:
       'Choisis les pages à garder dans le menu. Réglages et Nouvelle lecture '
@@ -987,7 +996,21 @@ export const fr = {
     next: 'Suivant',
     finish: 'Terminer',
   },
+  fonts: {
+    systeme: 'Système',
+    inter: 'Inter',
+    lora: 'Lora',
+    garamond: 'Garamond',
+    hyperlegible: 'Hyperlisible',
+  } as Record<string, string>,
+
   colorThemes: {
+    rubis: 'Rubis',
+    turquoise: 'Turquoise',
+    indigo: 'Indigo',
+    rose: 'Rose',
+    cafe: 'Café',
+    perso: 'Personnalisée',
     marine: 'Marine',
     foret: 'Forêt',
     pourpre: 'Pourpre',
