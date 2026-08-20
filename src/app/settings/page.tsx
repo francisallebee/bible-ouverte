@@ -20,6 +20,7 @@ import { COLOR_THEMES, applyColorTheme, applyTheme, CUSTOM_THEME_ID, DEFAULT_CUS
 import { NAV_LINKS } from "@/components/Sidebar";
 import {
   normaliserObjectif, PORTEE_PAR_DEFAUT, MOTS_PAR_MINUTE,
+  normaliserCible, CIBLE_MIN, CIBLE_MAX,
   type Objectif, type Portee,
 } from "@/lib/objectifs/objectifs";
 import {
@@ -161,6 +162,27 @@ export default function SettingsPage() {
   }
 
   const objectif = normaliserObjectif(settings?.readingGoal);
+
+  /**
+   * Le brouillon du champ « cible ».
+   *
+   * **Il a le droit d'être vide.** L'écran calculait auparavant
+   * `Math.max(1, Number(valeur))` à chaque frappe : vider le champ le
+   * remplissait aussitôt d'un `1`, et l'on ne pouvait plus qu'ajouter un
+   * chiffre derrière — d'où l'impossibilité de dépasser dix-neuf, signalée le
+   * 20 août 2026.
+   *
+   * `null` veut dire « rien en cours de saisie » : le champ affiche alors la
+   * valeur enregistrée. La normalisation n'a lieu qu'à la sortie du champ.
+   */
+  const [cibleBrouillon, setCibleBrouillon] = useState<string | null>(null);
+
+  function terminerLaSaisieDeCible() {
+    if (cibleBrouillon === null) return;
+    const cible = normaliserCible(cibleBrouillon, objectif.cible);
+    setCibleBrouillon(null);
+    if (cible !== objectif.cible) void changerObjectif({ cible });
+  }
 
   async function changerObjectif(part: Partial<Objectif>) {
     const readingGoal: Objectif = { ...objectif, ...part };
@@ -608,8 +630,18 @@ export default function SettingsPage() {
               <label htmlFor="objectif-cible" className="block text-xs font-medium text-[--text-secondary] mb-1">
                 {t.settings.goalTarget}
               </label>
-              <input id="objectif-cible" type="number" min={1} value={objectif.cible}
-                onChange={(e) => changerObjectif({ cible: Math.max(1, Number(e.target.value)) })}
+              <input
+                id="objectif-cible"
+                type="number"
+                inputMode="numeric"
+                min={CIBLE_MIN}
+                max={CIBLE_MAX}
+                value={cibleBrouillon ?? objectif.cible}
+                onChange={(e) => setCibleBrouillon(e.target.value)}
+                onBlur={terminerLaSaisieDeCible}
+                // Entrée valide sans quitter le champ : sur un téléphone, la
+                // sortie de champ n'est pas un geste évident.
+                onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
                 className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]" />
             </div>
           </div>

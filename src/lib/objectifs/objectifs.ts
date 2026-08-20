@@ -251,3 +251,42 @@ export function prochainPalier(serie: number): number | null {
 export function paliersAtteints(serie: number): number[] {
   return PALIERS.filter((p) => p <= serie);
 }
+
+/**
+ * Les bornes d'une cible.
+ *
+ * Le minimum vaut un : un objectif de zéro n'est pas un objectif. Le maximum
+ * est un garde-fou contre l'absurde, pas une opinion sur ce qu'on peut lire —
+ * la Bible entière fait 1 189 chapitres, et une cible annuelle en minutes se
+ * compte en dizaines de milliers.
+ */
+export const CIBLE_MIN = 1
+export const CIBLE_MAX = 100_000
+
+/**
+ * Ce que vaut un champ de saisie une fois quitté.
+ *
+ * **Le défaut qu'elle corrige, signalé le 20 août 2026.** L'écran calculait
+ * `Math.max(1, Number(e.target.value))` à chaque frappe. Vider le champ rend la
+ * chaîne vide, que `Number` transforme en `0`, que `Math.max` ramène à `1` :
+ * le champ se remplissait tout seul avant qu'on ait pu taper autre chose. On ne
+ * pouvait donc qu'**ajouter un chiffre derrière le 1**, d'où l'impossibilité
+ * d'aller au-delà de dix-neuf.
+ *
+ * La règle est ici pour deux raisons : elle se teste, et elle ne s'applique
+ * qu'**à la sortie du champ**. Pendant la frappe, le brouillon a le droit
+ * d'être vide ou incomplet — c'est précisément ce qui manquait.
+ *
+ * Un champ laissé vide rend la valeur précédente plutôt qu'un défaut : effacer
+ * n'est pas demander un objectif d'un chapitre.
+ */
+export function normaliserCible(texte: string, precedent: number): number {
+  const brut = texte.trim()
+  if (!brut) return precedent
+  const valeur = Number(brut)
+  if (!Number.isFinite(valeur)) return precedent
+  const entier = Math.round(valeur)
+  if (entier < CIBLE_MIN) return CIBLE_MIN
+  if (entier > CIBLE_MAX) return CIBLE_MAX
+  return entier
+}

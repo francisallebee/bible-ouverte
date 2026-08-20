@@ -3,6 +3,7 @@ import {
   normaliserObjectif, OBJECTIF_PAR_DEFAUT, debutDePeriode, apportDe,
   progressionDe, calculerSeries, prochainPalier, paliersAtteints, aujourdhui,
   filtrerParPortee, PORTEE_PAR_DEFAUT, MOTS_PAR_MINUTE,
+  normaliserCible, CIBLE_MIN, CIBLE_MAX,
 } from './objectifs'
 import { MOTS_PAR_LIVRE, MOTS_DEFAUT } from './mots'
 import type { ReadingEntry } from '@/lib/storage/types'
@@ -299,5 +300,40 @@ describe('jour courant', () => {
     // C'est le défaut que portait l'ancien calcul des séries : une lecture
     // enregistrée à 23 h dans un fuseau en avance cassait la série.
     expect(aujourdhui(new Date(2026, 7, 19, 23, 30))).toBe('2026-08-19')
+  })
+})
+
+describe('saisie d’une cible', () => {
+  it('accepte un nombre au-delà de dix-neuf', () => {
+    // C'est le défaut signalé : on ne pouvait qu'ajouter un chiffre derrière
+    // le 1, faute de pouvoir vider le champ.
+    expect(normaliserCible('20', 1)).toBe(20)
+    expect(normaliserCible('365', 1)).toBe(365)
+  })
+
+  it('rend la valeur précédente sur un champ vidé', () => {
+    // Effacer n'est pas demander un objectif d'un chapitre.
+    expect(normaliserCible('', 30)).toBe(30)
+    expect(normaliserCible('   ', 30)).toBe(30)
+  })
+
+  it('rend la valeur précédente sur une saisie illisible', () => {
+    expect(normaliserCible('abc', 12)).toBe(12)
+    expect(normaliserCible('-', 12)).toBe(12)
+  })
+
+  it('ramène au minimum plutôt que d’accepter zéro ou négatif', () => {
+    expect(normaliserCible('0', 5)).toBe(CIBLE_MIN)
+    expect(normaliserCible('-4', 5)).toBe(CIBLE_MIN)
+  })
+
+  it('borne l’absurde sans le refuser', () => {
+    expect(normaliserCible('99999999', 5)).toBe(CIBLE_MAX)
+  })
+
+  it('arrondit une décimale plutôt que de la garder', () => {
+    // Un objectif de 2,7 chapitres ne veut rien dire, et `progressionDe`
+    // compterait des entiers en face.
+    expect(normaliserCible('2.7', 1)).toBe(3)
   })
 })
