@@ -819,6 +819,7 @@ export const it: Dictionary = {
     next: 'Successivo',
     segments: {
       tous: 'Tutti',
+      enligne: 'Online',
       actifs: 'Attivi (7 g)',
       inactifs: 'Inattivi (30 g)',
       jamais: 'Mai connessi',
@@ -829,6 +830,7 @@ export const it: Dictionary = {
     sortLabel: 'Ordina per',
     sorts: {
       nom: 'Nome',
+      statut: 'Stato',
       inscription: 'Iscrizione',
       connexion: 'Ultimo accesso',
       lectures: 'Letture',

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   filtrerParSegment, chercher, trier, paginer, versCSV, COLONNES_CSV,
-  JOURS_ACTIF, JOURS_INACTIF, statutDe, banActif,
+  JOURS_ACTIF, JOURS_INACTIF, statutDe, banActif, vuLe, SEGMENTS, TRIS,
 } from './utilisateurs'
 import { FENETRE_PRESENCE_MS } from '@/lib/presence'
 import type { LigneUtilisateur } from './utilisateurs'
@@ -222,5 +222,59 @@ describe('bannissement', () => {
 
   it('ne prend pas une date illisible pour un bannissement', () => {
     expect(banActif('jamais', MAINTENANT)).toBe(false)
+  })
+})
+
+describe('segment « en ligne » et tri par statut', () => {
+  const ilYAMinutes = (m: number) => new Date(MAINTENANT.getTime() - m * 60000).toISOString()
+
+  it('propose le segment et le tri, dans un ordre stable', () => {
+    expect(SEGMENTS).toContain('enligne')
+    expect(TRIS).toContain('statut')
+    expect(SEGMENTS[1]).toBe('enligne')
+  })
+
+  it('ne retient que les présents', () => {
+    const l = [
+      ligne({ id: 'present', lastSeen: ilYAMinutes(1) }),
+      ligne({ id: 'parti', lastSeen: ilYAMinutes(30) }),
+      ligne({ id: 'suspendu', lastSeen: ilYAMinutes(1), suspended: true }),
+    ]
+    expect(filtrerParSegment(l, 'enligne', MAINTENANT).map((x) => x.id)).toEqual(['present'])
+  })
+
+  it('remonte les présents en tête par défaut, les suspendus à l’envers', () => {
+    const l = [
+      ligne({ id: 'suspendu', suspended: true }),
+      ligne({ id: 'parti', lastSeen: ilYAMinutes(30) }),
+      ligne({ id: 'present', lastSeen: ilYAMinutes(1) }),
+    ]
+    expect(trier(l, 'statut', 'desc', MAINTENANT).map((x) => x.id)).toEqual(['present', 'parti', 'suspendu'])
+    expect(trier(l, 'statut', 'asc', MAINTENANT).map((x) => x.id)).toEqual(['suspendu', 'parti', 'present'])
+  })
+})
+
+describe('quand quelqu’un a été vu', () => {
+  const ilYAMinutes = (m: number) => new Date(MAINTENANT.getTime() - m * 60000).toISOString()
+
+  it('préfère le signe de vie à la connexion', () => {
+    expect(vuLe({ lastSeen: '2026-08-20T12:00:00.000Z', lastSignIn: '2026-08-20T09:00:00.000Z' }))
+      .toBe('2026-08-20T12:00:00.000Z')
+  })
+
+  it('retombe sur la connexion tant que la présence manque', () => {
+    // Les 113 comptes d'avant le 20 août 2026 n'ont pas encore donné signe de
+    // vie : sans ce repli, ils basculeraient tous dans « jamais ».
+    expect(vuLe({ lastSeen: null, lastSignIn: '2026-08-19T09:00:00.000Z' }))
+      .toBe('2026-08-19T09:00:00.000Z')
+    expect(vuLe({ lastSeen: undefined, lastSignIn: null })).toBeNull()
+  })
+
+  it('sert aux segments d’activité, mais pas à « jamais connecté »', () => {
+    // « Jamais » veut dire que le compte n'a jamais servi, pas qu'il n'a pas
+    // encore donné signe de vie depuis l'arrivée de la colonne.
+    const jamaisVuMaisConnecte = [ligne({ lastSeen: null, lastSignIn: ilYAMinutes(60) })]
+    expect(filtrerParSegment(jamaisVuMaisConnecte, 'jamais', MAINTENANT)).toEqual([])
+    expect(filtrerParSegment(jamaisVuMaisConnecte, 'actifs', MAINTENANT)).toHaveLength(1)
   })
 })

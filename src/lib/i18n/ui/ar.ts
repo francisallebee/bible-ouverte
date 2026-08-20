@@ -889,6 +889,7 @@ export const ar: Dictionary = {
     next: 'التالي',
     segments: {
       tous: 'الكل',
+      enligne: 'متصل الآن',
       actifs: 'نشطون (7 أيام)',
       inactifs: 'غير نشطين (30 يومًا)',
       jamais: 'لم يسجّلوا الدخول قط',
@@ -899,6 +900,7 @@ export const ar: Dictionary = {
     sortLabel: 'الترتيب حسب',
     sorts: {
       nom: 'الاسم',
+      statut: 'الحالة',
       inscription: 'التسجيل',
       connexion: 'آخر دخول',
       lectures: 'القراءات',

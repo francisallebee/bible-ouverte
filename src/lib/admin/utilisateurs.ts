@@ -38,7 +38,7 @@ export interface LigneUtilisateur {
  * pas encore été rattrapés par la complétion de profil.
  */
 export const SEGMENTS = [
-  'tous', 'actifs', 'inactifs', 'jamais', 'suspendus', 'admins', 'incomplets',
+  'tous', 'enligne', 'actifs', 'inactifs', 'jamais', 'suspendus', 'admins', 'incomplets',
 ] as const
 
 export type Segment = (typeof SEGMENTS)[number]
@@ -57,18 +57,40 @@ const JOUR = 86400000
 export const JOURS_ACTIF = 7
 export const JOURS_INACTIF = 30
 
+/**
+ * Quand cette personne a-t-elle donné signe de vie ?
+ *
+ * `lastSeen` d'abord — c'est le seul vrai signal d'usage —, puis `lastSignIn`
+ * en repli. **Le repli n'est pas une paresse** : la colonne de présence n'existe
+ * que depuis le 20 août 2026, et sans lui les 113 comptes antérieurs
+ * basculeraient tous dans « jamais » du jour au lendemain. Il s'effacera de
+ * lui-même à mesure que les gens reviennent.
+ */
+export function vuLe(ligne: Pick<LigneUtilisateur, 'lastSeen' | 'lastSignIn'>): string | null {
+  return ligne.lastSeen ?? ligne.lastSignIn ?? null
+}
+
 export function filtrerParSegment(
   lignes: LigneUtilisateur[], segment: Segment, maintenant: Date = new Date(),
 ): LigneUtilisateur[] {
   const t = maintenant.getTime()
+  const vu = (l: LigneUtilisateur) => {
+    const quand = vuLe(l)
+    return quand ? Date.parse(quand) : null
+  }
   switch (segment) {
     case 'tous':
       return lignes
+    case 'enligne':
+      return lignes.filter((l) => statutDe(l, maintenant) === 'en-ligne')
     case 'actifs':
-      return lignes.filter((l) => l.lastSignIn && Date.parse(l.lastSignIn) > t - JOURS_ACTIF * JOUR)
+      return lignes.filter((l) => { const d = vu(l); return d !== null && d > t - JOURS_ACTIF * JOUR })
     case 'inactifs':
-      return lignes.filter((l) => l.lastSignIn && Date.parse(l.lastSignIn) < t - JOURS_INACTIF * JOUR)
+      return lignes.filter((l) => { const d = vu(l); return d !== null && d < t - JOURS_INACTIF * JOUR })
     case 'jamais':
+      // Volontairement sur `lastSignIn` seul : « jamais connecté » veut dire
+      // que le compte n'a jamais servi, pas qu'il n'a pas encore donné signe de
+      // vie depuis l'arrivée de la colonne.
       return lignes.filter((l) => !l.lastSignIn)
     case 'suspendus':
       return lignes.filter((l) => l.suspended)
@@ -105,7 +127,7 @@ export function chercher(lignes: LigneUtilisateur[], requete: string): LigneUtil
   })
 }
 
-export const TRIS = ['nom', 'inscription', 'connexion', 'lectures'] as const
+export const TRIS = ['nom', 'statut', 'inscription', 'connexion', 'lectures'] as const
 export type Tri = (typeof TRIS)[number]
 export type Ordre = 'asc' | 'desc'
 
@@ -120,11 +142,23 @@ export type Ordre = 'asc' | 'desc'
  */
 export function trier(
   lignes: LigneUtilisateur[], tri: Tri, ordre: Ordre = 'desc',
+  // Injectable pour la même raison que dans `filtrerParSegment` : le tri par
+  // statut dépend de l'heure, et un test qui dépend de l'heure réelle ne prouve
+  // rien. Le premier jet de ce tri passait `statutDe` sans horloge, et deux
+  // comptes de statuts différents s'y retrouvaient à égalité.
+  maintenant: Date = new Date(),
 ): LigneUtilisateur[] {
   const sens = ordre === 'asc' ? 1 : -1
   const copie = [...lignes]
   copie.sort((a, b) => {
     if (tri === 'nom') return sens * a.name.localeCompare(b.name, 'fr')
+    // Le rang est choisi pour que l'ordre **par défaut** — décroissant, comme
+    // pour les autres colonnes — remonte les personnes présentes en tête :
+    // c'est ce qu'on vient chercher en triant par statut. L'ordre inverse
+    // remonte les comptes suspendus, l'autre chose qu'on vient y chercher.
+    if (tri === 'statut') {
+      return sens * (RANG_STATUT[statutDe(a, maintenant)] - RANG_STATUT[statutDe(b, maintenant)])
+    }
     if (tri === 'lectures') return sens * (a.readings - b.readings)
     if (tri === 'inscription') return sens * a.created_at.localeCompare(b.created_at)
     // connexion
@@ -213,6 +247,13 @@ export function versCSV(lignes: LigneUtilisateur[]): string {
  * pour être testée, plutôt qu'écrite en ternaire au milieu d'un tableau.
  */
 export type Statut = 'suspendu' | 'en-ligne' | 'hors-ligne'
+
+/** Voir `trier` : le plus grand rang remonte en tête de l'ordre décroissant. */
+export const RANG_STATUT: Record<Statut, number> = {
+  'en-ligne': 2,
+  'hors-ligne': 1,
+  suspendu: 0,
+}
 
 /**
  * **Ce n'est pas `lastSignIn` qui dit la présence, et c'est mesuré.**

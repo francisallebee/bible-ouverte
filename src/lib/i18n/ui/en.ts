@@ -795,6 +795,7 @@ export const en: Dictionary = {
     next: 'Next',
     segments: {
       tous: 'All',
+      enligne: 'Online',
       actifs: 'Active (7 d)',
       inactifs: 'Inactive (30 d)',
       jamais: 'Never signed in',
@@ -805,6 +806,7 @@ export const en: Dictionary = {
     sortLabel: 'Sort by',
     sorts: {
       nom: 'Name',
+      statut: 'Status',
       inscription: 'Sign-up',
       connexion: 'Last sign-in',
       lectures: 'Readings',

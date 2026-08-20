@@ -820,6 +820,7 @@ export const es: Dictionary = {
     next: 'Siguiente',
     segments: {
       tous: 'Todos',
+      enligne: 'En línea',
       actifs: 'Activos (7 d)',
       inactifs: 'Inactivos (30 d)',
       jamais: 'Nunca conectados',
@@ -830,6 +831,7 @@ export const es: Dictionary = {
     sortLabel: 'Ordenar por',
     sorts: {
       nom: 'Nombre',
+      statut: 'Estado',
       inscription: 'Registro',
       connexion: 'Última conexión',
       lectures: 'Lecturas',

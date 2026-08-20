@@ -70,8 +70,12 @@ export default function AdminUtilisateursPage() {
    * comptes se compteront en milliers, pas avant.
    */
   const filtrees = useMemo(() => {
-    const parSegment = filtrerParSegment(lignes, segment)
-    return trier(chercher(parSegment, recherche), tri, ordre)
+    // Une seule horloge pour le filtrage et le tri : deux `new Date()` à
+    // quelques millisecondes d'écart pourraient classer différemment quelqu'un
+    // qui se trouve pile à la limite de la fenêtre de présence.
+    const maintenant = new Date()
+    const parSegment = filtrerParSegment(lignes, segment, maintenant)
+    return trier(chercher(parSegment, recherche), tri, ordre, maintenant)
   }, [lignes, segment, recherche, tri, ordre])
 
   const pagination = useMemo(

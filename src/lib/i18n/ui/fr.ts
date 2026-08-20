@@ -831,6 +831,7 @@ export const fr = {
     next: 'Suivant',
     segments: {
       tous: 'Tous',
+      enligne: 'En ligne',
       actifs: 'Actifs (7 j)',
       inactifs: 'Inactifs (30 j)',
       jamais: 'Jamais connectés',
@@ -841,6 +842,7 @@ export const fr = {
     sortLabel: 'Trier par',
     sorts: {
       nom: 'Nom',
+      statut: 'Statut',
       inscription: 'Inscription',
       connexion: 'Dernière connexion',
       lectures: 'Lectures',
