@@ -579,6 +579,64 @@ attend depuis des séances :
    rétrograder, suspendre, réactiver ;
 4. et sa suppression exerce la dernière d'entre elles.
 
+## La messagerie et son doublon par courriel
+
+Depuis le 20 août 2026. Un fil par utilisateur dans `public.messages`, entre lui
+et l'administration : `user_id` désigne le **propriétaire du fil**, jamais
+l'auteur, et `from_admin` dit qui a écrit. C'est ce choix qui permet à la
+policy de lecture de tenir en une ligne.
+
+La policy d'insertion exige `from_admin = false` d'un compte `authenticated`,
+administrateur compris. Un message d'apparence officielle ne doit pas pouvoir
+naître d'un navigateur : les envois de l'administration passent par
+`/api/admin/messages` et la clé service_role. La mise à jour est bornée à
+`read_at` par un GRANT colonne, comme sur `profiles`. Aucune suppression n'est
+possible depuis le navigateur.
+
+`send-messages` envoie le doublon par courriel, par le **même SMTP o2switch**
+que l'alerte d'inscription et avec les mêmes secrets — aucun secret neuf. Elle
+est distincte de `notify-new-user` plutôt qu'ajoutée dedans : celle-ci annonce
+les inscriptions et souhaite la bienvenue, celle-là écrit à qui
+l'administration a écrit. Les mêler aurait donné une fonction dont le nom ment.
+
+`[functions.send-messages] verify_jwt = false` dans `config.toml`, pour la
+raison habituelle : `pg_cron` n'envoie pas d'en-tête `Authorization`.
+
+### Le planificateur, posé sans jamais toucher au secret
+
+Le troisième travail `pg_cron` a été créé le 20 août 2026 en **recopiant la
+commande du deuxième à l'intérieur de la base**, sans que `NOTIFY_CRON_SECRET`
+n'en sorte :
+
+```sql
+select cron.schedule(
+  'courriels-messages',
+  '*/15 * * * *',
+  replace(
+    (select command from cron.job where jobname = 'alerte-nouvel-utilisateur'),
+    'notify-new-user', 'send-messages'
+  )
+);
+```
+
+C'est la manière de planifier une fonction quand on n'a pas le droit de lire le
+secret — et un agent ne l'a pas. Le contrôle se fait par des prédicats plutôt
+que par la lecture : `command like '%send-messages%'`, `command like
+'%x-cron-secret%'`, et une longueur inférieure de deux caractères à celle
+qu'elle recopie, ce qui est exactement l'écart entre les deux noms de fonction.
+
+### `increment_message_attempt` vit dans `public`, et c'est forcé
+
+À contre-courant de `20260801120003_private_helpers.sql`, qui sort les
+fonctions internes de la surface d'API. PostgREST n'expose en RPC que le schéma
+`public`, et la fonction Edge l'appelle par là. Le verrou est donc reporté sur
+les droits : `execute` retiré à `anon` et `authenticated`, accordé à la seule
+clé service_role. Vérifié par `has_function_privilege`.
+
+Elle incrémente **avant** l'envoi, comme le message de bienvenue : une fonction
+Edge peut être coupée en plein vol, et un compteur incrémenté après laisserait
+réessayer sans fin. Trois tentatives, puis on renonce.
+
 ## Ce qui reste hors du dépôt
 
 Les buckets de stockage `photos` et `audio` sont créés depuis le dashboard et ne

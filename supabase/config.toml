@@ -432,6 +432,11 @@ verify_jwt = false
 [functions.notify-new-user]
 verify_jwt = false
 
+# Et pour le doublon par courriel des messages de l'administration, appelée par
+# le même planificateur avec le même secret.
+[functions.send-messages]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
