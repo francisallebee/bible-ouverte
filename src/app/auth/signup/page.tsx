@@ -53,7 +53,7 @@ export default function SignupPage() {
       first_name: texte('first_name'),
       last_name: texte('last_name'),
     }
-    for (const facultatif of ['phone', 'city', 'discovery_source']) {
+    for (const facultatif of ['phone', 'city', 'birth_date', 'discovery_source']) {
       const valeur = texte(facultatif)
       if (valeur) metadonnees[facultatif] = valeur
     }
@@ -196,6 +196,20 @@ export default function SignupPage() {
               className={authInput}
             />
           </div>
+        </div>
+        <div>
+          <label htmlFor="signup-birth-date" className={authLabel}>
+            {t.authScreens.birthDate}<span className="text-slate-400">{t.authScreens.optional}</span>
+          </label>
+          {/* `type="date"` rend AAAA-MM-JJ, le format que la colonne attend et
+              que l'écran Profil employait déjà. */}
+          <input
+            id="signup-birth-date"
+            name="birth_date"
+            type="date"
+            autoComplete="bday"
+            className={authInput}
+          />
         </div>
         <div>
           <label htmlFor="signup-discovery" className={authLabel}>

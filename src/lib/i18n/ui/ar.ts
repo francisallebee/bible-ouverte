@@ -745,6 +745,7 @@ export const ar: Dictionary = {
     lastName: 'اسم العائلة',
     phoneField: 'الهاتف المحمول',
     city: 'المدينة',
+    birthDate: 'تاريخ الميلاد',
     optional: ' (اختياري)',
     discoverySource: 'كيف تعرّفت على Bible Ouverte؟',
     discoveryPlaceholder: 'أفضّل عدم الإفصاح',

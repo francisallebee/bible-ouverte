@@ -680,6 +680,7 @@ export const fr = {
     lastName: 'Nom',
     phoneField: 'Portable',
     city: 'Ville',
+    birthDate: 'Date de naissance',
     optional: ' (facultatif)',
     discoverySource: 'Comment avez-vous connu Bible Ouverte ?',
     discoveryPlaceholder: 'Je préfère ne pas dire',

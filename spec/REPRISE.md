@@ -650,6 +650,20 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   2026, avec les trois tables manquantes. **Chercher les `Partial` et les
   `as Record<string, string>` avant de croire qu'une traduction est complète.**
 
+- **Une colonne `flex` en `fixed top-0 bottom-0` rogne son pied de page en
+  silence.** La barre latérale n'avait aucun `overflow-y-auto` : dès que les
+  entrées dépassaient la hauteur de l'écran, le lien vers le profil, la
+  **déconnexion** et le numéro de version sortaient du cadre, sans défilement
+  pour y revenir. Quatorze entrées réclamaient déjà 820 px ; la quinzième,
+  `/messages`, a porté le besoin à 862 px et rendu le défaut visible. Ni `tsc`,
+  ni `eslint`, ni les tests, ni le build n'en disent rien — c'est le
+  propriétaire du dépôt qui l'a signalé, sur son appareil.
+
+  Le correctif tient en trois classes, et **`min-h-0` en est le cœur** : sans
+  elle, un enfant `flex-1` refuse de se comprimer sous la taille de son
+  contenu, et `overflow-y-auto` n'a rien à faire défiler. Le pied de page prend
+  `shrink-0`. **Toute entrée ajoutée au menu doit rappeler cette mesure.**
+
 - **Dans une seule instruction SQL, une CTE ne voit pas ce qu'une CTE sœur
   vient d'écrire.** Le 20 août 2026, un `with essai as (insert …), efface as
   (delete …) select` a rendu `inseree: 1, effacee: 0, restant: 0` — trois

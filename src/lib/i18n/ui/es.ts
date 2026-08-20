@@ -675,6 +675,7 @@ export const es: Dictionary = {
     lastName: 'Apellido',
     phoneField: 'Móvil',
     city: 'Ciudad',
+    birthDate: 'Fecha de nacimiento',
     optional: ' (opcional)',
     discoverySource: '¿Cómo conociste Bible Ouverte?',
     discoveryPlaceholder: 'Prefiero no decirlo',
