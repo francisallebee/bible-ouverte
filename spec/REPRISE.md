@@ -913,8 +913,28 @@ ordres de grandeur tiennent — Genèse entière à 231 minutes contre les 3 h 5
 qu'annoncent les bibles audio. Ce qui ne l'est pas : la liste déroulante à trois
 unités, et la phrase qui prévient que rien n'est chronométré.
 
-**Le premier courriel est parti, et la chaîne est prouvée de bout en bout** —
-20 août 2026. Deux fois plutôt qu'une :
+**La chaîne complète est prouvée, et par un humain** — 20 août 2026, sur le
+compte de test *Alain Fictif* créé par le propriétaire du dépôt à 10:14:23 UTC.
+
+C'est la preuve qui manquait à toutes les autres : il a **reçu** le courriel
+d'anniversaire, et **vu le message dans l'application**. Les compteurs disaient
+l'acceptation SMTP ; lui dit la remise.
+
+| Maillon | Preuve |
+|---|---|
+| Les sept champs du formulaire | `first_name` Alain, `last_name` Fictif, `city` Perpignan, `phone`, `birth_date`, `discovery_source` = `connaissance` |
+| Le `name` composé par le trigger | **« Alain Fictif »**, de prénom + nom |
+| Courriel de bienvenue | `welcomed_at` 10:15:04, `welcome_attempts` 1 |
+| Vœu d'anniversaire créé | passage de 11:05 du planificateur horaire |
+| Courriel du vœu | expédié 11:15:03 par `send-messages` |
+| **Reçu dans la boîte** | **oui, par le propriétaire** |
+| **Visible dans l'application** | **oui, par le propriétaire** |
+
+Le compte de test perdu le 18 août est donc remplacé, et il porte une date de
+naissance au 20 août : il resservira.
+
+**Le premier courriel était parti plus tôt le même jour** — deux fois plutôt
+qu'une :
 
 - **Bienvenue.** Un compte réel créé à 08:43:10 UTC ; à 08:45:00 la fonction
   rend `{"nouveaux":1,"envoye":true,"bienvenues":1,"bienvenuesEchouees":0}`,
@@ -933,9 +953,16 @@ mot pour mot. Entre cette acceptation et une boîte de réception, il reste la
 remise et les filtres. Seuls les destinataires peuvent confirmer.
 
 **La notification push d'anniversaire reste, elle, invérifiée**, et pour une
-raison qui n'est pas un défaut : la seule personne ayant son anniversaire ce
-jour-là n'avait jamais activé les notifications et n'avait aucun appareil
-abonné. Elle n'entre donc pas dans les candidats, ce qui est le comportement
+raison qui n'est pas un défaut : ni la personne dont c'était l'anniversaire, ni
+le compte de test n'avaient d'appareil abonné — zéro `push_subscriptions` pour
+les deux. Ils n'entrent donc pas dans les candidats, ce qui est voulu.
+
+**Pour l'éprouver sans attendre**, la marche est écrite : activer les
+notifications sur le compte de test, l'installer sur l'écran d'accueil et
+laisser un appareil s'abonner, puis effacer sa ligne de `birthday_wishes` et sa
+ligne `birthday:2026` de `notification_log`. Le passage suivant recréera le vœu
+**et** émettra la notification. Sans les deux effacements, l'idempotence fait
+correctement son travail et il ne se passe rien. Elle n'entre donc pas dans les candidats, ce qui est le comportement
 voulu. Sur 113 comptes, **6 ont les notifications actives**, 6 appareils sont
 abonnés, et **3 d'entre eux seulement ont une date de naissance** — les 4
 novembre, 10 juillet et 16 mai. La première occasion de voir ce déclencheur
