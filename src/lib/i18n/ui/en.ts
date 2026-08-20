@@ -757,6 +757,26 @@ export const en: Dictionary = {
   },
 
   admin: {
+    tabOverview: 'Overview',
+    tabAcquisition: 'Acquisition',
+    tabJournal: 'Audit log',
+    acqSources: 'Where accounts come from',
+    acqMonths: 'Sign-ups per month',
+    acqCities: 'Most represented cities',
+    acqUnknown: 'Not provided',
+    acqNoCity: 'No city provided yet.',
+    acqCount: (n: number, pourcent: number) => `${n} · ${pourcent}%`,
+    journalEmpty: 'No action recorded.',
+    journalRecipients: (n: number) => `${n} ${n > 1 ? 'people' : 'person'}`,
+    journalActions: {
+      promote: 'promoted',
+      demote: 'demoted',
+      suspend: 'suspended',
+      reactivate: 'reactivated',
+      delete_account: 'deleted the account of',
+      message: 'wrote to',
+    } as Record<string, string>,
+
     manageUsers: 'Manage users',
     usersTitle: 'Users',
     usersSubtitle: (n: number) => `${n} account${n > 1 ? 's' : ''}`,

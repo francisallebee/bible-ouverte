@@ -781,6 +781,26 @@ export const it: Dictionary = {
   },
 
   admin: {
+    tabOverview: 'Panoramica',
+    tabAcquisition: 'Acquisizione',
+    tabJournal: 'Registro',
+    acqSources: 'Da dove arrivano gli account',
+    acqMonths: 'Iscrizioni per mese',
+    acqCities: 'Città più rappresentate',
+    acqUnknown: 'Non indicato',
+    acqNoCity: 'Nessuna città indicata per ora.',
+    acqCount: (n: number, pourcent: number) => `${n} · ${pourcent} %`,
+    journalEmpty: 'Nessuna azione registrata.',
+    journalRecipients: (n: number) => `${n} person${n > 1 ? 'e' : 'a'}`,
+    journalActions: {
+      promote: 'ha promosso',
+      demote: 'ha retrocesso',
+      suspend: 'ha sospeso',
+      reactivate: 'ha riattivato',
+      delete_account: 'ha eliminato l’account di',
+      message: 'ha scritto a',
+    } as Record<string, string>,
+
     manageUsers: 'Gestisci gli utenti',
     usersTitle: 'Utenti',
     usersSubtitle: (n: number) => `${n} account`,

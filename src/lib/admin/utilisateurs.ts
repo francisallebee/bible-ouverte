@@ -86,7 +86,7 @@ export function filtrerParSegment(
  * diacritiques combinants, qui couvre le latin, c'est-à-dire les quatre
  * langues cherchables par un nom : l'arabe ne se cherche pas latinisé.
  */
-function normaliser(valeur: string): string {
+export function normaliser(valeur: string): string {
   return valeur.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 

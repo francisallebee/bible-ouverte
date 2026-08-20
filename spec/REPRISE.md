@@ -494,6 +494,9 @@ interrompu avant la fin. Les previews passent par git.
 | Persistance de la langue | écrite dans la colonne `jsonb`, relue après rechargement complet | 15 août |
 | Réglages portant une langue, en base | **1 ligne sur 102**, à `fr`, écrite à 14:07:26 UTC | 15 août |
 | Réversion de langue | reproduite en test : un `en` local en attente écrasait un `fr` distant plus récent | 15 août |
+| Colonnes de `profiles` | `phone`, `birth_date`, `bio`, `avatar_url` existaient déjà et n'étaient pas renseignées à l'inscription | 20 août |
+| Lignes de `new_user_alerts` | **112**, amorcées en août — un `welcomed_at` ajouté sans remplissage rétroactif aurait écrit à 112 personnes | 20 août |
+| Droits d'écriture sur `profiles` | révoqués au niveau table : toute colonne neuve exige son propre `grant update` (règle 2), sans quoi l'écriture échoue sans message clair | 20 août |
 | Séries de l'écran Progression | un second calcul, `calcStreaks`, vivait encore dans la page — **UTC contre dates locales**, et sans la tolérance | 19 août |
 | Ce qui relie une lecture à un plan | **rien** : pas de colonne, et le contexte « Plan de lecture » est commun à tous. Seul `plan_days.readingId`, posé au cochage | 19 août |
 | Poids de la Bible en mots | Louis Segond 1910 : **722 968 mots**, 31 102 versets, 1 189 chapitres — 608 mots par chapitre en moyenne | 19 août |
@@ -646,6 +649,31 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   il n'était simplement pas armé ici. Passé en `Record` complet le 19 août
   2026, avec les trois tables manquantes. **Chercher les `Partial` et les
   `as Record<string, string>` avant de croire qu'une traduction est complète.**
+
+- **Dans une seule instruction SQL, une CTE ne voit pas ce qu'une CTE sœur
+  vient d'écrire.** Le 20 août 2026, un `with essai as (insert …), efface as
+  (delete …) select` a rendu `inseree: 1, effacee: 0, restant: 0` — trois
+  chiffres cohérents entre eux et faux ensemble. Les trois lisent le **même
+  instantané** : le `delete` ne trouve rien, et le `count` ne voit pas non plus
+  la ligne insérée. Elle était bel et bien là, trouvée par une seconde requête.
+  C'est « un `200` ne prouve que ce qu'il a traversé », transposé au SQL :
+  **pour vérifier une écriture, relire dans une instruction séparée.**
+- **Un journal d'audit ne doit pas être détruit par ce qu'il journalise.**
+  `admin_actions.target_id` n'a volontairement **aucune** clé étrangère. Une
+  contrainte vers `profiles` avec `on delete cascade` effacerait la trace d'une
+  suppression de compte au moment même où elle se produit ; `on delete set
+  null` la rendrait anonyme. Le nom de la cible est figé dans la ligne pour la
+  même raison : après la suppression, il n'est plus lisible ailleurs. Ne pas
+  « corriger » cette absence de contrainte par souci de cohérence.
+- **On peut planifier une fonction Edge sans jamais lire son secret.**
+  `cron.schedule` réclame la commande littérale, secret compris — qu'un agent
+  n'a pas à connaître. Le 20 août 2026, le troisième travail `pg_cron` a été
+  créé en recopiant la commande du deuxième **à l'intérieur de la base**, avec
+  un `replace` du nom de fonction. Le contrôle se fait ensuite par prédicats et
+  non par lecture : `command like '%send-messages%'`, `like '%x-cron-secret%'`,
+  et une longueur inférieure de deux caractères — l'écart exact entre les deux
+  noms. Le `200` du premier passage a confirmé ; un secret mal recopié aurait
+  rendu `401`.
 
 - **Extraire un module ne retire pas le calcul qu'il remplace.** `lib/objectifs`
   a été livré le 19 août avec `calculerSeries`, testé, et sa raison d'être
@@ -870,6 +898,19 @@ l'estimation a été passée sur les **166 lectures réelles** de la base, et se
 ordres de grandeur tiennent — Genèse entière à 231 minutes contre les 3 h 50
 qu'annoncent les bibles audio. Ce qui ne l'est pas : la liste déroulante à trois
 unités, et la phrase qui prévient que rien n'est chronométré.
+
+**Toute la refonte Administration du 20 août 2026 est invérifiée à l'œil, sauf
+`/auth/signup`.** Gestion des utilisateurs, fiche individuelle, boîte de
+réception, bandeau de complétion, onglets Acquisition et Journal : tous
+demandent une session, et l'agent n'en a pas. `/auth/signup` étant publique, il
+a pu la voir — **et la voir en arabe**, deuxième écran de ce dépôt à l'avoir
+été. C'est l'arabe qui y a trouvé un défaut qu'aucun relevé n'aurait vu.
+
+**Aucun courriel n'est parti**, ni bienvenue ni message : les tables sont vides,
+et écrire à un compte réel pour éprouver la chaîne n'est pas une décision
+d'agent. Les deux fonctions Edge sont déployées et rendent `200` avec zéro
+candidat ; c'est tout ce qui est prouvé. Le premier message envoyé depuis
+l'administration sera la première preuve de bout en bout.
 
 **Les objectifs à portée n'ont pas été vus à l'écran** non plus, et pour la même
 raison : `/settings` comme `/progress` demandent une session. Ce qui est

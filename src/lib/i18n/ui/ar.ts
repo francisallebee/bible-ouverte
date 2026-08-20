@@ -851,6 +851,26 @@ export const ar: Dictionary = {
   },
 
   admin: {
+    tabOverview: 'نظرة عامة',
+    tabAcquisition: 'مصادر التسجيل',
+    tabJournal: 'سجل الإجراءات',
+    acqSources: 'من أين تأتي الحسابات',
+    acqMonths: 'التسجيلات حسب الشهر',
+    acqCities: 'أكثر المدن تمثيلًا',
+    acqUnknown: 'غير محدَّد',
+    acqNoCity: 'لا مدينة محدَّدة حتى الآن.',
+    acqCount: (n: number, pourcent: number) => `${n} · ${pourcent} %`,
+    journalEmpty: 'لا إجراءات مسجَّلة.',
+    journalRecipients: (n: number) => `${n} شخصًا`,
+    journalActions: {
+      promote: 'رقّى',
+      demote: 'خفّض رتبة',
+      suspend: 'أوقف',
+      reactivate: 'أعاد تفعيل',
+      delete_account: 'حذف حساب',
+      message: 'كتب إلى',
+    } as Record<string, string>,
+
     manageUsers: 'إدارة المستخدمين',
     usersTitle: 'المستخدمون',
     usersSubtitle: (n: number) => `${n} ${hisabat(n)}`,

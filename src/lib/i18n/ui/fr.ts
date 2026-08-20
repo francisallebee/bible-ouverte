@@ -793,6 +793,26 @@ export const fr = {
   },
 
   admin: {
+    tabOverview: 'Aperçu',
+    tabAcquisition: 'Acquisition',
+    tabJournal: 'Journal',
+    acqSources: 'D’où viennent les comptes',
+    acqMonths: 'Inscriptions par mois',
+    acqCities: 'Villes les plus représentées',
+    acqUnknown: 'Non renseigné',
+    acqNoCity: 'Aucune ville renseignée pour l’instant.',
+    acqCount: (n: number, pourcent: number) => `${n} · ${pourcent} %`,
+    journalEmpty: 'Aucune action enregistrée.',
+    journalRecipients: (n: number) => `${n} personne${n > 1 ? 's' : ''}`,
+    journalActions: {
+      promote: 'a promu',
+      demote: 'a rétrogradé',
+      suspend: 'a suspendu',
+      reactivate: 'a réactivé',
+      delete_account: 'a supprimé le compte de',
+      message: 'a écrit à',
+    } as Record<string, string>,
+
     manageUsers: 'Gérer les utilisateurs',
     usersTitle: 'Utilisateurs',
     usersSubtitle: (n: number) => `${n} compte${n > 1 ? 's' : ''}`,

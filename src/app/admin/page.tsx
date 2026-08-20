@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Shield, ShieldOff, BookOpen, Tags, Users, Ban,
-  RefreshCw, MessageSquare, Bug, Lightbulb,
+  RefreshCw, MessageSquare, Bug, Lightbulb, PieChart, ScrollText,
   MoreHorizontal, ChevronDown, ChevronRight,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -12,6 +12,9 @@ import { useI18n } from '@/contexts/I18nContext'
 import { formatDate } from '@/lib/i18n/format'
 import { TICKET_STATUSES, TICKET_STATUS_BADGE } from '@/lib/tickets'
 import { api } from '@/lib/admin/api'
+import { createClient } from '@/lib/supabase/client'
+import { parProvenance, parMois, parVille, PROVENANCE_INCONNUE } from '@/lib/admin/acquisition'
+import type { LigneJournal } from '@/lib/admin/journal'
 
 /* ---------- types ---------- */
 type AdminUser = {
@@ -55,7 +58,7 @@ function StatCard({ icon, label, value, sub, color }: {
 export default function AdminPage() {
   const { user, isAdmin } = useAuth()
   const { t, locale } = useI18n()
-  const [tab, setTab] = useState<'users' | 'tickets'>('users')
+  const [tab, setTab] = useState<'users' | 'acquisition' | 'journal' | 'tickets'>('users')
 
   /* users state */
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -68,6 +71,36 @@ export default function AdminPage() {
   const [loadingTickets, setLoadingTickets] = useState(false)
   const [ticketsError, setTicketsError] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+
+  /* journal */
+  const [journal, setJournal] = useState<LigneJournal[]>([])
+  const [journalCharge, setJournalCharge] = useState(false)
+
+  /**
+   * Le journal se lit **directement dans Supabase** : la policy
+   * `admin_actions_select` n'autorise que les administrateurs, et une route
+   * n'ajouterait qu'un aller-retour. Il n'est chargé qu'à l'ouverture de son
+   * onglet — personne n'a besoin de cent lignes d'historique pour consulter
+   * des tickets.
+   */
+  const chargerJournal = async () => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('admin_actions')
+      .select('id, actor_name, target_id, target_name, action, details, "createdAt"')
+      .order('createdAt', { ascending: false })
+      .limit(100)
+    setJournal((data ?? []).map((l) => ({
+      id: l.id as number,
+      actorName: (l.actor_name as string) ?? '',
+      targetId: (l.target_id as string | null) ?? null,
+      targetName: (l.target_name as string) ?? '',
+      action: (l.action as string) ?? '',
+      details: (l.details as Record<string, unknown>) ?? {},
+      createdAt: (l.createdAt as string) ?? '',
+    })))
+    setJournalCharge(true)
+  }
 
   /* load users */
   const loadData = async () => {
@@ -115,7 +148,7 @@ export default function AdminPage() {
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Shield className="w-6 h-6 text-[--primary]" /> {t.admin.title}
         </h1>
-        <button onClick={tab === 'users' ? loadData : loadTickets}
+        <button onClick={tab === 'tickets' ? loadTickets : tab === 'journal' ? chargerJournal : loadData}
           className="flex items-center gap-1.5 text-sm text-[--primary] hover:underline">
           <RefreshCw className="w-4 h-4" /> {t.admin.refresh}
         </button>
@@ -126,6 +159,14 @@ export default function AdminPage() {
         <button onClick={() => setTab('users')}
           className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === 'users' ? 'border-[--primary] text-[--primary]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
           <Users className="w-4 h-4 inline me-1.5" />{t.admin.tabUsers}
+        </button>
+        <button onClick={() => setTab('acquisition')}
+          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === 'acquisition' ? 'border-[--primary] text-[--primary]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          <PieChart className="w-4 h-4 inline me-1.5" />{t.admin.tabAcquisition}
+        </button>
+        <button onClick={() => { setTab('journal'); if (!journalCharge) chargerJournal() }}
+          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === 'journal' ? 'border-[--primary] text-[--primary]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          <ScrollText className="w-4 h-4 inline me-1.5" />{t.admin.tabJournal}
         </button>
         <button onClick={() => { setTab('tickets'); if (tickets.length === 0) loadTickets() }}
           className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === 'tickets' ? 'border-[--primary] text-[--primary]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
@@ -165,6 +206,99 @@ export default function AdminPage() {
             <ChevronRight className="w-5 h-5 text-gray-400 rtl:rotate-180" />
           </Link>
         </>
+      )}
+
+      {/* === ACQUISITION === */}
+      {tab === 'acquisition' && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="font-semibold mb-3">{t.admin.acqSources}</h2>
+            {/* La part « non renseigné » est la première chose à lire : sans
+                elle, quatre réponses sur 112 comptes annonceraient des
+                pourcentages qui ne veulent rien dire. */}
+            <ul className="space-y-2 list-none p-0 m-0">
+              {parProvenance(users).map((p) => (
+                <li key={p.cle}>
+                  <div className="flex items-baseline justify-between gap-3 text-sm mb-1">
+                    <span>{p.cle === PROVENANCE_INCONNUE
+                      ? t.admin.acqUnknown
+                      : t.authScreens.discoverySources[p.cle] ?? p.cle}</span>
+                    <span className="text-xs text-gray-500 shrink-0">{t.admin.acqCount(p.nombre, p.pourcent)}</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${p.cle === PROVENANCE_INCONNUE ? 'bg-gray-300' : 'bg-[--primary]'}`}
+                      style={{ width: `${p.pourcent}%` }} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="font-semibold mb-3">{t.admin.acqMonths}</h2>
+            {/* Les mois vides sont affichés à zéro : une série qui les saute
+                dessine une courbe régulière là où il y a eu un trou. */}
+            <div className="flex items-end gap-1.5 h-32">
+              {(() => {
+                const serie = parMois(users, 12)
+                const maximum = Math.max(1, ...serie.map((m) => m.nombre))
+                return serie.map((m) => (
+                  <div key={m.mois} className="flex-1 flex flex-col items-center justify-end gap-1">
+                    <span className="text-[10px] text-gray-500">{m.nombre || ''}</span>
+                    <div className="w-full bg-[--primary] rounded-t"
+                      style={{ height: `${(m.nombre / maximum) * 100}%`, minHeight: m.nombre ? '2px' : '0' }} />
+                    <span className="text-[9px] text-gray-400">{m.mois.slice(5)}</span>
+                  </div>
+                ))
+              })()}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="font-semibold mb-3">{t.admin.acqCities}</h2>
+            {parVille(users).length === 0 ? (
+              <p className="text-sm text-gray-400">{t.admin.acqNoCity}</p>
+            ) : (
+              <ul className="space-y-1.5 list-none p-0 m-0">
+                {parVille(users).map((v) => (
+                  <li key={v.cle} className="flex items-baseline justify-between gap-3 text-sm">
+                    <span>{v.cle}</span>
+                    <span className="text-xs text-gray-500 shrink-0">{t.admin.acqCount(v.nombre, v.pourcent)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* === JOURNAL === */}
+      {tab === 'journal' && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          {!journalCharge ? (
+            <p className="text-gray-500">{t.common.loading}</p>
+          ) : journal.length === 0 ? (
+            <p className="text-gray-400 text-center py-8">{t.admin.journalEmpty}</p>
+          ) : (
+            <ul className="space-y-2 list-none p-0 m-0">
+              {journal.map((l) => {
+                const destinataires = Number(l.details?.destinataires ?? 0)
+                const cible = l.targetName
+                  || (destinataires > 1 ? t.admin.journalRecipients(destinataires) : '')
+                return (
+                  <li key={l.id} className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm border-b border-gray-100 last:border-0 pb-2 last:pb-0">
+                    <span className="font-medium">{l.actorName || '—'}</span>
+                    <span className="text-gray-500">{t.admin.journalActions[l.action] ?? l.action}</span>
+                    {cible && <span className="font-medium">{cible}</span>}
+                    <span className="text-xs text-gray-400 ms-auto">
+                      {formatDate(locale, l.createdAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
       )}
 
       {/* === TICKETS TAB === */}

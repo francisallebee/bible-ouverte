@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server'
 import { requireAdmin, errorResponse, successResponse } from '@/lib/supabase/api-client'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { actionsDuPatch, journaliser } from '@/lib/admin/journal'
 
 // Voir src/app/api/admin/users/route.ts : cette route lit la session de
 // l'appelant, elle ne doit jamais être évaluée au moment du build.
@@ -101,6 +102,11 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
   const supabaseAdmin = createAdminClient()
 
+  // Le nom est lu **avant** la suppression : après, il n'existe plus nulle
+  // part. C'est la raison d'être de `admin_actions.target_name`.
+  const { data: cible } = await supabaseAdmin
+    .from('profiles').select('name').eq('id', targetId).single()
+
   try {
     const { data: photos } = await supabaseAdmin.storage.from('photos').list(targetId)
     if (photos?.length) {
@@ -120,6 +126,16 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const { error } = await supabaseAdmin.auth.admin.deleteUser(targetId)
     if (error) return errorResponse(error.message)
 
+    const { data: acteur } = await supabaseAdmin
+      .from('profiles').select('name').eq('id', admin.id).single()
+    await journaliser({
+      actorId: admin.id,
+      actorName: acteur?.name ?? '',
+      targetId,
+      targetName: (cible?.name as string) ?? '',
+      action: 'delete_account',
+    })
+
     return successResponse({ deleted: true })
   } catch (e: any) {
     return errorResponse(e?.message || 'Erreur')
@@ -134,6 +150,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const supabaseAdmin = createAdminClient()
   const body = await request.json()
   const updates: Record<string, any> = {}
+
+  // L'état d'avant, lu **avant** l'écriture : c'est lui qui dit ce qui bouge
+  // réellement. Sans lui, une suspension demandée sur un compte déjà suspendu
+  // laisserait au journal la trace d'un évènement qui n'a pas eu lieu.
+  const { data: avant } = await supabaseAdmin
+    .from('profiles').select('name, is_admin, suspended').eq('id', targetId).single()
 
   if (body.is_admin !== undefined) {
     updates.is_admin = body.is_admin
@@ -156,6 +178,22 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       .eq('id', targetId)
 
     if (error) return errorResponse(error.message)
+
+    if (avant) {
+      const { data: acteur } = await supabaseAdmin
+        .from('profiles').select('name').eq('id', adminUser.id).single()
+      for (const action of actionsDuPatch(body, {
+        is_admin: !!avant.is_admin, suspended: !!avant.suspended,
+      })) {
+        await journaliser({
+          actorId: adminUser.id,
+          actorName: acteur?.name ?? '',
+          targetId,
+          targetName: (avant.name as string) ?? '',
+          action,
+        })
+      }
+    }
   }
 
   return successResponse({ updated: true })
