@@ -600,6 +600,12 @@ export const en: Dictionary = {
     loadError: 'Could not load the profile',
     removeAvatar: 'Remove the avatar',
     firstName: 'First name',
+    lastName: 'Last name',
+    city: 'City',
+    completeTitle: 'Complete your profile',
+    completeHint:
+      'Your first and last name are missing. They are how we recognise you and '
+      + 'write to you — two fields, and it’s done.',
     email: 'Email',
     birthDate: 'Date of birth',
     phone: 'Phone',

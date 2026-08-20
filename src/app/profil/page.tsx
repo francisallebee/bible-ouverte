@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { User, Save, Camera, KeyRound } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { nomAffiche, PROVENANCES } from '@/lib/profil/identite'
 import { useI18n } from '@/contexts/I18nContext'
 import { resizeImage } from '@/lib/image-utils'
 import { createClient } from '@/lib/supabase/client'
@@ -10,7 +11,12 @@ import { describePasswordProblems, PASSWORD_MIN_LENGTH } from '@/lib/auth/passwo
 
 type ProfileData = {
   id: string
+  /** Le nom d'affichage. Dérivé du prénom et du nom, jamais saisi directement. */
   name: string
+  first_name: string | null
+  last_name: string | null
+  city: string | null
+  discovery_source: string | null
   avatar_url: string | null
   birth_date: string | null
   phone: string | null
@@ -20,7 +26,7 @@ type ProfileData = {
 
 export default function ProfilPage() {
   const { t } = useI18n()
-  const { user } = useAuth()
+  const { user, identiteManquante, refreshUser } = useAuth()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -47,6 +53,10 @@ export default function ProfilPage() {
           birth_date: json.data.birth_date || null,
           phone: json.data.phone || null,
           bio: json.data.bio || null,
+          first_name: json.data.first_name || null,
+          last_name: json.data.last_name || null,
+          city: json.data.city || null,
+          discovery_source: json.data.discovery_source || null,
         })
         localStorage.setItem('profile_name', json.data.name || '')
         // L'avatar du serveur fait foi (synchronisé entre appareils)
@@ -65,7 +75,19 @@ export default function ProfilPage() {
   const handleSave = async () => {
     if (!profile) return
     setSaving(true); setSaved(false)
-    const { id, ...data } = profile
+    /**
+     * `name` est **recalculé**, jamais saisi.
+     *
+     * C'est une colonne dérivée, et le piège des trois chemins s'y applique :
+     * sans cette ligne, modifier son prénom laisserait l'ancien nom dans le
+     * tableau d'administration, sur ses tickets et dans l'alerte
+     * d'inscription. `nomAffiche` applique la règle du trigger SQL.
+     */
+    const { id, ...reste } = profile
+    const data = { ...reste, name: nomAffiche(
+      { firstName: profile.first_name, lastName: profile.last_name, name: profile.name },
+      profile.name,
+    ) }
     const res = await fetch('/api/profile', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -73,11 +95,14 @@ export default function ProfilPage() {
     }).then(r => r.json())
     if (res.data) {
       setSaved(true)
-      localStorage.setItem('profile_name', profile.name)
+      localStorage.setItem('profile_name', data.name)
       // La couleur n'est plus modifiable : l'avatar de repli suit le thème.
       localStorage.removeItem('profile_color')
       if (profile.avatar_url) localStorage.setItem('profile_avatar', profile.avatar_url)
       else localStorage.removeItem('profile_avatar')
+      // Sans cela, `ProfileGate` continuerait de ramener ici : son information
+      // vient d'AuthContext, qui ne relit pas le profil de lui-même.
+      await refreshUser()
     }
     setSaving(false)
     setTimeout(() => setSaved(false), 3000)
@@ -184,6 +209,17 @@ export default function ProfilPage() {
         {t.profile.title}
       </h1>
 
+      {/* Le bandeau du passage obligé. Les couleurs du texte sont posées
+          explicitement : `bg-amber-50` n'est remappé nulle part en mode sombre,
+          et un texte sans classe de couleur y hériterait de `--text`, presque
+          blanc sur presque blanc (règle 15). */}
+      {identiteManquante && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <p className="font-semibold text-amber-900">{t.profile.completeTitle}</p>
+          <p className="mt-1 text-sm text-amber-800">{t.profile.completeHint}</p>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
         {/* Avatar */}
         <div className="flex flex-col items-center gap-3">
@@ -214,11 +250,22 @@ export default function ProfilPage() {
           </div>
         </div>
 
-        {/* Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t.profile.firstName}</label>
-          <input type="text" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+        {/* Prénom et nom. Le nom d'affichage en découle à l'enregistrement. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="profil-prenom" className="block text-sm font-medium text-gray-700 mb-1">{t.profile.firstName}</label>
+            <input id="profil-prenom" type="text" autoComplete="given-name"
+              value={profile.first_name || ''}
+              onChange={e => setProfile({ ...profile, first_name: e.target.value })}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label htmlFor="profil-nom" className="block text-sm font-medium text-gray-700 mb-1">{t.profile.lastName}</label>
+            <input id="profil-nom" type="text" autoComplete="family-name"
+              value={profile.last_name || ''}
+              onChange={e => setProfile({ ...profile, last_name: e.target.value })}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
         </div>
 
         {/* Email (read-only) */}
@@ -241,6 +288,31 @@ export default function ProfilPage() {
           <input type="tel" value={profile.phone || ''} onChange={e => setProfile({ ...profile, phone: e.target.value })}
             placeholder={t.profile.phonePlaceholder}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+        </div>
+
+        {/* Ville */}
+        <div>
+          <label htmlFor="profil-ville" className="block text-sm font-medium text-gray-700 mb-1">{t.profile.city}</label>
+          <input id="profil-ville" type="text" autoComplete="address-level2"
+            value={profile.city || ''}
+            onChange={e => setProfile({ ...profile, city: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+        </div>
+
+        {/* Provenance. Les libellés viennent d'`authScreens` plutôt que d'être
+            recopiés ici : quatre traductions à un seul endroit. */}
+        <div>
+          <label htmlFor="profil-provenance" className="block text-sm font-medium text-gray-700 mb-1">
+            {t.authScreens.discoverySource}
+          </label>
+          <select id="profil-provenance" value={profile.discovery_source || ''}
+            onChange={e => setProfile({ ...profile, discovery_source: e.target.value || null })}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            <option value="">{t.authScreens.discoveryPlaceholder}</option>
+            {PROVENANCES.map((origine) => (
+              <option key={origine} value={origine}>{t.authScreens.discoverySources[origine]}</option>
+            ))}
+          </select>
         </div>
 
         {/* Bio */}

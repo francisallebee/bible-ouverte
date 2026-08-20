@@ -624,6 +624,12 @@ export const es: Dictionary = {
     loadError: 'Error al cargar el perfil',
     removeAvatar: 'Eliminar el avatar',
     firstName: 'Nombre',
+    lastName: 'Apellido',
+    city: 'Ciudad',
+    completeTitle: 'Completa tu perfil',
+    completeHint:
+      'Faltan tu nombre y tu apellido. Sirven para reconocerte y escribirte: '
+      + 'dos campos y ya está.',
     email: 'Correo electrónico',
     birthDate: 'Fecha de nacimiento',
     phone: 'Teléfono',

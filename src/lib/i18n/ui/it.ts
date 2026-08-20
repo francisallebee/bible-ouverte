@@ -623,6 +623,12 @@ export const it: Dictionary = {
     loadError: 'Errore nel caricamento del profilo',
     removeAvatar: "Elimina l'avatar",
     firstName: 'Nome',
+    lastName: 'Cognome',
+    city: 'Città',
+    completeTitle: 'Completa il tuo profilo',
+    completeHint:
+      'Mancano il tuo nome e il tuo cognome. Servono a riconoscerti e a '
+      + 'scriverti: due campi ed è fatta.',
     email: 'Email',
     birthDate: 'Data di nascita',
     phone: 'Telefono',

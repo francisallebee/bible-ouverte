@@ -685,7 +685,12 @@ export const ar: Dictionary = {
     title: 'ملفي الشخصي',
     loadError: 'خطأ في تحميل الملف الشخصي',
     removeAvatar: 'حذف الصورة الرمزية',
-    firstName: 'الاسم',
+    firstName: 'الاسم الأول',
+    lastName: 'اسم العائلة',
+    city: 'المدينة',
+    completeTitle: 'أكمل ملفك الشخصي',
+    completeHint:
+      'اسمك الأول واسم عائلتك ناقصان. بهما نعرفك ونراسلك — حقلان، وينتهي الأمر.',
     email: 'البريد الإلكتروني',
     birthDate: 'تاريخ الميلاد',
     phone: 'الهاتف',

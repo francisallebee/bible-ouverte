@@ -25,7 +25,13 @@ export async function PATCH(request: NextRequest) {
   if (!user) return errorResponse('Non authentifié', 401)
 
   const body = await request.json()
-  const allowed = ['name', 'avatar_url', 'birth_date', 'phone', 'bio', 'social_links', 'color']
+  // `first_name`, `last_name`, `city` et `discovery_source` depuis le 20 août
+  // 2026. `is_admin` et `suspended` n'y sont pas et ne doivent jamais y être :
+  // cette route parle avec la session de l'appelant, pas la clé service_role.
+  const allowed = [
+    'name', 'avatar_url', 'birth_date', 'phone', 'bio', 'social_links', 'color',
+    'first_name', 'last_name', 'city', 'discovery_source',
+  ]
   const updates: Record<string, any> = {}
 
   for (const key of allowed) {

@@ -629,6 +629,12 @@ export const fr = {
     loadError: 'Erreur de chargement du profil',
     removeAvatar: "Supprimer l'avatar",
     firstName: 'Prénom',
+    lastName: 'Nom',
+    city: 'Ville',
+    completeTitle: 'Complète ton profil',
+    completeHint:
+      'Ton prénom et ton nom manquent. Ils servent à te reconnaître et à '
+      + 't’écrire — deux champs, et c’est fait.',
     email: 'Email',
     birthDate: 'Date de naissance',
     phone: 'Téléphone',
