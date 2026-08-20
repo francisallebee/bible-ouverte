@@ -8,8 +8,12 @@
 
 export interface NouveauCompte {
   id: string
-  /** Le nom choisi à l'inscription. Peut manquer : le formulaire ne l'impose pas. */
+  /** Le nom d'affichage. Composé du prénom et du nom depuis le 20 août 2026. */
   name: string | null
+  /** Le prénom, demandé à l'inscription depuis le 20 août 2026. Null avant. */
+  firstName?: string | null
+  /** Le nom de famille, même date. */
+  lastName?: string | null
   /** L'adresse du compte, lue dans `auth.users`. Peut manquer si la lecture échoue. */
   email: string | null
   /** Horodatage ISO de la création du profil. */
@@ -116,4 +120,100 @@ export function comptesASignaler(
     // Du plus ancien au plus récent : l'alerte se lit dans l'ordre où les gens
     // sont arrivés.
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+}
+
+/**
+ * Le message de bienvenue, adressé à la personne qui vient de s'inscrire.
+ *
+ * Rédigé par le propriétaire du dépôt, le 20 août 2026, et repris **mot pour
+ * mot** à trois corrections près qu'il a validées : « N'hésites » prenait un
+ * `s` de trop, et la dernière ligne portait `<$Person.firstName$>` — un
+ * marqueur d'un autre outil de messagerie, resté collé au texte, qui serait
+ * parti tel quel dans le courriel.
+ *
+ * **Il est en français, quelle que soit la langue du compte.** C'est la même
+ * limite que les notifications push et les gabarits de Supabase Auth, décrite
+ * dans AGENTS.md : la traduction s'arrête au navigateur. La faire descendre
+ * ici supposerait de remonter `settings.language` jusqu'à cette fonction et
+ * d'y porter cinq dictionnaires.
+ *
+ * Rend `null` quand il n'y a pas d'adresse où écrire — un compte sans courriel
+ * n'est pas une erreur ici, seulement quelqu'un à qui on ne peut rien envoyer.
+ */
+export function composeWelcomeEmail(compte: NouveauCompte): Courriel | null {
+  if (!compte.email?.trim()) return null
+
+  const complet = designer(compte)
+  // Le prénom seul pour la formule finale : « Bien à Dupont » sonnerait faux.
+  const prenom = compte.firstName?.trim() || complet
+  const patreon =
+    'https://www.patreon.com/Oappliday/posts/165644244?utm_campaign=postshare_fan'
+
+  const text = [
+    `Bonjour ${complet},`,
+    '',
+    'Merci pour ton inscription sur « Bible Ouverte »',
+    '',
+    'J’espère que cette application te sera utile et je compte sur toi pour ' +
+      'faire remonter tes appréciations dans le menu « support ». N’hésite pas ' +
+      'aussi à regarder dans le menu « Feuille de route » qui te donne les ' +
+      'perspectives d’amélioration de l’application.',
+    '',
+    'Tu pourras nous suivre et soutenir aussi le projet au sein de la ' +
+      'communauté « Ôappliday », voici le lien ici :',
+    patreon,
+    '',
+    `Bien à ${prenom}, à bientôt ! 👋`,
+  ].join('\n')
+
+  const html = [
+    `<p>Bonjour ${escapeHtml(complet)},</p>`,
+    '<p>Merci pour ton inscription sur «&nbsp;Bible Ouverte&nbsp;»</p>',
+    '<p>J’espère que cette application te sera utile et je compte sur toi pour ' +
+      'faire remonter tes appréciations dans le menu «&nbsp;support&nbsp;». ' +
+      'N’hésite pas aussi à regarder dans le menu ' +
+      '«&nbsp;Feuille de route&nbsp;» qui te donne les perspectives ' +
+      'd’amélioration de l’application.</p>',
+    '<p>Tu pourras nous suivre et soutenir aussi le projet au sein de la ' +
+      'communauté «&nbsp;Ôappliday&nbsp;», voici le lien ici&nbsp;:<br>' +
+      `<a href="${patreon}">${patreon}</a></p>`,
+    `<p>Bien à ${escapeHtml(prenom)}, à bientôt&nbsp;! 👋</p>`,
+  ].join('\n')
+
+  return { subject: 'Bienvenue sur Bible Ouverte', text, html }
+}
+
+/**
+ * Les comptes à qui écrire, et ceux qu'on laisse tranquilles.
+ *
+ * Trois conditions, et chacune a coûté une réflexion :
+ *
+ * - une adresse, sans quoi il n'y a nulle part où écrire ;
+ * - pas de `welcomedAt`, faute de quoi on écrirait deux fois ;
+ * - moins de `MAX_TENTATIVES` essais. La trace d'alerte est écrite **avant**
+ *   l'envoi, ce qui protège des doublons mais ferait disparaître en silence un
+ *   message que le SMTP a refusé une fois. Le compteur permet de réessayer
+ *   sans tourner en boucle tous les quarts d'heure jusqu'à la fin des temps.
+ */
+export const MAX_TENTATIVES_BIENVENUE = 3
+
+export interface EtatBienvenue {
+  userId: string
+  welcomedAt: string | null
+  welcomeAttempts: number
+}
+
+export function comptesAAccueillir(
+  comptes: NouveauCompte[],
+  etats: EtatBienvenue[],
+): NouveauCompte[] {
+  const parId = new Map(etats.map((e) => [e.userId, e]))
+  return comptes.filter((c) => {
+    if (!c.email?.trim()) return false
+    const etat = parId.get(c.id)
+    // Aucune ligne d'état : le compte vient d'être inséré dans le même passage.
+    if (!etat) return true
+    if (etat.welcomedAt) return false
+    return etat.welcomeAttempts < MAX_TENTATIVES_BIENVENUE
+  })
 }

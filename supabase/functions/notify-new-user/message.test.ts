@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   comptesASignaler, composeNewUserEmail, dateLisible, designer, escapeHtml,
+  composeWelcomeEmail, comptesAAccueillir, MAX_TENTATIVES_BIENVENUE,
 } from './message'
 import type { NouveauCompte } from './message'
 
@@ -105,5 +106,85 @@ describe('comptesASignaler', () => {
   it('classe du plus ancien au plus récent', () => {
     // L'alerte se lit dans l'ordre où les gens sont arrivés.
     expect(comptesASignaler([a, b], []).map((c) => c.id)).toEqual(['b', 'a'])
+  })
+})
+
+describe('le message de bienvenue', () => {
+  it('salue par le nom complet et signe par le prénom seul', () => {
+    // « Bien à Dupont » sonnerait comme une relance de facture.
+    const c = compte({ name: 'Marie Dupont', firstName: 'Marie', lastName: 'Dupont' })
+    const courriel = composeWelcomeEmail(c)!
+    expect(courriel.text).toContain('Bonjour Marie Dupont,')
+    expect(courriel.text).toContain('Bien à Marie, à bientôt ! 👋')
+  })
+
+  it('ne laisse partir aucun marqueur d’un autre outil', () => {
+    // Le texte d'origine portait `<$Person.firstName$>`, collé depuis une
+    // autre messagerie. Il serait parti tel quel.
+    const courriel = composeWelcomeEmail(compte({ firstName: 'Marie' }))!
+    expect(courriel.text).not.toContain('$Person')
+    expect(courriel.html).not.toContain('$Person')
+  })
+
+  it('écrit « N’hésite » et non « N’hésites »', () => {
+    const courriel = composeWelcomeEmail(compte({ firstName: 'Marie' }))!
+    expect(courriel.text).toContain('N’hésite pas')
+    expect(courriel.text).not.toContain('N’hésites')
+  })
+
+  it('porte le lien Patreon, en texte comme en HTML', () => {
+    const courriel = composeWelcomeEmail(compte({ firstName: 'Marie' }))!
+    const lien = 'https://www.patreon.com/Oappliday/posts/165644244?utm_campaign=postshare_fan'
+    expect(courriel.text).toContain(lien)
+    expect(courriel.html).toContain(`href="${lien}"`)
+  })
+
+  it('retombe sur le nom d’affichage quand le prénom manque', () => {
+    // Les comptes d'avant le 20 août 2026 n'ont que `name`.
+    const courriel = composeWelcomeEmail(compte({ name: 'francisallebee', firstName: null }))!
+    expect(courriel.text).toContain('Bonjour francisallebee,')
+    expect(courriel.text).toContain('Bien à francisallebee,')
+  })
+
+  it('échappe ce qui partirait comme balise', () => {
+    const courriel = composeWelcomeEmail(compte({ name: '<script>', firstName: '<script>' }))!
+    expect(courriel.html).not.toContain('<script>')
+    expect(courriel.html).toContain('&lt;script&gt;')
+  })
+
+  it('rend null plutôt qu’un message sans destinataire', () => {
+    expect(composeWelcomeEmail(compte({ email: null }))).toBeNull()
+    expect(composeWelcomeEmail(compte({ email: '  ' }))).toBeNull()
+  })
+})
+
+describe('à qui écrire, et à qui ne pas réécrire', () => {
+  const etat = (over: Partial<{ userId: string; welcomedAt: string | null; welcomeAttempts: number }> = {}) => ({
+    userId: '7e8695d3-0000-0000-0000-000000000000',
+    welcomedAt: null,
+    welcomeAttempts: 0,
+    ...over,
+  })
+
+  it('accueille un compte neuf sans ligne d’état', () => {
+    expect(comptesAAccueillir([compte()], [])).toHaveLength(1)
+  })
+
+  it('n’écrit jamais deux fois', () => {
+    // C'est ce que protège le remplissage rétroactif des 112 lignes
+    // existantes : elles portent toutes un `welcomedAt`.
+    const dejaServi = [etat({ welcomedAt: '2026-08-20T08:00:00.000Z' })]
+    expect(comptesAAccueillir([compte()], dejaServi)).toEqual([])
+  })
+
+  it('réessaie après un échec, mais pas indéfiniment', () => {
+    // La trace d'alerte étant écrite avant l'envoi, sans compteur un refus
+    // SMTP ferait disparaître le message en silence.
+    expect(comptesAAccueillir([compte()], [etat({ welcomeAttempts: 1 })])).toHaveLength(1)
+    expect(comptesAAccueillir([compte()], [etat({ welcomeAttempts: MAX_TENTATIVES_BIENVENUE })])).toEqual([])
+  })
+
+  it('laisse de côté un compte sans adresse', () => {
+    expect(comptesAAccueillir([compte({ email: null })], [])).toEqual([])
   })
 })

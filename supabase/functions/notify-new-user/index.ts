@@ -12,7 +12,10 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
-import { comptesASignaler, composeNewUserEmail } from './message.ts'
+import {
+  comptesASignaler, composeNewUserEmail,
+  comptesAAccueillir, composeWelcomeEmail,
+} from './message.ts'
 import type { NouveauCompte } from './message.ts'
 
 /** Borne du lot examiné à chaque passage. Large au regard du rythme réel. */
@@ -73,7 +76,7 @@ Deno.serve(async (req) => {
 
   const { data: profils, error: erreurProfils } = await supabase
     .from('profiles')
-    .select('id, name, created_at')
+    .select('id, name, first_name, last_name, created_at')
     .order('created_at', { ascending: false })
     .limit(PROFILS_EXAMINES)
 
@@ -86,7 +89,7 @@ Deno.serve(async (req) => {
 
   const { data: traces, error: erreurTraces } = await supabase
     .from('new_user_alerts')
-    .select('user_id')
+    .select('user_id, welcomed_at, welcome_attempts')
     .in('user_id', ids)
 
   if (erreurTraces) {
@@ -96,20 +99,54 @@ Deno.serve(async (req) => {
   const candidats: NouveauCompte[] = (profils ?? []).map((p) => ({
     id: p.id as string,
     name: (p.name as string | null) ?? null,
+    firstName: (p.first_name as string | null) ?? null,
+    lastName: (p.last_name as string | null) ?? null,
     email: null,
     createdAt: (p.created_at as string) ?? new Date().toISOString(),
   }))
+
+  /**
+   * L'état de bienvenue, tel qu'il est en base avant ce passage.
+   *
+   * Les 112 lignes d'avant le 20 août 2026 portent toutes un `welcomed_at`
+   * rempli rétroactivement par `20260820100000_welcome_email.sql` : sans lui,
+   * ce passage aurait écrit à des gens inscrits depuis des semaines.
+   */
+  const etats = (traces ?? []).map((t) => ({
+    userId: t.user_id as string,
+    welcomedAt: (t.welcomed_at as string | null) ?? null,
+    welcomeAttempts: (t.welcome_attempts as number | null) ?? 0,
+  }))
+  const dejaTrace = new Set(etats.map((e) => e.userId))
+  const dejaAccueilli = new Set(etats.filter((e) => e.welcomedAt).map((e) => e.userId))
+  const epuise = new Set(etats.filter((e) => e.welcomeAttempts >= 3).map((e) => e.userId))
 
   const nouveaux = comptesASignaler(
     candidats,
     (traces ?? []).map((t) => t.user_id as string),
   )
-  if (nouveaux.length === 0) return Response.json({ nouveaux: 0, envoye: false })
+
+  /**
+   * Les deux passes sont **indépendantes**, et il a fallu s'en apercevoir.
+   *
+   * `comptesASignaler` écarte tout compte déjà tracé : un message de bienvenue
+   * refusé une fois par le SMTP n'aurait donc jamais été repris, le compte
+   * étant désormais « connu ». Les candidats à la bienvenue se calculent donc
+   * sur la liste complète des profils récents, et non sur les nouveaux.
+   */
+  const aTenter = candidats.filter(
+    (c) => !dejaAccueilli.has(c.id) && !epuise.has(c.id),
+  )
+  if (nouveaux.length === 0 && aTenter.length === 0) {
+    return Response.json({ nouveaux: 0, envoye: false, bienvenues: 0 })
+  }
 
   // L'adresse n'est pas dans `profiles` : elle se lit compte par compte, ce qui
   // reste peu coûteux sur un lot de nouvelles inscriptions. Un échec de lecture
   // ne doit pas empêcher l'alerte — `designer` sait s'en passer.
-  for (const compte of nouveaux) {
+  const aAdresser = new Map<string, NouveauCompte>()
+  for (const compte of [...nouveaux, ...aTenter]) aAdresser.set(compte.id, compte)
+  for (const compte of aAdresser.values()) {
     try {
       const { data } = await supabase.auth.admin.getUserById(compte.id)
       compte.email = data?.user?.email ?? null
@@ -137,8 +174,9 @@ Deno.serve(async (req) => {
   // a pu en prendre une partie entre-temps.
   const retenus = new Set((ecrites ?? []).map((l) => l.user_id as string))
   const aAnnoncer = nouveaux.filter((c) => retenus.has(c.id))
+  // `null` quand il n'y a aucune inscription neuve : ce passage ne sert alors
+  // qu'aux messages de bienvenue restés en souffrance, et il ne s'arrête pas là.
   const courriel = composeNewUserEmail(aAnnoncer)
-  if (!courriel) return Response.json({ nouveaux: 0, envoye: false })
 
   /**
    * Retire les traces que ce passage vient d'écrire.
@@ -190,18 +228,73 @@ Deno.serve(async (req) => {
     },
   })
 
+  let bienvenues = 0
+  let bienvenuesEchouees = 0
+
   try {
-    await client.send({
-      from: `Bible Ouverte <${expediteur}>`,
-      to: destinataire!,
-      subject: courriel.subject,
-      content: courriel.text,
-      html: courriel.html,
-    })
-  } catch (err) {
-    await oublierLesTraces()
-    console.error('envoi smtp impossible', err)
-    return new Response(`smtp : ${err instanceof Error ? err.message : err}`, { status: 502 })
+    if (courriel) {
+      try {
+        await client.send({
+          from: `Bible Ouverte <${expediteur}>`,
+          to: destinataire!,
+          subject: courriel.subject,
+          content: courriel.text,
+          html: courriel.html,
+        })
+      } catch (err) {
+        await oublierLesTraces()
+        console.error('envoi smtp impossible', err)
+        return new Response(`smtp : ${err instanceof Error ? err.message : err}`, { status: 502 })
+      }
+    }
+
+    /**
+     * Les messages de bienvenue, un par personne, après l'alerte.
+     *
+     * Deux différences avec l'alerte, et elles se répondent :
+     *
+     * - **Le compteur est incrémenté avant l'envoi**, jamais après. Une
+     *   fonction Edge peut être coupée en plein vol ; un compteur incrémenté
+     *   ensuite laisserait réessayer sans fin.
+     * - **Un échec ne fait pas échouer le passage.** L'alerte est un service
+     *   rendu au propriétaire, elle mérite un 502 ; une bienvenue qui n'est pas
+     *   partie sera reprise au passage suivant, trois fois au plus.
+     */
+    const aAccueillir = comptesAAccueillir([...aAdresser.values()], etats)
+      .filter((c) => retenus.has(c.id) || dejaTrace.has(c.id))
+
+    for (const compte of aAccueillir) {
+      const message = composeWelcomeEmail(compte)
+      if (!message) continue
+
+      const etat = etats.find((e) => e.userId === compte.id)
+      const { error: erreurCompteur } = await supabase
+        .from('new_user_alerts')
+        .update({ welcome_attempts: (etat?.welcomeAttempts ?? 0) + 1 })
+        .eq('user_id', compte.id)
+      if (erreurCompteur) {
+        console.error('compteur de bienvenue', compte.id.slice(0, 8), erreurCompteur.message)
+        continue
+      }
+
+      try {
+        await client.send({
+          from: `Bible Ouverte <${expediteur}>`,
+          to: compte.email!,
+          subject: message.subject,
+          content: message.text,
+          html: message.html,
+        })
+        await supabase
+          .from('new_user_alerts')
+          .update({ welcomed_at: new Date().toISOString() })
+          .eq('user_id', compte.id)
+        bienvenues++
+      } catch (err) {
+        bienvenuesEchouees++
+        console.error('bienvenue non envoyée', compte.id.slice(0, 8), err)
+      }
+    }
   } finally {
     // La fermeture peut lever à son tour sans que l'envoi ait échoué : ne pas
     // la laisser masquer un succès.
@@ -210,7 +303,9 @@ Deno.serve(async (req) => {
 
   return Response.json({
     nouveaux: aAnnoncer.length,
-    envoye: true,
+    envoye: courriel !== null,
     comptes: aAnnoncer.map((c) => c.id.slice(0, 8)),
+    bienvenues,
+    bienvenuesEchouees,
   })
 })
