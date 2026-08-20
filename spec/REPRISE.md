@@ -650,6 +650,25 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   2026, avec les trois tables manquantes. **Chercher les `Partial` et les
   `as Record<string, string>` avant de croire qu'une traduction est complète.**
 
+- **Un composant défini dans un autre remonte tout son sous-arbre à chaque
+  rendu.** `SectionCard` vivait dans le corps de `SettingsPage` : sa fonction
+  changeait donc d'identité à chaque rendu, et React — qui compare les types
+  **par référence** — démontait puis remontait la totalité de l'écran des
+  réglages à chaque frappe au clavier.
+
+  Le symptôme, signalé le 20 août 2026 sur un iPad : **le clavier se fermait
+  après chaque chiffre** saisi dans le champ d'objectif, l'élément qui avait le
+  focus ayant été détruit. Deux correctifs sur le champ lui-même — un brouillon
+  de saisie, puis le passage de `type="number"` à `type="text"` — n'y ont rien
+  changé, et pour cause : le champ n'était pas en cause. **Quand deux
+  correctifs successifs ne changent rien, c'est qu'on répare la mauvaise
+  chose.**
+
+  Ni `tsc`, ni `eslint`, ni les tests, ni le build ne le signalent. Seule une
+  saisie continue le révèle — c'est la seule chose qui souffre d'un remontage,
+  tout le reste se contentant de se redessiner. Un balayage des `.tsx` du dépôt
+  n'a trouvé aucun autre cas ; le refaire après toute extraction de composant.
+
 - **`auth.users.last_sign_in_at` ne dit pas qui est en ligne.** Il ne bouge
   qu'à une **vraie saisie de mot de passe**, jamais au rafraîchissement du
   jeton. Mesuré le 20 août 2026 à 13:26 UTC : le compte administrateur portait

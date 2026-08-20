@@ -37,6 +37,37 @@ import {
 } from "@/lib/notifications";
 import type { DeviceNotificationState } from "@/lib/notifications";
 
+/**
+ * L'encadré d'une section de réglages.
+ *
+ * **Défini au niveau du module, et il faut qu'il le reste.** Il vivait dans le
+ * corps de `SettingsPage` : sa fonction changeait donc d'identité à chaque
+ * rendu, et React, qui compare les types par référence, **démontait puis
+ * remontait tout le sous-arbre** — c'est-à-dire la totalité de l'écran — à
+ * chaque frappe au clavier.
+ *
+ * Le symptôme, signalé le 20 août 2026 sur un iPad : le clavier se fermait
+ * après chaque chiffre saisi dans le champ d'objectif, l'élément qui avait le
+ * focus ayant été détruit. Deux correctifs sur le champ lui-même — le brouillon
+ * de saisie, puis le passage de `type="number"` à `type="text"` — n'y ont rien
+ * changé, et pour cause : le champ n'était pas en cause.
+ *
+ * Ni `tsc`, ni `eslint`, ni les tests ne signalent un composant défini dans un
+ * autre. Seule la saisie continue le révèle, parce qu'elle est la seule chose
+ * qui souffre d'un remontage.
+ */
+function SectionCard({ icon: Icon, title, children, className = "" }: { icon: React.ComponentType<{ className?: string }>, title: string, children: React.ReactNode, className?: string }) {
+  return (
+    <section className={`bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow] ${className}`}>
+      <h2 className="text-base font-semibold mb-4 flex items-center gap-2.5 text-[--text]">
+        <Icon className="w-4 h-4" />
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
 export default function SettingsPage() {
   const { t, locale, setLocale } = useI18n();
   const livres = useBooks();
@@ -393,18 +424,6 @@ export default function SettingsPage() {
     const s = await getSettings();
     setSettings(s ?? null);
     applyColorTheme(themeId, s?.customColors);
-  }
-
-  function SectionCard({ icon: Icon, title, children, className = "" }: { icon: React.ComponentType<{ className?: string }>, title: string, children: React.ReactNode, className?: string }) {
-    return (
-      <section className={`bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow] ${className}`}>
-        <h2 className="text-base font-semibold mb-4 flex items-center gap-2.5 text-[--text]">
-          <Icon className="w-4 h-4" />
-          {title}
-        </h2>
-        {children}
-      </section>
-    );
   }
 
   if (!loaded) {
