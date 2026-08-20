@@ -9,6 +9,7 @@ import AuthCard, {
   AuthError, authButton, authHint, authInput, authLabel, authLink,
 } from '@/components/auth/AuthCard'
 import { useT } from '@/contexts/I18nContext'
+import { PROVENANCES } from '@/lib/profil/identite'
 
 export default function SignupPage() {
   const t = useT()
@@ -36,7 +37,26 @@ export default function SignupPage() {
     const form = new FormData(e.currentTarget)
     const email = form.get('email') as string
     const password = form.get('password') as string
-    const name = form.get('name') as string
+
+    /**
+     * Ce qui part dans `raw_user_meta_data`, que le trigger `handle_new_user`
+     * relit pour remplir `profiles` — voir
+     * `20260820090000_profile_identity.sql`.
+     *
+     * Les champs facultatifs sont **omis** quand ils sont vides plutôt
+     * qu'envoyés à blanc : `discovery_source` porte une contrainte en base, et
+     * une chaîne vide n'est pas une provenance. Le trigger applique un `nullif`
+     * de son côté, mais ne pas compter sur un seul des deux.
+     */
+    const texte = (cle: string) => ((form.get(cle) as string) ?? '').trim()
+    const metadonnees: Record<string, string> = {
+      first_name: texte('first_name'),
+      last_name: texte('last_name'),
+    }
+    for (const facultatif of ['phone', 'city', 'discovery_source']) {
+      const valeur = texte(facultatif)
+      if (valeur) metadonnees[facultatif] = valeur
+    }
 
     // Le serveur applique les mêmes règles ; les vérifier ici évite un
     // aller-retour et affiche un message en français plutôt que l'erreur brute.
@@ -56,7 +76,7 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: { data: metadonnees },
     })
 
     if (error) {
@@ -92,17 +112,34 @@ export default function SignupPage() {
       {/* Voir le commentaire de `auth/login` : sans `method`, une soumission
           non hydratée emporte le mot de passe dans l'URL. */}
       <form method="post" onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="signup-name" className={authLabel}>{t.authScreens.firstName}</label>
-          <input
-            id="signup-name"
-            name="name"
-            type="text"
-            autoComplete="name"
-            spellCheck={false}
-            required
-            className={authInput}
-          />
+        {/* Prénom et nom sont les deux seuls champs neufs exigés. Le portable,
+            la ville et la provenance restent facultatifs : un formulaire
+            d'inscription qui réclame six champs fait abandonner. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="signup-first-name" className={authLabel}>{t.authScreens.firstName}</label>
+            <input
+              id="signup-first-name"
+              name="first_name"
+              type="text"
+              autoComplete="given-name"
+              spellCheck={false}
+              required
+              className={authInput}
+            />
+          </div>
+          <div>
+            <label htmlFor="signup-last-name" className={authLabel}>{t.authScreens.lastName}</label>
+            <input
+              id="signup-last-name"
+              name="last_name"
+              type="text"
+              autoComplete="family-name"
+              spellCheck={false}
+              required
+              className={authInput}
+            />
+          </div>
         </div>
         <div>
           <label htmlFor="signup-email" className={authLabel}>{t.authScreens.email}</label>
@@ -133,6 +170,48 @@ export default function SignupPage() {
           <p id="password-hint" className={authHint}>
             {t.profile.passwordHint(PASSWORD_MIN_LENGTH)}
           </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="signup-phone" className={authLabel}>
+              {t.authScreens.phoneField}<span className="text-slate-400">{t.authScreens.optional}</span>
+            </label>
+            <input
+              id="signup-phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              className={authInput}
+            />
+          </div>
+          <div>
+            <label htmlFor="signup-city" className={authLabel}>
+              {t.authScreens.city}<span className="text-slate-400">{t.authScreens.optional}</span>
+            </label>
+            <input
+              id="signup-city"
+              name="city"
+              type="text"
+              autoComplete="address-level2"
+              className={authInput}
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="signup-discovery" className={authLabel}>
+            {t.authScreens.discoverySource}<span className="text-slate-400">{t.authScreens.optional}</span>
+          </label>
+          {/* Les valeurs sont les identifiants que la contrainte
+              `profiles_discovery_source_check` accepte ; seuls les libellés
+              sont traduits. */}
+          <select id="signup-discovery" name="discovery_source" defaultValue="" className={authInput}>
+            <option value="">{t.authScreens.discoveryPlaceholder}</option>
+            {PROVENANCES.map((origine) => (
+              <option key={origine} value={origine}>
+                {t.authScreens.discoverySources[origine]}
+              </option>
+            ))}
+          </select>
         </div>
         {error && <AuthError>{error}</AuthError>}
         <button type="submit" disabled={loading} className={authButton}>
