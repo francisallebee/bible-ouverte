@@ -25,7 +25,9 @@ export default function AdminUtilisateursPage() {
   const { t, locale } = useI18n()
 
   const [lignes, setLignes] = useState<LigneUtilisateur[]>([])
+  const [stats, setStats] = useState<Record<string, number> | null>(null)
   const [chargement, setChargement] = useState(true)
+  const [rafraichit, setRafraichit] = useState(false)
   const [erreur, setErreur] = useState('')
   const [actionId, setActionId] = useState<string | null>(null)
 
@@ -42,11 +44,16 @@ export default function AdminUtilisateursPage() {
    * rendu de plus.
    */
   const charger = useCallback(async () => {
-    setErreur('')
+    // **Pas de `setChargement(true)` ici.** Le crochet de fraîcheur rappelle
+    // cette fonction à chaque retour au premier plan : remettre l'écran sur
+    // « Chargement… » le ferait clignoter à chaque fois qu'on revient sur
+    // l'onglet. Le premier chargement seul a droit à son attente.
+    setErreur(''); setRafraichit(true)
     const res = await api('/api/admin/users')
-    if (res.error) { setErreur(res.error); setChargement(false); return }
+    if (res.error) { setErreur(res.error); setChargement(false); setRafraichit(false); return }
     setLignes(res.data?.users || [])
-    setChargement(false)
+    setStats(res.data?.stats ?? null)
+    setChargement(false); setRafraichit(false)
   }, [])
 
   // Voir `use-fraicheur.ts` : revenir d'une fiche ne remonte pas cet écran, et
@@ -136,7 +143,7 @@ export default function AdminUtilisateursPage() {
         <div className="flex items-center gap-2">
           <button onClick={charger}
             className="flex items-center gap-1.5 text-sm text-[--primary] hover:underline">
-            <RefreshCw className="w-4 h-4" /> {t.admin.refresh}
+            <RefreshCw className={`w-4 h-4 ${rafraichit ? 'animate-spin' : ''}`} /> {t.admin.refresh}
           </button>
           <button onClick={exporter}
             className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:border-gray-300">
@@ -171,6 +178,30 @@ export default function AdminUtilisateursPage() {
           </button>
         </div>
       </div>
+
+      {/* Ce que le serveur a compté, sur les lignes qu'il vient de rendre.
+          Les pastilles de segment, elles, comptent dans le navigateur : les
+          deux doivent s'accorder, et c'est visible d'un coup d'œil. */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-gray-500">{t.admin.statUsers}</p>
+            <p className="text-xl font-bold">{stats.totalUsers ?? 0}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-gray-500">{t.admin.statSuspended}</p>
+            <p className="text-xl font-bold text-red-700">{stats.suspended ?? 0}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-gray-500">{t.admin.roleAdmin}</p>
+            <p className="text-xl font-bold">{stats.admins ?? 0}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-gray-500">{t.admin.segments.actifs}</p>
+            <p className="text-xl font-bold">{stats.activeUsers ?? 0}</p>
+          </div>
+        </div>
+      )}
 
       {/* Segments */}
       <div className="flex flex-wrap gap-2 mb-4">

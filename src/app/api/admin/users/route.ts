@@ -116,6 +116,11 @@ export async function GET(request: NextRequest) {
       totalPlanDays,
       totalContexts,
       admins: enriched.filter(u => u.is_admin).length,
+      // Compté **ici**, sur les lignes que cette route s'apprête à rendre.
+      // C'est l'observable qui départage un défaut de route d'un défaut
+      // d'affichage : si cette carte annonce 1 quand le filtre du navigateur
+      // compte 0, les deux ne regardent pas le même tableau.
+      suspended: enriched.filter(u => u.suspended).length,
     },
   })
 }
