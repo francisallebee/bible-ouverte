@@ -112,12 +112,21 @@ export default function Sidebar({ hiddenPages }: { hiddenPages?: string[] }) {
           open ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
         } lg:translate-x-0`}
       >
-        <Link href="/new-reading" onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2">
+        <Link href="/new-reading" onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2 shrink-0">
           <img src="/logo.svg" alt="Logo" width="28" height="28" className="w-7 h-7" />
           <span>Bible Ouverte</span>
         </Link>
 
-        <div className="flex flex-col gap-0.5 flex-1">
+        {/* `overflow-y-auto` et surtout `min-h-0`.
+            La barre est `fixed top-0 bottom-0` : quand les entrées dépassent la
+            hauteur de l'écran, le bas — profil, déconnexion, version — sortait
+            du cadre sans qu'aucun défilement ne permette d'y revenir. Il fallait
+            quinze entrées et un écran de moins de 900 px, ce qui est le cas de
+            tout téléphone : mesuré à 862 px nécessaires le 20 août 2026.
+            `min-h-0` n'est pas décoratif — sans lui, un enfant `flex-1` refuse
+            de se comprimer sous la taille de son contenu, et `overflow-y-auto`
+            n'a rien à faire défiler. */}
+        <div className="flex flex-col gap-0.5 flex-1 min-h-0 overflow-y-auto">
           {NAV_LINKS
             .filter(l => !l.adminOnly || isAdmin)
             .filter(l => isPageVisible(l.href, hiddenPages))
@@ -156,7 +165,7 @@ export default function Sidebar({ hiddenPages }: { hiddenPages?: string[] }) {
         </div>
 
         {user && (
-          <div className="pt-3 border-t border-gray-100">
+          <div className="pt-3 border-t border-gray-100 shrink-0">
             <Link href="/profil" onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors no-underline">
               {profileAvatar ? (
@@ -178,7 +187,7 @@ export default function Sidebar({ hiddenPages }: { hiddenPages?: string[] }) {
           </div>
         )}
 
-        <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
+        <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100 shrink-0">
           Bible Ouverte v{APP_VERSION}
         </p>
       </nav>
