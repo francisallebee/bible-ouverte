@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   filtrerParSegment, chercher, trier, paginer, versCSV, COLONNES_CSV,
-  JOURS_ACTIF, JOURS_INACTIF,
+  JOURS_ACTIF, JOURS_INACTIF, statutDe, MINUTES_EN_LIGNE,
 } from './utilisateurs'
 import type { LigneUtilisateur } from './utilisateurs'
 
@@ -167,5 +167,32 @@ describe('export CSV', () => {
 
   it('écrit une case vide pour une valeur absente', () => {
     expect(versCSV([ligne({ email: null, lastSignIn: null })])).toContain('""')
+  })
+})
+
+describe('statut affiché', () => {
+  const ilYAMinutes = (m: number) => new Date(MAINTENANT.getTime() - m * 60000).toISOString()
+
+  it('rend « en ligne » sur une connexion toute fraîche', () => {
+    expect(statutDe({ suspended: false, lastSignIn: ilYAMinutes(1) }, MAINTENANT)).toBe('en-ligne')
+  })
+
+  it('cesse de le prétendre au-delà de la fenêtre', () => {
+    expect(statutDe({ suspended: false, lastSignIn: ilYAMinutes(MINUTES_EN_LIGNE + 1) }, MAINTENANT))
+      .toBe('hors-ligne')
+  })
+
+  it('fait primer la suspension sur la présence', () => {
+    // Un compte suspendu vu il y a deux minutes n'est pas « en ligne » : il est
+    // suspendu, et c'est la seule chose qui importe à qui regarde la liste.
+    expect(statutDe({ suspended: true, lastSignIn: ilYAMinutes(2) }, MAINTENANT)).toBe('suspendu')
+  })
+
+  it('range « jamais connecté » hors ligne', () => {
+    expect(statutDe({ suspended: false, lastSignIn: null }, MAINTENANT)).toBe('hors-ligne')
+  })
+
+  it('ne prend pas une date illisible pour une présence', () => {
+    expect(statutDe({ suspended: false, lastSignIn: 'n’importe quoi' }, MAINTENANT)).toBe('hors-ligne')
   })
 })

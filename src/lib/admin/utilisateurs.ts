@@ -190,3 +190,35 @@ export function versCSV(lignes: LigneUtilisateur[]): string {
   ].map(champ).join(';'))
   return '﻿' + [entete, ...corps].join('\r\n')
 }
+
+/**
+ * Le statut affiché d'un compte, en trois états exclusifs.
+ *
+ * **La suspension prime sur tout le reste.** Un compte suspendu dont le jeton
+ * a été rafraîchi il y a deux minutes n'est pas « en ligne » : il est
+ * suspendu, et c'est la seule chose qui importe à qui regarde la liste.
+ *
+ * « En ligne » repose sur `last_sign_in_at`, que GoTrue met à jour au
+ * rafraîchissement du jeton. C'est un indice de présence, pas une preuve — d'où
+ * une fenêtre courte : au-delà de cinq minutes, on ne prétend plus rien.
+ *
+ * Cette fonction existe parce que la logique avait **disparu** en extrayant la
+ * gestion des utilisateurs dans son propre écran, le 20 août 2026 : la colonne
+ * affichait « Hors ligne » pour tout le monde, suspendus compris. Elle est ici
+ * pour être testée, plutôt qu'écrite en ternaire au milieu d'un tableau.
+ */
+export const MINUTES_EN_LIGNE = 5
+
+export type Statut = 'suspendu' | 'en-ligne' | 'hors-ligne'
+
+export function statutDe(
+  ligne: Pick<LigneUtilisateur, 'suspended' | 'lastSignIn'>,
+  maintenant: Date = new Date(),
+): Statut {
+  if (ligne.suspended) return 'suspendu'
+  if (!ligne.lastSignIn) return 'hors-ligne'
+  const vu = Date.parse(ligne.lastSignIn)
+  // Une date illisible ne vaut pas une présence.
+  if (Number.isNaN(vu)) return 'hors-ligne'
+  return vu > maintenant.getTime() - MINUTES_EN_LIGNE * 60000 ? 'en-ligne' : 'hors-ligne'
+}

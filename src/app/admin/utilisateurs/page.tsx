@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   Users, Search, Download, ShieldOff, ArrowLeft, ChevronRight,
-  UserCog, Ban, CheckCircle, Trash2, RefreshCw, Mail,
+  UserCog, Ban, CheckCircle, Trash2, RefreshCw, Mail, FileUser,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useI18n } from '@/contexts/I18nContext'
@@ -12,7 +12,7 @@ import { formatDate } from '@/lib/i18n/format'
 import { api } from '@/lib/admin/api'
 import Composeur from '@/components/admin/Composeur'
 import {
-  SEGMENTS, TRIS, chercher, filtrerParSegment, trier, paginer, versCSV,
+  SEGMENTS, TRIS, chercher, filtrerParSegment, trier, paginer, versCSV, statutDe,
 } from '@/lib/admin/utilisateurs'
 import type { LigneUtilisateur, Segment, Tri, Ordre } from '@/lib/admin/utilisateurs'
 
@@ -239,9 +239,24 @@ export default function AdminUtilisateursPage() {
                         : <span className="text-gray-400 text-xs">{t.admin.roleUser}</span>}
                     </td>
                     <td className="p-3 text-center">
-                      {u.suspended
-                        ? <span className="inline-flex items-center gap-1 text-red-600 text-xs"><Ban className="w-3 h-3" /> {t.admin.suspended}</span>
-                        : <span className="text-gray-400 text-xs">{t.admin.offline}</span>}
+                      {/* Trois états, et la suspension prime. Les couleurs de
+                          texte sont posées explicitement sur les fonds
+                          colorés : ni `bg-red-50` ni `bg-green-50` ne sont
+                          remappés en mode sombre (règle 15). */}
+                      {(() => {
+                        const statut = statutDe(u)
+                        if (statut === 'suspendu') return (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+                            <Ban className="w-3 h-3" />{t.admin.suspended}
+                          </span>
+                        )
+                        if (statut === 'en-ligne') return (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-600 inline-block" />{t.admin.online}
+                          </span>
+                        )
+                        return <span className="text-gray-400 text-xs">{t.admin.offline}</span>
+                      })()}
                     </td>
                     <td className="p-3 text-center">{u.readings}</td>
                     <td className="p-3 text-xs text-gray-500 hidden lg:table-cell">
@@ -268,6 +283,14 @@ export default function AdminUtilisateursPage() {
                           className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 disabled:opacity-30">
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        {/* Le nom est déjà un lien, mais rien ne le disait :
+                            un bouton nommé vaut mieux qu'une zone cliquable
+                            qu'il faut deviner. */}
+                        <Link href={`/admin/utilisateurs/${u.id}`}
+                          aria-label={t.admin.openFiche} title={t.admin.openFiche}
+                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[--primary] no-underline">
+                          <FileUser className="w-4 h-4" />
+                        </Link>
                       </div>
                     </td>
                   </tr>

@@ -916,6 +916,7 @@ export const ar: Dictionary = {
     ficheEmailPending: 'بريد غير مؤكَّد',
     ficheSignedUp: 'سجّل في',
     ficheLanguage: 'اللغة',
+    ficheNotifications: 'الإشعارات',
     fichePushDevices: 'الأجهزة المشتركة في الإشعارات',
     ficheMemorised: 'آيات قيد الحفظ',
     ficheSessions: 'جلسات اللعب',

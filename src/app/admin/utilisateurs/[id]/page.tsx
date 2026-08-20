@@ -142,9 +142,15 @@ export default function FicheUtilisateurPage() {
 
       {/* En-tête */}
       <div className="mt-2 mb-6 flex flex-wrap items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-[--primary] flex items-center justify-center text-white text-xl font-bold shrink-0">
-          {nom[0]?.toUpperCase() || '?'}
-        </div>
+        {p.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={p.avatar_url} alt="" width="56" height="56"
+            className="w-14 h-14 rounded-full object-cover shrink-0 ring-2 ring-gray-100" />
+        ) : (
+          <div className="w-14 h-14 rounded-full bg-[--primary] flex items-center justify-center text-white text-xl font-bold shrink-0">
+            {nom[0]?.toUpperCase() || '?'}
+          </div>
+        )}
         <div className="flex-1 min-w-[200px]">
           <h1 className="text-2xl font-bold">{nom}</h1>
           <p className="text-sm text-gray-500 flex items-center gap-1.5">
@@ -186,6 +192,15 @@ export default function FicheUtilisateurPage() {
             valeur={p.discovery_source ? t.authScreens.discoverySources[p.discovery_source] : null}
             repli={absent}
           />
+          <Champ label={t.profile.bio} valeur={p.bio} repli={absent} />
+          <Champ
+            label={t.profile.socials}
+            valeur={Object.entries(p.social_links ?? {})
+              .filter(([, v]) => v)
+              .map(([k, v]) => `${k} : ${v}`)
+              .join(' · ') || null}
+            repli={absent}
+          />
         </Carte>
 
         <Carte titre={t.admin.ficheAccount}>
@@ -201,6 +216,40 @@ export default function FicheUtilisateurPage() {
           <Champ label={t.admin.colLastSignIn} valeur={date(fiche.auth.lastSignIn)} repli={t.admin.never} />
           <Champ label={t.admin.ficheLanguage} valeur={fiche.reglages?.language ?? null} repli={absent} />
           <Champ label={t.admin.fichePushDevices} valeur={String(fiche.compteurs.abonnementsPush)} repli={absent} />
+        </Carte>
+      </div>
+
+      {/* Les réglages viennent de la colonne `jsonb` : on affiche ce qu'on sait
+          nommer, et rien n'est supposé absent — une clé jamais écrite rend le
+          repli plutôt qu'une valeur par défaut inventée. */}
+      <div className="mb-4">
+        <Carte titre={t.nav.settings}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+            <Champ label={t.settings.theme} valeur={fiche.reglages?.theme ?? null} repli={absent} />
+            <Champ label={t.settings.colorTheme} valeur={fiche.reglages?.colorTheme ?? null} repli={absent} />
+            <Champ
+              label={t.settings.goal}
+              valeur={fiche.reglages?.readingGoal
+                ? `${fiche.reglages.readingGoal.cible ?? fiche.reglages.readingGoal.target ?? '?'} ${t.settings.goalUnits[fiche.reglages.readingGoal.unite ?? 'chapters'] ?? ''} ${t.settings.goalPeriods[fiche.reglages.readingGoal.periode ?? 'day'] ?? ''}`.trim()
+                : null}
+              repli={absent}
+            />
+            <Champ
+              label={t.admin.ficheNotifications}
+              valeur={fiche.reglages?.notificationsEnabled === true ? t.common.yes : t.common.no}
+              repli={absent}
+            />
+            <Champ label={t.settings.fontUi} valeur={fiche.reglages?.uiFont ?? null} repli={absent} />
+            <Champ label={t.settings.fontReading} valeur={fiche.reglages?.readingFont ?? null} repli={absent} />
+            <Champ
+              label={t.settings.pages}
+              valeur={(fiche.reglages?.hiddenPages ?? []).length
+                ? (fiche.reglages?.hiddenPages ?? []).join(', ')
+                : null}
+              repli={absent}
+            />
+            <Champ label={t.settings.tour} valeur={date(fiche.reglages?.tourCompletedAt) } repli={absent} />
+          </div>
         </Carte>
       </div>
 

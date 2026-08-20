@@ -858,6 +858,7 @@ export const fr = {
     ficheEmailPending: 'Adresse non confirmée',
     ficheSignedUp: 'Inscrit le',
     ficheLanguage: 'Langue',
+    ficheNotifications: 'Notifications',
     fichePushDevices: 'Appareils abonnés aux notifications',
     ficheMemorised: 'Versets en apprentissage',
     ficheSessions: 'Séances de jeu',

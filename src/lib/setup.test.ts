@@ -13,12 +13,13 @@ describe('pages masquables', () => {
     expect(isHideable('/admin')).toBe(false)
   })
 
-  it('laisse masquer les treize autres', () => {
-    // Le compte est là pour être mis en défaut : il l'a été le 20 août 2026 à
-    // l'ajout de `/messages`, et son intitulé disait encore « les neuf » alors
-    // qu'il en comptait douze. Un nombre écrit dans un test se relit.
-    expect(HIDEABLE_PAGES).toHaveLength(13)
+  it('laisse masquer les douze autres', () => {
+    // Le compte est là pour être mis en défaut, et il l'a été deux fois le
+    // 20 août 2026 : à l'ajout de `/messages`, puis au retrait de `/profil`,
+    // qui a quitté le menu — le bloc avatar du bas de la barre y mène déjà.
+    expect(HIDEABLE_PAGES).toHaveLength(12)
     expect(HIDEABLE_PAGES).toContain('/messages')
+    expect(HIDEABLE_PAGES).not.toContain('/profil')
     for (const href of HIDEABLE_PAGES) expect(isHideable(href)).toBe(true)
   })
 

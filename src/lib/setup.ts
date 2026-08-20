@@ -18,6 +18,13 @@
  * `/admin` n'y figure pas davantage : elle est déjà réservée aux
  * administrateurs, et un masquage par-dessus n'ajouterait rien.
  */
+/*
+ * `/profil` n'y figure plus depuis le 20 août 2026 : elle a quitté le menu, le
+ * bloc avatar du bas de la barre y menant déjà. Masquer une page qui n'est plus
+ * listée n'aurait rien masqué. Les réglages qui la contiennent encore ne
+ * gênent pas : `isPageVisible` ne consulte la liste que pour les pages
+ * masquables.
+ */
 export const HIDEABLE_PAGES = [
   '/plans',
   '/search',
@@ -31,7 +38,6 @@ export const HIDEABLE_PAGES = [
   '/messages',
   '/support',
   '/soutenir',
-  '/profil',
 ] as const
 
 export type HideablePage = (typeof HIDEABLE_PAGES)[number]

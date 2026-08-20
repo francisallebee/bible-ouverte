@@ -41,7 +41,9 @@ export const NAV_LINKS: {
   { href: "/messages", label: (t) => t.nav.messages, icon: Mail },
   { href: "/support", label: (t) => t.nav.support, icon: MessageCircle },
   { href: "/soutenir", label: (t) => t.nav.donate, icon: Heart },
-  { href: "/profil", label: (t) => t.nav.profile, icon: User },
+  // `/profil` n'est PAS dans cette liste : le bloc du bas de la barre —
+  // avatar, nom, puis déconnexion — y mène déjà. Deux entrées vers le même
+  // écran encombraient un menu qui débordait déjà de l'écran.
   { href: "/admin", label: (t) => t.nav.admin, icon: Shield, adminOnly: true },
 ];
 
