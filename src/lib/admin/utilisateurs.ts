@@ -222,3 +222,22 @@ export function statutDe(
   if (Number.isNaN(vu)) return 'hors-ligne'
   return vu > maintenant.getTime() - MINUTES_EN_LIGNE * 60000 ? 'en-ligne' : 'hors-ligne'
 }
+
+/**
+ * Le bannissement est-il encore actif ?
+ *
+ * `profiles.suspended` est un **miroir** : c'est `auth.users.banned_until` qui
+ * empêche réellement de se connecter. Les deux sont écrits ensemble par la
+ * route d'administration, mais un miroir peut dériver — une écriture partielle,
+ * une reprise de données, une main dans la console.
+ *
+ * La liste croise donc les deux : un compte est donné pour suspendu si l'un ou
+ * l'autre le dit. Mieux vaut annoncer une suspension qui n'a plus d'effet que
+ * de laisser passer pour libre quelqu'un qui ne peut plus entrer.
+ */
+export function banActif(bannedUntil: string | null | undefined, maintenant: Date = new Date()): boolean {
+  if (!bannedUntil) return false
+  const fin = Date.parse(bannedUntil)
+  if (Number.isNaN(fin)) return false
+  return fin > maintenant.getTime()
+}

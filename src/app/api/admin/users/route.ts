@@ -2,6 +2,7 @@ import { type NextRequest } from 'next/server'
 import type { User } from '@supabase/supabase-js'
 import { requireAdmin, errorResponse, successResponse } from '@/lib/supabase/api-client'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { banActif } from '@/lib/admin/utilisateurs'
 
 // Sans cela, Next exécute le handler pendant `next build` pour décider s'il est
 // statique. `createAdminClient()` lève alors une exception là où les variables
@@ -34,6 +35,9 @@ export async function GET(request: NextRequest) {
     email: au.email,
     lastSignIn: au.last_sign_in_at,
     createdAt: au.created_at,
+    // `banned_until` est ce qui empêche réellement de se connecter ;
+    // `profiles.suspended` n'en est que le miroir. Voir `banActif`.
+    bannedUntil: (au as unknown as { banned_until?: string | null }).banned_until ?? null,
   }]))
 
   // Profiles with data counts
@@ -95,6 +99,10 @@ export async function GET(request: NextRequest) {
       ...p,
       email: authData?.email ?? null,
       lastSignIn: authData?.lastSignIn ?? null,
+      // Les deux sources sont croisées : mieux vaut annoncer une suspension qui
+      // n'a plus d'effet que de laisser passer pour libre quelqu'un qui ne peut
+      // plus entrer.
+      suspended: !!p.suspended || banActif(authData?.bannedUntil),
       readings: readingsBy.parUtilisateur.get(p.id) ?? 0,
       plans: plansBy.parUtilisateur.get(p.id) ?? 0,
       contexts: contextsBy.parUtilisateur.get(p.id) ?? 0,

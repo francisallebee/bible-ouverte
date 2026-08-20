@@ -650,6 +650,33 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   2026, avec les trois tables manquantes. **Chercher les `Partial` et les
   `as Record<string, string>` avant de croire qu'une traduction est complète.**
 
+- **Next.js met en cache les appels que `supabase-js` adresse à PostgREST.**
+  Le 20 août 2026, un compte suspendu s'affichait bien sur sa fiche et **jamais
+  dans la liste**, filtre « Suspendus » à zéro, y compris après le bouton
+  Actualiser et après un changement de page. Tout ce qui pouvait être mesuré
+  disait que c'était impossible : la base rendait `suspended = true` de type
+  `boolean`, `banned_until` en 2126, les deux routes faisaient le **même**
+  `select('*')` avec la **même** clé service_role, et le service worker exclut
+  `/api/` de son cache. Dans le navigateur, la pastille et le compteur du filtre
+  lisent le même tableau dans le même rendu : ils ne pouvaient pas se
+  contredire.
+
+  Il ne restait qu'une variable : **l'âge de la réponse**. `createAdminClient()`
+  n'avait pas de `fetch` personnalisé, donc employait le `fetch` global — que
+  Next remplace par le sien, à cache de données. L'entrée de cache de la liste
+  avait été remplie **avant** la suspension et resservie ensuite ; celle de la
+  fiche, **après**. Un déploiement vidait le cache, la pastille réapparaissait
+  une fois, puis disparaissait de nouveau — ce qui achevait de désorienter.
+
+  **`export const dynamic = 'force-dynamic'` n'y suffit pas** : il empêche la
+  mise en cache de la *route*, pas celle des appels qu'elle passe. Le client
+  d'administration force désormais `cache: 'no-store'` sur chaque appel. Une
+  route d'administration lit toujours un état qui vient de changer ; le cache
+  n'y peut être qu'un piège.
+
+  Leçon de méthode : **quand tout ce qu'on mesure dit « impossible », la
+  variable oubliée est le temps.**
+
 - **Le cache de segments de l'App Router sert un écran périmé, sans rien
   dire.** Le 20 août 2026 : un administrateur suspend un compte depuis sa fiche,
   revient à la liste, et la liste le donne toujours pour actif — filtre

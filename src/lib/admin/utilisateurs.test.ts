@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   filtrerParSegment, chercher, trier, paginer, versCSV, COLONNES_CSV,
-  JOURS_ACTIF, JOURS_INACTIF, statutDe, MINUTES_EN_LIGNE,
+  JOURS_ACTIF, JOURS_INACTIF, statutDe, MINUTES_EN_LIGNE, banActif,
 } from './utilisateurs'
 import type { LigneUtilisateur } from './utilisateurs'
 
@@ -194,5 +194,25 @@ describe('statut affiché', () => {
 
   it('ne prend pas une date illisible pour une présence', () => {
     expect(statutDe({ suspended: false, lastSignIn: 'n’importe quoi' }, MAINTENANT)).toBe('hors-ligne')
+  })
+})
+
+describe('bannissement', () => {
+  it('reconnaît un bannissement encore en cours', () => {
+    // La route pose `ban_duration: '876000h'`, soit une centaine d'années.
+    expect(banActif('2126-07-27T13:01:26.703Z', MAINTENANT)).toBe(true)
+  })
+
+  it('ignore un bannissement expiré', () => {
+    expect(banActif('2020-01-01T00:00:00.000Z', MAINTENANT)).toBe(false)
+  })
+
+  it('traite l’absence comme un compte libre', () => {
+    expect(banActif(null, MAINTENANT)).toBe(false)
+    expect(banActif(undefined, MAINTENANT)).toBe(false)
+  })
+
+  it('ne prend pas une date illisible pour un bannissement', () => {
+    expect(banActif('jamais', MAINTENANT)).toBe(false)
   })
 })
