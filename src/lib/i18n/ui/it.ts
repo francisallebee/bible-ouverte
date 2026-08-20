@@ -170,6 +170,7 @@ export const it: Dictionary = {
     goalUnit: 'Unità',
     goalPeriod: 'Periodo',
     goalTarget: 'Obiettivo',
+    goalTargetHint: 'Digita il numero, poi Invio — oppure tocca altrove sullo schermo.',
     goalUnits: {
       chapters: 'capitoli',
       verses: 'versetti',

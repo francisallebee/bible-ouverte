@@ -177,6 +177,7 @@ export const fr = {
     goalUnit: 'Unité',
     goalPeriod: 'Période',
     goalTarget: 'Cible',
+    goalTargetHint: 'Tape le nombre, puis Entrée — ou touche ailleurs sur l’écran.',
     goalUnits: {
       chapters: 'chapitres',
       verses: 'versets',

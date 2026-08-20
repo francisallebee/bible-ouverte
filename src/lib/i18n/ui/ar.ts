@@ -269,6 +269,7 @@ export const ar: Dictionary = {
     goalUnit: 'الوحدة',
     goalPeriod: 'المدّة',
     goalTarget: 'الهدف',
+    goalTargetHint: 'اكتب الرقم ثم اضغط Enter — أو المس مكانًا آخر على الشاشة.',
     goalUnits: {
       chapters: 'أصحاحًا',
       verses: 'آية',

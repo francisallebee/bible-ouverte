@@ -171,6 +171,7 @@ export const es: Dictionary = {
     goalUnit: 'Unidad',
     goalPeriod: 'Periodo',
     goalTarget: 'Objetivo',
+    goalTargetHint: 'Escribe el número y pulsa Intro, o toca en otro lugar de la pantalla.',
     goalUnits: {
       chapters: 'capítulos',
       verses: 'versículos',

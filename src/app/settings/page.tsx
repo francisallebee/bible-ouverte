@@ -20,7 +20,7 @@ import { COLOR_THEMES, applyColorTheme, applyTheme, CUSTOM_THEME_ID, DEFAULT_CUS
 import { NAV_LINKS } from "@/components/Sidebar";
 import {
   normaliserObjectif, PORTEE_PAR_DEFAUT, MOTS_PAR_MINUTE,
-  normaliserCible, CIBLE_MIN, CIBLE_MAX,
+  normaliserCible,
   type Objectif, type Portee,
 } from "@/lib/objectifs/objectifs";
 import {
@@ -630,19 +630,33 @@ export default function SettingsPage() {
               <label htmlFor="objectif-cible" className="block text-xs font-medium text-[--text-secondary] mb-1">
                 {t.settings.goalTarget}
               </label>
+              {/* `type="text"` et non `type="number"`, malgré les apparences.
+                  Sur iPad, le champ numérique faisait apparaître et disparaître
+                  le clavier à chaque chiffre — signalé le 20 août 2026. Deux
+                  causes s'y ajoutaient : `type="number"` a un comportement
+                  propre à iOS quand sa valeur est réécrite à chaque frappe, et
+                  l'`inputMode="numeric"` que je lui avais joint le contredit
+                  plutôt qu'il ne le précise.
+
+                  `text` + `inputMode` + `pattern` est la combinaison
+                  recommandée : même pavé numérique, sans le champ numérique.
+                  Le filtrage des caractères remplace ce que `type="number"`
+                  refusait, et `aria-describedby` rattache l'explication. */}
               <input
                 id="objectif-cible"
-                type="number"
+                type="text"
                 inputMode="numeric"
-                min={CIBLE_MIN}
-                max={CIBLE_MAX}
+                pattern="[0-9]*"
+                autoComplete="off"
+                aria-describedby="objectif-cible-aide"
                 value={cibleBrouillon ?? objectif.cible}
-                onChange={(e) => setCibleBrouillon(e.target.value)}
+                onChange={(e) => setCibleBrouillon(e.target.value.replace(/[^0-9]/g, ''))}
                 onBlur={terminerLaSaisieDeCible}
-                // Entrée valide sans quitter le champ : sur un téléphone, la
-                // sortie de champ n'est pas un geste évident.
                 onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
                 className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]" />
+              <p id="objectif-cible-aide" className="text-[11px] text-[--text-secondary] mt-1">
+                {t.settings.goalTargetHint}
+              </p>
             </div>
           </div>
           {/* Ce que l'objectif compte.

@@ -162,6 +162,7 @@ export const en: Dictionary = {
     goalUnit: 'Unit',
     goalPeriod: 'Period',
     goalTarget: 'Target',
+    goalTargetHint: 'Type the number, then press Enter — or tap elsewhere on the screen.',
     goalUnits: {
       chapters: 'chapters',
       verses: 'verses',
