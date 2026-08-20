@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft, ShieldOff, UserCog, Ban, CheckCircle, Trash2, Mail, MailCheck,
-  BookOpen, Layers, Tags, Bell, Brain, Gamepad2, CalendarDays, MessageSquare,
+  BookOpen, Layers, Tags, Bell, Brain, Gamepad2, CalendarDays, MessageSquare, Shield,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
@@ -13,6 +13,7 @@ import { formatDate } from '@/lib/i18n/format'
 import { api } from '@/lib/admin/api'
 import { nomAffiche } from '@/lib/profil/identite'
 import { TICKET_STATUS_BADGE } from '@/lib/tickets'
+import BadgeStatut from '@/components/admin/BadgeStatut'
 import Composeur from '@/components/admin/Composeur'
 import { getFilDe } from '@/lib/storage/messages-store'
 import { ordonnerFil } from '@/lib/messages/messages'
@@ -157,9 +158,16 @@ export default function FicheUtilisateurPage() {
             <Mail className="w-3.5 h-3.5" />{fiche.auth.email || absent}
           </p>
         </div>
+        {/* Le statut, en grand et en couleur : c'est la première chose qu'on
+            vient lire sur une fiche. Même composant que la liste — deux
+            pastilles séparées avaient déjà divergé une fois. */}
         <div className="flex flex-wrap items-center gap-2">
-          {p.is_admin && <span className="text-green-700 text-xs font-medium bg-green-50 px-2 py-1 rounded-full">{t.admin.roleAdmin}</span>}
-          {p.suspended && <span className="text-red-700 text-xs font-medium bg-red-50 px-2 py-1 rounded-full">{t.admin.suspended}</span>}
+          <BadgeStatut compte={{ suspended: !!p.suspended, lastSignIn: fiche.auth.lastSignIn }} taille="grande" />
+          {p.is_admin && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[--primary-light] px-2.5 py-1 text-sm font-medium text-[--primary]">
+              <Shield className="w-4 h-4" />{t.admin.roleAdmin}
+            </span>
+          )}
         </div>
       </div>
 

@@ -11,8 +11,9 @@ import { useI18n } from '@/contexts/I18nContext'
 import { formatDate } from '@/lib/i18n/format'
 import { api } from '@/lib/admin/api'
 import Composeur from '@/components/admin/Composeur'
+import BadgeStatut from '@/components/admin/BadgeStatut'
 import {
-  SEGMENTS, TRIS, chercher, filtrerParSegment, trier, paginer, versCSV, statutDe,
+  SEGMENTS, TRIS, chercher, filtrerParSegment, trier, paginer, versCSV,
 } from '@/lib/admin/utilisateurs'
 import type { LigneUtilisateur, Segment, Tri, Ordre } from '@/lib/admin/utilisateurs'
 
@@ -238,26 +239,7 @@ export default function AdminUtilisateursPage() {
                         ? <span className="text-green-700 text-xs font-medium bg-green-50 px-2 py-0.5 rounded-full">{t.admin.roleAdmin}</span>
                         : <span className="text-gray-400 text-xs">{t.admin.roleUser}</span>}
                     </td>
-                    <td className="p-3 text-center">
-                      {/* Trois états, et la suspension prime. Les couleurs de
-                          texte sont posées explicitement sur les fonds
-                          colorés : ni `bg-red-50` ni `bg-green-50` ne sont
-                          remappés en mode sombre (règle 15). */}
-                      {(() => {
-                        const statut = statutDe(u)
-                        if (statut === 'suspendu') return (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
-                            <Ban className="w-3 h-3" />{t.admin.suspended}
-                          </span>
-                        )
-                        if (statut === 'en-ligne') return (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-600 inline-block" />{t.admin.online}
-                          </span>
-                        )
-                        return <span className="text-gray-400 text-xs">{t.admin.offline}</span>
-                      })()}
-                    </td>
+                    <td className="p-3 text-center"><BadgeStatut compte={u} /></td>
                     <td className="p-3 text-center">{u.readings}</td>
                     <td className="p-3 text-xs text-gray-500 hidden lg:table-cell">
                       {u.lastSignIn
