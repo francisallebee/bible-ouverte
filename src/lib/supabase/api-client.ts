@@ -30,3 +30,25 @@ export function errorResponse(message: string, status = 400) {
 export function successResponse(data: unknown, status = 200) {
   return Response.json({ data }, { status })
 }
+
+/**
+ * L'appelant, s'il est administrateur — `null` sinon.
+ *
+ * Le drapeau est lu **avec la session de l'appelant**, jamais avec la clé
+ * service_role : c'est ce qui fait de la RLS la barrière et non une politesse.
+ * `is_admin` n'est modifiable que par le back-office (règle 2), donc lire sa
+ * propre ligne suffit.
+ *
+ * Extrait le 20 août 2026, quand la troisième route en a eu besoin. Les deux
+ * copies précédentes étaient identiques ; une troisième aurait fini par ne
+ * plus l'être.
+ */
+export async function requireAdmin(request: NextRequest) {
+  const user = await requireUser(request)
+  if (!user) return null
+  const supabase = createApiClient(request)
+  const { data: profile } = await supabase
+    .from('profiles').select('is_admin').eq('id', user.id).single()
+  if (!profile?.is_admin) return null
+  return user
+}

@@ -13,8 +13,12 @@ describe('pages masquables', () => {
     expect(isHideable('/admin')).toBe(false)
   })
 
-  it('laisse masquer les neuf autres', () => {
-    expect(HIDEABLE_PAGES).toHaveLength(12)
+  it('laisse masquer les treize autres', () => {
+    // Le compte est là pour être mis en défaut : il l'a été le 20 août 2026 à
+    // l'ajout de `/messages`, et son intitulé disait encore « les neuf » alors
+    // qu'il en comptait douze. Un nombre écrit dans un test se relit.
+    expect(HIDEABLE_PAGES).toHaveLength(13)
+    expect(HIDEABLE_PAGES).toContain('/messages')
     for (const href of HIDEABLE_PAGES) expect(isHideable(href)).toBe(true)
   })
 

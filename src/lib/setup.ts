@@ -28,6 +28,7 @@ export const HIDEABLE_PAGES = [
   '/verset-du-jour',
   '/memorisation',
   '/roadmap',
+  '/messages',
   '/support',
   '/soutenir',
   '/profil',

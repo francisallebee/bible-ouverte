@@ -1,6 +1,6 @@
 import { type NextRequest } from 'next/server'
 import type { User } from '@supabase/supabase-js'
-import { createApiClient, requireUser, errorResponse, successResponse } from '@/lib/supabase/api-client'
+import { requireAdmin, errorResponse, successResponse } from '@/lib/supabase/api-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 // Sans cela, Next exécute le handler pendant `next build` pour décider s'il est
@@ -9,15 +9,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
-  const user = await requireUser(request)
-  if (!user) return errorResponse('Non authentifié', 401)
+  const appelant = await requireAdmin(request)
+  if (!appelant) return errorResponse('Accès refusé', 403)
 
-  const supabase = createApiClient(request)
   const admin = createAdminClient()
-
-  const { data: profile } = await supabase
-    .from('profiles').select('is_admin').eq('id', user.id).single()
-  if (!profile?.is_admin) return errorResponse('Accès refusé', 403)
 
   // Auth users (emails, last_sign_in)
   //

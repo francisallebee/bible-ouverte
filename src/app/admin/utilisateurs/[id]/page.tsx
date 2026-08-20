@@ -13,6 +13,10 @@ import { formatDate } from '@/lib/i18n/format'
 import { api } from '@/lib/admin/api'
 import { nomAffiche } from '@/lib/profil/identite'
 import { TICKET_STATUS_BADGE } from '@/lib/tickets'
+import Composeur from '@/components/admin/Composeur'
+import { getFilDe } from '@/lib/storage/messages-store'
+import { ordonnerFil } from '@/lib/messages/messages'
+import type { Message } from '@/lib/messages/messages'
 
 type Fiche = {
   profil: Record<string, any>
@@ -62,6 +66,7 @@ export default function FicheUtilisateurPage() {
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState('')
   const [occupe, setOccupe] = useState(false)
+  const [fil, setFil] = useState<Message[]>([])
 
   // `useCallback` plutôt qu'un `eslint-disable` : la fonction dépend de
   // `params.id`, et l'effet doit la relancer quand il change.
@@ -74,6 +79,18 @@ export default function FicheUtilisateurPage() {
   }, [params.id])
 
   useEffect(() => { charger() }, [charger])
+
+  /**
+   * Le fil se lit **directement dans Supabase**, avec la session de
+   * l'administrateur : la policy `messages_select` l'y autorise. Passer par une
+   * route serait un aller-retour de plus pour la même donnée, et une occasion
+   * de plus de désaccorder les deux chemins.
+   */
+  const chargerFil = useCallback(async () => {
+    setFil(ordonnerFil(await getFilDe(params.id)))
+  }, [params.id])
+
+  useEffect(() => { chargerFil() }, [chargerFil])
 
   const patch = async (corps: Record<string, unknown>) => {
     setOccupe(true)
@@ -229,6 +246,36 @@ export default function FicheUtilisateurPage() {
               ))}
             </ul>
           )}
+        </Carte>
+      </div>
+
+      <div className="mt-4">
+        <Carte titre={t.messages.title}>
+          {fil.length > 0 && (
+            <ul className="space-y-2 list-none p-0 m-0 mb-4 max-h-72 overflow-y-auto">
+              {fil.map((m) => (
+                <li key={m.id}
+                  className={`rounded-lg border p-3 ${m.fromAdmin ? 'border-gray-200 bg-gray-50' : 'border-[--primary] bg-[--primary-light]'}`}>
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="text-xs font-semibold">
+                      {m.fromAdmin ? (m.sentByName || t.messages.fromAdmin) : nom}
+                    </span>
+                    <span className="text-[11px] text-gray-400">
+                      {formatDate(locale, m.createdAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      {m.fromAdmin && !m.readAt ? ` · ${t.messages.unread}` : ''}
+                    </span>
+                  </div>
+                  {m.subject && <p className="text-sm font-medium mt-1">{m.subject}</p>}
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap mt-0.5">{m.body}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Composeur
+            destinataires={[params.id]}
+            libelleBouton={t.messages.writeTo(nom)}
+            onEnvoye={chargerFil}
+          />
         </Carte>
       </div>
 

@@ -105,6 +105,11 @@ const hisabat = (n: number) => pluriel(n, {
   peu: 'حسابات', beaucoup: 'حسابًا', autre: 'حساب',
 })
 
+const rasail = (n: number) => pluriel(n, {
+  zero: 'رسالة', un: 'رسالة واحدة', deux: 'رسالتان',
+  peu: 'رسائل', beaucoup: 'رسالة', autre: 'رسالة',
+})
+
 export const ar: Dictionary = {
   common: {
     ticketStatuses: {
@@ -151,6 +156,7 @@ export const ar: Dictionary = {
     settings: 'الإعدادات',
     roadmap: 'خارطة الطريق',
     support: 'الدعم',
+    messages: 'الرسائل',
     donate: 'ادعم المشروع',
     profile: 'ملفي الشخصي',
     admin: 'الإدارة',
@@ -815,6 +821,35 @@ export const ar: Dictionary = {
     lastVerseLabel: (chapter: number) => `العدد الأخير، الإصحاح ${chapter}`,
     validate: 'تأكيد',
   },
+  messages: {
+    title: 'الرسائل',
+    navBadge: (n: number) => `${n} ${rasail(n)} غير مقروءة`,
+    empty: 'لا رسائل حتى الآن.',
+    emptyHint: 'سيكتب إليك فريق Bible Ouverte هنا عند الحاجة.',
+    fromAdmin: 'Bible Ouverte',
+    you: 'أنت',
+    subject: 'الموضوع',
+    subjectPlaceholder: 'اختياري',
+    body: 'الرسالة',
+    bodyPlaceholder: 'اكتب رسالتك…',
+    send: 'إرسال',
+    sending: 'جارٍ الإرسال…',
+    sent: '✓ أُرسلت الرسالة',
+    sendFailed: 'فشل الإرسال. تحقّق من اتصالك وأعد المحاولة.',
+    reply: 'رد',
+    writeTo: (nom: string) => `الكتابة إلى ${nom}`,
+    writeToSelection: (n: number) => `الكتابة إلى ${n} ${hisabat(n)} معروضة`,
+    confirmBulk: (n: number) => `إرسال هذه الرسالة إلى ${n} شخصًا؟`,
+    sentCount: (n: number) => `✓ أُرسلت إلى ${n} شخصًا`,
+    unread: 'غير مقروءة',
+    errors: {
+      corpsVide: 'الرسالة فارغة.',
+      sujetTropLong: 'الموضوع طويل جدًا.',
+      corpsTropLong: 'الرسالة طويلة جدًا.',
+      sansDestinataire: 'لا مستقبِل.',
+    } as Record<string, string>,
+  },
+
   admin: {
     manageUsers: 'إدارة المستخدمين',
     usersTitle: 'المستخدمون',

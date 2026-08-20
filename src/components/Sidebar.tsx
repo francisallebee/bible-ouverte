@@ -6,9 +6,9 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BookPlus, Search, History, BarChart3,
   BookOpen, Settings, Menu, X, Trophy, LogOut, Shield,
-  User, Route, MessageCircle, Heart, Sparkles, Sun, Brain,
-} from "lucide-react";
+  User, Route, MessageCircle, Heart, Sparkles, Sun, Brain, Mail } from "lucide-react";
 import { seedIfNeeded } from "@/lib/storage";
+import { compterMesNonLus } from "@/lib/storage/messages-store";
 import { APP_VERSION } from "@/lib/version";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,6 +38,7 @@ export const NAV_LINKS: {
   { href: "/memorisation", label: (t) => t.nav.memorisation, icon: Brain },
   { href: "/settings", label: (t) => t.nav.settings, icon: Settings },
   { href: "/roadmap", label: (t) => t.nav.roadmap, icon: Route },
+  { href: "/messages", label: (t) => t.nav.messages, icon: Mail },
   { href: "/support", label: (t) => t.nav.support, icon: MessageCircle },
   { href: "/soutenir", label: (t) => t.nav.donate, icon: Heart },
   { href: "/profil", label: (t) => t.nav.profile, icon: User },
@@ -54,6 +55,26 @@ export default function Sidebar({ hiddenPages }: { hiddenPages?: string[] }) {
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
 
   useEffect(() => { seedIfNeeded() }, []);
+
+  /**
+   * Le compteur de messages non lus.
+   *
+   * Une seule requête, `head: true` : le compte revient dans l'en-tête et
+   * aucun corps de message ne descend. Elle se relance au changement de page —
+   * c'est ce qui fait disparaître la pastille après un passage par
+   * `/messages`, sans qu'aucun état ne soit partagé entre les deux écrans.
+   *
+   * Un échec est silencieux et rend zéro : une pastille est une invitation,
+   * pas une information dont l'absence doit alarmer.
+   */
+  const [nonLus, setNonLus] = useState(0);
+
+  useEffect(() => {
+    if (!user) { setNonLus(0); return }
+    let annule = false;
+    compterMesNonLus().then((n) => { if (!annule) setNonLus(n) });
+    return () => { annule = true };
+  }, [user, pathname]);
 
   useEffect(() => {
     const name = localStorage.getItem("profile_name") || "";
@@ -114,7 +135,21 @@ export default function Sidebar({ hiddenPages }: { hiddenPages?: string[] }) {
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
-                {label(t)}
+                <span className="flex-1">{label(t)}</span>
+                {/* La pastille des messages non lus. Ses couleurs de texte sont
+                    posées explicitement : `bg-red-500` n'est remappé nulle part
+                    en mode sombre, et un texte sans classe y hériterait de
+                    `--text` (règle 15). */}
+                {href === "/messages" && nonLus > 0 && (
+                  <span
+                    aria-label={t.messages.navBadge(nonLus)}
+                    className={`shrink-0 rounded-full px-1.5 py-0.5 text-[11px] font-bold leading-none ${
+                      active ? "bg-white text-[--primary]" : "bg-red-500 text-white"
+                    }`}
+                  >
+                    {nonLus}
+                  </span>
+                )}
               </Link>
             );
           })}

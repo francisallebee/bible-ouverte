@@ -4,12 +4,13 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   Users, Search, Download, ShieldOff, ArrowLeft, ChevronRight,
-  UserCog, Ban, CheckCircle, Trash2, RefreshCw,
+  UserCog, Ban, CheckCircle, Trash2, RefreshCw, Mail,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useI18n } from '@/contexts/I18nContext'
 import { formatDate } from '@/lib/i18n/format'
 import { api } from '@/lib/admin/api'
+import Composeur from '@/components/admin/Composeur'
 import {
   SEGMENTS, TRIS, chercher, filtrerParSegment, trier, paginer, versCSV,
 } from '@/lib/admin/utilisateurs'
@@ -31,6 +32,7 @@ export default function AdminUtilisateursPage() {
   const [tri, setTri] = useState<Tri>('inscription')
   const [ordre, setOrdre] = useState<Ordre>('desc')
   const [page, setPage] = useState(1)
+  const [composer, setComposer] = useState(false)
 
   const charger = async () => {
     setChargement(true); setErreur('')
@@ -170,6 +172,30 @@ export default function AdminUtilisateursPage() {
           </button>
         ))}
       </div>
+
+      {/* Envoi groupé. Les destinataires sont les lignes **filtrées**, pas la
+          page affichée : écrire aux 25 d'une page alors qu'on vient de
+          sélectionner un segment de 40 serait un piège. */}
+      {filtrees.length > 0 && (
+        <div className="mb-4">
+          <button onClick={() => setComposer(!composer)}
+            aria-expanded={composer}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:border-gray-300">
+            <Mail className="w-4 h-4" />
+            {t.messages.writeToSelection(filtrees.length)}
+          </button>
+          {composer && (
+            <div className="mt-3 bg-white rounded-xl border border-gray-200 p-4">
+              <Composeur
+                destinataires={filtrees.map((u) => u.id)}
+                libelleBouton={t.messages.send}
+                confirmation={filtrees.length > 1 ? t.messages.confirmBulk(filtrees.length) : undefined}
+                onEnvoye={() => setComposer(false)}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {visibles.length === 0 ? (
         <p className="text-gray-400 text-center py-12">{t.admin.noResult}</p>

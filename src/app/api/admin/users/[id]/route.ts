@@ -1,20 +1,10 @@
 import { type NextRequest } from 'next/server'
-import { createApiClient, requireUser, errorResponse, successResponse } from '@/lib/supabase/api-client'
+import { requireAdmin, errorResponse, successResponse } from '@/lib/supabase/api-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 // Voir src/app/api/admin/users/route.ts : cette route lit la session de
 // l'appelant, elle ne doit jamais être évaluée au moment du build.
 export const dynamic = 'force-dynamic'
-
-async function checkAdmin(request: NextRequest) {
-  const user = await requireUser(request)
-  if (!user) return null
-  const supabase = createApiClient(request)
-  const { data: profile } = await supabase
-    .from('profiles').select('is_admin').eq('id', user.id).single()
-  if (!profile?.is_admin) return null
-  return user
-}
 
 /**
  * La fiche d'un utilisateur.
@@ -29,7 +19,7 @@ async function checkAdmin(request: NextRequest) {
  * une requête par table, aucune ligne transportée.
  */
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const adminUser = await checkAdmin(request)
+  const adminUser = await requireAdmin(request)
   if (!adminUser) return errorResponse('Accès refusé', 403)
 
   const cible = params.id
@@ -103,7 +93,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const admin = await checkAdmin(request)
+  const admin = await requireAdmin(request)
   if (!admin) return errorResponse('Accès refusé', 403)
 
   const targetId = params.id
@@ -137,7 +127,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  const adminUser = await checkAdmin(request)
+  const adminUser = await requireAdmin(request)
   if (!adminUser) return errorResponse('Accès refusé', 403)
 
   const targetId = params.id
