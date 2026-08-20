@@ -1056,6 +1056,21 @@ novembre, 10 juillet et 16 mai. La première occasion de voir ce déclencheur
 partir pour de vrai est donc le **16 mai**, à moins qu'un compte abonné ne
 renseigne sa date d'ici là.
 
+**Ce que le propriétaire du dépôt a vu fonctionner le 20 août 2026**, et qui ne
+vient donc pas de l'agent :
+
+| Écran ou chemin | Constat |
+|---|---|
+| Bandeau de complétion de profil | apparu sur son appareil |
+| Formulaire d'inscription, sept champs | compte de test créé, tout écrit en base |
+| Courriel de bienvenue | **reçu** |
+| Vœu d'anniversaire | **reçu**, et le message **vu dans l'application** |
+| Pastille de statut, suspendu et en ligne | vues, après trois correctifs |
+| Champ de cible d'objectif | saisie libre, clavier stable — ticket n°19 clos |
+
+C'est la première journée où la majorité des preuves d'écran viennent de lui
+plutôt que de nulle part. Ce qui suit reste néanmoins invérifié.
+
 **Toute la refonte Administration du 20 août 2026 est invérifiée à l'œil, sauf
 `/auth/signup`.** Gestion des utilisateurs, fiche individuelle, boîte de
 réception, bandeau de complétion, onglets Acquisition et Journal : tous
