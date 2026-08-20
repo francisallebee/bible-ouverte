@@ -846,6 +846,7 @@ export const it: Dictionary = {
     ficheEmailPending: 'Email non confermata',
     ficheSignedUp: 'Iscritto il',
     ficheLanguage: 'Lingua',
+    ficheLastSeen: 'Ultimo segnale',
     ficheNotifications: 'Notifiche',
     fichePushDevices: 'Dispositivi iscritti alle notifiche',
     ficheMemorised: 'Versetti in apprendimento',

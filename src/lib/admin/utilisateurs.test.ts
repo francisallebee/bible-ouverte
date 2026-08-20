@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   filtrerParSegment, chercher, trier, paginer, versCSV, COLONNES_CSV,
-  JOURS_ACTIF, JOURS_INACTIF, statutDe, MINUTES_EN_LIGNE, banActif,
+  JOURS_ACTIF, JOURS_INACTIF, statutDe, banActif,
 } from './utilisateurs'
+import { FENETRE_PRESENCE_MS } from '@/lib/presence'
 import type { LigneUtilisateur } from './utilisateurs'
 
 const MAINTENANT = new Date('2026-08-20T08:00:00.000Z')
@@ -173,27 +174,34 @@ describe('export CSV', () => {
 describe('statut affiché', () => {
   const ilYAMinutes = (m: number) => new Date(MAINTENANT.getTime() - m * 60000).toISOString()
 
-  it('rend « en ligne » sur une connexion toute fraîche', () => {
-    expect(statutDe({ suspended: false, lastSignIn: ilYAMinutes(1) }, MAINTENANT)).toBe('en-ligne')
+  it('rend « en ligne » sur un signe de vie tout frais', () => {
+    expect(statutDe({ suspended: false, lastSeen: ilYAMinutes(1) }, MAINTENANT)).toBe('en-ligne')
   })
 
   it('cesse de le prétendre au-delà de la fenêtre', () => {
-    expect(statutDe({ suspended: false, lastSignIn: ilYAMinutes(MINUTES_EN_LIGNE + 1) }, MAINTENANT))
+    expect(statutDe({ suspended: false, lastSeen: ilYAMinutes(FENETRE_PRESENCE_MS / 60000 + 1) }, MAINTENANT))
       .toBe('hors-ligne')
   })
 
   it('fait primer la suspension sur la présence', () => {
     // Un compte suspendu vu il y a deux minutes n'est pas « en ligne » : il est
     // suspendu, et c'est la seule chose qui importe à qui regarde la liste.
-    expect(statutDe({ suspended: true, lastSignIn: ilYAMinutes(2) }, MAINTENANT)).toBe('suspendu')
+    expect(statutDe({ suspended: true, lastSeen: ilYAMinutes(2) }, MAINTENANT)).toBe('suspendu')
   })
 
-  it('range « jamais connecté » hors ligne', () => {
-    expect(statutDe({ suspended: false, lastSignIn: null }, MAINTENANT)).toBe('hors-ligne')
+  it('range « jamais vu » hors ligne', () => {
+    expect(statutDe({ suspended: false, lastSeen: null }, MAINTENANT)).toBe('hors-ligne')
+    expect(statutDe({ suspended: false, lastSeen: undefined }, MAINTENANT)).toBe('hors-ligne')
   })
 
   it('ne prend pas une date illisible pour une présence', () => {
-    expect(statutDe({ suspended: false, lastSignIn: 'n’importe quoi' }, MAINTENANT)).toBe('hors-ligne')
+    expect(statutDe({ suspended: false, lastSeen: 'n’importe quoi' }, MAINTENANT)).toBe('hors-ligne')
+  })
+
+  it('ignore `lastSignIn`, qui ne dit rien de la présence', () => {
+    // 117 minutes d'écart mesurées le 20 août 2026 entre la « dernière
+    // connexion » de GoTrue et l'usage réel.
+    expect(statutDe({ suspended: false, lastSeen: null } as never, MAINTENANT)).toBe('hors-ligne')
   })
 })
 

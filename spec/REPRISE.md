@@ -650,6 +650,26 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   2026, avec les trois tables manquantes. **Chercher les `Partial` et les
   `as Record<string, string>` avant de croire qu'une traduction est complète.**
 
+- **`auth.users.last_sign_in_at` ne dit pas qui est en ligne.** Il ne bouge
+  qu'à une **vraie saisie de mot de passe**, jamais au rafraîchissement du
+  jeton. Mesuré le 20 août 2026 à 13:26 UTC : le compte administrateur portait
+  une « dernière connexion » à 11:29 alors que sa dernière action datait de
+  13:21 — **117 minutes d'écart, en pleine utilisation.**
+
+  L'indicateur « En ligne » du tableau d'administration reposait dessus depuis
+  l'origine. Il ne s'allumait donc que dans les minutes suivant une connexion,
+  et jamais pour quelqu'un qui reste connecté, c'est-à-dire pour presque tout le
+  monde. Le défaut est antérieur à la refonte : il a seulement été **remarqué**
+  ce jour-là.
+
+  La présence a désormais sa propre colonne, `profiles.last_seen_at`, écrite par
+  le navigateur au plus une fois toutes les trois minutes, avec une fenêtre
+  d'affichage de cinq. Trois déclencheurs — montage, minuterie, retour au
+  premier plan — parce qu'un onglet caché voit ses minuteries ralenties par le
+  navigateur. **Ne pas confondre les deux colonnes** : `lastSignIn` reste utile
+  pour dire quand quelqu'un s'est connecté la dernière fois, et pour rien
+  d'autre.
+
 - **Next.js met en cache les appels que `supabase-js` adresse à PostgREST.**
   Le 20 août 2026, un compte suspendu s'affichait bien sur sa fiche et **jamais
   dans la liste**, filtre « Suspendus » à zéro, y compris après le bouton

@@ -165,7 +165,7 @@ export default function FicheUtilisateurPage() {
             vient lire sur une fiche. Même composant que la liste — deux
             pastilles séparées avaient déjà divergé une fois. */}
         <div className="flex flex-wrap items-center gap-2">
-          <BadgeStatut compte={{ suspended: !!p.suspended, lastSignIn: fiche.auth.lastSignIn }} taille="grande" />
+          <BadgeStatut compte={{ suspended: !!p.suspended, lastSeen: p.last_seen_at ?? null }} taille="grande" />
           {p.is_admin && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[--primary-light] px-2.5 py-1 text-sm font-medium text-[--primary]">
               <Shield className="w-4 h-4" />{t.admin.roleAdmin}
@@ -225,6 +225,7 @@ export default function FicheUtilisateurPage() {
           </div>
           <Champ label={t.admin.ficheSignedUp} valeur={date(fiche.auth.createdAt ?? p.created_at)} repli={absent} />
           <Champ label={t.admin.colLastSignIn} valeur={date(fiche.auth.lastSignIn)} repli={t.admin.never} />
+          <Champ label={t.admin.ficheLastSeen} valeur={date(p.last_seen_at)} repli={t.admin.never} />
           <Champ label={t.admin.ficheLanguage} valeur={fiche.reglages?.language ?? null} repli={absent} />
           <Champ label={t.admin.fichePushDevices} valeur={String(fiche.compteurs.abonnementsPush)} repli={absent} />
         </Carte>

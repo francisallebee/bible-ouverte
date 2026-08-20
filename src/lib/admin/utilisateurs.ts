@@ -1,3 +1,5 @@
+import { FENETRE_PRESENCE_MS } from '@/lib/presence'
+
 /**
  * La gestion des utilisateurs : chercher, segmenter, trier, paginer, exporter.
  *
@@ -19,7 +21,10 @@ export interface LigneUtilisateur {
   is_admin: boolean
   suspended: boolean
   created_at: string
+  /** Dernière saisie de mot de passe. Ne dit **rien** de la présence. */
   lastSignIn: string | null
+  /** Dernier signe de vie de l'application. Voir `lib/presence.ts`. */
+  lastSeen?: string | null
   readings: number
   plans: number
   contexts: number
@@ -207,20 +212,32 @@ export function versCSV(lignes: LigneUtilisateur[]): string {
  * affichait « Hors ligne » pour tout le monde, suspendus compris. Elle est ici
  * pour être testée, plutôt qu'écrite en ternaire au milieu d'un tableau.
  */
-export const MINUTES_EN_LIGNE = 5
-
 export type Statut = 'suspendu' | 'en-ligne' | 'hors-ligne'
 
+/**
+ * **Ce n'est pas `lastSignIn` qui dit la présence, et c'est mesuré.**
+ *
+ * `auth.users.last_sign_in_at` ne bouge qu'à une vraie saisie de mot de passe.
+ * Le 20 août 2026 à 13:26 UTC, le compte administrateur portait une « dernière
+ * connexion » à 11:29 alors que sa dernière action datait de 13:21 : 117
+ * minutes d'écart, en pleine utilisation. L'indicateur « En ligne » reposait
+ * dessus depuis l'origine, et ne s'allumait donc que dans les minutes suivant
+ * une connexion — jamais pour quelqu'un qui reste connecté.
+ *
+ * `lastSeen` vient de `profiles.last_seen_at`, écrit par le navigateur toutes
+ * les trois minutes. La fenêtre en vaut cinq : assez pour couvrir un envoi
+ * manqué, assez court pour ne pas mentir sur quelqu'un qui vient de fermer.
+ */
 export function statutDe(
-  ligne: Pick<LigneUtilisateur, 'suspended' | 'lastSignIn'>,
+  ligne: Pick<LigneUtilisateur, 'suspended' | 'lastSeen'>,
   maintenant: Date = new Date(),
 ): Statut {
   if (ligne.suspended) return 'suspendu'
-  if (!ligne.lastSignIn) return 'hors-ligne'
-  const vu = Date.parse(ligne.lastSignIn)
+  if (!ligne.lastSeen) return 'hors-ligne'
+  const vu = Date.parse(ligne.lastSeen)
   // Une date illisible ne vaut pas une présence.
   if (Number.isNaN(vu)) return 'hors-ligne'
-  return vu > maintenant.getTime() - MINUTES_EN_LIGNE * 60000 ? 'en-ligne' : 'hors-ligne'
+  return vu > maintenant.getTime() - FENETRE_PRESENCE_MS ? 'en-ligne' : 'hors-ligne'
 }
 
 /**

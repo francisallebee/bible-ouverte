@@ -7,6 +7,7 @@ import AutoLogout from '@/components/AutoLogout'
 import DiscoveryTour from '@/components/DiscoveryTour'
 import SetupGate from '@/components/SetupGate'
 import ProfileGate from '@/components/ProfileGate'
+import Presence from '@/components/Presence'
 import LayoutClient from '@/lib/pwa/layout-client'
 import { getSettings, SETTINGS_CHANGED } from '@/lib/storage'
 import { applyColorTheme, applyTheme, watchSystemTheme } from '@/lib/themes'
@@ -89,6 +90,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           écran à l'autre et doit survivre à la navigation qu'il provoque. */}
       <SetupGate />
       <ProfileGate />
+      <Presence />
       <main id="main" className="lg:ml-[var(--nav-width)] min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pt-24 lg:pt-10">
           {children}

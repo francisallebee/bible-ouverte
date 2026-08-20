@@ -20,7 +20,7 @@ import type { LigneUtilisateur } from '@/lib/admin/utilisateurs'
 export default function BadgeStatut({
   compte, taille = 'normale',
 }: {
-  compte: Pick<LigneUtilisateur, 'suspended' | 'lastSignIn'>
+  compte: Pick<LigneUtilisateur, 'suspended' | 'lastSeen'>
   /** `grande` sur la fiche, où la pastille est un titre plus qu'une cellule. */
   taille?: 'normale' | 'grande'
 }) {

@@ -99,6 +99,9 @@ export async function GET(request: NextRequest) {
       ...p,
       email: authData?.email ?? null,
       lastSignIn: authData?.lastSignIn ?? null,
+      // Le signe de vie, écrit par le navigateur. C'est lui — et non
+      // `lastSignIn` — qui dit la présence : voir `lib/presence.ts`.
+      lastSeen: (p as { last_seen_at?: string | null }).last_seen_at ?? null,
       // Les deux sources sont croisées : mieux vaut annoncer une suspension qui
       // n'a plus d'effet que de laisser passer pour libre quelqu'un qui ne peut
       // plus entrer.

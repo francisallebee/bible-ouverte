@@ -822,6 +822,7 @@ export const en: Dictionary = {
     ficheEmailPending: 'Email not confirmed',
     ficheSignedUp: 'Signed up on',
     ficheLanguage: 'Language',
+    ficheLastSeen: 'Last seen',
     ficheNotifications: 'Notifications',
     fichePushDevices: 'Devices subscribed to notifications',
     ficheMemorised: 'Verses being learnt',
