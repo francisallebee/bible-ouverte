@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Shield, ShieldOff, BookOpen, Tags, Users, Ban,
@@ -12,6 +12,7 @@ import { useI18n } from '@/contexts/I18nContext'
 import { formatDate } from '@/lib/i18n/format'
 import { TICKET_STATUSES, TICKET_STATUS_BADGE } from '@/lib/tickets'
 import { api } from '@/lib/admin/api'
+import { useRechargeALaVisite } from '@/lib/admin/use-fraicheur'
 import { createClient } from '@/lib/supabase/client'
 import { parProvenance, parMois, parVille, PROVENANCE_INCONNUE } from '@/lib/admin/acquisition'
 import type { LigneJournal } from '@/lib/admin/journal'
@@ -103,12 +104,13 @@ export default function AdminPage() {
   }
 
   /* load users */
-  const loadData = async () => {
-    setLoading(true); setError('')
+  // Stable : le crochet de fraîcheur en dépend. Voir `use-fraicheur.ts`.
+  const loadData = useCallback(async () => {
+    setError('')
     const res = await api('/api/admin/users')
     if (res.error) { setError(res.error); setLoading(false); return }
     setUsers(res.data?.users || []); setStats(res.data?.stats || null); setLoading(false)
-  }
+  }, [])
 
   /* load tickets */
   const loadTickets = async () => {
@@ -118,7 +120,9 @@ export default function AdminPage() {
     setTickets(res.data || []); setLoadingTickets(false)
   }
 
-  useEffect(() => { loadData() }, [])
+  // Les cartes, l'acquisition et le journal lisent tous les mêmes comptes :
+  // revenir d'une fiche sans les relire donnerait des chiffres périmés.
+  useRechargeALaVisite(loadData, '/admin')
 
   const handleTicketStatus = async (id: number, status: string) => {
     const res = await api('/api/admin/tickets', {

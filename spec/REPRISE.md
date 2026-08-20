@@ -650,6 +650,27 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   2026, avec les trois tables manquantes. **Chercher les `Partial` et les
   `as Record<string, string>` avant de croire qu'une traduction est complète.**
 
+- **Le cache de segments de l'App Router sert un écran périmé, sans rien
+  dire.** Le 20 août 2026 : un administrateur suspend un compte depuis sa fiche,
+  revient à la liste, et la liste le donne toujours pour actif — filtre
+  « Suspendus » à zéro. Les deux écrans lisaient pourtant la même colonne, par
+  la même clé service_role, et la base disait bien `suspended = true`. Vérifié
+  avant de chercher ailleurs : `pg_typeof` rend `boolean`, la valeur est `true`,
+  et les deux routes font le même `select('*')`. **Les routes ne pouvaient donc
+  pas diverger.**
+
+  La cause est que **revenir sur une route déjà visitée ne remonte pas son
+  composant** : un `useEffect(..., [])` ne repart jamais, et l'état local reste
+  celui d'avant l'action. Rien ne le signale — l'écran affiche un état
+  cohérent, seulement périmé, ce qui est pire qu'une erreur.
+
+  `lib/admin/use-fraicheur.ts` recharge sur deux déclencheurs, qui couvrent des
+  cas différents : le **retour sur la route**, pour l'aller-retour vers une
+  fiche, et le **retour au premier plan**, pour l'onglet laissé de côté ou
+  l'action faite depuis un autre appareil. La fonction de rechargement doit
+  être un `useCallback` stable, faute de quoi l'effet relance un rendu qui
+  relance l'effet.
+
 - **Une colonne `flex` en `fixed top-0 bottom-0` rogne son pied de page en
   silence.** La barre latérale n'avait aucun `overflow-y-auto` : dès que les
   entrées dépassaient la hauteur de l'écran, le lien vers le profil, la

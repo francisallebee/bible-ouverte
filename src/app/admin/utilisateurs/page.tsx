@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   Users, Search, Download, ShieldOff, ArrowLeft, ChevronRight,
@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useI18n } from '@/contexts/I18nContext'
 import { formatDate } from '@/lib/i18n/format'
 import { api } from '@/lib/admin/api'
+import { useRechargeALaVisite } from '@/lib/admin/use-fraicheur'
 import Composeur from '@/components/admin/Composeur'
 import BadgeStatut from '@/components/admin/BadgeStatut'
 import {
@@ -35,15 +36,22 @@ export default function AdminUtilisateursPage() {
   const [page, setPage] = useState(1)
   const [composer, setComposer] = useState(false)
 
-  const charger = async () => {
-    setChargement(true); setErreur('')
+  /**
+   * `useCallback` sans dépendance : la fonction doit être **stable**, sinon le
+   * crochet de fraîcheur relancerait l'effet à chaque rendu, et l'effet un
+   * rendu de plus.
+   */
+  const charger = useCallback(async () => {
+    setErreur('')
     const res = await api('/api/admin/users')
     if (res.error) { setErreur(res.error); setChargement(false); return }
     setLignes(res.data?.users || [])
     setChargement(false)
-  }
+  }, [])
 
-  useEffect(() => { charger() }, [])
+  // Voir `use-fraicheur.ts` : revenir d'une fiche ne remonte pas cet écran, et
+  // sans cela la liste gardait l'état d'avant l'action qu'on venait d'y faire.
+  useRechargeALaVisite(charger, '/admin/utilisateurs')
 
   /**
    * Le filtrage se fait **en mémoire**, sur les lignes déjà reçues.

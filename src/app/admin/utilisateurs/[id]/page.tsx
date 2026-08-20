@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
 import { formatDate } from '@/lib/i18n/format'
 import { api } from '@/lib/admin/api'
+import { useRechargeALaVisite } from '@/lib/admin/use-fraicheur'
 import { nomAffiche } from '@/lib/profil/identite'
 import { TICKET_STATUS_BADGE } from '@/lib/tickets'
 import BadgeStatut from '@/components/admin/BadgeStatut'
@@ -79,7 +80,9 @@ export default function FicheUtilisateurPage() {
     setChargement(false)
   }, [params.id])
 
-  useEffect(() => { charger() }, [charger])
+  // Même raison que la liste : revenir sur une fiche déjà visitée ne remonte
+  // pas ce composant, et l'écran garderait l'état d'avant.
+  useRechargeALaVisite(charger, `/admin/utilisateurs/${params.id}`)
 
   /**
    * Le fil se lit **directement dans Supabase**, avec la session de
