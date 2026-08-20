@@ -17,6 +17,11 @@ export interface MessageAEnvoyer {
   firstName: string | null
   /** Le nom d'affichage, en repli. */
   name: string | null
+  /**
+   * La nature du message. `'birthday'` pour les vœux, `null` pour un message
+   * écrit à la main depuis l'administration.
+   */
+  kind?: string | null
 }
 
 export interface Courriel {
@@ -63,32 +68,43 @@ export function composeMessageEmail(m: MessageAEnvoyer): Courriel | null {
   if (!m.email?.trim() || !m.body.trim()) return null
 
   const qui = m.firstName?.trim() || m.name?.trim() || ''
-  const salutation = qui ? `Bonjour ${qui},` : 'Bonjour,'
   const titre = m.subject.trim()
   const lien = 'https://bible-ouverte.vercel.app/messages'
   const auteur = m.sentByName.trim() || 'Bible Ouverte'
 
+  /**
+   * Les vœux d'anniversaire portent **déjà** leur salutation et leur
+   * signature : le texte commence par « Joyeux anniversaire Prénom, » et finit
+   * par le nom de son auteur. Y ajouter « Bonjour Prénom, » en tête et
+   * « — Prénom » en pied donnerait un courriel qui salue deux fois et signe
+   * deux fois.
+   *
+   * Le drapeau est une **colonne**, `messages.kind`, et non une devinette sur
+   * le contenu : reconnaître un vœu à ses premiers mots tiendrait jusqu'au
+   * jour où le texte changerait.
+   */
+  const enrobe = m.kind !== 'birthday'
+  const salutation = qui ? `Bonjour ${qui},` : 'Bonjour,'
+
   const subject = titre ? `Bible Ouverte — ${titre}` : 'Bible Ouverte — un message pour toi'
 
   const text = [
-    salutation,
-    '',
-    ...(titre ? [titre, ''] : []),
+    ...(enrobe ? [salutation, ''] : []),
+    ...(titre && enrobe ? [titre, ''] : []),
     m.body.trim(),
     '',
-    `— ${auteur}`,
-    '',
+    ...(enrobe ? [`— ${auteur}`, ''] : []),
     'Pour répondre, ouvre tes messages dans l’application :',
     lien,
   ].join('\n')
 
   const html = [
-    `<p>${escapeHtml(salutation)}</p>`,
-    ...(titre ? [`<p><strong>${escapeHtml(titre)}</strong></p>`] : []),
+    ...(enrobe ? [`<p>${escapeHtml(salutation)}</p>`] : []),
+    ...(titre && enrobe ? [`<p><strong>${escapeHtml(titre)}</strong></p>`] : []),
     // Les sauts de ligne tapés deviennent des `<br>`, et le corps est échappé :
     // un message n'est jamais du HTML, même écrit par un administrateur.
     `<p>${escapeHtml(m.body.trim()).replace(/\n/g, '<br>')}</p>`,
-    `<p>— ${escapeHtml(auteur)}</p>`,
+    ...(enrobe ? [`<p>— ${escapeHtml(auteur)}</p>`] : []),
     `<p>Pour répondre, ouvre tes messages dans l’application&nbsp;:<br>`
       + `<a href="${lien}">${lien}</a></p>`,
   ].join('\n')

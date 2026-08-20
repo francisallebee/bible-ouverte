@@ -116,9 +116,14 @@ describe('resolveTriggers', () => {
     expect('inconnu' in r).toBe(false)
   })
 
-  it('couvre exactement les cinq déclencheurs annoncés', () => {
+  it('couvre exactement les six déclencheurs annoncés', () => {
+    // La liste est écrite en toutes lettres pour être mise en défaut : elle
+    // l'a été le 20 août 2026 à l'ajout de `birthday`, sixième déclencheur.
+    // Elle doit rester le miroir de `DEFAULT_TRIGGERS` de `schedule.ts`, côté
+    // fonction Edge — deux listes qui divergeraient feraient recevoir une
+    // notification que l'utilisateur croit avoir refusée.
     expect(NOTIFICATION_TRIGGERS.map((t) => t.id).sort()).toEqual(
-      ['daily', 'inactive', 'plan-late', 'roadmap-done', 'support-reply'],
+      ['birthday', 'daily', 'inactive', 'plan-late', 'roadmap-done', 'support-reply'],
     )
     expect(Object.keys(DEFAULT_TRIGGERS).sort()).toEqual(
       NOTIFICATION_TRIGGERS.map((t) => t.id).sort(),

@@ -379,6 +379,10 @@ export const fr = {
         label: 'Longue absence',
         hint: 'Une relance après plusieurs jours sans lecture.',
       },
+      birthday: {
+        label: 'Anniversaire',
+        hint: 'Le jour de ton anniversaire.',
+      },
     },
   },
 

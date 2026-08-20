@@ -27,6 +27,7 @@ export const NOTIFICATION_TRIGGERS = [
   { id: 'support-reply' },
   { id: 'roadmap-done' },
   { id: 'inactive' },
+  { id: 'birthday' },
 ] as const
 
 export type NotificationTrigger = typeof NOTIFICATION_TRIGGERS[number]['id']
@@ -42,6 +43,9 @@ export const DEFAULT_TRIGGERS: Record<NotificationTrigger, boolean> = {
   'support-reply': true,
   'roadmap-done': true,
   inactive: true,
+  // Actif d'office, comme les quatre autres : un vœu une fois l'an ne se
+  // confond pas avec une relance. Le miroir de `DEFAULT_TRIGGERS` côté Edge.
+  birthday: true,
 }
 
 /**

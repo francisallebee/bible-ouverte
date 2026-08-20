@@ -356,6 +356,10 @@ export const en: Dictionary = {
         label: 'Long absence',
         hint: 'A nudge after several days without a reading.',
       },
+      birthday: {
+        label: 'Birthday',
+        hint: 'On your birthday.',
+      },
     },
   },
 

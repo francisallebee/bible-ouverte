@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
 
   const { data: lignes, error: erreurLecture } = await supabase
     .from('messages')
-    .select('id, user_id, subject, body, sent_by_name')
+    .select('id, user_id, subject, body, sent_by_name, kind')
     .eq('from_admin', true)
     .is('emailed_at', null)
     .lt('email_attempts', MAX_TENTATIVES)
@@ -93,6 +93,7 @@ Deno.serve(async (req) => {
       subject: (l.subject as string) ?? '',
       body: (l.body as string) ?? '',
       sentByName: (l.sent_by_name as string) ?? '',
+      kind: (l.kind as string | null) ?? null,
       email: p?.email ?? null,
       firstName: p?.firstName ?? null,
       name: p?.name ?? null,

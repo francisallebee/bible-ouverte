@@ -81,3 +81,61 @@ describe('échappement', () => {
       .toBe('&lt;a href=&quot;x&quot;&gt;&amp;&lt;/a&gt;')
   })
 })
+
+describe('les vœux d’anniversaire', () => {
+  const voeu = () => m({
+    kind: 'birthday',
+    subject: 'Joyeux anniversaire !',
+    sentByName: 'Francis ALLEBEE - Ôappliday',
+    body: [
+      'Joyeux anniversaire Marie,',
+      '',
+      'Je crois qu’aujourd’hui, c’est un jour spécial non ?',
+      'Nous ne voulions pas oublier ton anniversaire.',
+      '',
+      'Passe une belle journée !',
+      '',
+      'Francis ALLEBEE - Ôappliday',
+    ].join('\n'),
+  })
+
+  it('ne salue pas deux fois', () => {
+    // Le texte commence déjà par « Joyeux anniversaire Marie, ».
+    const c = composeMessageEmail(voeu())!
+    expect(c.text).not.toContain('Bonjour')
+    expect(c.html).not.toContain('Bonjour')
+  })
+
+  it('ne signe pas deux fois', () => {
+    const c = composeMessageEmail(voeu())!
+    const occurrences = c.text.split('Francis ALLEBEE - Ôappliday').length - 1
+    expect(occurrences).toBe(1)
+    expect(c.text).not.toContain('— Francis')
+  })
+
+  it('garde le texte mot pour mot', () => {
+    const c = composeMessageEmail(voeu())!
+    expect(c.text).toContain('Joyeux anniversaire Marie,')
+    expect(c.text).toContain('Je crois qu’aujourd’hui, c’est un jour spécial non ?')
+    expect(c.text).toContain('Passe une belle journée !')
+  })
+
+  it('écrit « Passe » et non « Passes »', () => {
+    // Même correction que « N’hésites » du message de bienvenue : l'impératif
+    // de « passer » ne prend pas de `s`.
+    expect(voeu().body).not.toContain('Passes une belle')
+  })
+
+  it('garde l’objet et le lien vers la boîte', () => {
+    const c = composeMessageEmail(voeu())!
+    expect(c.subject).toBe('Bible Ouverte — Joyeux anniversaire !')
+    expect(c.text).toContain('https://bible-ouverte.vercel.app/messages')
+  })
+
+  it('enrobe toujours un message ordinaire', () => {
+    // Le drapeau est une colonne, pas une devinette sur le contenu.
+    const c = composeMessageEmail(m({ kind: null }))!
+    expect(c.text).toContain('Bonjour Marie,')
+    expect(c.text).toContain('— Francis')
+  })
+})

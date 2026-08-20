@@ -32,7 +32,8 @@ export const WAKING_END = '22:00'
 /** Jours sans lecture au bout desquels on relance. */
 export const INACTIVE_DAYS = 7
 
-export type TriggerKind = 'daily' | 'plan-late' | 'support-reply' | 'roadmap-done' | 'inactive'
+export type TriggerKind =
+  | 'daily' | 'plan-late' | 'support-reply' | 'roadmap-done' | 'inactive' | 'birthday'
 
 export interface SettingsRow {
   user_id: string
@@ -83,6 +84,14 @@ export interface RoadmapDone {
 }
 
 /** Date de la dernière lecture enregistrée d'un compte. */
+export interface Birthday {
+  userId: string
+  /** `AAAA-MM-JJ`, tel que la colonne `profiles.birth_date` le stocke. */
+  birthDate: string
+  /** Le prénom, ou le nom d'affichage en repli. Peut manquer. */
+  firstName: string | null
+}
+
 export interface LastReading {
   userId: string
   /** `YYYY-MM-DD`. */
@@ -111,6 +120,9 @@ const DEFAULT_TRIGGERS: Record<TriggerKind, boolean> = {
   'support-reply': true,
   'roadmap-done': true,
   inactive: true,
+  // Actif d'office : recevoir un vœu d'anniversaire une fois l'an ne se
+  // confond pas avec une relance, et personne ne l'a demandé sans le vouloir.
+  birthday: true,
 }
 
 /**
@@ -410,12 +422,74 @@ export function collectInactive(
   return out
 }
 
+/**
+ * Est-ce l'anniversaire, ce jour-là, dans ce fuseau ?
+ *
+ * **Le 29 février est le cas qui décide de la forme de cette fonction.** Une
+ * comparaison naïve de `MM-JJ` ne le ferait jamais correspondre trois années
+ * sur quatre : la personne n'aurait de vœux qu'un an sur quatre. Il est donc
+ * ramené au 28 février les années non bissextiles — le 28, et non le 1er mars,
+ * pour rester dans le mois de naissance.
+ */
+export function estSonAnniversaire(birthDate: string, jourLocal: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return false
+  const neLe = birthDate.slice(5)
+  const aujourdhui = jourLocal.slice(5)
+  if (neLe === aujourdhui) return true
+
+  if (neLe === '02-29' && aujourdhui === '02-28') {
+    const annee = Number(jourLocal.slice(0, 4))
+    const bissextile = annee % 4 === 0 && (annee % 100 !== 0 || annee % 400 === 0)
+    return !bissextile
+  }
+  return false
+}
+
+/**
+ * Les anniversaires du jour.
+ *
+ * La notification ne porte pas les vœux : elle annonce le message qui les
+ * porte, déposé par `souhaiter_anniversaires()` dans la boîte de réception et
+ * envoyé par courriel. Deux canaux pour un seul texte, tenu à un seul endroit.
+ *
+ * La référence est **l'année locale** : un vœu par personne et par an, quoi
+ * qu'il arrive, et l'unicité de `notification_log` s'en charge.
+ */
+export function collectBirthdays(
+  prefsList: UserPrefs[],
+  birthdays: Birthday[],
+  now: Date,
+): Recipient[] {
+  const byUser = new Map(prefsList.map((p) => [p.userId, p]))
+  const out: Recipient[] = []
+
+  for (const anniversaire of birthdays) {
+    const prefs = byUser.get(anniversaire.userId)
+    if (!prefs || !prefs.triggers.birthday) continue
+    const local = safeLocalNow(prefs, now)
+    if (!local || !withinWakingHours(local.time)) continue
+    if (!estSonAnniversaire(anniversaire.birthDate, local.date)) continue
+
+    const prenom = anniversaire.firstName?.trim()
+    out.push({
+      userId: anniversaire.userId,
+      kind: 'birthday',
+      ref: `birthday:${local.date.slice(0, 4)}`,
+      title: prenom ? `Joyeux anniversaire ${prenom} !` : 'Joyeux anniversaire !',
+      body: 'Un message t’attend.',
+      url: '/messages',
+    })
+  }
+  return out
+}
+
 export interface CollectInput {
   settings: SettingsRow[]
   latePlans: LatePlan[]
   supportReplies: SupportReply[]
   roadmapDone: RoadmapDone[]
   lastReadings: LastReading[]
+  birthdays: Birthday[]
 }
 
 /** Tout ce qui doit partir à cet instant, tous déclencheurs confondus. */
@@ -430,5 +504,6 @@ export function collectAll(input: CollectInput, now: Date): Recipient[] {
     ...collectSupportReplies(prefsList, input.supportReplies, now),
     ...collectRoadmapDone(prefsList, input.roadmapDone, now),
     ...collectInactive(prefsList, input.lastReadings, now),
+    ...collectBirthdays(prefsList, input.birthdays, now),
   ]
 }

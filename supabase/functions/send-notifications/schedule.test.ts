@@ -4,6 +4,7 @@ import {
   collectDaily, collectPlanLate, collectSupportReplies, collectRoadmapDone,
   collectInactive, collectAll, composeRoadmapMessage,
   WINDOW_MINUTES, INACTIVE_DAYS,
+  collectBirthdays, estSonAnniversaire,
 } from './schedule'
 import type { SettingsRow, UserPrefs } from './schedule'
 
@@ -347,6 +348,7 @@ describe('collectRoadmapDone', () => {
       supportReplies: [{ userId: 'u1', ticketId: 4, replyId: 'r1', authorName: 'Francis' }],
       roadmapDone: [item],
       lastReadings: [{ userId: 'u1', date: '2026-08-01' }],
+      birthdays: [],
     }, QUATORZE_HEURES_PARIS)
 
     for (const r of tous) {
@@ -420,6 +422,7 @@ describe('collectAll', () => {
       supportReplies: [{ userId: 'u1', ticketId: 3, replyId: 'r-1', authorName: 'A' }],
       roadmapDone: [{ itemId: 18, title: 'T' }],
       lastReadings: [{ userId: 'u1', date: '2026-08-01' }],
+      birthdays: [],
     }, SEPT_HEURES_PARIS)
 
     // 7 h est dans la fenêtre du rappel, mais hors plage de veille (8 h–22 h) :
@@ -435,7 +438,81 @@ describe('collectAll', () => {
       supportReplies: [{ userId: 'u1', ticketId: 3, replyId: 'r-1', authorName: 'A' }],
       roadmapDone: [{ itemId: 18, title: 'T' }],
       lastReadings: [{ userId: 'u1', date: '2026-08-01' }],
+      birthdays: [],
     }, SEPT_HEURES_PARIS)
     expect(r).toHaveLength(0)
+  })
+})
+
+describe('anniversaires', () => {
+  const prefs = (over: Partial<UserPrefs> = {}): UserPrefs => ({
+    userId: 'u1',
+    triggers: { daily: false, 'plan-late': true, 'support-reply': true, 'roadmap-done': true, inactive: true, birthday: true },
+    reminderTime: '07:00',
+    timeZone: 'Europe/Paris',
+    ...over,
+  })
+
+  // 20 août 2026, 10 h à Paris — dans la plage de veille.
+  const MATIN = new Date('2026-08-20T08:00:00.000Z')
+  const NUIT = new Date('2026-08-20T01:00:00.000Z')
+
+  it('reconnaît l’anniversaire du jour', () => {
+    const r = collectBirthdays([prefs()], [{ userId: 'u1', birthDate: '1984-08-20', firstName: 'Isabelle' }], MATIN)
+    expect(r).toHaveLength(1)
+    expect(r[0].title).toBe('Joyeux anniversaire Isabelle !')
+    expect(r[0].url).toBe('/messages')
+  })
+
+  it('emploie l’année locale comme référence, un vœu par an', () => {
+    const r = collectBirthdays([prefs()], [{ userId: 'u1', birthDate: '1984-08-20', firstName: 'Isabelle' }], MATIN)
+    expect(r[0].ref).toBe('birthday:2026')
+  })
+
+  it('ne fait pas sonner un téléphone en pleine nuit', () => {
+    expect(collectBirthdays([prefs()], [{ userId: 'u1', birthDate: '1984-08-20', firstName: 'X' }], NUIT)).toEqual([])
+  })
+
+  it('se tait un autre jour', () => {
+    expect(collectBirthdays([prefs()], [{ userId: 'u1', birthDate: '1984-08-21', firstName: 'X' }], MATIN)).toEqual([])
+  })
+
+  it('respecte le déclencheur désactivé', () => {
+    const sans = prefs({ triggers: { ...prefs().triggers, birthday: false } })
+    expect(collectBirthdays([sans], [{ userId: 'u1', birthDate: '1984-08-20', firstName: 'X' }], MATIN)).toEqual([])
+  })
+
+  it('se passe du prénom quand il manque', () => {
+    const r = collectBirthdays([prefs()], [{ userId: 'u1', birthDate: '1984-08-20', firstName: null }], MATIN)
+    expect(r[0].title).toBe('Joyeux anniversaire !')
+  })
+
+  it('ignore un compte sans réglages de notification', () => {
+    expect(collectBirthdays([], [{ userId: 'u1', birthDate: '1984-08-20', firstName: 'X' }], MATIN)).toEqual([])
+  })
+})
+
+describe('le 29 février', () => {
+  it('correspond à lui-même une année bissextile', () => {
+    expect(estSonAnniversaire('2000-02-29', '2028-02-29')).toBe(true)
+    expect(estSonAnniversaire('2000-02-29', '2028-02-28')).toBe(false)
+  })
+
+  it('est ramené au 28 les années non bissextiles', () => {
+    // Sans cela, cette personne n'aurait de vœux qu'une année sur quatre.
+    expect(estSonAnniversaire('2000-02-29', '2026-02-28')).toBe(true)
+    expect(estSonAnniversaire('2000-02-29', '2026-03-01')).toBe(false)
+  })
+
+  it('connaît la règle des siècles', () => {
+    // 1900 n'est pas bissextile, 2000 l'est.
+    expect(estSonAnniversaire('1980-02-29', '1900-02-28')).toBe(true)
+    expect(estSonAnniversaire('1980-02-29', '2000-02-28')).toBe(false)
+  })
+
+  it('refuse une date illisible plutôt que de lever', () => {
+    expect(estSonAnniversaire('', '2026-08-20')).toBe(false)
+    expect(estSonAnniversaire('pas une date', '2026-08-20')).toBe(false)
+    expect(estSonAnniversaire('1984-8-20', '2026-08-20')).toBe(false)
   })
 })

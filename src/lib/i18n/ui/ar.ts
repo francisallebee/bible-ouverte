@@ -454,6 +454,10 @@ export const ar: Dictionary = {
         label: 'غياب طويل',
         hint: 'تنبيه بعد عدة أيام دون قراءة.',
       },
+      birthday: {
+        label: 'عيد الميلاد',
+        hint: 'في يوم ميلادك.',
+      },
     },
   },
 
