@@ -1,15 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
-  Shield, ShieldOff, BookOpen, Tags, Trash2, Users, Ban, CheckCircle,
-  RefreshCw, UserCog, MessageSquare, Bug, Lightbulb,
-  MoreHorizontal, ChevronDown,
+  Shield, ShieldOff, BookOpen, Tags, Users, Ban,
+  RefreshCw, MessageSquare, Bug, Lightbulb,
+  MoreHorizontal, ChevronDown, ChevronRight,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useI18n } from '@/contexts/I18nContext'
 import { formatDate } from '@/lib/i18n/format'
 import { TICKET_STATUSES, TICKET_STATUS_BADGE } from '@/lib/tickets'
+import { api } from '@/lib/admin/api'
 
 /* ---------- types ---------- */
 type AdminUser = {
@@ -36,31 +38,6 @@ const CATEGORIES: Record<string, { icon: any }> = {
 }
 
 
-/**
- * Une réponse non lue est une panne invisible.
- *
- * Les trois actions de cet écran — promouvoir, suspendre, changer le statut
- * d'un ticket — lançaient leur `fetch` sans jamais regarder ce qui revenait :
- * un 403 de `checkAdmin` ou un 500 de la base rendaient exactement le même
- * écran qu'un succès. Seule la suppression testait `res.error`.
- *
- * `cache: 'no-store'` sur les lectures pour la raison symétrique : une réponse
- * servie par le cache du navigateur affiche un état que le serveur n'a plus.
- */
-async function api(url: string, init?: RequestInit): Promise<{ data?: any; error?: string }> {
-  try {
-    const res = await fetch(url, { cache: 'no-store', ...init })
-    const body = await res.json().catch(() => null)
-    if (!res.ok) return { error: body?.error || `HTTP ${res.status}` }
-    if (body?.error) return { error: body.error }
-    return { data: body?.data }
-  } catch (e: any) {
-    // `String(e)` et non `e.message` : un rejet sans message rendrait une
-    // erreur vide, que l'appelant prendrait pour un succès.
-    return { error: e?.message || String(e) }
-  }
-}
-
 /* ---------- components ---------- */
 function StatCard({ icon, label, value, sub, color }: {
   icon: React.ReactNode; label: string; value: number; sub?: string; color: string
@@ -85,7 +62,6 @@ export default function AdminPage() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [actionId, setActionId] = useState<string | null>(null)
 
   /* tickets state */
   const [tickets, setTickets] = useState<Ticket[]>([])
@@ -111,29 +87,6 @@ export default function AdminPage() {
 
   useEffect(() => { loadData() }, [])
 
-  const patchUser = async (id: string, body: Record<string, unknown>) => {
-    setActionId(id)
-    const res = await api(`/api/admin/users/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    if (res.error) { alert(res.error); setActionId(null); return }
-    await loadData(); setActionId(null)
-  }
-
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(t.admin.confirmDelete(name))) return
-    setActionId(id)
-    const res = await api(`/api/admin/users/${id}`, { method: 'DELETE' })
-    if (res.error) { alert(res.error); setActionId(null); return }
-    await loadData(); setActionId(null)
-  }
-
-  const handleToggleAdmin = (id: string, current: boolean) => patchUser(id, { is_admin: !current })
-
-  const handleToggleSuspend = (id: string, current: boolean) => patchUser(id, { suspended: !current })
-
   const handleTicketStatus = async (id: number, status: string) => {
     const res = await api('/api/admin/tickets', {
       method: 'PATCH',
@@ -153,7 +106,6 @@ export default function AdminPage() {
     </div>
   )
 
-  const isOnline = (u: AdminUser) => u.lastSignIn && new Date(u.lastSignIn) > new Date(Date.now() - 5 * 60000)
   const filteredTickets = statusFilter ? tickets.filter(t => t.status === statusFilter) : tickets
 
   return (
@@ -197,45 +149,21 @@ export default function AdminPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-start p-3 font-medium text-gray-600">{t.admin.colUser}</th>
-                    <th className="text-start p-3 font-medium text-gray-600 hidden sm:table-cell">{t.admin.colEmail}</th>
-                    <th className="text-center p-3 font-medium text-gray-600">{t.admin.colRole}</th>
-                    <th className="text-center p-3 font-medium text-gray-600">{t.admin.colStatus}</th>
-                    <th className="text-center p-3 font-medium text-gray-600"><BookOpen className="w-4 h-4 inline" /></th>
-                    <th className="text-center p-3 font-medium text-gray-600 hidden sm:table-cell">{t.admin.colPlans}</th>
-                    <th className="text-start p-3 font-medium text-gray-600 hidden lg:table-cell">{t.admin.colLastSignIn}</th>
-                    <th className="text-center p-3 font-medium text-gray-600">{t.admin.colActions}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map(u => (
-                    <tr key={u.id} className={`border-b border-gray-100 hover:bg-gray-50 ${u.suspended ? 'opacity-60' : ''}`}>
-                      <td className="p-3"><div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: u.color }}>{u.name[0]?.toUpperCase() || '?'}</div>
-                        <div><span className="font-medium block leading-tight">{u.name || t.admin.noName}</span><span className="text-xs text-gray-400 sm:hidden">{u.email || ''}</span></div>
-                      </div></td>
-                      <td className="p-3 text-gray-600 text-xs hidden sm:table-cell">{u.email || '—'}</td>
-                      <td className="p-3 text-center">{u.is_admin ? <span className="text-green-600 text-xs font-medium bg-green-50 px-2 py-0.5 rounded-full">{t.admin.roleAdmin}</span> : <span className="text-gray-400 text-xs">{t.admin.roleUser}</span>}</td>
-                      <td className="p-3 text-center">{u.suspended ? <span className="flex items-center justify-center gap-1 text-red-600 text-xs"><Ban className="w-3 h-3" /> {t.admin.suspended}</span> : isOnline(u) ? <span className="flex items-center justify-center gap-1 text-green-600 text-xs"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> {t.admin.online}</span> : <span className="text-gray-400 text-xs">{t.admin.offline}</span>}</td>
-                      <td className="p-3 text-center">{u.readings}</td>
-                      <td className="p-3 text-center hidden sm:table-cell">{u.plans}</td>
-                      <td className="p-3 text-xs text-gray-500 hidden lg:table-cell">{u.lastSignIn ? formatDate(locale, u.lastSignIn, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : t.admin.never}</td>
-                      <td className="p-3"><div className="flex items-center justify-center gap-1">
-                        <button onClick={() => handleToggleAdmin(u.id, u.is_admin)} disabled={actionId === u.id} className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[--primary] disabled:opacity-30" title={u.is_admin ? t.admin.demote : t.admin.promote}><UserCog className="w-4 h-4" /></button>
-                        <button onClick={() => handleToggleSuspend(u.id, u.suspended)} disabled={actionId === u.id} className={`p-1.5 rounded hover:bg-gray-100 disabled:opacity-30 ${u.suspended ? 'text-green-500 hover:text-green-700' : 'text-gray-400 hover:text-red-600'}`} title={u.suspended ? t.admin.reactivate : t.admin.suspend}>{u.suspended ? <CheckCircle className="w-4 h-4" /> : <Ban className="w-4 h-4" />}</button>
-                        <button onClick={() => handleDelete(u.id, u.name)} disabled={actionId === u.id} className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 disabled:opacity-30" title={t.common.delete}><Trash2 className="w-4 h-4" /></button>
-                      </div></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {/* La gestion vit désormais sur son propre écran.
+              Le tableau qui était ici a été retiré plutôt que dupliqué : deux
+              listes d'utilisateurs sur deux écrans auraient divergé au premier
+              correctif appliqué à une seule. */}
+          <Link href="/admin/utilisateurs"
+            className="flex items-center justify-between gap-4 bg-white rounded-xl border border-gray-200 p-5 no-underline text-inherit hover:border-gray-300 transition-colors">
+            <span className="flex items-center gap-3">
+              <Users className="w-5 h-5 text-[--primary]" />
+              <span>
+                <span className="font-semibold block">{t.admin.manageUsers}</span>
+                <span className="text-sm text-gray-500">{t.admin.usersSubtitle(users.length)}</span>
+              </span>
+            </span>
+            <ChevronRight className="w-5 h-5 text-gray-400 rtl:rotate-180" />
+          </Link>
         </>
       )}
 

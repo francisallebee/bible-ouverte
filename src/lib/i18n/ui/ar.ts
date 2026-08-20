@@ -100,6 +100,11 @@ const daqaiq = (n: number) => pluriel(n, {
   peu: 'دقائق', beaucoup: 'دقيقة', autre: 'دقيقة',
 })
 
+const hisabat = (n: number) => pluriel(n, {
+  zero: 'حساب', un: 'حساب واحد', deux: 'حسابان',
+  peu: 'حسابات', beaucoup: 'حسابًا', autre: 'حساب',
+})
+
 export const ar: Dictionary = {
   common: {
     ticketStatuses: {
@@ -811,6 +816,52 @@ export const ar: Dictionary = {
     validate: 'تأكيد',
   },
   admin: {
+    manageUsers: 'إدارة المستخدمين',
+    usersTitle: 'المستخدمون',
+    usersSubtitle: (n: number) => `${n} ${hisabat(n)}`,
+    backToAdmin: 'العودة إلى الإدارة',
+    searchPlaceholder: 'الاسم أو البريد أو المدينة…',
+    exportCsv: 'تصدير بصيغة CSV',
+    noResult: 'لا يطابق أي حساب',
+    showing: (debut: number, fin: number, total: number) => `${debut}–${fin} من ${total}`,
+    pageOf: (page: number, pages: number) => `صفحة ${page} / ${pages}`,
+    previous: 'السابق',
+    next: 'التالي',
+    segments: {
+      tous: 'الكل',
+      actifs: 'نشطون (7 أيام)',
+      inactifs: 'غير نشطين (30 يومًا)',
+      jamais: 'لم يسجّلوا الدخول قط',
+      suspendus: 'موقوفون',
+      admins: 'المشرفون',
+      incomplets: 'ملف غير مكتمل',
+    } as Record<string, string>,
+    sortLabel: 'الترتيب حسب',
+    sorts: {
+      nom: 'الاسم',
+      inscription: 'التسجيل',
+      connexion: 'آخر دخول',
+      lectures: 'القراءات',
+    } as Record<string, string>,
+    openFiche: 'فتح البطاقة',
+    ficheNotFound: 'الحساب غير موجود',
+    ficheIdentity: 'الهوية',
+    ficheAccount: 'الحساب',
+    ficheActivity: 'النشاط',
+    ficheReadings: 'آخر القراءات',
+    fichePlans: 'خطط القراءة',
+    ficheTickets: 'تذاكر الدعم',
+    ficheNothing: 'لا شيء لعرضه',
+    ficheEmailConfirmed: 'بريد مؤكَّد',
+    ficheEmailPending: 'بريد غير مؤكَّد',
+    ficheSignedUp: 'سجّل في',
+    ficheLanguage: 'اللغة',
+    fichePushDevices: 'الأجهزة المشتركة في الإشعارات',
+    ficheMemorised: 'آيات قيد الحفظ',
+    ficheSessions: 'جلسات اللعب',
+    fichePlanDays: 'أيام الخطة',
+    ficheNotProvided: 'غير محدَّد',
+
     title: 'الإدارة',
     refresh: 'تحديث',
     denied: 'الوصول مرفوض',
