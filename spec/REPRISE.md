@@ -913,6 +913,35 @@ ordres de grandeur tiennent — Genèse entière à 231 minutes contre les 3 h 5
 qu'annoncent les bibles audio. Ce qui ne l'est pas : la liste déroulante à trois
 unités, et la phrase qui prévient que rien n'est chronométré.
 
+**Le premier courriel est parti, et la chaîne est prouvée de bout en bout** —
+20 août 2026. Deux fois plutôt qu'une :
+
+- **Bienvenue.** Un compte réel créé à 08:43:10 UTC ; à 08:45:00 la fonction
+  rend `{"nouveaux":1,"envoye":true,"bienvenues":1,"bienvenuesEchouees":0}`,
+  et la base porte `welcomed_at` à 08:45:04 avec `welcome_attempts` à 1 — le
+  compteur incrémenté avant l'envoi, la date posée après. Les 112 comptes
+  antérieurs n'ont rien reçu. Réserve : ce compte s'est inscrit par l'**ancien**
+  formulaire (`first_name` nul), le chemin prénom + nom reste donc à éprouver.
+- **Anniversaire.** Le vœu a été déposé comme message à 09:5x, et
+  `send-messages` l'a expédié à 10:00:05, `email_attempts` à 1. Le second appel
+  de `souhaiter_anniversaires()` rend **0** : l'idempotence tient.
+
+**Ce que ces deux preuves ne disent pas.** `envoye`, `bienvenues` et
+`emailed_at` ne marquent que l'**acceptation par le serveur SMTP** — c'est
+exactement la leçon d'`envoyes` sur les notifications push, et elle vaut ici
+mot pour mot. Entre cette acceptation et une boîte de réception, il reste la
+remise et les filtres. Seuls les destinataires peuvent confirmer.
+
+**La notification push d'anniversaire reste, elle, invérifiée**, et pour une
+raison qui n'est pas un défaut : la seule personne ayant son anniversaire ce
+jour-là n'avait jamais activé les notifications et n'avait aucun appareil
+abonné. Elle n'entre donc pas dans les candidats, ce qui est le comportement
+voulu. Sur 113 comptes, **6 ont les notifications actives**, 6 appareils sont
+abonnés, et **3 d'entre eux seulement ont une date de naissance** — les 4
+novembre, 10 juillet et 16 mai. La première occasion de voir ce déclencheur
+partir pour de vrai est donc le **16 mai**, à moins qu'un compte abonné ne
+renseigne sa date d'ici là.
+
 **Toute la refonte Administration du 20 août 2026 est invérifiée à l'œil, sauf
 `/auth/signup`.** Gestion des utilisateurs, fiche individuelle, boîte de
 réception, bandeau de complétion, onglets Acquisition et Journal : tous
