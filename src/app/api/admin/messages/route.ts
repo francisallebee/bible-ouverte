@@ -45,6 +45,25 @@ export async function POST(request: NextRequest) {
   const { data: profil } = await admin
     .from('profiles').select('name').eq('id', appelant.id).single()
 
+  /**
+   * Le nom du destinataire est figé lui aussi, et pour la raison qui a fait
+   * figer celui de l'expéditeur : un journal d'audit doit rester lisible après
+   * la suppression du compte auquel il se rapporte — c'est même pourquoi
+   * `admin_actions.target_id` n'a aucune clé étrangère.
+   *
+   * Il ne se lit que pour un envoi à **une seule** personne : un envoi groupé
+   * n'a pas de cible unique, et le journal en rend compte par son nombre.
+   *
+   * Sans cela, `targetName` restait la chaîne vide en dur, et le journal
+   * affichait « a écrit à » suivi de rien — vu à l'écran le 21 août 2026.
+   */
+  let nomCible = ''
+  if (destinataires.length === 1) {
+    const { data: cible } = await admin
+      .from('profiles').select('name').eq('id', destinataires[0]).single()
+    nomCible = cible?.name ?? ''
+  }
+
   const lignes = destinataires.map((id) => ({
     user_id: id,
     from_admin: true,
@@ -67,7 +86,7 @@ export async function POST(request: NextRequest) {
     actorId: appelant.id,
     actorName: profil?.name ?? '',
     targetId: destinataires.length === 1 ? destinataires[0] : null,
-    targetName: '',
+    targetName: nomCible,
     action: 'message',
     details: { destinataires: destinataires.length, sujet: sujet.slice(0, SUJET_MAX) },
   })

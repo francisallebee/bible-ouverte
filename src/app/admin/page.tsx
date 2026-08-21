@@ -287,8 +287,12 @@ export default function AdminPage() {
             <ul className="space-y-2 list-none p-0 m-0">
               {journal.map((l) => {
                 const destinataires = Number(l.details?.destinataires ?? 0)
+                // Le repli couvre l'envoi groupé, qui n'a pas de cible unique — et
+                // aussi les lignes écrites avant le 21 août 2026, quand le nom du
+                // destinataire unique n'était pas figé. « 1 personne » en dit moins
+                // qu'un nom, mais infiniment plus qu'un blanc.
                 const cible = l.targetName
-                  || (destinataires > 1 ? t.admin.journalRecipients(destinataires) : '')
+                  || (destinataires >= 1 ? t.admin.journalRecipients(destinataires) : '')
                 return (
                   <li key={l.id} className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm border-b border-gray-100 last:border-0 pb-2 last:pb-0">
                     <span className="font-medium">{l.actorName || '—'}</span>
