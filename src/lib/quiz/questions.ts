@@ -76,6 +76,26 @@ function mots(texte: string): string[] {
 }
 
 /**
+ * La ponctuation **de bordure** seulement — celle qui colle au mot sans lui
+ * appartenir.
+ *
+ * Signalé le 21 août 2026 : les propositions arrivaient telles qu'elles se
+ * lisent dans le verset, si bien qu'un quizz proposait « Gendres, » et
+ * « retour, » à côté de « amère ». Une virgule finale trahit un mot pris en
+ * milieu de phrase, et la bonne réponse se devine sans connaître le texte.
+ *
+ * **Seuls les bords sont touchés, jamais l'intérieur** : `l'homme` et
+ * `quatre-vingt` doivent rester intacts, alors qu'un retrait global les
+ * rendrait `lhomme` et `quatrevingt`. C'est pourquoi cette expression est
+ * ancrée, là où `PONCTUATION` ne l'est pas.
+ */
+const BORDURE = /^[«»“”"'‘’(\[]+|[.,;:!?)\]«»“”"'‘’—–-]+$/g;
+
+export function motNu(mot: string): string {
+  return mot.replace(BORDURE, '');
+}
+
+/**
  * Un mot assez long pour que le retrouver ait du sens.
  *
  * Retirer « et » ou « la » ne demande aucune connaissance du texte : la
@@ -139,13 +159,14 @@ export function questionTrou(o: FabriqueOptions): QuizQuestion | null {
   const source = tire(utilisables, alea);
   const liste = mots(source.text);
   const position = tire(motRetirable(liste), alea);
-  const attendu = liste[position];
+  // Les propositions sont nues ; l'énoncé, lui, garde le verset tel quel.
+  const attendu = motNu(liste[position]);
 
   // Les leurres viennent des autres versets lus : des mots du même registre,
   // là où un dictionnaire donnerait des intrus reconnaissables au premier coup.
   const ailleurs = versets
     .filter((v) => v !== source)
-    .flatMap((v) => motRetirable(mots(v.text)).map((i) => mots(v.text)[i]));
+    .flatMap((v) => motRetirable(mots(v.text)).map((i) => motNu(mots(v.text)[i])));
 
   const p = propositions(attendu, ailleurs, choix, alea);
   if (!p) return null;

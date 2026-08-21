@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  questionLivre, questionChapitre, questionTrou, questionReference, construireQuiz,
+  questionLivre, questionChapitre, questionTrou, questionReference, construireQuiz, motNu,
   type Alea,
 } from './questions'
 import type { BiblePassage } from '@/lib/storage/types'
@@ -97,6 +97,49 @@ describe('question à trou', () => {
 
   it('renonce si aucun verset ne porte de mot assez long', () => {
     expect(questionTrou(options([v('GEN', 1, 1, 'il y a un et la de')]))).toBeNull()
+  })
+
+  /**
+   * Le défaut du 21 août : les propositions arrivaient telles qu'elles se
+   * lisent, si bien qu'un quizz offrait « Gendres, » et « retour, » à côté de
+   * « amère ». La virgule désigne le leurre sans qu'on ait lu le texte.
+   */
+  it('rend des propositions sans ponctuation de bordure', () => {
+    const versets = [
+      v('GEN', 19, 14, 'Sortez de ce lieu, Gendres, car le Seigneur va détruire.'),
+      v('ECC', 7, 26, 'Et j’ai trouvé plus amère que la mort la femme trompeuse.'),
+      v('PSA', 23, 3, 'Il restaure mon âme et me guide au retour, paisiblement.'),
+      v('JHN', 3, 16, 'Quiconque croit en lui possède la vie éternelle, vraiment.'),
+    ]
+    const q = questionTrou(options(versets))!
+    for (const choix of q.choix) {
+      expect(choix).not.toMatch(/^[«»“”"'‘’(\[]/)
+      expect(choix).not.toMatch(/[.,;:!?)\]«»“”"'‘’—–-]$/)
+    }
+  })
+})
+
+describe('motNu', () => {
+  it('retire la ponctuation qui colle au mot', () => {
+    expect(motNu('Gendres,')).toBe('Gendres')
+    expect(motNu('retour,')).toBe('retour')
+    expect(motNu('mort.')).toBe('mort')
+    expect(motNu('(voici')).toBe('voici')
+    expect(motNu('«paix»')).toBe('paix')
+  })
+
+  /**
+   * Le point qui interdit un retrait global : la ponctuation **interne**
+   * appartient au mot. `PONCTUATION` la retirerait et rendrait « lhomme ».
+   */
+  it('ne touche pas à l’intérieur du mot', () => {
+    expect(motNu("l'homme")).toBe("l'homme")
+    expect(motNu('quatre-vingt')).toBe('quatre-vingt')
+    expect(motNu('aujourd’hui')).toBe('aujourd’hui')
+  })
+
+  it('laisse intact un mot déjà nu', () => {
+    expect(motNu('amère')).toBe('amère')
   })
 })
 
