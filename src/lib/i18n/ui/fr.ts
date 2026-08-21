@@ -771,6 +771,8 @@ export const fr = {
     validate: 'Valider',
   },
   messages: {
+    emailOnly: 'Par courriel seulement',
+    emailOnlyHint: 'Le destinataire reçoit le courriel, sans que le message apparaisse dans sa boîte de réception.',
     title: 'Messages',
     navBadge: (n: number) => `${n} message${n > 1 ? 's' : ''} non lu${n > 1 ? 's' : ''}`,
     empty: 'Aucun message pour le moment.',

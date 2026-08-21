@@ -735,6 +735,8 @@ export const en: Dictionary = {
     validate: 'Confirm',
   },
   messages: {
+    emailOnly: 'By email only',
+    emailOnlyHint: 'The recipient gets the email; no message appears in their inbox.',
     title: 'Messages',
     navBadge: (n: number) => `${n} unread message${n > 1 ? 's' : ''}`,
     empty: 'No messages yet.',

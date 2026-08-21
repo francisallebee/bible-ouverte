@@ -34,6 +34,17 @@ export async function POST(request: NextRequest) {
     ? corps.userIds.filter((v: unknown): v is string => typeof v === 'string')
     : []
 
+  /**
+   * Un courriel sans message dans l'application.
+   *
+   * La ligne est écrite comme les autres — c'est elle qui porte le texte, les
+   * tentatives et `emailed_at` —, mais son `kind` la masque de la boîte du
+   * destinataire, au niveau de la RLS et non d'une requête : le navigateur
+   * parle directement à Supabase, et un filtre côté écran se contournerait
+   * depuis la console. Voir `20260821150000_courriel_seul.sql`.
+   */
+  const courrielSeul = corps.emailOnly === true
+
   const defaut = validerMessage({ subject: sujet, body: texte }, destinataires)
   if (defaut) return errorResponse(defaut)
 
@@ -67,6 +78,7 @@ export async function POST(request: NextRequest) {
   const lignes = destinataires.map((id) => ({
     user_id: id,
     from_admin: true,
+    kind: courrielSeul ? 'courriel' : null,
     subject: sujet.slice(0, SUJET_MAX),
     body: texte.slice(0, CORPS_MAX),
     sent_by: appelant.id,
@@ -88,8 +100,24 @@ export async function POST(request: NextRequest) {
     targetId: destinataires.length === 1 ? destinataires[0] : null,
     targetName: nomCible,
     action: 'message',
-    details: { destinataires: destinataires.length, sujet: sujet.slice(0, SUJET_MAX) },
+    details: { destinataires: destinataires.length, sujet: sujet.slice(0, SUJET_MAX), courrielSeul },
   })
+
+  /**
+   * Le courriel part **maintenant**, et non au prochain quart d'heure.
+   *
+   * `declencher_envoi_messages()` rejoue la commande du planificateur à
+   * l'intérieur de la base : ni l'URL ni `NOTIFY_CRON_SECRET` n'ont à exister
+   * du côté de Vercel. Voir `20260821140000_envoi_immediat.sql`.
+   *
+   * **L'échec n'est pas remonté à l'appelant, et c'est délibéré.** Le message
+   * est écrit — c'est ce que l'administrateur a demandé, et c'est fait. Si
+   * l'appel immédiat échoue, `emailed_at` reste nul et le cron reprend l'envoi
+   * au passage suivant : rendre une erreur ferait croire à un échec là où il
+   * n'y a qu'un délai.
+   */
+  const { error: echecEnvoi } = await admin.rpc('declencher_envoi_messages')
+  if (echecEnvoi) console.error('envoi immédiat impossible, le cron prendra le relais :', echecEnvoi.message)
 
   return successResponse({ envoyes: data?.length ?? 0 })
 }

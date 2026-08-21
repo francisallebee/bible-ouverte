@@ -760,6 +760,8 @@ export const es: Dictionary = {
     validate: 'Validar',
   },
   messages: {
+    emailOnly: 'Solo por correo',
+    emailOnlyHint: 'El destinatario recibe el correo, sin que el mensaje aparezca en su bandeja.',
     title: 'Mensajes',
     navBadge: (n: number) => `${n} mensaje${n !== 1 ? 's' : ''} sin leer`,
     empty: 'Ningún mensaje por ahora.',

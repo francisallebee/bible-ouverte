@@ -829,6 +829,8 @@ export const ar: Dictionary = {
     validate: 'تأكيد',
   },
   messages: {
+    emailOnly: 'بالبريد فقط',
+    emailOnlyHint: 'يصل البريد إلى المستلم دون أن تظهر الرسالة في صندوق الوارد لديه.',
     title: 'الرسائل',
     navBadge: (n: number) => `${n} ${rasail(n)} غير مقروءة`,
     empty: 'لا رسائل حتى الآن.',

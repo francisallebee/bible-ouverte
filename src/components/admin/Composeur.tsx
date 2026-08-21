@@ -31,6 +31,8 @@ export default function Composeur({
   const [envoi, setEnvoi] = useState(false)
   const [erreur, setErreur] = useState('')
   const [succes, setSucces] = useState('')
+  /** Par défaut faux : le message dans l'application est le cas ordinaire. */
+  const [courrielSeul, setCourrielSeul] = useState(false)
 
   const envoyer = async () => {
     setErreur(''); setSucces('')
@@ -42,7 +44,7 @@ export default function Composeur({
     const res = await api('/api/admin/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subject: sujet, body: corps, userIds: destinataires }),
+      body: JSON.stringify({ subject: sujet, body: corps, userIds: destinataires, emailOnly: courrielSeul }),
     })
     setEnvoi(false)
     if (res.error) {
@@ -78,6 +80,13 @@ export default function Composeur({
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
         <p className="text-[11px] text-gray-400 mt-0.5">{corps.trim().length} / {CORPS_MAX}</p>
       </div>
+      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+        <input type="checkbox" checked={courrielSeul}
+          onChange={(e) => setCourrielSeul(e.target.checked)}
+          className="rounded border-gray-300" />
+        {t.messages.emailOnly}
+      </label>
+      <p className="text-[11px] text-gray-400 -mt-2">{t.messages.emailOnlyHint}</p>
       {erreur && <p className="text-sm text-red-600">{erreur}</p>}
       {succes && <p className="text-sm text-green-600">{succes}</p>}
       <button onClick={envoyer} disabled={envoi || !corps.trim()}

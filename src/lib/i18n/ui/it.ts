@@ -759,6 +759,8 @@ export const it: Dictionary = {
     validate: 'Conferma',
   },
   messages: {
+    emailOnly: 'Solo per email',
+    emailOnlyHint: 'Il destinatario riceve l’email, senza che il messaggio compaia nella sua casella.',
     title: 'Messaggi',
     navBadge: (n: number) => `${n} messagg${n > 1 ? 'i' : 'io'} non lett${n > 1 ? 'i' : 'o'}`,
     empty: 'Nessun messaggio per ora.',
