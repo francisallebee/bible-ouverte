@@ -514,6 +514,9 @@ interrompu avant la fin. Les previews passent par git.
 | Compteurs d'actifs de l'écran de gestion | carte **20**, filtre **24**, dans le même rendu — deux calculs corrects répondant à deux questions | 21 août |
 | Coût d'un `/api/admin/users` en production | **1,3 à 2,4 s**, et il repart à chaque retour au premier plan | 21 août |
 | Présence contre connexion, en base | 10 comptes ont un `last_seen_at`, 20 une connexion de moins de 7 jours, 12 une lecture — trois définitions, trois nombres | 21 août |
+| Délai d'envoi d'un courriel, **avant** | vœu d'anniversaire du 20 août : **603 s** entre l'écriture et l'acceptation SMTP | 21 août |
+| Délai d'envoi, **après** | envoi réel depuis l'administration : **2,3 s** et **3,0 s** — 258 fois plus court | 21 août |
+| Entraînement libre, effet sur les données | niveau, échéance et `updatedAt` **identiques à la milliseconde** après une séance ; 5 séances avant, 5 après | 21 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -1308,3 +1311,82 @@ versets suivis étaient au niveau 1, à revoir le lendemain.
 Les **tickets 23 et 24 n'ont pas reçu de réponse** : écrire dans `replies`
 déclenche une notification `support-reply`, ce qui n'est pas un geste à faire en
 passant.
+
+## La séance du 21 août, seconde partie : sept demandes
+
+Toutes menées avec une session connectée, la première du dépôt pour l'agent.
+
+### Ce qui a été livré
+
+| Demande | Livré | Vu à l'écran |
+|---|---|---|
+| Ponctuation des leurres du quizz | `motNu`, ancrée sur les bords | non — le module est couvert par 4 tests |
+| Entraînement libre | second bouton, n'écrit rien | **oui**, et l'absence d'écriture prouvée en base |
+| Bouton pourcentage (item 32) | `lib/progression/rapport.ts` | **oui** |
+| Envoi de courriel immédiat | `declencher_envoi_messages()` | **oui**, 2,3 s mesurées |
+| Courriel seul | `kind = 'courriel'`, masqué par la RLS | **oui**, 0 vu par le destinataire |
+| Consigne du premier passage (ticket 23) | livré le matin | **oui** — « Premier passage : lis ce verset en entier » |
+
+Les tickets 23 et 24 avaient été clos par le propriétaire lui-même à 10:59 ;
+l'item 32 reste à *projet* — le passer à terminé notifie tous les abonnés, et
+c'est son geste.
+
+### Ce que l'entraînement libre a coûté comme décision
+
+Il n'écrit **rien** : ni niveau, ni échéance, ni séance dans `game_sessions`.
+La révision espacée ne vaut que par ses intervalles, et s'exercer trois fois
+dans la journée ne doit ni rapprocher ni éloigner le prochain rappel. Vérifié
+en base après une séance réelle : `updatedAt` identique à la milliseconde, et
+le nombre de séances inchangé.
+
+Il force **au moins un cran de masquage**, `MASQUAGE[0]` valant zéro — juste
+pour un premier passage, vide de sens pour un entraînement demandé exprès.
+
+### Le pourcentage, et le test qui a eu raison
+
+Trois cas limites vivent dans `lib/progression/rapport.ts` plutôt que dans
+l'écran : un dénominateur nul rend `null` et non zéro ; une part non nulle ne
+s'affiche jamais « 0 % » ; **une part incomplète ne s'affiche jamais
+« 100 % »**.
+
+Ce dernier a été écrit faux, et le test l'a montré : le code contrôlait la
+valeur brute — 1 188 sur 1 189 valent 99,92 %, donc `>= 100` est faux — quand
+c'est **le formatage** qui crée le mensonge. Septième fois que la question
+« lequel des deux a tort ? » se pose, et le test avait raison.
+
+**Une bascule incomplète est pire qu'une absence de bascule** : l'interrupteur
+laissait trois affichages en nombres, si bien que l'écran mêlait « 9,3 % » et
+« 111 / 250 » dans le même regard. Trouvé à l'écran, juste après le
+déploiement, et corrigé dans la foulée.
+
+### Deux erreurs de l'agent, à consigner
+
+**Un identifiant pris pour un autre.** Le test de la policy du courriel seul a
+été mené sur `d9113b95…`, décrit dans le commit comme le compte de test — c'est
+en réalité celui d'un **utilisateur réel**. Deux lignes d'essai ont donc été
+posées dans son fil. Elles ont été neutralisées par `emailed_at` avant tout
+passage du cron, puis supprimées, et la relecture en instruction séparée
+confirme qu'il n'en reste rien : aucun courriel n'est parti. La leçon tient en
+une phrase — **vérifier l'identifiant du cobaye avant d'écrire, pas après**,
+ce que le README disait déjà pour `is_admin`.
+
+**Insérer dans `messages` est un acte d'envoi.** Ces deux lignes auraient été
+ramassées par le planificateur au passage suivant. Une table qu'une fonction
+Edge balaie n'accepte pas de ligne « pour voir ».
+
+### Le pilotage par script, et ce qu'il ne prouve pas
+
+L'envoi réel a été fait en posant les valeurs par le setter natif puis en
+appelant `click()`, et non par des clics du panneau : la fiche repasse en
+« Chargement… » à chaque interaction — `use-fraicheur` recharge au retour au
+premier plan, et chaque appel d'outil produit ce focus. Ce qui est donc éprouvé
+est **la chaîne d'envoi** — route, RPC, fonction Edge, SMTP —, pas le clic sur
+le bouton. À distinguer.
+
+### Ce que seul le destinataire peut confirmer
+
+Deux courriels ont été acceptés par le SMTP à 12:32:25 et 12:33:43 UTC, sur
+`francisallebee@gmail.com`. `emailed_at` ne marque que cette acceptation — la
+leçon d'`envoyes` vaut mot pour mot. **La remise reste à confirmer par le
+propriétaire du dépôt**, ainsi que le fait qu'un seul des deux messages
+apparaisse dans l'application.

@@ -35,6 +35,8 @@ aucune donnée.
 | `20260820150000_birthday_wishes.sql` | Les vœux d'anniversaire : un texte déposé dans `messages`, deux canaux |
 | `20260820160000_notification_data_birthdays.sql` | Un sixième déclencheur dans `notification_data()` : `birthdays`, à fenêtre large |
 | `20260820170000_presence_last_seen.sql` | `profiles.last_seen_at` : la présence réelle, que `last_sign_in_at` ne dit pas |
+| `20260821140000_envoi_immediat.sql` | `declencher_envoi_messages()` : rejoue la commande du planificateur **sans exposer son secret** |
+| `20260821150000_courriel_seul.sql` | `kind = 'courriel'` masqué de la boîte du destinataire, **par la RLS** — l'administrateur continue de le voir |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -65,8 +67,8 @@ Les deux migrations des notifications sont appliquées, et figurent dans
 `20260813092636` (`notification_data`). Relevé le 13 août 2026 par
 `list_migrations`, et non déduit de la présence des fichiers.
 
-**Relevé du 21 août 2026, par `list_migrations` :** le dépôt porte **25**
-fichiers, la base en enregistre **23**. Les douze migrations du 19 et du 20 août
+**Relevé du 21 août 2026, par `list_migrations` :** le dépôt porte **27**
+fichiers, la base en enregistre **25**. Les douze migrations du 19 et du 20 août
 y figurent toutes, de `20260819112529` (`plan_day_passages`) à `20260820132715`
 (`presence_last_seen`). Les deux seules absentes restent celles du 9 août,
 passées par exécution SQL directe — l'écart est donc entièrement expliqué, et
@@ -643,6 +645,51 @@ secret — et un agent ne l'a pas. Le contrôle se fait par des prédicats plut�
 que par la lecture : `command like '%send-messages%'`, `command like
 '%x-cron-secret%'`, et une longueur inférieure de deux caractères à celle
 qu'elle recopie, ce qui est exactement l'écart entre les deux noms de fonction.
+
+### L'envoi immédiat, et le cron qui devient un filet
+
+Depuis le 21 août 2026. Un message écrit depuis l'administration partait déjà
+par courriel, mais au prochain passage du quart d'heure. Mesuré sur le vœu
+d'anniversaire du 20 août : **603 secondes** entre l'écriture et l'acceptation
+SMTP. Après correctif, sur un envoi réel : **2,3 secondes**.
+
+`declencher_envoi_messages()` rejoue la commande du planificateur **à
+l'intérieur de la base**, si bien que ni l'URL ni `NOTIFY_CRON_SECRET` n'ont à
+exister du côté de Vercel. C'est la technique du 20 août, appliquée à un autre
+usage : on se sert du secret sans jamais le lire.
+
+Le cron n'est pas devenu inutile, il a changé de rôle. Si l'appel immédiat
+échoue, `emailed_at` reste nul et le passage suivant reprend l'envoi ; et comme
+c'est `emailed_at` qui décide, rien ne part deux fois. La route ne remonte donc
+pas l'échec à l'appelant : le message est écrit, ce qui était demandé, et une
+erreur ferait croire à une perte là où il n'y a qu'un délai.
+
+### Le courriel seul
+
+`kind = 'courriel'` : le texte part par courriel sans apparaître dans la boîte
+du destinataire. Une valeur de plus sur une colonne qui existait déjà, plutôt
+qu'une table — l'envoi, les tentatives, `emailed_at` et le journal fonctionnent
+alors sans une ligne neuve.
+
+**Le masquage est dans la RLS, jamais dans une requête.** Le navigateur parle
+directement à Supabase : un filtre côté écran se contournerait depuis la
+console, exactement comme pour les tickets clos. Éprouvé sous `set local role
+authenticated`, claims posés **avant** le rôle :
+
+| Rôle | Message ordinaire | Courriel seul |
+|---|---|---|
+| Destinataire | voit 1 | **voit 0** |
+| Administrateur | voit 1 | voit 1 |
+
+L'administrateur continue de les voir, et c'est voulu : un courriel envoyé doit
+rester retrouvable par qui l'a envoyé. C'est ce qui sépare « invisible pour le
+destinataire » de « disparu ».
+
+**Piège rencontré ce jour-là** : les deux lignes d'essai posées pour éprouver la
+policy auraient été ramassées par le cron et auraient envoyé de vrais courriels
+à un utilisateur réel. Neutralisées par `emailed_at` avant tout passage, puis
+supprimées. **Insérer dans `messages` est un acte d'envoi**, pas une écriture
+de test — le penser autrement coûterait un courriel indésirable.
 
 ### `increment_message_attempt` vit dans `public`, et c'est forcé
 
