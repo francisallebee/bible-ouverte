@@ -456,6 +456,7 @@ export const it: Dictionary = {
     oldTestament: 'Antico Testamento',
     newTestament: 'Nuovo Testamento',
     chaptersOfTotal: (read: number, total: number) => `${read} / ${total} capitoli`,
+    enPourcentage: 'In percentuale',
     byContext: 'Avanzamento per contesto',
     chapterCount: (n: number) => `${n} ${n !== 1 ? 'capitoli' : 'capitolo'}`,
     noContext: 'Senza contesto',

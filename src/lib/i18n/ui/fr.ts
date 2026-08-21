@@ -462,6 +462,7 @@ export const fr = {
     oldTestament: 'Ancien Testament',
     newTestament: 'Nouveau Testament',
     chaptersOfTotal: (read: number, total: number) => `${read} / ${total} chapitres`,
+    enPourcentage: 'En pourcentage',
     byContext: 'Progression par contexte',
     chapterCount: (n: number) => `${n} chapitre${n > 1 ? 's' : ''}`,
     noContext: 'Sans contexte',

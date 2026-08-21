@@ -537,6 +537,7 @@ export const ar: Dictionary = {
     oldTestament: 'العهد القديم',
     newTestament: 'العهد الجديد',
     chaptersOfTotal: (read: number, total: number) => `${read} / ${total} إصحاحًا`,
+    enPourcentage: 'كنسبة مئوية',
     byContext: 'التقدم بحسب السياق',
     chapterCount: (n: number) => `${n} ${isahat(n)}`,
     noContext: 'بلا سياق',

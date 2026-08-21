@@ -17,6 +17,8 @@ import {
   calculerSeries, prochainPalier, paliersAtteints, filtrerParPortee,
 } from "@/lib/objectifs/objectifs";
 import { useI18n, useBookName, useContextName } from "@/contexts/I18nContext";
+import { formatPart } from "@/lib/progression/rapport";
+import { localeInfo } from "@/lib/i18n/locales";
 import type { Dictionary } from "@/lib/i18n/ui/fr";
 import {
   BIBLE_CATEGORIES, OLD_TESTAMENT, NEW_TESTAMENT,
@@ -72,13 +74,15 @@ function getLevel(totalChapters: number): { level: number; next: number } {
 }
 
 export default function ProgressPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const getBookName = useBookName();
   const contextName = useContextName();
   const [readings, setReadings] = useState<ReadingEntry[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [loaded, setLoaded] = useState(false);
+  /** Non persisté : c'est une façon de regarder, pas un réglage de compte. */
+  const [enPourcentage, setEnPourcentage] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -268,6 +272,15 @@ export default function ProgressPage() {
     return "";
   }, [objectif.portee, getBookName, nomDuPlan]);
 
+  /**
+   * Les nombres disent ce qui a été fait, le pourcentage dit où l'on en est.
+   * Aucun ne remplace l'autre — item 32 de la feuille de route.
+   */
+  const rapport = (lu: number, total: number) => {
+    if (!enPourcentage) return `${lu} / ${total}`;
+    return formatPart(localeInfo(locale).tag, lu, total) ?? `${lu} / ${total}`;
+  };
+
   if (!loaded) return <p className="text-gray-500">{t.common.loading}</p>;
 
   return (
@@ -275,6 +288,26 @@ export default function ProgressPage() {
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
         <BarChart3 className="w-6 h-6 text-[--primary]" />
         {t.progress.title}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enPourcentage}
+          onClick={() => setEnPourcentage((v) => !v)}
+          title={t.progress.enPourcentage}
+          className={`ms-auto inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+            enPourcentage
+              ? "border-[--primary] bg-[--primary] text-white"
+              : "border-gray-200 text-gray-600 hover:border-gray-300"
+          }`}
+        >
+          <span
+            aria-hidden
+            className={`h-3.5 w-6 rounded-full p-0.5 transition-colors ${enPourcentage ? "bg-white/30" : "bg-gray-300"}`}
+          >
+            <span className={`block h-2.5 w-2.5 rounded-full bg-white transition-transform ${enPourcentage ? "translate-x-2.5" : ""}`} />
+          </span>
+          %
+        </button>
       </h1>
 
       {/* Level + Streak */}
@@ -340,7 +373,11 @@ export default function ProgressPage() {
             <BookOpen className="w-5 h-5 text-[--primary]" />
             <span className="text-xs uppercase tracking-wider text-gray-500">{t.progress.chaptersRead}</span>
           </div>
-          <p className="text-3xl font-bold text-[--primary]">{chapterCount}<span className="text-lg font-normal text-gray-400 ml-1">/ {totalBibleChapters}</span></p>
+          <p className="text-3xl font-bold text-[--primary]">
+            {enPourcentage
+              ? rapport(chapterCount, totalBibleChapters)
+              : <>{chapterCount}<span className="text-lg font-normal text-gray-400 ms-1">/ {totalBibleChapters}</span></>}
+          </p>
           <p className="text-xs text-gray-400 mt-1">{t.progress.booksStarted(uniqueBooks)}</p>
         </div>
 
@@ -406,7 +443,9 @@ export default function ProgressPage() {
           <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-amber-600 rounded-full transition-[width]" style={{ width: `${otTotal > 0 ? (otChapters / otTotal) * 100 : 0}%` }} />
           </div>
-          <p className="text-xs text-gray-500 mt-1">{t.progress.chaptersOfTotal(otChapters, otTotal)}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {enPourcentage ? rapport(otChapters, otTotal) : t.progress.chaptersOfTotal(otChapters, otTotal)}
+          </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-3">
@@ -416,7 +455,9 @@ export default function ProgressPage() {
           <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-blue-600 rounded-full transition-[width]" style={{ width: `${ntTotal > 0 ? (ntChapters / ntTotal) * 100 : 0}%` }} />
           </div>
-          <p className="text-xs text-gray-500 mt-1">{t.progress.chaptersOfTotal(ntChapters, ntTotal)}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {enPourcentage ? rapport(ntChapters, ntTotal) : t.progress.chaptersOfTotal(ntChapters, ntTotal)}
+          </p>
         </div>
       </div>
 
@@ -434,7 +475,14 @@ export default function ProgressPage() {
                   <span className="font-medium">
                     <span aria-hidden="true">{c.emoji} </span>{c.name}
                   </span>
-                  <span className="text-gray-500">{t.progress.chapterCount(c.chapters)}</span>
+                  {/*
+                    Un contexte n'a pas de total à lui : sa part se rapporte donc
+                    à l'ensemble des chapitres lus, et non à la Bible entière.
+                    « 62 sur 111 lus » se lit ; « 62 sur 1 189 » dirait autre chose.
+                  */}
+                  <span className="text-gray-500">
+                    {enPourcentage ? rapport(c.chapters, chapterCount) : t.progress.chapterCount(c.chapters)}
+                  </span>
                 </div>
                 <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-[width] duration-500"
@@ -457,7 +505,7 @@ export default function ProgressPage() {
             <div key={cat.id}>
               <div className="flex justify-between text-sm mb-1">
                 <span className="font-medium">{t.bibleCategories[cat.id] ?? cat.name}</span>
-                <span className="text-gray-500">{cat.readChapters} / {cat.totalChapters}</span>
+                <span className="text-gray-500">{rapport(cat.readChapters, cat.totalChapters)}</span>
               </div>
               <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full rounded-full transition-[width] duration-500" style={{
@@ -514,7 +562,7 @@ export default function ProgressPage() {
                 <div className={`h-full rounded-full transition-[width] ${b.readChapters >= b.totalChapters ? "bg-green-500" : "bg-blue-500"}`}
                   style={{ width: `${b.totalChapters > 0 ? (b.readChapters / b.totalChapters) * 100 : 0}%` }} />
               </div>
-              <span className="text-xs text-gray-500 w-16 text-right shrink-0">{b.readChapters}/{b.totalChapters}</span>
+              <span className="text-xs text-gray-500 w-16 text-right shrink-0">{rapport(b.readChapters, b.totalChapters)}</span>
             </div>
           ))}
           {booksReadList.length === 0 && <p className="text-sm text-gray-400 text-center py-4">Aucune lecture pour le moment.</p>}
