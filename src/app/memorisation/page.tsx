@@ -38,6 +38,8 @@ export default function MemorisationPage() {
   const [mots, setMots] = useState<MotMasque[]>([])
   const [reveles, setReveles] = useState<Set<number>>(new Set())
   const [bilan, setBilan] = useState<{ reussite: number; monte: boolean; prochain: string } | null>(null)
+  /** Une séance qui ne compte pas : voir `commencer`. */
+  const [entrainement, setEntrainement] = useState(false)
 
   const dus = suivis.filter((v) => estDu(v, jour))
   /** Zéro au niveau 0 : le module ne masque rien au premier passage. */
@@ -82,21 +84,35 @@ export default function MemorisationPage() {
     await ajouter(libres[Math.floor(Math.random() * libres.length)])
   }
 
-  async function commencer(v: MemorisedVerse) {
+  /**
+   * Ouvre une séance, réelle ou libre.
+   *
+   * **L'entraînement libre n'écrit rien** — ni niveau, ni échéance, ni séance
+   * dans les statistiques. C'est tout son sens : la révision espacée ne vaut
+   * que par ses intervalles, et s'exercer trois fois dans la journée ne doit
+   * pas rapprocher ni éloigner le prochain rappel.
+   *
+   * Il force **au moins un cran de masquage**. Au niveau 0 le module ne cache
+   * rien — on lit le verset, on ne le devine pas —, ce qui est juste pour un
+   * premier passage et vide de sens pour un entraînement demandé exprès.
+   */
+  async function commencer(v: MemorisedVerse, libre = false) {
     const passages = await getPassagesForRange(v.versionId, v.book, {
       chapterStart: v.chapter, chapterEnd: v.chapter, verseStart: v.verse, verseEnd: v.verse,
     })
     const texte = passages[0]?.text
     if (!texte) return
+    const niveau = libre ? Math.max(1, v.niveau) : v.niveau
     // Le tirage est ensemencé par la référence et le niveau : recommencer une
     // séance repose les mêmes trous, ce qui permet de s'y reprendre.
-    let graine = `${v.book}${v.chapter}${v.verse}${v.niveau}`.length * 7919
+    let graine = `${v.book}${v.chapter}${v.verse}${niveau}`.length * 7919
     const alea = () => {
       graine = (graine * 1103515245 + 12345) % 2147483648
       return graine / 2147483648
     }
     setEncours(v)
-    setMots(masquerMots(texte, partMasquee(v.niveau), alea))
+    setEntrainement(libre)
+    setMots(masquerMots(texte, partMasquee(niveau), alea))
     setReveles(new Set())
     setEtape('seance')
   }
@@ -104,6 +120,15 @@ export default function MemorisationPage() {
   async function terminer() {
     if (!encours) return
     const reussite = reussiteDe(masques, reveles.size)
+
+    if (entrainement) {
+      // Rien n'est écrit, pas même `recordSession` : une séance libre qui
+      // gonflerait les statistiques ferait mentir la courbe de progression.
+      setBilan({ reussite, monte: false, prochain: encours.prochain })
+      setEtape('bilan')
+      return
+    }
+
     const suivant = prochainEtat({ niveau: encours.niveau, prochain: encours.prochain }, reussite, jour)
 
     const misAJour = await updateMemorised(encours, suivant.niveau, suivant.prochain)
@@ -185,6 +210,15 @@ export default function MemorisationPage() {
                       className="shrink-0 bg-[--primary] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-40 transition-colors">
                       {t.memorisation.reviser}
                     </button>
+                    {/*
+                      Toujours actif, y compris quand le verset n'est pas dû :
+                      c'est précisément ce qu'il apporte. Sans lui, un verset
+                      ajouté aujourd'hui ne s'exerce qu'à partir de demain.
+                    */}
+                    <button onClick={() => commencer(v, true)}
+                      className="shrink-0 border border-[--border] text-[--text-secondary] px-3 py-1.5 rounded-lg text-sm hover:border-[--primary] hover:text-[--primary] transition-colors">
+                      {t.memorisation.sentrainer}
+                    </button>
                     <button onClick={() => retirer(v)} aria-label={t.memorisation.retirer}
                       className="shrink-0 text-gray-400 hover:text-red-500 transition-colors">
                       <Trash2 className="w-4 h-4" />
@@ -258,9 +292,15 @@ export default function MemorisationPage() {
           <Check className="w-10 h-10 mx-auto mb-3" />
           <p className="text-4xl font-bold">{Math.round(bilan.reussite * 100)} %</p>
           <p className="mt-3 text-lg font-medium">
-            {bilan.monte ? t.memorisation.monte : t.memorisation.reste}
+            {entrainement
+              ? t.memorisation.entrainementBilan
+              : bilan.monte ? t.memorisation.monte : t.memorisation.reste}
           </p>
-          <p className="mt-1 text-white/85 text-sm">{t.memorisation.prochaine(formatDate(locale, bilan.prochain, { weekday: 'long', day: 'numeric', month: 'long' }))}</p>
+          <p className="mt-1 text-white/85 text-sm">
+            {entrainement
+              ? t.memorisation.entrainementSansEffet
+              : t.memorisation.prochaine(formatDate(locale, bilan.prochain, { weekday: 'long', day: 'numeric', month: 'long' }))}
+          </p>
           <button onClick={() => setEtape('liste')}
             className="mt-6 inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">
             {t.memorisation.retour}

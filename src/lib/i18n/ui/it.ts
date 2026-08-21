@@ -1200,6 +1200,9 @@ export const it: Dictionary = {
           ? 'Tocca una parola nascosta per rivelarla.'
           : `${reveles} parol${reveles !== 1 ? 'e' : 'a'} rivelat${reveles !== 1 ? 'e' : 'a'}`,
     prochaine: (d: string) => `Prossimo ripasso il ${d}`,
+    sentrainer: 'Esercitarsi',
+    entrainementBilan: 'Bell’esercizio.',
+    entrainementSansEffet: 'Esercizio libero: né il livello né la scadenza sono cambiati.',
   },
 
   versetDuJour: {

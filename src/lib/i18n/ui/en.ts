@@ -1173,6 +1173,9 @@ export const en: Dictionary = {
           ? 'Tap a hidden word to reveal it.'
           : `${reveles} word${reveles > 1 ? 's' : ''} revealed`,
     prochaine: (d: string) => `Next review on ${d}`,
+    sentrainer: 'Practise',
+    entrainementBilan: 'Good practice.',
+    entrainementSansEffet: 'Free practice: neither level nor due date changed.',
   },
 
   versetDuJour: {

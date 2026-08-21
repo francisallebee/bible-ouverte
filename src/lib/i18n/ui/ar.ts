@@ -1253,6 +1253,9 @@ export const ar: Dictionary = {
           ? 'المس كلمة مخفية لكشفها.'
           : `${reveles} كلمة مكشوفة`,
     prochaine: (d: string) => `المراجعة القادمة في ${d}`,
+    sentrainer: 'تدرَّب',
+    entrainementBilan: 'تدريب جيد.',
+    entrainementSansEffet: 'تدريب حر: لم يتغيّر المستوى ولا موعد المراجعة.',
   },
 
   versetDuJour: {

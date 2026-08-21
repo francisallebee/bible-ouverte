@@ -1203,6 +1203,9 @@ export const es: Dictionary = {
           ? 'Toca una palabra oculta para revelarla.'
           : `${reveles} palabra${reveles !== 1 ? 's' : ''} revelada${reveles !== 1 ? 's' : ''}`,
     prochaine: (d: string) => `Próximo repaso el ${d}`,
+    sentrainer: 'Practicar',
+    entrainementBilan: 'Buen entrenamiento.',
+    entrainementSansEffet: 'Práctica libre: ni el nivel ni la fecha han cambiado.',
   },
 
   versetDuJour: {

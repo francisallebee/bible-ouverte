@@ -1216,6 +1216,9 @@ export const fr = {
           ? 'Touche un mot caché pour le révéler.'
           : `${reveles} mot${reveles > 1 ? 's' : ''} révélé${reveles > 1 ? 's' : ''}`,
     prochaine: (d: string) => `Prochaine révision le ${d}`,
+    sentrainer: 'S’entraîner',
+    entrainementBilan: 'Bel entraînement.',
+    entrainementSansEffet: 'Entraînement libre : ni le niveau ni l’échéance n’ont bougé.',
   },
 
   versetDuJour: {
