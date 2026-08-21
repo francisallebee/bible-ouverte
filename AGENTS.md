@@ -334,14 +334,15 @@ npm test           # vitest
   Vérifié, non supposé. Les trois autres composants serveur de `src/app/` sont
   propres — et `soutenir/page.tsx` montre le cas où le serveur se justifie : il
   porte un `metadata`, qu'un composant client n'a pas le droit d'exporter.
-- **Les badges débloqués sont probablement illisibles en mode sombre.** Ils
-  portent `bg-yellow-50`, qu'aucune règle `html.dark` ne remappe — le bloc ne
-  réécrit que les gris —, et leur nom n'a pas de classe de couleur : il hérite
-  donc de `--text`, presque blanc. Contraste calculé sur le CSS produit :
-  **1,06**, le même chiffre que la barre latérale de la règle 15. Ce n'est pas
-  vu à l'écran, `/progress` demandant une session ; c'est calculé. Le correctif
-  tient en une classe de couleur explicite sur le texte, comme les pastilles de
-  palier voisines.
+- **Les badges débloqués étaient illisibles — corrigé et vu, le 21 août 2026.**
+  Ils portent `bg-yellow-50`, qu'aucune règle `html.dark` ne remappe, et leur nom
+  n'avait pas de classe de couleur : il héritait de `--text`, presque blanc.
+  Contraste **1,06**, le même chiffre que la barre latérale de la règle 15.
+  La mesure a trouvé **plus large que ce qui était écrit** : la *description*,
+  en `text-gray-400`, ne donnait que **2,45 en mode clair** — ce badge n'était
+  donc lisible dans aucun des deux thèmes. Les deux couleurs sont désormais
+  explicites (`text-yellow-900`, 8,38 ; `text-yellow-800`, 6,62), et vérifiées
+  à l'écran en production, mode sombre, par l'agent.
 - **La traduction ne couvre pas tout, et le reste est délibéré.** La page de
   présentation `/` et les titres d'onglet (`metadata`) restent français : ils
   sont rendus côté serveur, un visiteur sans session n'a pas de réglage de

@@ -510,6 +510,10 @@ interrompu avant la fin. Les previews passent par git.
 | Badges débloqués, mode sombre | texte hérité `--text` sur `bg-yellow-50` : **1,06** — calculé sur le CSS produit, **pas vu à l'écran** | 19 août |
 | Badges débloqués, **mode clair** | la *description* en `text-gray-400` sur `bg-yellow-50` : **2,45** — le défaut existait donc dans les deux thèmes, et non dans le seul mode sombre | 21 août |
 | Migrations, dépôt contre base | **25 fichiers, 23 enregistrées** — l'écart est exactement les deux du 9 août passées en SQL direct, aucune en attente | 21 août |
+| Filtrage réseau, **sous-domaines** | `bible-ouverte.vercel.app` refusé **comme** `vercel.com` — la production est injoignable depuis la box, ce qui n'était consigné nulle part | 21 août |
+| Compteurs d'actifs de l'écran de gestion | carte **20**, filtre **24**, dans le même rendu — deux calculs corrects répondant à deux questions | 21 août |
+| Coût d'un `/api/admin/users` en production | **1,3 à 2,4 s**, et il repart à chaque retour au premier plan | 21 août |
+| Présence contre connexion, en base | 10 comptes ont un `last_seen_at`, 20 une connexion de moins de 7 jours, 12 une lecture — trois définitions, trois nombres | 21 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -1022,6 +1026,11 @@ l'acceptation SMTP ; lui dit la remise.
 Le compte de test perdu le 18 août est donc remplacé, et il porte une date de
 naissance au 20 août : il resservira.
 
+**Il n'est plus suspendu**, contrairement à ce que ce document a longtemps dit.
+Relevé le 21 août 2026 en base — `suspended: false`, `banned_until: null` — et
+l'onglet Journal en donne la raison : trois cycles suspendre/réactiver le
+20 août, dont la **dernière action est une réactivation à 15:21**.
+
 **Le premier courriel était parti plus tôt le même jour** — deux fois plutôt
 qu'une :
 
@@ -1189,3 +1198,113 @@ une session. `typecheck`, `lint`, les **565 tests** et un build de production
 disent qu'ils se construisent ; ils ne disent rien de ce qu'ils affichent. En
 particulier : la consigne du premier passage, la question de chapitre nommant son
 livre, et les badges débloqués en mode sombre.
+
+### La revue d'écrans du 21 août 2026, en production
+
+**La première session connectée de l'agent sur la production.** Réseau débloqué
+par le partage de connexion iPhone (`en9`, `172.20.10.6`), identifiants saisis
+par le propriétaire du dépôt — un agent ne saisit pas de mot de passe.
+
+**Vu à l'œil, et par l'agent :**
+
+| Écran ou chemin | Constat |
+|---|---|
+| `/quiz` | **« GENÈSE : de quel chapitre vient ce verset ? »** — le ticket 24 corrigé, en production |
+| `/memorisation` | le nouveau texte est dans les chunks déployés ; l'écran confirme le diagnostic (deux versets au **niveau 1**, dus le lendemain) |
+| `/progress`, mode sombre | badges à **8,38** et **6,62** de contraste, mesurés sur la page |
+| `/auth/signup` | `method="post"` bien présent dans le HTML servi — la règle 12 vérifiée en production, une première |
+| `/admin` | les quatre onglets, les cinq cartes |
+| `/admin/utilisateurs` | 114 comptes, huit filtres, export CSV, envoi groupé |
+| Onglet **Journal** | sept entrées, qui racontent les trois cycles du 20 août |
+| Onglet **Acquisition** | 4 + 1 + 109 = 114, cohérent |
+| **`use-fraicheur`** | **fonctionne** — prouvé par accident, voir plus bas |
+
+Sept cartes sur huit concordent exactement avec la base. La huitième est le
+défaut ci-dessous.
+
+### Le défaut que seul l'écran pouvait montrer : deux compteurs d'actifs
+
+La carte annonçait **20** actifs quand le filtre « Actifs (7 j) » en comptait
+**24**, dans le même rendu. Aucun des deux calculs n'était faux : ils ne
+répondaient pas à la même question. `filtrerParSegment` emploie `vuLe()` — la
+présence d'abord, la connexion en repli —, tandis que la route refaisait le
+calcul sur `lastSignIn` **seul**.
+
+C'est **le piège de l'extraction, pour la troisième fois** : la bonne règle
+avait été écrite dans un module, et l'ancien calcul a survécu chez son
+appelant. Ni `tsc`, ni `eslint`, ni les tests ne pouvaient le voir.
+
+Le correctif ne recopie pas la règle : `compterActifs()` **délègue** à
+`filtrerParSegment`, ce qui rend l'écart impossible plutôt qu'improbable.
+Réserve honnête sur son test : comparer les deux est tautologique tant que la
+délégation tient — il verrouille l'architecture, pas le calcul.
+
+### Le journal d'audit ne disait pas à qui l'on avait écrit
+
+« Francis ALLEBEE **a écrit à** » — et rien. En base, `target_name` valait la
+chaîne vide sur une action `message` dont le `target_id` était pourtant bien
+renseigné : la route écrivait `targetName: ''` **en dur**, même pour un envoi à
+une seule personne. Le repli d'affichage ne jouait pas, exigeant
+`destinataires > 1`.
+
+C'est exactement ce que la migration `admin_actions` voulait éviter en figeant
+le nom dans la ligne — « après la suppression, il n'est plus lisible ailleurs ».
+Corrigé aux deux bouts : le nom du destinataire unique est désormais lu et figé,
+et le repli d'affichage descend à `>= 1` pour que les lignes déjà écrites
+cessent d'être blanches.
+
+### La fausse alerte, et ce qu'elle enseigne
+
+**Annoncé : une boucle rappelant `/api/admin/users` toutes les deux secondes.**
+Dix-huit appels depuis le chargement, à intervalles réguliers, chacun coûtant
+1,3 à 2,4 s. Le coupable désigné était le crochet de fraîcheur, dont la
+documentation prévient qu'un `recharger` instable ferait exactement cela.
+
+**C'était faux, et `charger` est bien un `useCallback` sans dépendance.** Le
+test qui tranche : instrumenter, puis attendre **six secondes sans aucune
+interaction**. Résultat : zéro appel, zéro `focus`, zéro `visibilitychange`.
+
+Les appels venaient de l'agent lui-même — chaque `javascript_tool`, chaque
+capture, chaque clic refocalise la fenêtre, et le crochet fait alors ce pour
+quoi il est écrit. L'« intervalle de deux secondes » n'était que la cadence des
+appels d'outil.
+
+**L'observateur produisait ce qu'il mesurait.** À ranger à côté de « quand tout
+ce qu'on mesure dit impossible, la variable oubliée est le temps » : ici, la
+variable oubliée était *l'instrument*. Et le résultat vaut mieux qu'une absence
+de défaut — c'est la preuve que `use-fraicheur` fonctionne en production, ce
+qui n'avait jamais été constaté.
+
+### Deux pièges d'outillage, corrigés dans ce document
+
+**Le « facteur 2,95 » n'est pas une constante, ni une propriété du panneau.**
+Le 18 août, des clics tombaient à côté et un facteur d'échelle d'environ 2,95
+avait été relevé. Le 21 août, les clics par `ref` étaient **exacts au pixel**
+sur `/quiz`… puis faux après un `resize_window` à dimensions forcées. Deux
+points de calibration donnent alors une relation **affine**, non
+multiplicative :
+
+    reçu_x ≈ 0,62 × envoyé_x + 851
+    reçu_y ≈ 0,61 × envoyé_y + 153
+
+Le décalage est tel que certaines cibles demanderaient une coordonnée négative,
+donc sont hors d'atteinte. **Le remède n'est pas de calibrer, c'est de revenir
+au préréglage natif** (`resize_window` avec `preset`), après quoi le clic
+retombe au pixel près — vérifié.
+
+**Chercher une chaîne accentuée dans un bundle minifié ne trouve rien.** Les
+accents y sont échappés en `\xe9` — ni UTF-8 littéral, ni `\u00e9`. Une
+recherche de « caché pour le révéler » rend donc *absent* ce qui est présent.
+C'est le piège du `grep` sous un troisième visage : chercher sur la portion sans
+accent, ou ne pas conclure d'une absence.
+
+### Ce qui reste à voir
+
+La **consigne du premier passage** de `/memorisation` n'a pas été vue : la faire
+apparaître demande un verset de niveau 0 dû le jour même, donc d'ajouter une
+ligne aux données du propriétaire — ce n'est pas une décision d'agent. Les deux
+versets suivis étaient au niveau 1, à revoir le lendemain.
+
+Les **tickets 23 et 24 n'ont pas reçu de réponse** : écrire dans `replies`
+déclenche une notification `support-reply`, ce qui n'est pas un geste à faire en
+passant.
