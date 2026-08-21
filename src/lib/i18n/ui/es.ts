@@ -1250,6 +1250,7 @@ export const es: Dictionary = {
       trou: '¿Qué palabra falta?',
       reference: '¿Cuál es su referencia?',
     } as Record<string, string>,
+    consigneChapitre: (livre: string) => `${livre}: ¿de qué capítulo es este versículo?`,
   },
 
   planCatalog: {

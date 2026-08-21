@@ -164,7 +164,9 @@ export default function QuizPage() {
 
           <div className="rounded-2xl border border-[--border] bg-[--surface] p-5 mb-4 shadow-[--shadow]">
             <p className="text-xs font-medium uppercase tracking-wide text-[--primary] mb-2">
-              {t.quiz.consignes[questions[index].kind]}
+              {questions[index].kind === 'chapitre'
+                ? t.quiz.consigneChapitre(getBookName(questions[index].source.book))
+                : t.quiz.consignes[questions[index].kind]}
             </p>
             <p className="texte-biblique text-[--text] leading-relaxed">{questions[index].enonce}</p>
           </div>

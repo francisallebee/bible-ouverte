@@ -1220,6 +1220,7 @@ export const en: Dictionary = {
       trou: 'Which word is missing?',
       reference: 'What is its reference?',
     } as Record<string, string>,
+    consigneChapitre: (livre: string) => `${livre}: which chapter is this verse from?`,
   },
 
   planCatalog: {

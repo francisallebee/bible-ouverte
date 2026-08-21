@@ -1263,6 +1263,7 @@ export const fr = {
       trou: 'Quel mot manque ?',
       reference: 'Quelle est sa référence ?',
     } as Record<string, string>,
+    consigneChapitre: (livre: string) => `${livre} : de quel chapitre vient ce verset ?`,
   },
 
   planCatalog: {

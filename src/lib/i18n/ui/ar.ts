@@ -1300,6 +1300,7 @@ export const ar: Dictionary = {
       trou: 'ما الكلمة الناقصة؟',
       reference: 'ما هو مرجعها؟',
     } as Record<string, string>,
+    consigneChapitre: (livre: string) => `${livre}: من أي أصحاح هذه الآية؟`,
   },
 
   planCatalog: {
