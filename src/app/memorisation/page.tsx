@@ -40,6 +40,8 @@ export default function MemorisationPage() {
   const [bilan, setBilan] = useState<{ reussite: number; monte: boolean; prochain: string } | null>(null)
 
   const dus = suivis.filter((v) => estDu(v, jour))
+  /** Zéro au niveau 0 : le module ne masque rien au premier passage. */
+  const masques = mots.filter((m) => m.masque).length
 
   useEffect(() => {
     (async () => {
@@ -101,7 +103,6 @@ export default function MemorisationPage() {
 
   async function terminer() {
     if (!encours) return
-    const masques = mots.filter((m) => m.masque).length
     const reussite = reussiteDe(masques, reveles.size)
     const suivant = prochainEtat({ niveau: encours.niveau, prochain: encours.prochain }, reussite, jour)
 
@@ -224,7 +225,7 @@ export default function MemorisationPage() {
             {getBookName(encours.book)} {encours.chapter}:{encours.verse}
           </p>
           <p className="text-xs text-[--text-secondary] mb-4">
-            {t.memorisation.consigne(reveles.size)}
+            {t.memorisation.consigne(reveles.size, masques)}
           </p>
 
           <div className="texte-biblique rounded-2xl border border-[--border] bg-[--surface] p-5 leading-loose text-[--text]"

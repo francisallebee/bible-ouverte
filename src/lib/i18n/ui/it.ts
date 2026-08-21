@@ -1193,7 +1193,12 @@ export const it: Dictionary = {
     retour: 'Torna alla lista',
     revoirLe: (d: string) => `Da rivedere il ${d}`,
     niveau: (n: number, max: number) => `Livello ${n}/${max}`,
-    consigne: (n: number) => n === 0 ? 'Tocca una parola nascosta per rivelarla.' : `${n} parol${n !== 1 ? 'e' : 'a'} rivelat${n !== 1 ? 'e' : 'a'}`,
+    consigne: (reveles: number, masques: number) =>
+      masques === 0
+        ? 'Primo passaggio: leggi questo versetto per intero. Alcune parole saranno nascoste nelle revisioni successive.'
+        : reveles === 0
+          ? 'Tocca una parola nascosta per rivelarla.'
+          : `${reveles} parol${reveles !== 1 ? 'e' : 'a'} rivelat${reveles !== 1 ? 'e' : 'a'}`,
     prochaine: (d: string) => `Prossimo ripasso il ${d}`,
   },
 

@@ -1204,7 +1204,17 @@ export const fr = {
     retour: 'Revenir à la liste',
     revoirLe: (d: string) => `À revoir le ${d}`,
     niveau: (n: number, max: number) => `Niveau ${n}/${max}`,
-    consigne: (n: number) => n === 0 ? 'Touche un mot caché pour le révéler.' : `${n} mot${n > 1 ? 's' : ''} révélé${n > 1 ? 's' : ''}`,
+    /**
+     * Trois cas, et le premier est celui qui manquait : au niveau 0 le module
+     * ne masque rien — on lit le verset, on ne le devine pas — et la consigne
+     * réclamait pourtant de découvrir un mot caché qui n'existait pas.
+     */
+    consigne: (reveles: number, masques: number) =>
+      masques === 0
+        ? 'Premier passage : lis ce verset en entier. Des mots seront masqués aux révisions suivantes.'
+        : reveles === 0
+          ? 'Touche un mot caché pour le révéler.'
+          : `${reveles} mot${reveles > 1 ? 's' : ''} révélé${reveles > 1 ? 's' : ''}`,
     prochaine: (d: string) => `Prochaine révision le ${d}`,
   },
 

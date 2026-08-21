@@ -1166,7 +1166,12 @@ export const en: Dictionary = {
     retour: 'Back to the list',
     revoirLe: (d: string) => `Review on ${d}`,
     niveau: (n: number, max: number) => `Level ${n}/${max}`,
-    consigne: (n: number) => n === 0 ? 'Tap a hidden word to reveal it.' : `${n} word${n > 1 ? 's' : ''} revealed`,
+    consigne: (reveles: number, masques: number) =>
+      masques === 0
+        ? 'First pass: read this verse in full. Words will be hidden on later reviews.'
+        : reveles === 0
+          ? 'Tap a hidden word to reveal it.'
+          : `${reveles} word${reveles > 1 ? 's' : ''} revealed`,
     prochaine: (d: string) => `Next review on ${d}`,
   },
 

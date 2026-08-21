@@ -1246,7 +1246,12 @@ export const ar: Dictionary = {
     retour: 'العودة إلى القائمة',
     revoirLe: (d: string) => `المراجعة في ${d}`,
     niveau: (n: number, max: number) => `المستوى ${n}/${max}`,
-    consigne: (n: number) => n === 0 ? 'المس كلمة مخفية لكشفها.' : `${n} كلمة مكشوفة`,
+    consigne: (reveles: number, masques: number) =>
+      masques === 0
+        ? 'المرور الأول: اقرأ هذه الآية كاملة. ستُخفى كلمات في المراجعات التالية.'
+        : reveles === 0
+          ? 'المس كلمة مخفية لكشفها.'
+          : `${reveles} كلمة مكشوفة`,
     prochaine: (d: string) => `المراجعة القادمة في ${d}`,
   },
 
