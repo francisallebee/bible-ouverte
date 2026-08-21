@@ -323,7 +323,9 @@ export default function ProgressPage() {
               <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
                 <div className="h-full bg-yellow-300 rounded-full" style={{ width: `${Math.min(100, (chapterCount / level.next) * 100)}%` }} />
               </div>
-              <p className="text-xs mt-1 opacity-70">{t.progress.chaptersOf(chapterCount, level.next)}</p>
+              <p className="text-xs mt-1 opacity-70">
+                {enPourcentage ? rapport(chapterCount, level.next) : t.progress.chaptersOf(chapterCount, level.next)}
+              </p>
             </div>
           )}
         </div>
@@ -388,7 +390,11 @@ export default function ProgressPage() {
           </div>
           {goalProgress.cible > 0 ? (
             <>
-              <p className="text-3xl font-bold text-green-600">{goalProgress.fait}<span className="text-lg font-normal text-gray-400 ml-1">/ {goalProgress.cible}</span></p>
+              <p className="text-3xl font-bold text-green-600">
+                {enPourcentage
+                  ? rapport(goalProgress.fait, goalProgress.cible)
+                  : <>{goalProgress.fait}<span className="text-lg font-normal text-gray-400 ms-1">/ {goalProgress.cible}</span></>}
+              </p>
               <p className="text-xs text-gray-400 mt-1">{t.progress.goalUnitPeriod(t.settings.goalUnits[objectif.unite], t.settings.goalPeriods[objectif.periode])}</p>
               {nomDeLaPortee && (
                 <p className="text-xs text-gray-400">{t.progress.goalScope(nomDeLaPortee)}</p>
@@ -421,7 +427,9 @@ export default function ProgressPage() {
                 {goalProgress.fait >= goalProgress.cible ? t.progress.goalReached : t.progress.goalAlmost}
               </p>
               <p className="text-sm text-gray-500">
-                {t.progress.goalToday(goalProgress.fait, goalProgress.cible, objectif.unite, t.settings.goalPeriods[objectif.periode])}
+                {enPourcentage
+                  ? rapport(goalProgress.fait, goalProgress.cible)
+                  : t.progress.goalToday(goalProgress.fait, goalProgress.cible, objectif.unite, t.settings.goalPeriods[objectif.periode])}
               </p>
               {/* Sans cette mention, un objectif restreint à un livre affiche
                   un compte plus bas que l'écran voisin, et rien ne le dit. */}
