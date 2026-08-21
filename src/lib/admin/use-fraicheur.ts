@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { abonnerAuRetour, estDeRetourSur } from './retour-ecran'
 
 /**
  * Recharge les données quand on revient sur l'écran.
@@ -26,24 +27,20 @@ import { usePathname } from 'next/navigation'
  *
  * `recharger` doit être stable — un `useCallback` — sans quoi chaque rendu
  * relancerait l'effet, et l'effet un rendu.
+ *
+ * **Ce qui décide vit dans `retour-ecran.ts`**, hors de React et donc testable
+ * sans DOM : ce fichier n'est plus que le branchement des deux effets.
  */
 export function useRechargeALaVisite(recharger: () => void, route: string): void {
   const pathname = usePathname()
 
   useEffect(() => {
-    if (pathname !== route) return
+    if (!estDeRetourSur(pathname, route)) return
     recharger()
   }, [pathname, route, recharger])
 
-  useEffect(() => {
-    const auRetour = () => {
-      if (document.visibilityState === 'visible') recharger()
-    }
-    window.addEventListener('focus', auRetour)
-    document.addEventListener('visibilitychange', auRetour)
-    return () => {
-      window.removeEventListener('focus', auRetour)
-      document.removeEventListener('visibilitychange', auRetour)
-    }
-  }, [recharger])
+  useEffect(
+    () => abonnerAuRetour({ fenetre: window, document }, recharger),
+    [recharger],
+  )
 }

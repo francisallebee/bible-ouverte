@@ -23,6 +23,18 @@ aucune donnée.
 | `20260813160000_notification_data.sql` | `notification_data()` : les agrégats des cinq déclencheurs |
 | `20260814140000_new_user_alerts.sql` | `new_user_alerts` : mémoire des inscriptions déjà signalées, amorcée avec les comptes existants |
 | `20260818200000_tickets_closed_lock.sql` | Un ticket clos n'accepte plus de réponse : `guard_ticket_update` lève, sauf pour l'administrateur |
+| `20260819120000_plan_day_passages.sql` | `plan_days.passages` en `jsonb` : plusieurs passages par jour, sans table jointe |
+| `20260819160000_game_sessions.sql` | `game_sessions` : les parties des trois jeux dans une table, discriminées par `kind` |
+| `20260819180000_memorised_verses.sql` | `memorised_verses` : l'**état** d'un verset en apprentissage — niveau et échéance |
+| `20260820090000_profile_identity.sql` | Prénom, nom, ville, provenance, et le trigger qui compose `profiles.name` |
+| `20260820100000_welcome_email.sql` | Le courriel de bienvenue dans `new_user_alerts` — **avec le remplissage rétroactif des 112 lignes** |
+| `20260820110000_messages.sql` | `public.messages` : un fil par utilisateur, `user_id` désignant le propriétaire du fil |
+| `20260820120000_message_attempts.sql` | `increment_message_attempt()`, atomique, dans `public` et réservée à service_role |
+| `20260820130000_admin_actions.sql` | Le journal des actions admin — `target_id` **sans** clé étrangère, délibérément |
+| `20260820140000_signup_birth_date.sql` | La date de naissance renseignée à l'inscription ; seul le trigger change |
+| `20260820150000_birthday_wishes.sql` | Les vœux d'anniversaire : un texte déposé dans `messages`, deux canaux |
+| `20260820160000_notification_data_birthdays.sql` | Un sixième déclencheur dans `notification_data()` : `birthdays`, à fenêtre large |
+| `20260820170000_presence_last_seen.sql` | `profiles.last_seen_at` : la présence réelle, que `last_sign_in_at` ne dit pas |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -52,6 +64,13 @@ Les deux migrations des notifications sont appliquées, et figurent dans
 `supabase_migrations` sous `20260813043957` (`push_notifications`) et
 `20260813092636` (`notification_data`). Relevé le 13 août 2026 par
 `list_migrations`, et non déduit de la présence des fichiers.
+
+**Relevé du 21 août 2026, par `list_migrations` :** le dépôt porte **25**
+fichiers, la base en enregistre **23**. Les douze migrations du 19 et du 20 août
+y figurent toutes, de `20260819112529` (`plan_day_passages`) à `20260820132715`
+(`presence_last_seen`). Les deux seules absentes restent celles du 9 août,
+passées par exécution SQL directe — l'écart est donc entièrement expliqué, et
+aucune migration n'est en attente.
 
 Constat avant application des premières, sur la base réelle :
 

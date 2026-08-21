@@ -478,6 +478,13 @@ export default function ProgressPage() {
           <span className="text-xs text-gray-400 font-normal ml-auto">{badges.filter((b) => b.unlocked).length}/{badges.length}</span>
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {/*
+            `bg-yellow-50` n'est pas remappé en mode sombre — le bloc `html.dark`
+            ne réécrit que les gris (règle 15). Le nom héritait donc de `--text`,
+            presque blanc : contraste 1,06. La description, elle, était illisible
+            dans les *deux* thèmes, `text-gray-400` sur ce fond ne donnant que
+            2,45. Les deux couleurs sont désormais posées explicitement.
+          */}
           {badges.map((badge) => {
             const Icon = badge.icon;
             return (
@@ -485,8 +492,8 @@ export default function ProgressPage() {
                 <div className={`flex justify-center mb-1 ${badge.unlocked ? "" : "grayscale"}`}>
                   <Icon className={`w-7 h-7 ${badge.unlocked ? "text-yellow-500" : "text-gray-400"}`} />
                 </div>
-                <p className="text-xs font-semibold">{t.progress.badges[badge.id].name}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{t.progress.badges[badge.id].description}</p>
+                <p className={`text-xs font-semibold ${badge.unlocked ? "text-yellow-900" : ""}`}>{t.progress.badges[badge.id].name}</p>
+                <p className={`text-[10px] mt-0.5 ${badge.unlocked ? "text-yellow-800" : "text-gray-400"}`}>{t.progress.badges[badge.id].description}</p>
               </div>
             );
           })}

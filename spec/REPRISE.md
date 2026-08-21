@@ -508,6 +508,8 @@ interrompu avant la fin. Les previews passent par git.
 | Portée de cet identifiant | c'est l'identifiant **Supabase** — `rowToEntry` reprend `row.id` comme clé locale —, donc stable d'un appareil à l'autre | 19 août |
 | Pastille de palier, contraste | `text-orange-600` sur `bg-orange-50` : **3,35** — porté à `orange-700`, **4,88** | 19 août |
 | Badges débloqués, mode sombre | texte hérité `--text` sur `bg-yellow-50` : **1,06** — calculé sur le CSS produit, **pas vu à l'écran** | 19 août |
+| Badges débloqués, **mode clair** | la *description* en `text-gray-400` sur `bg-yellow-50` : **2,45** — le défaut existait donc dans les deux thèmes, et non dans le seul mode sombre | 21 août |
+| Migrations, dépôt contre base | **25 fichiers, 23 enregistrées** — l'écart est exactement les deux du 9 août passées en SQL direct, aucune en attente | 21 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -1100,3 +1102,90 @@ comprise —, et les contrastes sont calculés sur les valeurs réelles. Mais
 sur `/auth/login`. Ce qui n'est donc pas vérifié : la mise en page de la carte
 une fois les pastilles ajoutées, son aspect en mode sombre, et son rendu en
 arabe. C'est une preuve d'écran qui reste à faire, par le propriétaire du dépôt.
+
+## La séance du 21 août 2026
+
+Trois travaux, tous menés sans session — **et aucun des trois écrans touchés n'a
+été vu**. C'est la réserve à porter au crédit de ce qui suit.
+
+### Les deux tickets ouverts le matin même
+
+Signalés par le propriétaire du dépôt, et tous deux confirmés par la lecture
+avant d'être corrigés.
+
+**Ticket n°23 — la mémorisation ne masquait rien.** Et c'était conforme au
+module : `MASQUAGE[0]` vaut `0`, parce qu'« au premier passage rien n'est caché,
+on lit le verset ». Le défaut n'est donc pas dans le masquage mais dans ce que
+l'écran en dit : `consigne` ne recevait que le nombre de mots **révélés**, jamais
+le nombre de mots **masqués**, et servait donc « Touche un mot caché pour le
+révéler » devant un verset entier. Un verset qu'on vient d'ajouter étant toujours
+au niveau 0, il était **impossible de voir un mot masqué à la première séance** —
+la page ne montrait son intérêt que le lendemain. La consigne connaît désormais
+les deux nombres et annonce le premier passage pour ce qu'il est.
+
+**Ce que cela ne règle pas, et qui est une décision de produit** : il faut
+toujours attendre le lendemain pour le premier exercice réel. Ouvrir un
+entraînement libre, qui masquerait sans toucher à la révision espacée, est
+possible — mais c'est un choix à faire, pas un défaut à corriger.
+
+**Ticket n°24 — le quizz demandait le chapitre sans nommer le livre.** Les
+leurres de `questionChapitre` sont bien pris dans le même livre, ce qui donne son
+sens à la question ; mais la consigne était le libellé fixe « De quel chapitre ? »
+et les choix des nombres nus. Choisir entre 3, 7 et 12 sans savoir de quel livre
+il s'agit est arbitraire. La consigne est désormais paramétrée : « Jean : de quel
+chapitre vient ce verset ? »
+
+`quiz.consignes` étant un `as Record<string, string>`, y glisser une fonction
+était impossible — et l'assertion aurait de toute façon désarmé le contrôle du
+type, comme le `Partial<Record<…>>` du 19 août. La clé vit donc **à côté**, où le
+typage la rend obligatoire dans les cinq langues.
+
+### Les deux dettes calculées du 19 août
+
+**Le contraste des badges est corrigé, et la mesure a trouvé plus que prévu.**
+Le nom héritait bien de `--text` sur `bg-yellow-50` — 1,06, comme calculé. Mais
+la **description** portait `text-gray-400`, ce qui donne **2,45 en mode clair**
+et 2,48 en sombre : ce badge n'a jamais été lisible, dans aucun des deux thèmes,
+et le document ne signalait que la moitié du défaut. Les deux couleurs sont
+maintenant posées explicitement — `text-yellow-900` (8,38) et `text-yellow-800`
+(6,62) —, sur le modèle des pastilles de palier voisines.
+
+Les contrastes sont calculés sur le **CSS réellement produit** par un build, et
+non sur la table Tailwind : `rgb(113 63 18)` et `rgb(133 77 14)` s'y trouvent
+bien, ce qui vaut aussi contrôle de la règle 14.
+
+**`use-fraicheur.ts` a enfin un test, sans dépendance nouvelle.** L'obstacle
+était réel : l'environnement vitest est `node`, et couvrir un crochet React y
+demanderait `jsdom` (règle 6). La parade est celle de `lib/auto-logout.ts` —
+**sortir la règle du composant**. `lib/admin/retour-ecran.ts` porte désormais
+l'abonnement, cibles injectées, et le crochet n'est plus que le branchement de
+deux effets. Douze tests, dont ceux qui éprouvent le retrait des écouteurs : un
+abonnement laissé derrière soi rappellerait les données d'un écran quitté,
+indéfiniment.
+
+**Deux tests ont échoué au premier essai, et c'étaient eux qui avaient tort.**
+`Object.assign` **invoque** le getter de sa source et en copie la valeur : le
+faux document restait figé sur `visible`, si bien qu'il ne pouvait plus jamais
+devenir caché — les deux tests seraient passés au vert sans rien éprouver.
+`Object.defineProperty` corrige. C'est la sixième fois que la question « lequel
+des deux a tort ? » se pose, et la première où c'est le test.
+
+Un troisième défaut n'est apparu qu'à `tsc` : itérer un `Set` directement demande
+`--downlevelIteration`. Vitest ne l'avait pas vu — esbuild ne fait pas ce
+contrôle. **`tsc` voit ce que les tests ne voient pas**, dans ce sens-là aussi.
+
+### Le tableau des migrations était en retard de douze lignes
+
+`supabase/README.md` s'arrêtait à `tickets_closed_lock`, du 18 août. Les douze
+migrations du 19 et du 20 y sont ajoutées, chacune décrite d'après **son
+fichier** et non d'après son nom. Le relevé par `list_migrations` accompagne :
+25 fichiers au dépôt, 23 enregistrées en base, l'écart étant exactement les deux
+du 9 août passées en SQL direct.
+
+### Ce qui reste à voir à l'œil
+
+Les trois écrans touchés — `/memorisation`, `/quiz`, `/progress` — demandent tous
+une session. `typecheck`, `lint`, les **565 tests** et un build de production
+disent qu'ils se construisent ; ils ne disent rien de ce qu'ils affichent. En
+particulier : la consigne du premier passage, la question de chapitre nommant son
+livre, et les badges débloqués en mode sombre.
