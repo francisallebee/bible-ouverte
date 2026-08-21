@@ -2,7 +2,7 @@ import { type NextRequest } from 'next/server'
 import type { User } from '@supabase/supabase-js'
 import { requireAdmin, errorResponse, successResponse } from '@/lib/supabase/api-client'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { banActif } from '@/lib/admin/utilisateurs'
+import { banActif, compterActifs } from '@/lib/admin/utilisateurs'
 
 // Sans cela, Next exécute le handler pendant `next build` pour décider s'il est
 // statique. `createAdminClient()` lève alors une exception là où les variables
@@ -115,7 +115,20 @@ export async function GET(request: NextRequest) {
   const totalReadings = readingsBy.total
   const totalPlans = plansBy.total
   const totalContexts = contextsBy.total
-  const activeUsers = enriched.filter(u => u.lastSignIn && new Date(u.lastSignIn) > new Date(Date.now() - 7 * 86400000)).length
+  /**
+   * **La même règle que le filtre de l'écran, et surtout pas une seconde.**
+   *
+   * Ce calcul portait sur `lastSignIn` seul, quand `filtrerParSegment` emploie
+   * `vuLe()` — la présence d'abord, la connexion en repli. Les deux comptaient
+   * donc des choses différentes, et l'écran de gestion affichait les deux
+   * ensemble : la carte disait **20** là où le filtre disait **24**, dans le
+   * même rendu. Vu à l'écran le 21 août 2026, en production.
+   *
+   * C'est le piège de l'extraction : la bonne règle avait été écrite dans
+   * `lib/admin/utilisateurs.ts`, et l'ancien calcul a survécu ici. Aucun
+   * contrôle ne pouvait le voir — les deux étaient corrects chacun de son côté.
+   */
+  const activeUsers = compterActifs(enriched)
 
   return successResponse({
     users: enriched,

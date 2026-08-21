@@ -70,6 +70,23 @@ export function vuLe(ligne: Pick<LigneUtilisateur, 'lastSeen' | 'lastSignIn'>): 
   return ligne.lastSeen ?? ligne.lastSignIn ?? null
 }
 
+/**
+ * Combien de personnes sont actives.
+ *
+ * **Défini par le segment, et non à côté de lui.** Ce compte s'affiche sur deux
+ * écrans pendant que le segment « Actifs » se compte sur un troisième : le
+ * 21 août 2026, la carte annonçait 20 quand le filtre en montrait 24, dans le
+ * même rendu. Les deux calculs étaient corrects — ils ne répondaient pas à la
+ * même question, l'un lisant `lastSignIn` seul et l'autre `vuLe()`.
+ *
+ * Passer par `filtrerParSegment` rend l'écart impossible plutôt qu'improbable.
+ */
+export function compterActifs(
+  lignes: LigneUtilisateur[], maintenant: Date = new Date(),
+): number {
+  return filtrerParSegment(lignes, 'actifs', maintenant).length
+}
+
 export function filtrerParSegment(
   lignes: LigneUtilisateur[], segment: Segment, maintenant: Date = new Date(),
 ): LigneUtilisateur[] {

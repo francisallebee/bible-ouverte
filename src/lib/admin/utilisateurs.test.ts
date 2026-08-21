@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
+import { compterActifs,
   filtrerParSegment, chercher, trier, paginer, versCSV, COLONNES_CSV,
   JOURS_ACTIF, JOURS_INACTIF, statutDe, banActif, vuLe, SEGMENTS, TRIS,
 } from './utilisateurs'
@@ -27,6 +27,42 @@ const ligne = (over: Partial<LigneUtilisateur> = {}): LigneUtilisateur => ({
   plans: 1,
   contexts: 3,
   ...over,
+})
+
+describe('compterActifs', () => {
+  /**
+   * Le test qui garde le défaut du 21 août 2026 : la carte annonçait 20 actifs
+   * quand le filtre en montrait 24, dans le même rendu. Deux calculs corrects
+   * qui ne répondaient pas à la même question.
+   *
+   * Ce qu'il vérifie n'est donc pas un nombre, mais une **égalité** : le compte
+   * et le segment doivent dire la même chose, quelles que soient les lignes.
+   */
+  it('rend exactement ce que compte le segment « actifs »', () => {
+    const lignes = [
+      ligne({ id: 'u1', lastSignIn: ilYA(1) }),
+      ligne({ id: 'u2', lastSignIn: ilYA(JOURS_ACTIF + 3) }),
+      ligne({ id: 'u3', lastSignIn: null, lastSeen: ilYA(2) }),
+      ligne({ id: 'u4', lastSignIn: ilYA(JOURS_INACTIF + 5), lastSeen: ilYA(1) }),
+      ligne({ id: 'u5', lastSignIn: null, lastSeen: null }),
+    ]
+    expect(compterActifs(lignes, MAINTENANT))
+      .toBe(filtrerParSegment(lignes, 'actifs', MAINTENANT).length)
+  })
+
+  /**
+   * Le cas précis qui produisait l'écart : quelqu'un dont la dernière **saisie
+   * de mot de passe** est ancienne, mais qui s'est servi de l'application
+   * aujourd'hui. `lastSignIn` seul le manquait ; `vuLe()` le voit.
+   */
+  it('compte celui qui est vu sans s\'être reconnecté', () => {
+    const lignes = [ligne({ lastSignIn: ilYA(JOURS_INACTIF + 10), lastSeen: ilYA(0) })]
+    expect(compterActifs(lignes, MAINTENANT)).toBe(1)
+  })
+
+  it('ne compte pas celui dont on n\'a aucune trace', () => {
+    expect(compterActifs([ligne({ lastSignIn: null, lastSeen: null })], MAINTENANT)).toBe(0)
+  })
 })
 
 describe('segments', () => {
