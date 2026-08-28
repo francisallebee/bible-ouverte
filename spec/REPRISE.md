@@ -558,6 +558,7 @@ interrompu avant la fin. Les previews passent par git.
 | Suppression du compte de test | `delete_account` sur *Alain Fictif* le **21 août à 15:21:51 UTC**, 2 h 48 après les deux courriels ; ses messages sont partis avec lui | 28 août |
 | Étapes du parcours découverte | **17 → 21** : Quizz, Verset du jour, Mémorisation et Messages étaient ignorés depuis leur naissance | 28 août |
 | `curl` vers `localhost:3000` | `code=000` en **0,015 s** alors que le serveur répond — le bac à sable, pas le réseau | 28 août |
+| Défaut trouvé à l'œil sur la page d'accueil | la maquette du hero affichait « + ajouter un passage » quand le relevé cherchait « Réunis plusieurs passages » — **deux libellés, un seul connu du contrôle** | 28 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -1624,10 +1625,24 @@ telle qu'un visiteur sans session la reçoit.
 
 ### Ce qui n'a pas été vu, et une écriture à signaler
 
-- **La page d'accueil n'a pas été vue à l'œil.** Une session étant ouverte, `/`
-  redirige vers `/new-reading` (règle 9). Son contenu est vérifié sur le HTML
-  servi sans cookie, ce qui est **un relevé et non un écran**. À regarder en
-  navigation privée.
+- **La page d'accueil a finalement été vue** — après le déploiement, sur
+  `bible-ouverte.vercel.app`, le navigateur ne portant pas de session sur ce
+  domaine alors qu'il en portait une sur `localhost`. **Et elle a livré un
+  défaut qu'aucun relevé n'avait vu** : l'illustration du hero (`AppPreview`,
+  la fausse capture d'écran) affichait encore « + ajouter un passage » et
+  « 2 passages · 32 versets », vendant l'empilement retiré le matin même.
+
+  Le contrôle textuel ne pouvait pas l'attraper : il cherchait « Réunis
+  plusieurs passages », la formule de la carte, quand la maquette écrivait
+  « + ajouter un passage ». **Deux libellés pour la même fonction, et le relevé
+  n'en connaissait qu'un.** Le `grep` dit ce qu'il cherche, pas ce qui manque —
+  et cette fois c'est l'écran qui a rattrapé le relevé, dans le même après-midi
+  où le relevé avait rattrapé l'écran sur les « sept traductions ». **Les deux
+  instruments se relaient ; aucun ne se suffit.**
+
+  Le reste de la page est conforme, vu à l'œil : « Douze traductions, cinq
+  langues, libres de droits », les douze versions avec leur langue, les neuf
+  cartes dont les trois ajoutées.
 - **Rien n'a été vu en arabe ni en mode sombre** : ni le bouton flottant, ni la
   boîte de sortie, ni l'entrée groupée. Le bouton porte `end-6` et la flèche du
   chevron `rtl:rotate-180`, mais c'est du code, pas un constat.
