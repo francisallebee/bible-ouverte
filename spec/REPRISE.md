@@ -10,9 +10,13 @@ action hors du dépôt.
 
 ## Ce qui attend une action hors du dépôt
 
-1. **Le réseau domestique filtre github, supabase et vercel.** Tant que ce n'est
-   pas réglé sur la box, travailler en **partage de connexion iPhone** : c'est
-   mesuré, tout repasse. Voir la section dédiée plus bas.
+1. **Le filtrage de la box a été levé — mesuré le 21 août 2026 en fin de
+   journée.** `github.com`, `supabase.com`, `vercel.com` et
+   `bible-ouverte.vercel.app` répondent tous `200`, **et depuis le Wi-Fi**
+   (`en0`, `192.168.1.46`), l'adresse même qui les voyait refusés le matin.
+   **Le partage de connexion iPhone n'est plus nécessaire.** Il reste la
+   solution de repli si le filtrage revenait ; la section dédiée plus bas garde
+   le relevé du blocage, qui a structuré une semaine de travail.
 2. **L'alerte d'inscription fonctionne**, depuis le 18 août 2026 à 11:00 UTC.
    Courriel reçu, onze inscriptions annoncées d'un coup. Trois jours auront été
    nécessaires, et le récit vaut d'être lu dans `supabase/README.md` : Brevo
@@ -363,7 +367,35 @@ rien à faire dans un répertoire temporaire.
 
 ## Réseau et déploiement
 
-### Le réseau domestique filtre github, supabase et vercel
+### Le réseau domestique filtrait github, supabase et vercel — levé le 21 août
+
+**Le blocage n'existe plus.** Mesuré le 21 août 2026 vers 13 h, sur les deux
+interfaces de la box : `github.com` **200** en 0,22 s par l'Ethernet USB
+(`en7`, `192.168.1.112`) et **200** en 0,29 s par le Wi-Fi (`en0`,
+`192.168.1.46`). `supabase.com`, refusé toute la semaine, répond lui aussi.
+
+Ce qui a levé le filtrage n'est pas connu de l'agent, et la date exacte non
+plus : il était actif le matin même — la production `bible-ouverte.vercel.app`
+était injoignable — et ne l'était plus l'après-midi.
+
+**Une hypothèse a été formée puis tuée**, et elle mérite d'être notée parce
+qu'elle était plausible. Le trafic passait par un adaptateur **Ethernet USB**
+et non par le Wi-Fi : deux adresses, deux baux DHCP, donc deux appareils aux
+yeux de la box. Un contrôle parental visant l'appareil aurait tout expliqué. Le
+seul essai qui pouvait la réfuter — forcer une requête sur `en0` — l'a réfutée :
+le Wi-Fi passe aussi. **Chercher l'essai qui élimine l'hypothèse, pas celui qui
+la conforte.**
+
+Cet essai a d'abord produit un **faux négatif** : `curl --interface` échouait en
+**0,0002 seconde**, sur `example.com` compris. Un refus réseau ne peut pas être
+aussi rapide — c'était le bac à sable de l'agent, qui interdit de lier un socket
+à une interface donnée, comme il interdit le socket de routage de `route` et
+l'`AuthorizationCreate()` de `networksetup`. **La durée est le premier indice à
+lire : trop rapide veut dire local.**
+
+Ce qui suit est le relevé du blocage, conservé pour le jour où il reviendrait.
+
+#### Le relevé du blocage, du 13 au 21 août 2026
 
 **La cause est la box, pas le Mac.** Établi le 13 août au soir par le seul essai
 qui tranche : basculer le Mac sur le partage de connexion de l'iPhone. Sur la
@@ -517,6 +549,7 @@ interrompu avant la fin. Les previews passent par git.
 | Délai d'envoi d'un courriel, **avant** | vœu d'anniversaire du 20 août : **603 s** entre l'écriture et l'acceptation SMTP | 21 août |
 | Délai d'envoi, **après** | envoi réel depuis l'administration : **2,3 s** et **3,0 s** — 258 fois plus court | 21 août |
 | Entraînement libre, effet sur les données | niveau, échéance et `updatedAt` **identiques à la milliseconde** après une séance ; 5 séances avant, 5 après | 21 août |
+| **Levée du filtrage de la box** | `github.com` et `supabase.com` à **200** depuis le Wi-Fi `192.168.1.46`, refusés le matin même depuis cette adresse — le partage iPhone n'est plus nécessaire | 21 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
