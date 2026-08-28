@@ -87,13 +87,10 @@ export default function AppPreview() {
 
               <div className="flex flex-wrap gap-1.5 pt-0.5">
                 <span className="rounded-full bg-[#e8eef5] text-[#1e3a5f] text-[10px] font-medium px-2.5 py-1">
-                  Romains 8
-                </span>
-                <span className="rounded-full bg-[#e8eef5] text-[#1e3a5f] text-[10px] font-medium px-2.5 py-1">
-                  Psaumes 119.105
+                  Romains 8:1-39
                 </span>
                 <span className="rounded-full bg-[#f0eeff] text-[#5a49c9] text-[10px] font-medium px-2.5 py-1">
-                  + ajouter un passage
+                  Voir le texte
                 </span>
               </div>
 
@@ -109,7 +106,7 @@ export default function AppPreview() {
 
             <div className="rounded-lg bg-[#1e3a5f] px-3 py-2 flex items-center justify-between">
               <span className="text-[10px] text-white/70">Résumé de la saisie</span>
-              <span className="text-[10px] font-semibold text-white">2 passages · 32 versets</span>
+              <span className="text-[10px] font-semibold text-white">Romains 8:1-39 · Louis Segond 1910</span>
             </div>
           </div>
         </div>
