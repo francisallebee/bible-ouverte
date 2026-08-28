@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { History, BookPlus, ChevronRight, ChevronDown, CheckSquare, Trash2, Tag, Loader } from "lucide-react";
+import { History, BookPlus, ChevronRight, ChevronDown, CheckSquare, Trash2, Tag, Loader, Layers } from "lucide-react";
 import { seedIfNeeded, getAllReadings, getAllVersions, getAllContexts, deleteReading, updateReading } from "@/lib/storage";
 import type { ReadingEntry, BibleVersion, ReadingContext } from "@/lib/storage";
+import { grouperParSaisie, referencesDe, referenceDe } from "@/lib/lectures/saisies";
+import type { Saisie } from "@/lib/lectures/saisies";
 import { sortContexts } from "@/components/ContextPicker";
 import BookPicker from "@/components/BookPicker";
 import { useI18n, useBookName, useBooks, useContextName } from "@/contexts/I18nContext";
@@ -258,6 +260,23 @@ export default function HistoryPage() {
     });
   }
 
+  /**
+   * Cocher ou décocher tout un enregistrement.
+   *
+   * **Tout ou rien, et le tout l'emporte.** Un groupe partiellement coché se
+   * coche entièrement plutôt que de se vider : c'est le geste qu'on attend
+   * d'une case d'en-tête, et l'autre sens ferait perdre une sélection déjà
+   * faite d'un clic destiné à l'étendre.
+   */
+  function toggleGroupe(ids: number[]) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (ids.every((id) => next.has(id))) ids.forEach((id) => next.delete(id));
+      else ids.forEach((id) => next.add(id));
+      return next;
+    });
+  }
+
   function exitSelectMode() {
     setSelectMode(false);
     setSelected(new Set());
@@ -326,66 +345,149 @@ export default function HistoryPage() {
     return <p className="text-gray-500">{t.common.loading}</p>;
   }
 
+  /** Une lecture, telle qu'elle s'affiche dans la liste. */
+  function rendreLecture(r: ReadingEntry, retrait = false) {
+    const ctx = r.contextId ? contextMap[r.contextId] : undefined;
+    const readingId = r.id as number;
+    const marge = retrait ? "ps-11" : "ps-4";
+    const content = (
+      <>
+        <div className="flex items-center gap-2">
+          <p className="text-base font-semibold text-gray-900">
+            {referenceDe(r, getBookName)}
+          </p>
+          {ctx && (
+            <span className="text-xs text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 shrink-0">
+              <span aria-hidden="true">{ctx.emoji} </span>{contextName(ctx)}
+            </span>
+          )}
+        </div>
+        {r.notes && (
+          <p className="text-sm text-gray-500 mt-1 line-clamp-1">
+            {r.notes.length > 50 ? r.notes.slice(0, 50) + "…" : r.notes}
+          </p>
+        )}
+      </>
+    );
+
+    if (!selectMode) {
+      return (
+        <Link
+          key={readingId}
+          href={`/reading/${readingId}`}
+          className={`block ${marge} pe-4 py-3 hover:bg-gray-50 transition-colors no-underline`}
+        >
+          {content}
+        </Link>
+      );
+    }
+
+    const isSelected = selected.has(readingId);
+    return (
+      <label
+        key={readingId}
+        className={`flex items-start gap-3 ${marge} pe-4 py-3 cursor-pointer transition-colors ${
+          isSelected ? "bg-[--primary-light]" : "hover:bg-gray-50"
+        }`}
+      >
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => toggleSelected(readingId)}
+          disabled={busy}
+          className="accent-[--primary] w-4 h-4 mt-1 shrink-0"
+        />
+        <span className="flex-1 min-w-0">{content}</span>
+      </label>
+    );
+  }
+
+  /**
+   * Un enregistrement qui a produit plusieurs lectures, replié en une entrée.
+   *
+   * Il porte le résumé de ses passages et se déplie sur la liste, où chaque
+   * lecture reste un lien vers son détail : **rien n'est masqué, seulement
+   * rassemblé**. La case d'en-tête coche l'enregistrement entier — sans elle,
+   * cocher 39 passages un par un dans un groupe replié serait un piège.
+   */
+  function rendreGroupe(saisie: Saisie) {
+    const ouvert = expanded.has(saisie.cle);
+    const panelId = `saisie-${saisie.cle}`;
+    const references = referencesDe(saisie.entrees, getBookName);
+    const tetes = references.slice(0, 3).join(", ");
+    const reste = references.length - Math.min(3, references.length);
+    const premiere = saisie.entrees[0];
+    const ctx = premiere.contextId ? contextMap[premiere.contextId] : undefined;
+    const ids = saisie.entrees.map((e) => e.id as number);
+    const toutCoche = ids.every((id) => selected.has(id));
+
+    return (
+      <div key={saisie.cle}>
+        <div className={`flex items-start gap-3 ps-4 pe-2 py-3 transition-colors ${
+          selectMode && toutCoche ? "bg-[--primary-light]" : ""
+        }`}>
+          {selectMode && (
+            <input
+              type="checkbox"
+              checked={toutCoche}
+              onChange={() => toggleGroupe(ids)}
+              disabled={busy}
+              aria-label={t.history.selectGroup}
+              className="accent-[--primary] w-4 h-4 mt-1 shrink-0"
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => toggleCle(saisie.cle)}
+            aria-expanded={ouvert}
+            aria-controls={panelId}
+            className="flex-1 min-w-0 flex items-start gap-2 text-start hover:opacity-80 transition-opacity"
+          >
+            <Layers className="w-4 h-4 text-[--primary] mt-1 shrink-0" />
+            <span className="flex-1 min-w-0">
+              <span className="flex items-center gap-2">
+                <span className="text-base font-semibold text-gray-900 truncate">
+                  {tetes}{reste > 0 ? ` ${t.history.andMore(reste)}` : ""}
+                </span>
+                {ctx && (
+                  <span className="text-xs text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 shrink-0">
+                    <span aria-hidden="true">{ctx.emoji} </span>{contextName(ctx)}
+                  </span>
+                )}
+              </span>
+              <span className="block text-sm text-gray-500 mt-1">
+                {t.history.passageCount(saisie.entrees.length)}
+                {premiere.notes ? ` — ${premiere.notes.length > 40 ? premiere.notes.slice(0, 40) + "…" : premiere.notes}` : ""}
+              </span>
+            </span>
+            {ouvert
+              ? <ChevronDown className="w-4 h-4 text-gray-400 mt-1 shrink-0" />
+              : <ChevronRight className="w-4 h-4 text-gray-400 mt-1 shrink-0 rtl:rotate-180" />}
+          </button>
+        </div>
+        {ouvert && (
+          <div id={panelId} className="border-t border-gray-100 divide-y divide-gray-100 bg-gray-50/50">
+            {saisie.entrees.map((r) => rendreLecture(r, true))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /**
+   * Les lectures d'un nœud, regroupées par enregistrement.
+   *
+   * Le regroupement s'applique aux trois axes et non au seul axe des dates :
+   * il porte sur ce qui a été saisi d'un geste, ce qui reste vrai qu'on
+   * regarde par livre ou par contexte.
+   */
   function rendreEntrees(entrees: ReadingEntry[]) {
     return (
       <div className="border-t border-gray-100 divide-y divide-gray-100">
-        {entrees.map((r) => {
-            const ctx = r.contextId ? contextMap[r.contextId] : undefined;
-            const readingId = r.id as number;
-            const content = (
-              <>
-                <div className="flex items-center gap-2">
-                  <p className="text-base font-semibold text-gray-900">
-                    {getBookName(r.book)} {r.chapterStart}
-                    {r.chapterEnd !== r.chapterStart ? `-${r.chapterEnd}` : ""}
-                    :{r.verseStart}
-                    {r.verseEnd !== r.verseStart ? `-${r.verseEnd}` : ""}
-                  </p>
-                  {ctx && (
-                    <span className="text-xs text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 shrink-0">
-                      <span aria-hidden="true">{ctx.emoji} </span>{contextName(ctx)}
-                    </span>
-                  )}
-                </div>
-                {r.notes && (
-                  <p className="text-sm text-gray-500 mt-1 line-clamp-1">
-                    {r.notes.length > 50 ? r.notes.slice(0, 50) + "…" : r.notes}
-                  </p>
-                )}
-              </>
-            );
-
-            if (!selectMode) {
-              return (
-                <Link
-                  key={readingId}
-                  href={`/reading/${readingId}`}
-                  className="block px-4 py-3 hover:bg-gray-50 transition-colors no-underline"
-                >
-                  {content}
-                </Link>
-              );
-            }
-
-            const isSelected = selected.has(readingId);
-            return (
-              <label
-                key={readingId}
-                className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors ${
-                  isSelected ? "bg-[--primary-light]" : "hover:bg-gray-50"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => toggleSelected(readingId)}
-                  disabled={busy}
-                  className="accent-[--primary] w-4 h-4 mt-1 shrink-0"
-                />
-                <span className="flex-1 min-w-0">{content}</span>
-              </label>
-            );
-        })}
+        {grouperParSaisie(entrees).map((saisie) =>
+          saisie.entrees.length === 1
+            ? rendreLecture(saisie.entrees[0])
+            : rendreGroupe(saisie))}
       </div>
     );
   }

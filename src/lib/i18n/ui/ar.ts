@@ -68,6 +68,11 @@ const anasir = (n: number) => pluriel(n, {
   peu: 'عناصر', beaucoup: 'عنصرًا', autre: 'عنصر',
 })
 
+const maqati = (n: number) => pluriel(n, {
+  zero: 'مقطع', un: 'مقطع واحد', deux: 'مقطعان',
+  peu: 'مقاطع', beaucoup: 'مقطعًا', autre: 'مقطع',
+})
+
 const rawabit = (n: number) => pluriel(n, {
   zero: 'رابط', un: 'رابط واحد', deux: 'رابطان',
   peu: 'روابط', beaucoup: 'رابطًا', autre: 'رابط',
@@ -253,6 +258,9 @@ export const ar: Dictionary = {
     expandAll: 'فتح الكل',
     empty: 'لم يُعثر على أي قراءة.',
     readingCount: (n: number) => `${n} ${lectures(n)}`,
+    passageCount: (n: number) => `${n} ${maqati(n)}`,
+    andMore: (n: number) => `و${n} غير ذلك`,
+    selectGroup: 'تحديد كل القراءات في هذا التسجيل',
     confirmDeleteOne: 'حذف هذه القراءة؟ هذا الإجراء نهائي.',
     confirmDeleteMany: (n: number) =>
       `حذف هذه ${n} ${lectures(n)}؟ هذا الإجراء نهائي.`,

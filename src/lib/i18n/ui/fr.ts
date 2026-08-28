@@ -160,6 +160,15 @@ export const fr = {
     expandAll: 'Tout déplier',
     empty: 'Aucune lecture trouvée.',
     readingCount: (n: number) => `${n} lecture${n > 1 ? 's' : ''}`,
+    /**
+     * Un enregistrement qui a produit plusieurs lectures.
+     *
+     * Ces entrées viennent de l'empilement de passages, retiré le 28 août
+     * 2026 : elles restent en base, et la liste les rassemble.
+     */
+    passageCount: (n: number) => `${n} passage${n > 1 ? 's' : ''}`,
+    andMore: (n: number) => `et ${n} autre${n > 1 ? 's' : ''}`,
+    selectGroup: 'Tout sélectionner dans cet enregistrement',
     confirmDeleteOne: 'Supprimer cette lecture ? Cette action est définitive.',
     confirmDeleteMany: (n: number) =>
       `Supprimer ces ${n} lectures ? Cette action est définitive.`,

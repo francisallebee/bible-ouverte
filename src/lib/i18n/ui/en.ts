@@ -146,6 +146,9 @@ export const en: Dictionary = {
     expandAll: 'Expand all',
     empty: 'No reading found.',
     readingCount: (n: number) => `${n} reading${n > 1 ? 's' : ''}`,
+    passageCount: (n: number) => `${n} passage${n > 1 ? 's' : ''}`,
+    andMore: (n: number) => `and ${n} more`,
+    selectGroup: 'Select every reading in this entry',
     confirmDeleteOne: 'Delete this reading? This cannot be undone.',
     confirmDeleteMany: (n: number) =>
       `Delete these ${n} readings? This cannot be undone.`,

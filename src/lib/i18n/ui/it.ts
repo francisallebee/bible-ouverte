@@ -154,6 +154,9 @@ export const it: Dictionary = {
     expandAll: 'Espandi tutto',
     empty: 'Nessuna lettura trovata.',
     readingCount: (n: number) => `${n} ${n !== 1 ? 'letture' : 'lettura'}`,
+    passageCount: (n: number) => `${n} ${n !== 1 ? 'passi' : 'passo'}`,
+    andMore: (n: number) => `e altri ${n}`,
+    selectGroup: 'Seleziona tutte le letture di questa registrazione',
     confirmDeleteOne: 'Eliminare questa lettura? Questa azione è definitiva.',
     confirmDeleteMany: (n: number) =>
       `Eliminare queste ${n} letture? Questa azione è definitiva.`,

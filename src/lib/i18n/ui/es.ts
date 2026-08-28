@@ -154,6 +154,9 @@ export const es: Dictionary = {
     expandAll: 'Desplegar todo',
     empty: 'No se ha encontrado ninguna lectura.',
     readingCount: (n: number) => `${n} ${n !== 1 ? 'lecturas' : 'lectura'}`,
+    passageCount: (n: number) => `${n} ${n !== 1 ? 'pasajes' : 'pasaje'}`,
+    andMore: (n: number) => `y ${n} más`,
+    selectGroup: 'Seleccionar todas las lecturas de este registro',
     confirmDeleteOne: '¿Eliminar esta lectura? Esta acción es definitiva.',
     confirmDeleteMany: (n: number) =>
       `¿Eliminar estas ${n} lecturas? Esta acción es definitiva.`,
