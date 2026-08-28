@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import {
-  ArrowRight, BarChart3, BookOpen, BookPlus, Camera, Check, CloudOff,
-  RefreshCw, Search, ShieldCheck, Smartphone, Sparkles, Trophy, WifiOff,
+  ArrowRight, BarChart3, Bell, BookOpen, BookPlus, Brain, Camera, Check,
+  CloudOff, Languages, RefreshCw, Search, ShieldCheck, Smartphone, Sparkles,
+  Trophy, WifiOff,
 } from 'lucide-react'
 import AppPreview from './AppPreview'
 
@@ -22,7 +23,7 @@ const FEATURES = [
   {
     icon: BookPlus,
     title: 'Saisie en quelques secondes',
-    body: "Un livre, des chapitres, des versets. Réunis plusieurs passages dans une même lecture et note ce qu'elle t'a laissé.",
+    body: "Un livre, des chapitres, des versets. Lis le texte, valide, et note ce que la lecture t'a laissé.",
   },
   {
     icon: BookOpen,
@@ -37,7 +38,7 @@ const FEATURES = [
   {
     icon: Search,
     title: 'Recherche biblique',
-    body: "Retrouve un mot ou un verset dans les sept traductions, sans jamais quitter l'application.",
+    body: "Retrouve un mot ou un verset dans les douze traductions, sans jamais quitter l'application.",
   },
   {
     icon: BarChart3,
@@ -49,16 +50,36 @@ const FEATURES = [
     title: 'Photos, audio et liens',
     body: "Attache la photo de tes notes, un mémo vocal ou un lien à n'importe quelle lecture.",
   },
+  {
+    icon: Brain,
+    title: 'Quizz et mémorisation',
+    body: 'Teste ce que tu retiens, et apprends un verset par cœur — la révision revient quand il le faut, pas avant.',
+  },
+  {
+    icon: Bell,
+    title: 'Rappels et verset du jour',
+    body: "Un rappel à l'heure que tu choisis, sur ton téléphone. Et un verset offert chaque jour à l'ouverture.",
+  },
+  {
+    icon: Languages,
+    title: 'Cinq langues',
+    body: "L'application se lit en français, anglais, espagnol, italien et arabe — et le texte biblique aussi.",
+  },
 ]
 
 const VERSIONS = [
-  { name: 'Louis Segond', year: '1910' },
-  { name: 'Bible Darby', year: '1885' },
-  { name: 'David Martin', year: '1744' },
-  { name: 'Ostervald', year: '1996' },
-  { name: 'Augustin Crampon', year: '1923' },
-  { name: 'Lemaître de Sacy', year: '1667' },
-  { name: 'Perret-Gentil et Rilliet', year: '1861' },
+  { name: 'Louis Segond', year: '1910', langue: 'Français' },
+  { name: 'Bible Annotée de Neuchâtel', year: '1900', langue: 'Français' },
+  { name: 'Bible Darby', year: '1885', langue: 'Français' },
+  { name: 'David Martin', year: '1744', langue: 'Français' },
+  { name: 'Ostervald', year: '1996', langue: 'Français' },
+  { name: 'Augustin Crampon', year: '1923', langue: 'Français' },
+  { name: 'Lemaître de Sacy', year: '1667', langue: 'Français' },
+  { name: 'Perret-Gentil et Rilliet', year: '1861', langue: 'Français' },
+  { name: 'King James Version', year: '1611', langue: 'English' },
+  { name: 'Reina-Valera', year: '1909', langue: 'Español' },
+  { name: 'Giovanni Diodati', year: '1649', langue: 'Italiano' },
+  { name: 'Smith & Van Dyck', year: '1865', langue: 'العربية' },
 ]
 
 const CONTEXTS = [
@@ -67,7 +88,7 @@ const CONTEXTS = [
 ]
 
 const FIGURES = [
-  { value: '7', label: 'traductions françaises' },
+  { value: '12', label: 'traductions, en 5 langues' },
   { value: '66', label: 'livres' },
   { value: '1 189', label: 'chapitres' },
   { value: '100 %', label: 'consultable hors ligne' },
@@ -188,8 +209,8 @@ export default function LandingPage() {
               style={{ animationDelay: '160ms' }}
             >
               Bible Ouverte garde la trace de ce que tu lis, où que tu sois — même
-              sans réseau. Sept traductions françaises, tes plans de lecture et ta
-              progression, synchronisés sur tous tes appareils.
+              sans réseau. Douze traductions en cinq langues, tes plans de lecture
+              et ta progression, synchronisés sur tous tes appareils.
             </p>
 
             <div className="bo-rise mt-9" style={{ animationDelay: '240ms' }}>
@@ -304,7 +325,7 @@ export default function LandingPage() {
               Le métro, l&apos;avion, une salle sans réseau.
             </h2>
             <p className="mt-5 text-[17px] leading-relaxed text-white/60">
-              Les sept traductions sont stockées dans ton navigateur : le texte
+              Les traductions que tu choisis sont stockées dans ton navigateur : le texte
               s&apos;ouvre et se lit sans connexion. Ce que tu saisis hors ligne
               rejoint ton compte dès que le réseau revient.
             </p>
@@ -381,10 +402,11 @@ export default function LandingPage() {
               Le texte
             </p>
             <h2 className="mt-3 text-3xl sm:text-[2.6rem] leading-tight font-bold tracking-tight text-slate-900">
-              Sept traductions françaises, libres de droits.
+              Douze traductions, cinq langues, libres de droits.
             </h2>
             <p className="mt-5 text-[17px] leading-relaxed text-slate-500">
-              Toutes dans le domaine public, toutes disponibles hors ligne, et
+              Huit en français, et une par langue de l&apos;application. Toutes
+              dans le domaine public, toutes consultables hors ligne, et
               comparables d&apos;un passage à l&apos;autre. Choisis ta version par
               défaut, change-en quand tu veux.
             </p>
@@ -400,13 +422,16 @@ export default function LandingPage() {
           </div>
 
           <ul className="rounded-2xl bg-white ring-1 ring-slate-900/[0.06] overflow-hidden divide-y divide-slate-100">
-            {VERSIONS.map(({ name, year }) => (
+            {VERSIONS.map(({ name, year, langue }) => (
               <li key={name} className="flex items-center justify-between gap-4 px-5 py-4">
                 <span className="flex items-center gap-3 min-w-0">
                   <BookOpen className="w-4 h-4 shrink-0 text-[#1e3a5f]/40" />
                   <span className="text-[15px] font-medium text-slate-700 truncate">{name}</span>
                 </span>
-                <span className="shrink-0 text-[12.5px] tabular-nums text-slate-400">{year}</span>
+                <span className="shrink-0 flex items-center gap-3">
+                  <span className="text-[12.5px] text-slate-400">{langue}</span>
+                  <span className="text-[12.5px] tabular-nums text-slate-400">{year}</span>
+                </span>
               </li>
             ))}
           </ul>

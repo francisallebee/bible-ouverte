@@ -4,7 +4,7 @@ import LandingPage from '@/components/landing/LandingPage'
 const TITLE = 'Bible Ouverte — le carnet de tes lectures bibliques'
 const DESCRIPTION =
   'Enregistre tes lectures bibliques, suis tes plans et ta progression. ' +
-  'Sept traductions françaises consultables hors ligne, synchronisées sur tous tes appareils. Gratuit.'
+  'Douze traductions en cinq langues, consultables hors ligne, synchronisées sur tous tes appareils. Gratuit.'
 
 export const metadata: Metadata = {
   title: TITLE,

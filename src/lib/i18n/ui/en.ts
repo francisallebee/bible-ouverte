@@ -517,7 +517,7 @@ export const en: Dictionary = {
     title: 'Support the project',
     subtitle: 'Bible Ouverte is free, ad-free, and never sells your data',
     freeText:
-      'The seven translations on offer are in the public domain: they cost '
+      'The twelve translations on offer are in the public domain: they cost '
       + 'nothing and never will. The app itself runs on hosting and a database '
       + 'that do have a price, and on development time.',
     patreonText:
@@ -962,7 +962,7 @@ export const en: Dictionary = {
           + 'sign-in. You pick a book, chapters, and verses if you want the '
           + 'detail.',
         points: [
-          'Several passages can fit in a single reading.',
+          'The text appears before you confirm: you read, then you save.',
           'A free note holds what you understood or want to remember.',
           'A photo of your notes, a voice memo or a link can be attached.',
         ],
@@ -996,7 +996,7 @@ export const en: Dictionary = {
           'The full text is available here, without leaving the app or opening '
           + 'another site.',
         points: [
-          'Seven public-domain French translations, from 1667 to 1996.',
+          'Twelve public-domain translations in five languages, from 1611 to 1996.',
           'Search a word, a phrase, or a reference like “John 3:16”.',
         ],
       },
@@ -1030,6 +1030,37 @@ export const en: Dictionary = {
         points: [
           'Your rhythm over time, and streaks of consecutive days.',
           'The breakdown by context and the books you visit most.',
+        ],
+      },
+      quiz: {
+        title: 'The quiz',
+        body:
+          'A handful of questions drawn from your own readings, to see what '
+          + 'stayed. Nothing is graded, nothing is compared to anyone.',
+        points: [
+          'The questions come from the passages you recorded.',
+          'Three forms: the book, the chapter, or the missing word.',
+        ],
+      },
+      'verset-du-jour': {
+        title: 'The verse of the day',
+        body:
+          'A verse offered every day, the same for everyone, changing at '
+          + 'midnight. Nothing to set up: it is there when you open the page.',
+        points: [
+          'You can keep it as a reading, with its context, in one tap.',
+          'It depends neither on your plans nor on your history.',
+        ],
+      },
+      memorisation: {
+        title: 'Memorisation',
+        body:
+          'Learning a verse by heart by recalling it at intervals that grow '
+          + 'longer. A few more words are hidden at each successful pass.',
+        points: [
+          'On the first pass nothing is hidden: you read the whole verse.',
+          'The review comes back when it helps, not when you ask for it.',
+          'A free practice exists, which touches no schedule.',
         ],
       },
       reglages: {
@@ -1075,6 +1106,16 @@ export const en: Dictionary = {
           'What is under way and what comes next. It is public, and you can say '
           + 'what matters to you.',
         points: [],
+      },
+      messages: {
+        title: 'Messages',
+        body:
+          'A thread between you and the people running the app. What is '
+          + 'written to you here is also sent to you by email.',
+        points: [
+          'You can reply from this page.',
+          'Offline it stays empty: it is the only screen without a local cache.',
+        ],
       },
       support: {
         title: 'Support',

@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  BarChart3, Bell, BookOpen, BookPlus, Check, CloudOff, Compass, Heart, History,
-  MessageCircle, Route, Search, Settings, Shield, Tags, Trophy, User, X,
+  BarChart3, Bell, BookOpen, BookPlus, Brain, Check, CloudOff, Compass, Heart,
+  History, Mail, MessageCircle, Route, Search, Settings, Shield, Sparkles, Sun,
+  Tags, Trophy, User, X,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useT } from '@/contexts/I18nContext'
@@ -36,10 +37,14 @@ const ICONES: Record<TourIcon, React.ComponentType<{ className?: string }>> = {
   trophy: Trophy,
   history: History,
   chart: BarChart3,
+  sparkles: Sparkles,
+  sun: Sun,
+  brain: Brain,
   settings: Settings,
   bell: Bell,
   'cloud-off': CloudOff,
   route: Route,
+  mail: Mail,
   message: MessageCircle,
   heart: Heart,
   user: User,

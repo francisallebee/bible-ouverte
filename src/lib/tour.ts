@@ -20,8 +20,9 @@ export const TOUR_START = 'bo:tour-start'
 /** L'icône est nommée, pas importée : ce module ne dépend pas de React. */
 export type TourIcon =
   | 'compass' | 'book-plus' | 'tags' | 'book-open' | 'search' | 'trophy'
-  | 'history' | 'chart' | 'settings' | 'bell' | 'cloud-off' | 'route'
-  | 'message' | 'heart' | 'user' | 'shield' | 'check'
+  | 'history' | 'chart' | 'sparkles' | 'sun' | 'brain' | 'settings' | 'bell'
+  | 'cloud-off' | 'route' | 'mail' | 'message' | 'heart' | 'user' | 'shield'
+  | 'check'
 
 export interface TourStep {
   /** Stable : il sert de clé de rendu et d'ancre dans les tests. */
@@ -64,10 +65,16 @@ export const TOUR_STEPS: TourStep[] = [
   { id: 'progression', href: '/progress', icon: 'trophy' },
   { id: 'historique', href: '/history', icon: 'history' },
   { id: 'statistiques', href: '/stats', icon: 'chart' },
+  // Les quatre écrans arrivés entre le 19 et le 21 août 2026, que le parcours
+  // ignorait : il s'arrêtait à douze des quatorze entrées de la barre latérale.
+  { id: 'quiz', href: '/quiz', icon: 'sparkles' },
+  { id: 'verset-du-jour', href: '/verset-du-jour', icon: 'sun' },
+  { id: 'memorisation', href: '/memorisation', icon: 'brain' },
   { id: 'reglages', href: '/settings', icon: 'settings' },
   { id: 'notifications', href: '/settings', icon: 'bell' },
   { id: 'hors-ligne', href: null, icon: 'cloud-off' },
   { id: 'feuille-de-route', href: '/roadmap', icon: 'route' },
+  { id: 'messages', href: '/messages', icon: 'mail' },
   { id: 'support', href: '/support', icon: 'message' },
   { id: 'soutenir', href: '/soutenir', icon: 'heart' },
   { id: 'profil', href: '/profil', icon: 'user' },

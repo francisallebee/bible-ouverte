@@ -536,7 +536,7 @@ export const it: Dictionary = {
     title: 'Sostieni il progetto',
     subtitle: 'Bible Ouverte è gratuita, senza pubblicità e senza rivendita di dati',
     freeText:
-      'Le sette traduzioni proposte sono di pubblico dominio: non costano '
+      'Le dodici traduzioni proposte sono di pubblico dominio: non costano '
       + "nulla e non costeranno mai nulla. L'applicazione, invece, si regge su "
       + 'un hosting e su un database che hanno un prezzo, e su tempo di '
       + 'sviluppo.',
@@ -987,7 +987,7 @@ export const it: Dictionary = {
           "È il gesto centrale, e la schermata che si apre a ogni accesso. "
           + 'Scegli un libro, dei capitoli, e se vuoi il dettaglio dei versetti.',
         points: [
-          'Più passi possono stare in una stessa lettura.',
+          'Il testo compare prima della conferma: leggi, poi salvi.',
           'Una nota libera raccoglie ciò che hai capito o trattenuto.',
           'Puoi allegare una foto dei tuoi appunti, un memo vocale o un link.',
         ],
@@ -1021,7 +1021,7 @@ export const it: Dictionary = {
           "Il testo completo si consulta qui, senza uscire dall'applicazione né "
           + 'aprire un altro sito.',
         points: [
-          'Sette traduzioni francesi libere da diritti, dal 1667 al 1996.',
+          'Dodici traduzioni libere da diritti in cinque lingue, dal 1611 al 1996.',
           'Cerca una parola, un\'espressione o un riferimento come «Giovanni 3:16».',
         ],
       },
@@ -1055,6 +1055,37 @@ export const it: Dictionary = {
         points: [
           'Il tuo ritmo nel tempo, e le serie di giorni consecutivi.',
           'La ripartizione per contesto e i libri più frequentati.',
+        ],
+      },
+      quiz: {
+        title: 'Il quiz',
+        body:
+          'Alcune domande tratte dalle tue stesse letture, per vedere che cosa '
+          + 'ne resta. Nulla viene votato, nulla viene confrontato con nessuno.',
+        points: [
+          'Le domande vengono dai passi che hai registrato.',
+          'Tre forme: il libro, il capitolo o la parola mancante.',
+        ],
+      },
+      'verset-du-jour': {
+        title: 'Il versetto del giorno',
+        body:
+          'Un versetto offerto ogni giorno, lo stesso per tutti, che cambia a '
+          + 'mezzanotte. Nulla da impostare: è lì quando apri la pagina.',
+        points: [
+          'Puoi conservarlo come lettura, con il suo contesto, con un gesto.',
+          'Non dipende né dai tuoi piani né dalla tua cronologia.',
+        ],
+      },
+      memorisation: {
+        title: 'La memorizzazione',
+        body:
+          'Imparare un versetto a memoria ritrovandolo a intervalli che si '
+          + 'allargano. Le parole si nascondono un po\' di più a ogni passaggio riuscito.',
+        points: [
+          'Al primo passaggio non si nasconde nulla: leggi il versetto intero.',
+          'Il ripasso torna quando serve, e non quando lo chiedi.',
+          'Esiste un allenamento libero, che non tocca alcuna scadenza.',
         ],
       },
       reglages: {
@@ -1101,6 +1132,16 @@ export const it: Dictionary = {
           'Ciò che è in cantiere e ciò che verrà dopo. È pubblica, e puoi dire '
           + 'ciò che conta per te.',
         points: [],
+      },
+      messages: {
+        title: 'I messaggi',
+        body:
+          "Un filo tra te e l'amministrazione dell'applicazione. Ciò che ti "
+          + 'viene scritto qui ti è inviato anche per email.',
+        points: [
+          'Puoi rispondere da questa pagina.',
+          'Offline resta vuota: è la sola schermata senza cache locale.',
+        ],
       },
       support: {
         title: "L'assistenza",

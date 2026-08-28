@@ -547,7 +547,7 @@ export const fr = {
     title: 'Soutenir le projet',
     subtitle: 'Bible Ouverte est gratuite, sans publicité et sans revente de données',
     freeText:
-      'Les sept traductions proposées sont dans le domaine public : elles ne '
+      'Les douze traductions proposées sont dans le domaine public : elles ne '
       + "coûtent rien et ne coûteront jamais rien. L'application, elle, repose "
       + 'sur un hébergement et une base de données qui ont un prix, et sur du '
       + 'temps de développement.',
@@ -1004,7 +1004,7 @@ export const fr = {
           + 'Tu choisis un livre, des chapitres, et si tu veux le détail des '
           + 'versets.',
         points: [
-          'Plusieurs passages peuvent tenir dans une même lecture.',
+          'Le texte s’affiche avant que tu valides : tu lis, puis tu enregistres.',
           'Une note libre recueille ce que tu as compris ou retenu.',
           'Une photo de tes notes, un mémo vocal ou un lien peuvent y être joints.',
         ],
@@ -1038,7 +1038,7 @@ export const fr = {
           "Le texte complet est consultable ici, sans quitter l'application ni "
           + 'ouvrir un autre site.',
         points: [
-          'Sept traductions françaises libres de droits, de 1667 à 1996.',
+          'Douze traductions libres de droits en cinq langues, de 1611 à 1996.',
           'Cherche un mot, une expression, ou une référence comme « Jean 3:16 ».',
         ],
       },
@@ -1072,6 +1072,37 @@ export const fr = {
         points: [
           'Ton rythme dans le temps, et les séries de jours consécutifs.',
           'La répartition par contexte et les livres les plus fréquentés.',
+        ],
+      },
+      quiz: {
+        title: 'Le quizz',
+        body:
+          'Une poignée de questions tirées de tes propres lectures, pour voir '
+          + "ce qu'il en reste. Rien n'est noté, rien n'est comparé à personne.",
+        points: [
+          'Les questions portent sur les passages que tu as enregistrés.',
+          'Trois formes : le livre, le chapitre, ou le mot manquant.',
+        ],
+      },
+      'verset-du-jour': {
+        title: 'Le verset du jour',
+        body:
+          'Un verset offert chaque jour, le même pour tout le monde, et qui '
+          + "change à minuit. Rien à régler : il est là quand tu ouvres la page.",
+        points: [
+          'Tu peux le garder comme lecture, avec son contexte, en un geste.',
+          'Il ne dépend ni de tes plans ni de ton historique.',
+        ],
+      },
+      memorisation: {
+        title: 'La mémorisation',
+        body:
+          'Apprendre un verset par cœur en le retrouvant à intervalles qui '
+          + "s'espacent. Les mots se masquent un peu plus à chaque passage réussi.",
+        points: [
+          "Au premier passage, rien n'est caché : tu lis le verset en entier.",
+          'La révision revient quand elle sert, et non quand tu la demandes.',
+          "Un entraînement libre existe, qui ne touche à aucune échéance.",
         ],
       },
       reglages: {
@@ -1117,6 +1148,16 @@ export const fr = {
           'Ce qui est en chantier et ce qui viendra ensuite. Elle est publique, '
           + 'et tu peux dire ce qui compte pour toi.',
         points: [],
+      },
+      messages: {
+        title: 'Les messages',
+        body:
+          "Un fil entre toi et l'administration de l'application. Ce qui t'y "
+          + 'est écrit t’est aussi envoyé par courriel.',
+        points: [
+          'Tu peux répondre depuis cette page.',
+          'Hors ligne, elle reste vide : c’est le seul écran sans cache local.',
+        ],
       },
       support: {
         title: 'Le support',

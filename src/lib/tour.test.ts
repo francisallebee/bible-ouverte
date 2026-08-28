@@ -8,10 +8,17 @@ import { DICTIONARIES } from '@/lib/i18n/ui'
  * Les écrans qui affichent réellement quelque chose. Une étape qui viserait
  * ailleurs enverrait l'utilisateur sur un 404 au beau milieu de sa découverte
  * de l'application — le pire moment pour lui montrer une page morte.
+ *
+ * **Cette liste est tenue à la main, et elle prend du retard.** Quizz, Verset
+ * du jour, Mémorisation et Messages sont nés entre le 19 et le 21 août 2026 ;
+ * elle ne les a reçus que le 28, quand le parcours a enfin cessé de les
+ * ignorer. Le test protège du 404, pas de l'oubli : un écran ajouté à la barre
+ * latérale doit rejoindre le parcours **et** cette liste.
  */
 const ECRANS_REELS = [
-  '/admin', '/history', '/new-reading', '/plans', '/profil', '/progress',
-  '/roadmap', '/search', '/settings', '/soutenir', '/stats', '/support',
+  '/admin', '/history', '/memorisation', '/messages', '/new-reading', '/plans',
+  '/profil', '/progress', '/quiz', '/roadmap', '/search', '/settings',
+  '/soutenir', '/stats', '/support', '/verset-du-jour',
 ]
 
 /**
