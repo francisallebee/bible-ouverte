@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookPlus, Link as LinkIcon, ImageIcon, Camera, Upload,
-  X, ExternalLink, Plus, Music, Trash2, Layers, SlidersHorizontal, BookOpenText, Search,
+  X, ExternalLink, Plus, Music, SlidersHorizontal, BookOpenText, Search, Save,
 } from "lucide-react";
 import {
   seedIfNeeded, getEnabledVersions, getPassagesForRange, addReading, getSettings,
@@ -23,27 +23,13 @@ import PassagePreview from "@/components/PassagePreview";
 import PassageSearch from "@/components/PassageSearch";
 import { resizeImage } from "@/lib/image-utils";
 
-/** Un passage mis de côté, en attente de l'enregistrement global. */
-interface PendingPassage {
+/** Le passage en cours de saisie, une fois le livre choisi. */
+interface Passage {
   book: string;
   chapterStart: number;
   chapterEnd: number;
   verseStart: number;
   verseEnd: number;
-}
-
-/**
- * Le nom du livre est fourni par l'appelant plutôt que lu ici : cette fonction
- * vit hors du composant, donc hors de portée du crochet qui connaît la langue.
- */
-function describePassage(p: PendingPassage, nomDuLivre: (code: string) => string): string {
-  const chapters = p.chapterEnd !== p.chapterStart
-    ? `${p.chapterStart}-${p.chapterEnd}`
-    : `${p.chapterStart}`;
-  const verses = p.verseEnd !== p.verseStart
-    ? `${p.verseStart}-${p.verseEnd}`
-    : `${p.verseStart}`;
-  return `${nomDuLivre(p.book)} ${chapters}:${verses}`;
 }
 
 export default function NewReadingPage() {
@@ -63,14 +49,20 @@ export default function NewReadingPage() {
   const [versionId, setVersionId] = useState("");
   const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [contextId, setContextId] = useState("");
-  // `passages` porte déjà l'aperçu des versets : ce champ-ci est la pile des
-  // passages mis de côté pour être enregistrés ensemble.
-  const [pending, setPending] = useState<PendingPassage[]>([]);
   const [notes, setNotes] = useState("");
   const [links, setLinks] = useState<ReadingLink[]>([]);
   const [photos, setPhotos] = useState<string[]>([]);
   const [audio, setAudio] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
+  /**
+   * La destination retenue pendant qu'on demande quoi faire de la saisie.
+   *
+   * `null` tant qu'aucune sortie n'est en attente. Garder le lien visé plutôt
+   * qu'un simple booléen est ce qui permet d'enregistrer **puis** d'aller où
+   * l'on voulait aller : une confirmation qui ramène ailleurs qu'à la
+   * destination choisie fait recommencer la navigation.
+   */
+  const [sortie, setSortie] = useState<string | null>(null);
 
   const [passages, setPassages] = useState<BiblePassage[]>([]);
   const [loadingPassage, setLoadingPassage] = useState(false);
@@ -153,17 +145,9 @@ export default function NewReadingPage() {
   }
 
   /** Le passage en cours de saisie, s'il est complet. */
-  function currentPassage(): PendingPassage | null {
+  function currentPassage(): Passage | null {
     if (!book) return null;
     return { book, chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd };
-  }
-
-  function resetPassageFields() {
-    setBook("");
-    setChapterStart(1);
-    setChapterEnd(undefined);
-    setVerseStart(1);
-    setVerseEnd(undefined);
   }
 
   /**
@@ -181,21 +165,18 @@ export default function NewReadingPage() {
     if (abbreviation) setPickerOpen(true);
   }
 
-  /** Met le passage en cours de côté et vide les champs pour le suivant. */
-  function stackPassage() {
-    const p = currentPassage();
-    if (!p) return;
-    setPending((prev) => [...prev, p]);
-    resetPassageFields();
-  }
-
-  function removePending(i: number) {
-    setPending((prev) => prev.filter((_, idx) => idx !== i));
-  }
-
-  // Le passage en cours compte dans le total : on n'oblige pas à cliquer
-  // « Ajouter ce passage » avant d'enregistrer une lecture unique.
-  const toSave = [...pending, ...(currentPassage() ? [currentPassage()!] : [])];
+  /**
+   * Y a-t-il de quoi enregistrer ?
+   *
+   * **Une lecture, un passage.** L'empilement de plusieurs passages sous une
+   * même date a été retiré le 28 août 2026 : il faisait doublon avec la
+   * validation qui suit la lecture du texte, et il écrivait une lecture par
+   * passage — une seule saisie produisait ainsi jusqu'à 39 entrées dans
+   * l'historique. Les lignes déjà écrites sont regroupées à l'affichage par
+   * `lib/lectures/saisies.ts`.
+   */
+  const passage = currentPassage();
+  const peutEnregistrer = passage !== null && Boolean(versionId);
 
   /**
    * Ce qui serait perdu en quittant la page.
@@ -205,7 +186,7 @@ export default function NewReadingPage() {
    */
   const enCours =
     Boolean(book) || notes.trim().length > 0 || links.length > 0
-    || photos.length > 0 || Boolean(audio) || pending.length > 0;
+    || photos.length > 0 || Boolean(audio);
 
   // Une fois la lecture enregistrée, la navigation qui suit n'a plus rien à
   // faire confirmer — c'est nous qui la déclenchons.
@@ -234,6 +215,12 @@ export default function NewReadingPage() {
    * traite. Un changement d'onglet du navigateur ou un bouton « précédent »
    * passent au travers : le premier est couvert par `beforeunload`, le second
    * ne l'est pas, et c'est une limite assumée.
+   *
+   * **Le clic est toujours arrêté, et la question posée ensuite.** Un
+   * `confirm()` natif n'offrait que « continuer » ou « rester » — il fallait
+   * revenir en arrière pour enregistrer, ce que personne ne fait : on quitte,
+   * et la saisie est perdue. La boîte affichée à la place propose le geste
+   * qu'on venait chercher.
    */
   useEffect(() => {
     if (!enCours) return;
@@ -245,43 +232,54 @@ export default function NewReadingPage() {
       const href = lien.getAttribute("href");
       if (!href || !href.startsWith("/") || href === "/new-reading") return;
       if (lien.getAttribute("target") === "_blank") return;
-      if (confirm(t.newReading.leaveWarning)) return;
       e.preventDefault();
       e.stopPropagation();
+      setSortie(href);
     };
     document.addEventListener("click", auClic, true);
     return () => document.removeEventListener("click", auClic, true);
-  }, [enCours, t]);
+  }, [enCours]);
 
-  async function handleSave() {
-    if (toSave.length === 0 || !versionId) return;
+  /**
+   * Enregistre, puis va où l'on voulait aller.
+   *
+   * La destination est un paramètre parce que l'enregistrement se déclenche
+   * désormais de deux endroits : le bouton, qui ramène à l'accueil, et la
+   * boîte de sortie, qui doit conduire au lien cliqué.
+   */
+  async function handleSave(destination: string = "/") {
+    if (!passage || !versionId) return;
     setSaving(true);
 
-    // Une lecture par passage : les statistiques, la progression et les plans
-    // raisonnent tous par lecture, un enregistrement unique portant plusieurs
-    // passages fausserait tous les comptages.
-    for (const p of toSave) {
-      await addReading({
-        date,
-        book: p.book,
-        chapterStart: p.chapterStart,
-        chapterEnd: p.chapterEnd,
-        verseStart: p.verseStart,
-        verseEnd: p.verseEnd,
-        passageText: "",
-        translationId: versionId,
-        tags: [],
-        contextId,
-        notes,
-        links: links.length > 0 ? links : undefined,
-        photos: photos.length > 0 ? photos : undefined,
-        audio: audio || undefined,
-      });
-    }
+    await addReading({
+      date,
+      book: passage.book,
+      chapterStart: passage.chapterStart,
+      chapterEnd: passage.chapterEnd,
+      verseStart: passage.verseStart,
+      verseEnd: passage.verseEnd,
+      passageText: "",
+      translationId: versionId,
+      tags: [],
+      contextId,
+      notes,
+      links: links.length > 0 ? links : undefined,
+      photos: photos.length > 0 ? photos : undefined,
+      audio: audio || undefined,
+    });
 
     enregistre.current = true;
     setSaving(false);
-    router.push("/");
+    setSortie(null);
+    router.push(destination);
+  }
+
+  /** Quitter en abandonnant la saisie : la garde est levée avant de partir. */
+  function quitterSansEnregistrer() {
+    const destination = sortie;
+    enregistre.current = true;
+    setSortie(null);
+    if (destination) router.push(destination);
   }
 
   if (!loaded) return (
@@ -362,39 +360,7 @@ export default function NewReadingPage() {
               </select>
             </div>
 
-            <div className="pt-1">
-              <button type="button" onClick={stackPassage} disabled={!book}
-                className="w-full flex items-center justify-center gap-2 border border-dashed border-[--border] rounded-lg px-3 py-2.5 text-sm text-[--text-secondary] hover:border-[--primary] hover:text-[--primary] disabled:opacity-40 disabled:hover:border-[--border] disabled:hover:text-[--text-secondary] transition-colors">
-                <Plus className="w-4 h-4" />
-                {t.newReading.addAnotherPassage}
-              </button>
-              <p className="text-xs text-[--text-secondary] mt-1.5">
-                {t.newReading.sharedFields}
-              </p>
-            </div>
           </div>
-
-          {pending.length > 0 && (
-            <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
-              <p className="text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
-                <Layers className="w-4 h-4 text-[--primary]" />
-                {t.newReading.passagesToSave(pending.length, currentPassage() !== null)}
-              </p>
-              <ul className="space-y-1.5">
-                {pending.map((p, i) => (
-                  <li key={`${p.book}-${p.chapterStart}-${i}`}
-                    className="flex items-center gap-2 bg-gray-50 border border-[--border] rounded-lg px-3 py-2 text-sm">
-                    <span className="flex-1 min-w-0 truncate text-[--text]">{describePassage(p, getBookName)}</span>
-                    <button type="button" onClick={() => removePending(i)}
-                      aria-label={t.newReading.removePassage(describePassage(p, getBookName))}
-                      className="text-[--text-secondary] hover:text-red-600 transition-colors shrink-0">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
             <label className="block text-sm font-medium mb-2 text-[--text]">{t.newReading.notes}</label>
@@ -487,15 +453,6 @@ export default function NewReadingPage() {
             )}
           </div>
 
-          <button onClick={handleSave} disabled={toSave.length === 0 || !versionId || saving}
-            className="w-full bg-[--primary] text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] shadow-[--shadow]">
-            {saving ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                {t.newReading.saving}
-              </span>
-            ) : toSave.length > 1 ? t.newReading.saveMany(toSave.length) : t.newReading.saveOne}
-          </button>
         </div>
 
         <div className="lg:sticky lg:top-10 lg:self-start">
@@ -519,6 +476,84 @@ export default function NewReadingPage() {
           )}
         </div>
       </div>
+
+      {/*
+        Le geste principal de la page, sorti du flux.
+        Il vivait en pied de colonne, après les notes, les liens, l'audio et
+        les photos : sur un téléphone, il fallait faire défiler tout le
+        formulaire pour enregistrer une lecture déjà complète. Il suit
+        désormais le défilement et reste à portée. `end-6` et non `right-6` :
+        en arabe, il passe à gauche.
+        `z-20` le place au-dessus de la page et sous les fenêtres (`z-50`),
+        qui doivent continuer de le recouvrir.
+      */}
+      {peutEnregistrer && (
+        <button onClick={() => handleSave()} disabled={saving}
+          className="fixed bottom-6 end-6 z-20 flex items-center gap-2 bg-[--primary] text-white ps-4 pe-5 py-3.5 rounded-full text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-60 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-black/20">
+          {saving ? (
+            <>
+              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+              {t.newReading.saving}
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 shrink-0" />
+              {t.newReading.saveOne}
+            </>
+          )}
+        </button>
+      )}
+
+      {/*
+        La sortie d'une saisie non enregistrée.
+        Trois issues et non deux : le `confirm()` natif qu'elle remplace ne
+        proposait que de partir ou de rester, si bien qu'enregistrer supposait
+        de rester, puis de retrouver le bouton, puis de recliquer le lien.
+        « Enregistrer » conduit ici à la destination visée, et non à l'accueil.
+      */}
+      {sortie !== null && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setSortie(null)} aria-hidden="true" />
+
+          <div role="dialog" aria-modal="true" aria-labelledby="titre-sortie"
+            className="relative w-full sm:max-w-md bg-[--surface] rounded-t-2xl sm:rounded-2xl border border-[--border] shadow-xl p-5">
+            <p id="titre-sortie" className="font-semibold text-[--text]">
+              {t.newReading.leaveTitle}
+            </p>
+            <p className="text-sm text-[--text-secondary] mt-2">
+              {t.newReading.leaveWarning}
+            </p>
+
+            <div className="mt-5 space-y-2">
+              {peutEnregistrer && (
+                <button type="button" onClick={() => handleSave(sortie)} disabled={saving}
+                  className="w-full flex items-center justify-center gap-2 bg-[--primary] text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-60 transition-colors">
+                  {saving ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                      {t.newReading.saving}
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 shrink-0" />
+                      {t.newReading.leaveSave}
+                    </>
+                  )}
+                </button>
+              )}
+              <button type="button" onClick={quitterSansEnregistrer} disabled={saving}
+                className="w-full border border-[--border] text-[--text] px-4 py-2.5 rounded-lg text-sm hover:border-red-300 hover:text-red-600 disabled:opacity-60 transition-colors">
+                {t.newReading.leaveDiscard}
+              </button>
+              <button type="button" onClick={() => setSortie(null)} disabled={saving}
+                className="w-full text-[--text-secondary] px-4 py-2.5 rounded-lg text-sm hover:text-[--text] disabled:opacity-60 transition-colors">
+                {t.newReading.leaveStay}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <PassagePicker
         open={pickerOpen && !!book}

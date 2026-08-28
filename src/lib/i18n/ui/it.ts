@@ -85,12 +85,6 @@ export const it: Dictionary = {
     chaptersAndVerses: 'Capitoli e versetti',
     selectBookFirst: 'Seleziona prima un libro',
     version: 'Versione',
-    addAnotherPassage: 'Aggiungi un altro passo a questa data',
-    sharedFields:
-      'La data, il contesto, le note e i file sono comuni a tutti i passi.',
-    passagesToSave: (n: number, withCurrent: boolean) =>
-      `Passi da salvare (${n}${withCurrent ? ' + quello in corso' : ''})`,
-    removePassage: (reference: string) => `Rimuovi ${reference}`,
     notes: 'Note',
     notesPlaceholder: 'Le tue riflessioni su questo passo…',
     links: 'Link',
@@ -105,11 +99,15 @@ export const it: Dictionary = {
     removePhoto: 'Rimuovi la foto',
     saving: 'Salvataggio…',
     saveOne: 'Salva la lettura',
-    saveMany: (n: number) => `Salva le ${n} letture`,
     preview: 'Anteprima del testo',
     previewOpen: 'Vedi il testo',
+    leaveTitle: 'Lettura non salvata',
     leaveWarning:
-      'La tua lettura non è salvata. Uscire da questa pagina la perderà. Continuare?',
+      'La tua lettura non è ancora salvata. Puoi salvarla ora, oppure uscire '
+      + 'da questa pagina e perderla.',
+    leaveSave: 'Salva, poi continua',
+    leaveDiscard: 'Esci senza salvare',
+    leaveStay: 'Resta sulla pagina',
     previewEmpty: "Seleziona un libro per vedere l'anteprima.",
     previewUnavailable: 'Testo non disponibile per questo riferimento.',
     summary: "Riepilogo di ciò che hai inserito",

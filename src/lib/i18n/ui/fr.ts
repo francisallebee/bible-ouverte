@@ -91,13 +91,6 @@ export const fr = {
     chaptersAndVerses: 'Chapitres et versets',
     selectBookFirst: "Sélectionne d'abord un livre",
     version: 'Version',
-    addAnotherPassage: 'Ajouter un autre passage à cette date',
-    sharedFields:
-      'La date, le contexte, les notes et les médias sont communs à tous les '
-      + 'passages.',
-    passagesToSave: (n: number, withCurrent: boolean) =>
-      `Passages à enregistrer (${n}${withCurrent ? ' + celui en cours' : ''})`,
-    removePassage: (reference: string) => `Retirer ${reference}`,
     notes: 'Notes',
     notesPlaceholder: 'Tes réflexions sur ce passage…',
     links: 'Liens',
@@ -112,11 +105,15 @@ export const fr = {
     removePhoto: 'Retirer la photo',
     saving: 'Enregistrement…',
     saveOne: 'Enregistrer la lecture',
-    saveMany: (n: number) => `Enregistrer les ${n} lectures`,
     preview: 'Aperçu du texte',
     previewOpen: 'Voir le texte',
+    leaveTitle: 'Lecture non enregistrée',
     leaveWarning:
-      'Ta lecture n’est pas enregistrée. Quitter cette page la perdra. Continuer ?',
+      'Ta lecture n’est pas encore enregistrée. Tu peux l’enregistrer '
+      + 'maintenant, ou quitter cette page en la perdant.',
+    leaveSave: 'Enregistrer, puis continuer',
+    leaveDiscard: 'Quitter sans enregistrer',
+    leaveStay: 'Rester sur la page',
     previewEmpty: "Sélectionne un livre pour voir l'aperçu.",
     previewUnavailable: 'Texte non disponible pour cette référence.',
     summary: 'Résumé de la saisie',

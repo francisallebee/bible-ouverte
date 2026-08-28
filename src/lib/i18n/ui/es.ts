@@ -85,13 +85,6 @@ export const es: Dictionary = {
     chaptersAndVerses: 'Capítulos y versículos',
     selectBookFirst: 'Selecciona primero un libro',
     version: 'Versión',
-    addAnotherPassage: 'Añadir otro pasaje a esta fecha',
-    sharedFields:
-      'La fecha, el contexto, las notas y los archivos son comunes a todos los '
-      + 'pasajes.',
-    passagesToSave: (n: number, withCurrent: boolean) =>
-      `Pasajes por guardar (${n}${withCurrent ? ' + el actual' : ''})`,
-    removePassage: (reference: string) => `Quitar ${reference}`,
     notes: 'Notas',
     notesPlaceholder: 'Tus reflexiones sobre este pasaje…',
     links: 'Enlaces',
@@ -106,11 +99,15 @@ export const es: Dictionary = {
     removePhoto: 'Quitar la foto',
     saving: 'Guardando…',
     saveOne: 'Guardar la lectura',
-    saveMany: (n: number) => `Guardar las ${n} lecturas`,
     preview: 'Vista previa del texto',
     previewOpen: 'Ver el texto',
+    leaveTitle: 'Lectura sin guardar',
     leaveWarning:
-      'Tu lectura no está guardada. Salir de esta página la perderá. ¿Continuar?',
+      'Tu lectura aún no está guardada. Puedes guardarla ahora, o salir de '
+      + 'esta página y perderla.',
+    leaveSave: 'Guardar y continuar',
+    leaveDiscard: 'Salir sin guardar',
+    leaveStay: 'Quedarme en la página',
     previewEmpty: 'Selecciona un libro para ver la vista previa.',
     previewUnavailable: 'Texto no disponible para esta referencia.',
     summary: 'Resumen de lo introducido',
