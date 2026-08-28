@@ -550,6 +550,14 @@ interrompu avant la fin. Les previews passent par git.
 | Délai d'envoi, **après** | envoi réel depuis l'administration : **2,3 s** et **3,0 s** — 258 fois plus court | 21 août |
 | Entraînement libre, effet sur les données | niveau, échéance et `updatedAt` **identiques à la milliseconde** après une séance ; 5 séances avant, 5 après | 21 août |
 | **Levée du filtrage de la box** | `github.com` et `supabase.com` à **200** depuis le Wi-Fi `192.168.1.46`, refusés le matin même depuis cette adresse — le partage iPhone n'est plus nécessaire | 21 août |
+| Écarts entre créations de lectures d'un même jour | deux populations séparées par un creux : **119 sous la seconde**, 6 entre 1 et 5 s, puis plus rien avant 30 s, et 63 au-delà | 28 août |
+| Regroupement de l'historique | **314 lectures deviennent 189 entrées** ; la plus grande saisie fait 39 passages en 2,816 s, la plus longue dure 8,88 s | 28 août |
+| Repli de `vuLe()` sur « actifs » | **0 compte** lui doit son statut : 15 actifs par la règle actuelle comme par la présence seule | 28 août |
+| Comptes situés par la seule connexion | **98 sur 114** sont entre 7 et 30 jours sans aucune présence — retirer le repli les sortirait aussi de « inactifs » | 28 août |
+| « Sept traductions » dans le HTML servi | **6 occurrences** alors que le composant n'en portait plus aucune : `metadata`, page Soutenir, parcours | 28 août |
+| Suppression du compte de test | `delete_account` sur *Alain Fictif* le **21 août à 15:21:51 UTC**, 2 h 48 après les deux courriels ; ses messages sont partis avec lui | 28 août |
+| Étapes du parcours découverte | **17 → 21** : Quizz, Verset du jour, Mémorisation et Messages étaient ignorés depuis leur naissance | 28 août |
+| `curl` vers `localhost:3000` | `code=000` en **0,015 s** alors que le serveur répond — le bac à sable, pas le réseau | 28 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -1062,6 +1070,11 @@ l'acceptation SMTP ; lui dit la remise.
 Le compte de test perdu le 18 août est donc remplacé, et il porte une date de
 naissance au 20 août : il resservira.
 
+**Il n'a pas resservi : il a été supprimé le 21 août à 15:21:51 UTC**, relevé
+le 28 août au journal d'audit. Le compte de test est donc consommé pour la
+deuxième fois, et ses deux messages d'essai sont partis avec lui. En recréer un
+reste un geste du propriétaire — il demande une adresse et un mot de passe.
+
 **Il n'est plus suspendu**, contrairement à ce que ce document a longtemps dit.
 Relevé le 21 août 2026 en base — `suspended: false`, `banned_until: null` — et
 l'onglet Journal en donne la raison : trois cycles suspendre/réactiver le
@@ -1362,7 +1375,7 @@ Toutes menées avec une session connectée, la première du dépôt pour l'agent
 
 Les tickets 23 et 24 avaient été clos par le propriétaire lui-même à 10:59 ;
 l'item 32 reste à *projet* — le passer à terminé notifie tous les abonnés, et
-c'est son geste.
+c'est son geste. **Il l'a fait le 23 août à 09:28:22**, relevé le 28.
 
 ### Ce que l'entraînement libre a coûté comme décision
 
@@ -1423,3 +1436,203 @@ Deux courriels ont été acceptés par le SMTP à 12:32:25 et 12:33:43 UTC, sur
 leçon d'`envoyes` vaut mot pour mot. **La remise reste à confirmer par le
 propriétaire du dépôt**, ainsi que le fait qu'un seul des deux messages
 apparaisse dans l'application.
+
+**Relevé le 28 août : ce second point ne pourra plus être vérifié à l'écran.**
+Le compte porteur a été supprimé le 21 août à 15:21:51 UTC, et ses messages
+avec lui. La policy reste éprouvée en base ; elle ne le sera pas à l'œil.
+
+## La séance du 28 août 2026 : quatre demandes
+
+**La première séance de ce dépôt où l'agent a travaillé avec une session
+connectée d'un bout à l'autre**, sur la production. Le navigateur portait déjà
+le cookie du propriétaire : les quatre écrans touchés ont donc été vus, ce qui
+n'était arrivé pour aucune des trois séances précédentes.
+
+Conséquence à connaître : **le serveur de développement écrit dans la base de
+production** (`.env.local` porte l'URL du projet réel). Une lecture d'essai y
+serait une vraie lecture. Aucune n'a été enregistrée.
+
+### Ce qui avait bougé sans l'agent, et que le briefing ignorait
+
+Trois faits relevés en base avant de commencer, tous postérieurs au 21 août :
+
+| Fait | Relevé |
+|---|---|
+| **L'item 32 est terminé** | passé à `done` le 23 août à 09:28:22 — le geste du propriétaire est fait |
+| **Le compte de test est supprimé** | `delete_account` sur *Alain Fictif* le 21 août à **15:21:51 UTC**, 2 h 48 après les deux courriels |
+| La feuille de route | 30 items, 28 terminés, **2 en projet** (5 « appareil photo » et 26 « catalan »), après une passe du 23 août |
+
+**Le journal d'audit a tenu son rôle exact.** Les trois lignes d'*Alain Fictif*
+— deux `message` à 12:32:23 et 12:33:41, puis `delete_account` à 15:21:51 —
+portent toutes `target_name = « Alain Fictif »`, **y compris celle de la
+suppression**. C'est précisément ce que `20260820130000_admin_actions.sql`
+cherchait en refusant toute clé étrangère sur `target_id` : une contrainte
+`on delete cascade` aurait effacé la trace au moment où elle devenait la seule
+mémoire du compte. Le correctif du 21 août sur `targetName: ''` tient aussi —
+les deux lignes `message` portent le nom du destinataire.
+
+**Conséquence sur la question restée ouverte** : la remise des deux courriels
+du 21 août reste à confirmer par le destinataire, et le restera. Mais la
+seconde moitié de la question — « un seul des deux apparaît-il dans
+l'application ? » — **n'est plus vérifiable à l'écran** : le compte porteur et
+ses messages n'existent plus. La preuve de la policy reste acquise en base, pas
+à l'œil. Le compte de test est **consommé pour la deuxième fois**, après
+*Teste* le 18 août.
+
+### Le compteur d'actifs : la question du 21 août est tranchée par la mesure
+
+La réserve portée au 21 août était que le repli de `vuLe()` — `lastSeen` puis
+`lastSignIn` — deviendrait discutable quand `last_seen_at` aurait de
+l'historique. Huit jours plus tard :
+
+| Définition d'« actif sur 7 jours » | Comptes |
+|---|---|
+| Règle actuelle (`vuLe`) | **15** |
+| Présence seule | **15** |
+| **Par le repli** | **0** |
+| Présence plus ancienne que la connexion | 0 |
+
+**Le repli s'est effacé de lui-même**, exactement comme le commentaire du
+module l'annonçait. Aucun compte ne lui doit son statut d'actif.
+
+**Mais le retirer serait une faute**, et c'est le second relevé qui le dit :
+**98 comptes sur 114** sont dans l'intervalle mort de 7 à 30 jours, et aucun
+n'a de présence. Sans le repli, `vuLe()` rendrait `null` pour eux : ils
+sortiraient de « actifs » — déjà le cas — **et** de « inactifs », qui
+tomberait de 1 à 0. Ils n'appartiendraient plus à aucun segment temporel.
+
+Le même `??` est donc **inerte là où il pouvait fausser, et porteur là où il
+situe**. La question n'est pas « le garder ou non » mais « quand la présence
+aura remplacé la connexion pour la majorité », ce que la requête ci-dessus
+mesure en une ligne. À refaire avant d'y toucher.
+
+### Le regroupement de l'historique, et le seuil qui ne pouvait pas être une seconde
+
+Demande du propriétaire : dans « Mes lectures », les lectures enregistrées à
+une même date et d'un même geste doivent se lire comme une seule entrée. Sa
+précision, à la question posée : **l'instant de validation** fait la clé.
+
+**Le seuil est mesuré, pas choisi.** Sur les 314 lectures réelles, les écarts
+entre créations consécutives d'un même jour forment deux populations que sépare
+un creux franc :
+
+| Écart | Occurrences |
+|---|---|
+| moins de 1 s | **119** |
+| 1 à 5 s | 6 |
+| 5 à 30 s | 6 |
+| 30 s à 5 min | 22 |
+| plus de 5 min | 41 |
+
+**Ce ne pouvait donc pas être « la même seconde ».** La séance de 39 passages
+du 20 août s'étale sur **2,816 secondes** : un découpage du temps en tranches
+l'aurait coupée en trois, et une tranche de 5 secondes l'aurait coupée aussi.
+C'est le **chaînage de proche en proche** qui décide, ce qui rend le seuil
+indifférent à la durée totale — la plus longue saisie réelle dure **8,88 s** et
+reste entière. Un test le fixe : trois lectures espacées de 4 secondes couvrent
+8 secondes et forment un seul groupe.
+
+Résultat sur les données réelles : **314 lectures deviennent 189 entrées**.
+
+Deux gardes que les données ont imposées, et qui sont dans `lib/lectures/saisies.ts` :
+
+- **La même date de lecture est exigée en plus de l'écart.** Rien n'interdit
+  d'enregistrer coup sur coup deux lectures datées de deux jours différents, et
+  les réunir ferait mentir la ligne qui les porte.
+- **Une lecture non datable forme son propre groupe.** Ne pas savoir quand une
+  ligne a été écrite n'est pas une raison de la coller à sa voisine.
+
+**Rien n'est fusionné en base.** La progression, les statistiques et les plans
+continuent de voir les lectures une par une : c'est un fait d'affichage, et le
+seul. La cause de ces 191 lignes était l'empilement de passages, retiré le même
+jour — `handleSave` écrivait une lecture par passage, à dessein.
+
+### « Sept traductions » survivait où le composant ne le montrait pas
+
+**C'est le HTML servi qui les a trouvées, et non la lecture du fichier.**
+`LandingPage.tsx` corrigé, un `fetch('/', { credentials: 'omit' })` — pour
+obtenir la page sans session — comptait encore **six occurrences** de « Sept
+traductions ». Elles vivaient dans trois endroits qu'un `grep` sur le composant
+ne pouvait pas voir :
+
+| Endroit | Portée |
+|---|---|
+| `src/app/page.tsx`, la `metadata` | la **description servie aux moteurs** et aux aperçus de partage |
+| `donate.freeText`, cinq langues | le texte de la page Soutenir |
+| `tour.steps.recherche.points[0]`, cinq langues | un point du parcours découverte |
+
+Il y a **douze traductions en cinq langues depuis le 16 août**. C'est
+l'inverse de la leçon du 15 août sur Progression : là, l'écran avait trouvé ce
+que le relevé manquait ; ici, le relevé a trouvé ce que la lecture ciblée
+laissait passer. **Les deux se prennent en défaut, et pas au même endroit.**
+
+### Le parcours ignorait quatre écrans sur quatorze
+
+Quizz, Verset du jour, Mémorisation et Messages sont nés entre le 19 et le
+21 août ; le parcours s'arrêtait aux douze autres entrées de la barre latérale.
+Il compte désormais **21 étapes** au lieu de 17.
+
+Une étape décrivait par ailleurs **une fonction retirée le jour même** :
+« Plusieurs passages peuvent tenir dans une même lecture ».
+
+**Le test avait raison de m'arrêter, et sa liste avait tort.** Les quatre
+nouvelles étapes ont fait échouer *« ne vise que des écrans qui affichent
+quelque chose »* : `ECRANS_REELS` est tenue à la main et n'avait pas suivi.
+Vérifié avant de l'étendre — les quatre pages font 243, 190, 312 et 121 lignes
+et **aucune ne redirige**, là où `/contexts`, le vestige que ce test protège,
+le fait deux fois. Le commentaire du test porte désormais cette leçon : **un
+écran ajouté à la barre latérale doit rejoindre le parcours et cette liste**,
+faute de quoi il reste invisible neuf jours durant sans que rien ne le signale.
+
+### Ce qui a été vu à l'écran, par l'agent, sur la production
+
+| Écran ou chemin | Constat |
+|---|---|
+| `/new-reading` | le bouton « Ajouter un autre passage » **a disparu** |
+| Le bouton d'enregistrement | **flottant, il suit le défilement**, et passe **sous** les fenêtres (`z-20` contre `z-50`) |
+| La boîte de sortie | **trois issues** — « Enregistrer, puis continuer », « Quitter sans enregistrer », « Rester sur la page » |
+| `/history`, 25 août | **11 lectures en une entrée** : « Ecclésiaste 3:11, Jean 3:16-17, Matthieu 28:19-20 et 8 autres — 11 passages » |
+| Le dépliage | chaque lecture reste un lien vers son détail : **rien n'est masqué, seulement rassemblé** |
+| La case d'en-tête d'un groupe | **« 11 sélectionnées »** d'un seul clic |
+| Le parcours | **« ÉTAPE 9 SUR 21 — Le quizz »** et **« ÉTAPE 16 SUR 21 — Les messages »**, chacune par-dessus son écran réel |
+
+### Trois relevés pris trop tôt, dans la même séance
+
+La leçon du 18 août — « une capture d'écran prise trop tôt ment » — s'est
+présentée **trois fois** en quelques heures, et sous deux formes :
+
+- une capture montrait « 0 sélectionnée » quand le DOM disait déjà
+  « 11 sélectionnées » ;
+- une capture montrait la boîte de sortie encore ouverte alors que la
+  navigation avait eu lieu ;
+- et un relevé JavaScript a lu `location.pathname` **avant** que la navigation
+  de Next aboutisse, faisant croire que l'étape « Mémorisation » n'ouvrait pas
+  `/memorisation`. Elle l'ouvrait.
+
+Le troisième est le plus instructif : ce n'était plus l'image mais **la mesure
+elle-même** qui était prise trop tôt. Relire après un délai, ou lire ce qui fait
+foi — ici le `pathname` **et** le `h1` de la page.
+
+### Le bac à sable, encore, et toujours à la durée
+
+`curl http://localhost:3000/` rend `code=000` en **0,015 seconde**. Le serveur
+répondait pourtant : c'est le bac à sable de l'agent qui interdit la connexion
+sortante, y compris vers localhost. **Un échec trop rapide est local**, la règle
+du 21 août tient sans changement. Le contournement est le navigateur, qui a
+l'accès — et `fetch(..., { credentials: 'omit' })` sert alors à obtenir une page
+telle qu'un visiteur sans session la reçoit.
+
+### Ce qui n'a pas été vu, et une écriture à signaler
+
+- **La page d'accueil n'a pas été vue à l'œil.** Une session étant ouverte, `/`
+  redirige vers `/new-reading` (règle 9). Son contenu est vérifié sur le HTML
+  servi sans cookie, ce qui est **un relevé et non un écran**. À regarder en
+  navigation privée.
+- **Rien n'a été vu en arabe ni en mode sombre** : ni le bouton flottant, ni la
+  boîte de sortie, ni l'entrée groupée. Le bouton porte `end-6` et la flèche du
+  chevron `rtl:rotate-180`, mais c'est du code, pas un constat.
+- **Une écriture dans les données du propriétaire** : quitter le parcours
+  réécrit `tourCompletedAt`, passé de `09:29:06.162Z` à `11:07:16.588Z` le même
+  jour. L'affichage « Déjà suivi le 28 août 2026 » est donc inchangé. C'est la
+  seule écriture de la séance, et elle est notée parce qu'une écriture non
+  demandée se signale, même sans conséquence.

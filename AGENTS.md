@@ -32,7 +32,7 @@ une migration SQL**, pas par un composant.
 ## Les langues
 
 L'interface est traduite, **et le texte biblique l'est désormais aussi, en
-partie** : depuis le 16 août 2026, `public/bibles/` porte sept versions
+partie** : depuis le 16 août 2026, `public/bibles/` porte **huit** versions
 françaises — dont la Bible Annotée de Neuchâtel 1900 —, une anglaise (King
 James 1611), une italienne (Diodati 1649), une
 arabe (Smith & Van Dyck 1865) et une espagnole (Reina-Valera 1909) — **une par
@@ -127,6 +127,7 @@ coûterait une passe complète sur les 19 écrans.
 | `src/components/landing/` | Page de présentation servie sur `/` |
 | `src/lib/supabase/store.ts` | Accès Supabase depuis le navigateur |
 | `src/lib/storage/` | Cache IndexedDB et logique métier par domaine |
+| `src/lib/lectures/` | Regrouper les lectures d'un même enregistrement — un fait d'affichage, jamais de base |
 | `src/lib/i18n/` | Langues, dictionnaires, noms de livres et de contextes, dates |
 | `src/contexts/` | Fournisseurs React : session (`AuthContext`), langue (`I18nContext`) |
 | `src/features/bible/` | Livres, classification, import des versions |
@@ -222,6 +223,17 @@ coûterait une passe complète sur les 19 écrans.
     1,01. Toute classe grise ajoutée à un composant doit être vérifiée dans ce
     bloc, **y compris ses variantes `hover:`**.
 
+16. **Un écran ajouté à la barre latérale demande trois gestes, comme une
+    version de la Bible.** L'entrée dans `Sidebar.tsx`, une étape dans
+    `TOUR_STEPS` (`lib/tour.ts`) avec son texte dans les **cinq**
+    dictionnaires, et une ligne dans `ECRANS_REELS` de `tour.test.ts`. Les
+    deux derniers ne sont tenus qu'à la main : Quizz, Verset du jour,
+    Mémorisation et Messages sont nés entre le 19 et le 21 août 2026 et sont
+    restés **hors du parcours jusqu'au 28**, sans que `tsc`, `eslint` ni les
+    tests n'en disent rien. Le test ne protège que du 404, pas de l'oubli.
+    Le typage, lui, fait son travail dès l'étape déclarée : une étape sans
+    traduction ne compile pas.
+
 ## Commandes
 
 ```bash
@@ -280,10 +292,13 @@ npm test           # vitest
   ont été vérifiées livre par livre et sont complètes — seul Malachie compte
   3 chapitres au lieu de 4 dans Crampon et Darby, ce qui est une différence de
   versification légitime et non un manque.
-- Un appareil qui active les sept versions garde environ 216 000 versets et
-  42 Mo en cache. C'est désormais un choix de l'utilisateur et non plus le
-  comportement par défaut, mais rien ne l'avertit du volume au-delà de la
-  mention « environ 6 Mo chacune » dans les réglages.
+- Un appareil qui activait les **sept** versions d'alors gardait environ
+  216 000 versets et 42 Mo en cache — mesuré le 9 août 2026. Elles sont
+  **douze** depuis le 16 août et `public/bibles/` pèse 82 Mo : le plafond a
+  donc grandi de moitié sans être remesuré, et l'arabe y compte double
+  (10 Mo à lui seul). C'est un choix de l'utilisateur et non le comportement
+  par défaut, mais rien ne l'avertit du volume au-delà de la mention
+  « environ 6 Mo chacune » dans les réglages — qui sous-estime la Van Dyck.
 - **L'espace n'est pas rendu tout de suite** quand une version est désactivée.
   Les lignes sont bien supprimées — vérifiable au compteur — mais le navigateur
   ne récupère les octets qu'à sa prochaine compaction, qu'on ne peut ni

@@ -74,6 +74,11 @@ y figurent toutes, de `20260819112529` (`plan_day_passages`) à `20260820132715`
 passées par exécution SQL directe — l'écart est donc entièrement expliqué, et
 aucune migration n'est en attente.
 
+**Confirmé le 28 août 2026**, même relevé : 27 fichiers, 25 enregistrées, de
+`20260801190602` (`baseline`) à `20260821112941` (`courriel_seul`). La séance
+du 28 n'a ajouté aucune migration — le regroupement de l'historique est un fait
+d'affichage, et ne touche pas au schéma.
+
 Constat avant application des premières, sur la base réelle :
 
 - `authenticated` avait le droit `UPDATE` sur `profiles.is_admin`, et la policy
