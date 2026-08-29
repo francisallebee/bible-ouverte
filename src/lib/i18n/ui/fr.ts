@@ -222,6 +222,12 @@ export const fr = {
     pagesHint:
       'Choisis les pages à garder dans le menu. Réglages et Nouvelle lecture '
       + 'restent toujours accessibles.',
+    pagesOrderHint:
+      'Range-les dans l’ordre que tu veux : les flèches déplacent une page '
+      + 'd’un cran. Réglages et Administration restent sous ton profil.',
+    pageUp: (nom: string) => `Monter ${nom}`,
+    pageDown: (nom: string) => `Descendre ${nom}`,
+    pagesOrderReset: 'Rétablir l’ordre d’origine',
     setupTitle: 'Personnalise ton application',
     setupHint:
       'Prends un moment pour régler la langue, le thème, ton objectif et les '

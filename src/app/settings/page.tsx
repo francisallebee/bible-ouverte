@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass, Languages, LayoutList, Check, Type } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass, Languages, LayoutList, Check, Type, ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion, getAllPlans } from "@/lib/storage";
 import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,7 +28,9 @@ import {
   UI_SCALES, DEFAULT_UI_SCALE, READING_SIZES, DEFAULT_READING_SIZE,
   READING_STYLES, DEFAULT_READING_STYLE,
 } from "@/lib/fonts";
-import { HIDEABLE_PAGES, isPageVisible, shouldForceSetup } from "@/lib/setup";
+import {
+  HIDEABLE_PAGES, isPageVisible, shouldForceSetup, ordonnerPages, deplacerPage,
+} from "@/lib/setup";
 import { AUTO_LOGOUT_CHOICES } from "@/lib/auto-logout";
 import {
   notificationStatus, readDeviceState, requestNotificationPermission, showTestNotification,
@@ -155,6 +157,34 @@ export default function SettingsPage() {
       : [...actuelles.filter((p) => p !== href), href];
     await updateSettings({ hiddenPages });
     setSettings((prev) => (prev ? { ...prev, hiddenPages } : prev));
+  }
+
+  /**
+   * Les entrées du menu telles qu'elles s'affichent, ordre courant compris.
+   *
+   * On part de **toutes** les entrées et non des seules visibles : masquer une
+   * page ne doit pas la faire perdre sa place dans l'ordre enregistré, sans
+   * quoi la démasquer plus tard la renverrait en fin de liste.
+   */
+  const pagesOrdonnees = ordonnerPages(NAV_LINKS, settings?.pageOrder);
+
+  /**
+   * Déplace une page d'un cran.
+   *
+   * L'ordre écrit est **complet**, jamais le seul fragment déplacé : voir
+   * `deplacerPage`. L'état local est mis à jour sans relire le distant, comme
+   * partout ailleurs après une mutation.
+   */
+  async function deplacer(href: string, sens: -1 | 1) {
+    const pageOrder = deplacerPage(pagesOrdonnees.map((l) => l.href), href, sens);
+    await updateSettings({ pageOrder });
+    setSettings((prev) => (prev ? { ...prev, pageOrder } : prev));
+  }
+
+  /** Rend au menu son ordre de livraison, en effaçant simplement le réglage. */
+  async function retablirOrdre() {
+    await updateSettings({ pageOrder: [] });
+    setSettings((prev) => (prev ? { ...prev, pageOrder: [] } : prev));
   }
 
   const couleursPerso = settings?.customColors ?? DEFAULT_CUSTOM;
@@ -973,22 +1003,49 @@ export default function SettingsPage() {
           <p className="text-sm text-[--text-secondary] mb-3">
             {t.settings.pagesHint}
           </p>
+          <p className="text-sm text-[--text-secondary] mb-3">
+            {t.settings.pagesOrderHint}
+          </p>
+          {/* Des flèches plutôt qu'un glisser-déposer : elles fonctionnent au
+              clavier, au doigt et au lecteur d'écran, là où un glisser-déposer
+              demande trois implémentations et n'en sert bien aucune. */}
           <div className="space-y-1">
-            {NAV_LINKS.filter((l) => (HIDEABLE_PAGES as readonly string[]).includes(l.href)).map((lien) => {
+            {pagesOrdonnees.map((lien, i) => {
+              const masquable = (HIDEABLE_PAGES as readonly string[]).includes(lien.href);
               const visible = isPageVisible(lien.href, settings?.hiddenPages);
               const Icone = lien.icon;
+              const nom = lien.label(t);
               return (
-                <label key={lien.href}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <input type="checkbox" checked={visible}
+                <div key={lien.href}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                  <input type="checkbox" checked={masquable ? visible : true}
+                    disabled={!masquable}
+                    aria-label={nom}
                     onChange={(e) => basculerPage(lien.href, e.target.checked)}
-                    className="accent-[--primary] w-4 h-4 shrink-0" />
+                    className="accent-[--primary] w-4 h-4 shrink-0 disabled:opacity-40" />
                   <Icone className="w-4 h-4 text-[--text-secondary] shrink-0" />
-                  <span className="text-sm text-[--text]">{lien.label(t)}</span>
-                </label>
+                  <span className="text-sm text-[--text] flex-1 truncate">{nom}</span>
+                  <button type="button" onClick={() => deplacer(lien.href, -1)}
+                    disabled={i === 0} aria-label={t.settings.pageUp(nom)}
+                    className="p-1 rounded text-[--text-secondary] hover:text-[--primary] hover:bg-[--primary-light] disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-[--text-secondary] transition-colors">
+                    <ChevronUp className="w-4 h-4" />
+                  </button>
+                  <button type="button" onClick={() => deplacer(lien.href, 1)}
+                    disabled={i === pagesOrdonnees.length - 1} aria-label={t.settings.pageDown(nom)}
+                    className="p-1 rounded text-[--text-secondary] hover:text-[--primary] hover:bg-[--primary-light] disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-[--text-secondary] transition-colors">
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
               );
             })}
           </div>
+          {(settings?.pageOrder?.length ?? 0) > 0 && (
+            <button type="button" onClick={retablirOrdre}
+              className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[--text-secondary] hover:text-[--primary] hover:bg-[--primary-light] transition-colors">
+              <RotateCcw className="w-4 h-4" />
+              {t.settings.pagesOrderReset}
+            </button>
+          )}
         </SectionCard>
 
         <SectionCard icon={Compass} title={t.settings.tour}>

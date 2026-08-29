@@ -307,6 +307,14 @@ export interface AppSettings {
    */
   hiddenPages?: string[];
   /**
+   * L'ordre des entrées du menu, par `href`.
+   *
+   * Une liste partielle suffit : ce qui y figure passe devant, dans cet ordre,
+   * et le reste suit à sa place d'origine. Une page ajoutée plus tard apparaît
+   * donc toujours, comme pour `hiddenPages` — voir `ordonnerPages`.
+   */
+  pageOrder?: string[];
+  /**
    * Quand l'utilisateur a validé sa personnalisation. Voir `lib/setup.ts` :
    * seuls les comptes créés après la livraison y sont conduits.
    */

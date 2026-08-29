@@ -60,6 +60,74 @@ export function isPageVisible(href: string, hidden: string[] | undefined): boole
 }
 
 /**
+ * Le menu, rangé dans l'ordre choisi par l'utilisateur.
+ *
+ * **La liste enregistrée peut être partielle, et c'est le point.** Ce qui y
+ * figure passe devant, dans cet ordre ; tout le reste suit dans l'ordre
+ * d'origine. Une page livrée après que quelqu'un a rangé son menu apparaît
+ * donc chez lui, à sa place naturelle, au lieu de disparaître faute d'être
+ * citée — c'est la même règle de prudence que `isPageVisible`, où le défaut
+ * est « visible ».
+ *
+ * Symétriquement, un `href` cité mais qui n'existe plus est ignoré : une page
+ * retirée du produit ne doit pas laisser un trou dans le menu de ceux qui
+ * l'avaient rangée.
+ *
+ * Générique parce que l'appelant possède ses propres entrées — la barre
+ * latérale ses liens, l'écran Réglages les siens — et que ce module n'a pas à
+ * connaître React ni les icônes.
+ */
+export function ordonnerPages<T extends { href: string }>(
+  entrees: readonly T[],
+  ordre: string[] | undefined,
+): T[] {
+  if (!ordre || ordre.length === 0) return [...entrees]
+
+  const parHref = new Map(entrees.map((e) => [e.href, e]))
+  const citees: T[] = []
+  const dejaPlacees = new Set<string>()
+
+  for (const href of ordre) {
+    const entree = parHref.get(href)
+    // Un href inconnu — page retirée, réglage d'une version antérieure — ne
+    // produit rien plutôt qu'un trou.
+    if (!entree || dejaPlacees.has(href)) continue
+    citees.push(entree)
+    dejaPlacees.add(href)
+  }
+
+  const reste = entrees.filter((e) => !dejaPlacees.has(e.href))
+  return [...citees, ...reste]
+}
+
+/**
+ * L'ordre après un déplacement d'un cran.
+ *
+ * Rend la liste **complète** des `href`, et non le seul fragment déplacé :
+ * enregistrer un ordre partiel après un déplacement ferait remonter d'un coup
+ * toutes les pages non citées, ce qui n'est pas ce qu'on vient de demander.
+ *
+ * Un déplacement hors des bornes rend la liste inchangée — le bouton
+ * correspondant est désactivé à l'écran, mais la règle ne s'appuie pas là-dessus.
+ */
+export function deplacerPage(
+  hrefs: readonly string[],
+  href: string,
+  sens: -1 | 1,
+): string[] {
+  const index = hrefs.indexOf(href)
+  if (index === -1) return [...hrefs]
+
+  const cible = index + sens
+  if (cible < 0 || cible >= hrefs.length) return [...hrefs]
+
+  const suite = [...hrefs]
+  const [deplacee] = suite.splice(index, 1)
+  suite.splice(cible, 0, deplacee)
+  return suite
+}
+
+/**
  * Date de livraison du passage obligé.
  *
  * Les comptes créés avant elle en sont dispensés. Sans ce garde-fou, les 111

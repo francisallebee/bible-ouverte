@@ -29,6 +29,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const [autoLogoutMinutes, setAutoLogoutMinutes] = useState(0)
   const [hiddenPages, setHiddenPages] = useState<string[] | undefined>()
+  const [pageOrder, setPageOrder] = useState<string[] | undefined>()
 
   useEffect(() => {
     if (isBare) {
@@ -53,6 +54,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       applyTheme(s?.theme)
       setAutoLogoutMinutes(s?.autoLogoutMinutes ?? 0)
       setHiddenPages(s?.hiddenPages)
+      setPageOrder(s?.pageOrder)
       // Rattrapé ici et non dans l'écran des réglages : un appareil dont le
       // propriétaire n'ouvre jamais cet écran resterait sinon inconnu du
       // serveur, qui n'aurait personne à qui écrire.
@@ -81,7 +83,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       >
         Aller au contenu
       </a>
-      <Sidebar hiddenPages={hiddenPages} />
+      <Sidebar hiddenPages={hiddenPages} pageOrder={pageOrder} />
       <AutoLogout minutes={autoLogoutMinutes} />
       {/* Monté ici et non dans un écran : le parcours traverse l'application
           et doit survivre aux changements de page qu'il provoque lui-même. */}

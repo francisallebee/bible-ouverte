@@ -210,6 +210,12 @@ export const es: Dictionary = {
     pagesHint:
       'Elige qué páginas quedan en el menú. Ajustes y Nueva lectura siempre '
       + 'están disponibles.',
+    pagesOrderHint:
+      'Ordénalas como quieras: las flechas mueven una página un paso. Ajustes '
+      + 'y Administración permanecen bajo tu perfil.',
+    pageUp: (nom: string) => `Subir ${nom}`,
+    pageDown: (nom: string) => `Bajar ${nom}`,
+    pagesOrderReset: 'Restablecer el orden original',
     setupTitle: 'Personaliza tu aplicación',
     setupHint:
       'Tómate un momento para elegir el idioma, el tema, tu objetivo y las '

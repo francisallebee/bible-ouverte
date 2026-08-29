@@ -210,6 +210,12 @@ export const it: Dictionary = {
     pagesHint:
       'Scegli quali pagine restano nel menu. Impostazioni e Nuova lettura '
       + 'sono sempre disponibili.',
+    pagesOrderHint:
+      'Ordinale come preferisci: le frecce spostano una pagina di un posto. '
+      + 'Impostazioni e Amministrazione restano sotto il tuo profilo.',
+    pageUp: (nom: string) => `Sposta ${nom} in alto`,
+    pageDown: (nom: string) => `Sposta ${nom} in basso`,
+    pagesOrderReset: "Ripristina l'ordine originale",
     setupTitle: 'Personalizza la tua applicazione',
     setupHint:
       'Prenditi un momento per impostare lingua, tema, obiettivo e le pagine '

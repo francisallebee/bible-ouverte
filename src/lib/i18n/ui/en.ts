@@ -202,6 +202,12 @@ export const en: Dictionary = {
     pagesHint:
       'Choose which pages stay in the menu. Settings and New reading are '
       + 'always available.',
+    pagesOrderHint:
+      'Arrange them in the order you want: the arrows move a page up or down '
+      + 'one step. Settings and Administration stay under your profile.',
+    pageUp: (nom: string) => `Move ${nom} up`,
+    pageDown: (nom: string) => `Move ${nom} down`,
+    pagesOrderReset: 'Restore the original order',
     setupTitle: 'Personalise your app',
     setupHint:
       'Take a moment to set the language, theme, your goal and the pages you '
