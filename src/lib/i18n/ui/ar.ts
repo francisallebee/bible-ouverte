@@ -581,11 +581,40 @@ export const ar: Dictionary = {
       'category-half': { name: 'في منتصف الطريق', description: 'القراءة في نصف الفئات' },
     },
   },
+  themes: {
+    title: 'البحث حسب الموضوع',
+    hint: 'اختر موضوعًا: تظهر المقاطع في الترجمة التي اخترتها.',
+    passages: (n: number) => `${n} ${maqati(n)}`,
+    /**
+     * Les quinze thèmes, par identifiant. Les références vivent dans
+     * `features/bible/themes.ts` — un thème sans libellé y est refusé
+     * par son test, dans les deux sens.
+     */
+    labels: {
+      amour: 'المحبة',
+      foi: 'الإيمان',
+      esperance: 'الرجاء',
+      paix: 'السلام',
+      consolation: 'التعزية',
+      pardon: 'الغفران',
+      priere: 'الصلاة',
+      courage: 'الشجاعة',
+      sagesse: 'الحكمة',
+      joie: 'الفرح',
+      reconnaissance: 'الشكر',
+      humilite: 'التواضع',
+      patience: 'الصبر',
+      creation: 'الخليقة',
+      salut: 'الخلاص',
+    },
+  },
+
   search: {
     context: 'السياق (اختياري)',
     title: 'البحث في الكتاب المقدس',
     modeReference: 'مرجع',
     modeKeyword: 'حر',
+    modeTheme: 'موضوع',
     book: 'السفر',
     select: 'اختيار',
     chapter: 'الإصحاح',

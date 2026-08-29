@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Search, BookOpen, BookPlus, BookText, FileText } from "lucide-react";
+import { Search, BookOpen, BookPlus, BookText, FileText, Tags } from "lucide-react";
 import { seedIfNeeded, getEnabledVersions, addReading, getPassagesForRange, searchPassages, getSettings, getAllContexts } from "@/lib/storage";
 import type { BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
 
 import { getBook } from "@/features/bible";
+import { THEMES, themeParSlug, type ThemeSlug } from "@/features/bible/themes";
 import BookPicker from "@/components/BookPicker";
 import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange, type PassageRange } from "@/components/PassagePicker";
 import { useI18n, useBookName } from "@/contexts/I18nContext";
 import { textDirection } from "@/lib/i18n/locales";
 
-type Mode = "reference" | "keyword";
+type Mode = "reference" | "keyword" | "theme";
 
 function highlightText(text: string, query: string): React.ReactNode {
   if (!query.trim()) return text;
@@ -76,6 +77,22 @@ export default function SearchPage() {
   const [kwCount, setKwCount] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
+  /**
+   * La recherche thématique.
+   *
+   * Un thème n'est qu'une liste de références — voir `features/bible/themes.ts`.
+   * Les passages sont donc lus dans la **version choisie ici**, exactement
+   * comme une recherche par référence : c'est ce qui permet à un thème de
+   * rendre la Van Dyck, en arabe et de droite à gauche, depuis une
+   * application réglée en français.
+   */
+  const [themeSlug, setThemeSlug] = useState<ThemeSlug | "">("");
+  const [themeVersion, setThemeVersion] = useState("");
+  const [themeResults, setThemeResults] = useState<
+    { book: string; chapter: number; verseStart: number; verseEnd: number; passages: BiblePassage[] }[]
+  >([]);
+  const [themeLoading, setThemeLoading] = useState(false);
+
   const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [addTarget, setAddTarget] = useState<AddTarget | null>(null);
   const [addContextId, setAddContextId] = useState("");
@@ -95,6 +112,7 @@ export default function SearchPage() {
         const defId = s?.defaultVersionId || vers[0].id;
         setRefVersion(defId);
         setKwVersion(defId);
+        setThemeVersion(defId);
       }
       setLoaded(true);
     })();
@@ -126,6 +144,45 @@ export default function SearchPage() {
     debounceRef.current = setTimeout(() => searchByKeyword(kwQuery), 300);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [kwQuery, searchByKeyword]);
+
+  /**
+   * Charge tous les passages d'un thème.
+   *
+   * `Promise.all` et non une boucle séquentielle : six références font six
+   * lectures indépendantes du cache local, et les enchaîner n'apporterait
+   * qu'un temps d'attente. Un passage introuvable — version incomplète, ou
+   * versification différente d'une traduction à l'autre — rend une liste vide
+   * et n'interrompt pas les autres : le thème s'affiche amputé plutôt que pas
+   * du tout.
+   */
+  const chargerTheme = useCallback(async (slug: string, versionId: string) => {
+    const theme = themeParSlug(slug);
+    if (!theme || !versionId) { setThemeResults([]); return; }
+    setThemeLoading(true);
+    try {
+      const lots = await Promise.all(theme.passages.map(async (ref) => ({
+        book: ref.book,
+        chapter: ref.chapter,
+        verseStart: ref.verseStart,
+        verseEnd: ref.verseEnd,
+        passages: await getPassagesForRange(versionId, ref.book, {
+          chapterStart: ref.chapter,
+          chapterEnd: ref.chapter,
+          verseStart: ref.verseStart,
+          verseEnd: ref.verseEnd,
+        }).catch(() => [] as BiblePassage[]),
+      })));
+      setThemeResults(lots.filter((lot) => lot.passages.length > 0));
+    } catch {
+      setThemeResults([]);
+    }
+    setThemeLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!themeSlug) { setThemeResults([]); return; }
+    chargerTheme(themeSlug, themeVersion);
+  }, [themeSlug, themeVersion, chargerTheme]);
 
   function openAddForm(target: AddTarget) {
     setAddTarget(target);
@@ -171,19 +228,23 @@ export default function SearchPage() {
       </h1>
 
       <div className="flex gap-2 mb-6">
-        {(["reference", "keyword"] as Mode[]).map((m) => (
+        {(["reference", "keyword", "theme"] as Mode[]).map((m) => (
           <button key={m} onClick={() => setMode(m)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               mode === m ? "bg-[--primary] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
-            {m === "reference" ? <BookText className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-            {m === "reference" ? t.search.modeReference : t.search.modeKeyword}
+            {m === "reference" ? <BookText className="w-4 h-4" />
+              : m === "keyword" ? <FileText className="w-4 h-4" />
+              : <Tags className="w-4 h-4" />}
+            {m === "reference" ? t.search.modeReference
+              : m === "keyword" ? t.search.modeKeyword
+              : t.search.modeTheme}
           </button>
         ))}
       </div>
 
-      {mode === "reference" ? (
+      {mode === "reference" && (
         <div>
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
@@ -251,7 +312,9 @@ export default function SearchPage() {
             <p className="text-gray-400 text-sm">{t.search.noResult}</p>
           ) : null}
         </div>
-      ) : (
+      )}
+
+      {mode === "keyword" && (
         <div>
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
             <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
@@ -312,6 +375,82 @@ export default function SearchPage() {
                 </p>
               )}
             </div>
+          ) : null}
+        </div>
+      )}
+
+      {mode === "theme" && (
+        <div>
+          <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+            <p className="text-sm text-gray-500 mb-3">{t.themes.hint}</p>
+            {/* Des boutons plutôt qu'une liste déroulante : quinze thèmes se
+                parcourent d'un regard, et c'est le fait de les voir tous qui
+                donne envie d'en ouvrir un. */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {THEMES.map((theme) => (
+                <button key={theme.slug}
+                  onClick={() => setThemeSlug(theme.slug === themeSlug ? "" : theme.slug)}
+                  className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    themeSlug === theme.slug
+                      ? "bg-[--primary] text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {t.themes.labels[theme.slug]}
+                </button>
+              ))}
+            </div>
+            <div className="w-full sm:w-64">
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.version}</label>
+              <select value={themeVersion} onChange={(e) => setThemeVersion(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
+              </select>
+            </div>
+          </div>
+
+          {themeLoading ? (
+            <p className="text-gray-500 text-sm">{t.search.searching}</p>
+          ) : themeSlug && themeResults.length > 0 ? (
+            <div>
+              <p className="text-sm text-gray-500 mb-3">
+                {t.themes.labels[themeSlug]} — {t.themes.passages(themeResults.length)}
+              </p>
+              <div className="space-y-2">
+                {themeResults.map((lot) => (
+                  <div key={`${lot.book}-${lot.chapter}-${lot.verseStart}`}
+                    className="bg-white rounded-xl border border-gray-200 p-4">
+                    <p className="font-medium text-[--primary] text-sm mb-1.5">
+                      {getBookName(lot.book)} {lot.chapter}:{lot.verseStart}
+                      {lot.verseEnd !== lot.verseStart ? `-${lot.verseEnd}` : ""}
+                    </p>
+                    <div className="texte-biblique text-sm leading-relaxed text-gray-700 mb-3"
+                      dir={sensDuTexte(themeVersion)}>
+                      {lot.passages.map((v) => (
+                        <span key={`${v.chapter}-${v.verse}`}>
+                          <sup className="text-xs text-gray-400 me-0.5">{v.verse}</sup>
+                          {v.text}{" "}
+                        </span>
+                      ))}
+                    </div>
+                    <button onClick={() => openAddForm({
+                      book: lot.book,
+                      chapterStart: lot.chapter,
+                      chapterEnd: lot.chapter,
+                      verseStart: lot.verseStart,
+                      verseEnd: lot.verseEnd,
+                      versionId: themeVersion,
+                      passageText: lot.passages.map((v) => `[${v.verse}] ${v.text}`).join("\n"),
+                    })}
+                      className="text-xs text-green-700 hover:text-green-800 font-medium">
+                      {t.search.addThisReading}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : themeSlug ? (
+            <p className="text-gray-400 text-sm">{t.search.noResult}</p>
           ) : null}
         </div>
       )}

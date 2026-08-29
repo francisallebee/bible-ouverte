@@ -496,11 +496,40 @@ export const it: Dictionary = {
       'category-half': { name: 'A metà strada', description: 'Leggere in metà delle categorie' },
     },
   },
+  themes: {
+    title: 'Cerca per tema',
+    hint: 'Scegli un tema: i passi appaiono nella versione che hai selezionato.',
+    passages: (n: number) => `${n} ${n !== 1 ? 'passi' : 'passo'}`,
+    /**
+     * Les quinze thèmes, par identifiant. Les références vivent dans
+     * `features/bible/themes.ts` — un thème sans libellé y est refusé
+     * par son test, dans les deux sens.
+     */
+    labels: {
+      amour: 'Amore',
+      foi: 'Fede',
+      esperance: 'Speranza',
+      paix: 'Pace',
+      consolation: 'Consolazione',
+      pardon: 'Perdono',
+      priere: 'Preghiera',
+      courage: 'Coraggio',
+      sagesse: 'Saggezza',
+      joie: 'Gioia',
+      reconnaissance: 'Gratitudine',
+      humilite: 'Umiltà',
+      patience: 'Pazienza',
+      creation: 'Creazione',
+      salut: 'Salvezza',
+    },
+  },
+
   search: {
     context: 'Contesto (facoltativo)',
     title: 'Ricerca biblica',
     modeReference: 'Riferimento',
     modeKeyword: 'Libera',
+    modeTheme: 'Tema',
     book: 'Libro',
     select: 'Seleziona',
     chapter: 'Capitolo',

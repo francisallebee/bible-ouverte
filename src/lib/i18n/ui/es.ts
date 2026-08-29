@@ -496,11 +496,40 @@ export const es: Dictionary = {
       'category-half': { name: 'A mitad de camino', description: 'Leer en la mitad de las categorías' },
     },
   },
+  themes: {
+    title: 'Buscar por tema',
+    hint: 'Elige un tema: los pasajes aparecen en la versión que has seleccionado.',
+    passages: (n: number) => `${n} ${n !== 1 ? 'pasajes' : 'pasaje'}`,
+    /**
+     * Les quinze thèmes, par identifiant. Les références vivent dans
+     * `features/bible/themes.ts` — un thème sans libellé y est refusé
+     * par son test, dans les deux sens.
+     */
+    labels: {
+      amour: 'Amor',
+      foi: 'Fe',
+      esperance: 'Esperanza',
+      paix: 'Paz',
+      consolation: 'Consuelo',
+      pardon: 'Perdón',
+      priere: 'Oración',
+      courage: 'Valor',
+      sagesse: 'Sabiduría',
+      joie: 'Gozo',
+      reconnaissance: 'Gratitud',
+      humilite: 'Humildad',
+      patience: 'Paciencia',
+      creation: 'Creación',
+      salut: 'Salvación',
+    },
+  },
+
   search: {
     context: 'Contexto (opcional)',
     title: 'Búsqueda bíblica',
     modeReference: 'Referencia',
     modeKeyword: 'Libre',
+    modeTheme: 'Tema',
     book: 'Libro',
     select: 'Seleccionar',
     chapter: 'Capítulo',

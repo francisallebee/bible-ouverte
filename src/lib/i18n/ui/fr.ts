@@ -507,11 +507,40 @@ export const fr = {
       'category-half': { name: 'À mi-parcours', description: 'Lire dans la moitié des catégories' },
     },
   },
+  themes: {
+    title: 'Chercher par thème',
+    hint: 'Choisis un thème : les passages s’affichent dans la version que tu as sélectionnée.',
+    passages: (n: number) => `${n} passage${n > 1 ? 's' : ''}`,
+    /**
+     * Les quinze thèmes, par identifiant. Les références vivent dans
+     * `features/bible/themes.ts` — un thème sans libellé y est refusé
+     * par son test, dans les deux sens.
+     */
+    labels: {
+      amour: 'Amour',
+      foi: 'Foi',
+      esperance: 'Espérance',
+      paix: 'Paix',
+      consolation: 'Consolation',
+      pardon: 'Pardon',
+      priere: 'Prière',
+      courage: 'Courage',
+      sagesse: 'Sagesse',
+      joie: 'Joie',
+      reconnaissance: 'Reconnaissance',
+      humilite: 'Humilité',
+      patience: 'Patience',
+      creation: 'Création',
+      salut: 'Salut',
+    },
+  },
+
   search: {
     context: 'Contexte (optionnel)',
     title: 'Recherche biblique',
     modeReference: 'Référence',
     modeKeyword: 'Libre',
+    modeTheme: 'Thème',
     book: 'Livre',
     select: 'Sélectionner',
     chapter: 'Chapitre',

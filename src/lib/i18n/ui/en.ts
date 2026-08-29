@@ -477,11 +477,40 @@ export const en: Dictionary = {
       'category-half': { name: 'Halfway', description: 'Read in half the categories' },
     },
   },
+  themes: {
+    title: 'Search by theme',
+    hint: 'Pick a theme: the passages appear in the version you selected.',
+    passages: (n: number) => `${n} passage${n > 1 ? 's' : ''}`,
+    /**
+     * Les quinze thèmes, par identifiant. Les références vivent dans
+     * `features/bible/themes.ts` — un thème sans libellé y est refusé
+     * par son test, dans les deux sens.
+     */
+    labels: {
+      amour: 'Love',
+      foi: 'Faith',
+      esperance: 'Hope',
+      paix: 'Peace',
+      consolation: 'Comfort',
+      pardon: 'Forgiveness',
+      priere: 'Prayer',
+      courage: 'Courage',
+      sagesse: 'Wisdom',
+      joie: 'Joy',
+      reconnaissance: 'Thankfulness',
+      humilite: 'Humility',
+      patience: 'Patience',
+      creation: 'Creation',
+      salut: 'Salvation',
+    },
+  },
+
   search: {
     context: 'Context (optional)',
     title: 'Bible search',
     modeReference: 'Reference',
     modeKeyword: 'Free text',
+    modeTheme: 'Theme',
     book: 'Book',
     select: 'Select',
     chapter: 'Chapter',
