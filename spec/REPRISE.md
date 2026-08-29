@@ -563,6 +563,9 @@ interrompu avant la fin. Les previews passent par git.
 | Envoi groupé de 114 courriels | tous acceptés, mais en **39 passages sur 9 h 34** — 3 par passage | 28 août |
 | Tentatives brûlées sans envoi | **37**, parce que la boucle continuait après la coupure | 28 août |
 | Délivrabilité vers iCloud | le courriel arrive **dans les indésirables** — toutes les remises confirmées jusqu'ici l'étaient vers Gmail | 28 août |
+| Correctif SMTP, éprouvé | **5 envoyés sur 5 en un passage**, 0 échec, 0 tentative brûlée — 11 s contre 9 h 34 pour 114 | 29 août |
+| Signature de la reconnexion | messages 1-2-3 acceptés dans la **même seconde**, le 4ᵉ une seconde plus tard : le temps d'une connexion TLS neuve | 29 août |
+| Authentification de `bibleouverte.fr` | **SPF, DKIM et DMARC sont tous les trois présents** — DKIM sélecteur `default`, RSA 2048 ; DMARC à `p=none` **sans `rua`** | 29 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient

@@ -712,10 +712,17 @@ La distinction compte : un `550 Recipient address rejected` ne concerne qu'une
 adresse et le lot continue ; un `UnexpectedEof` fera échouer tout ce qui suit.
 Un test l'exige explicitement.
 
-**Le chemin d'envoi n'est pas encore éprouvé après correctif** : la fonction est
-déployée en version 3 et rend `200 {"candidats":0,"envoyes":0}`, ce qui prouve
-qu'elle se charge, lit ses secrets et interroge PostgREST — mais la file était
-vide. Le prochain envoi réel sera la vraie mesure.
+**Le correctif est éprouvé en conditions réelles**, le 29 août 2026 : cinq
+courriels envoyés dans un même passage rendent
+`{"candidats":5,"envoyes":5,"echoues":0,"interrompu":false}`. Avant correctif,
+le quatrième aurait échoué et brûlé sa tentative.
+
+**La reconnexion se lit dans les horodatages**, ce qui vaut mieux qu'un
+compteur : les messages 1, 2 et 3 sont acceptés dans la **même seconde** — une
+connexion ouverte —, le quatrième une seconde plus tard, le cinquième encore
+une. Ce décrochage entre le troisième et le quatrième est le temps d'ouvrir une
+connexion TLS neuve, et c'est la signature du correctif. Aucune tentative
+brûlée. Onze secondes pour cinq courriels, contre 9 h 34 pour 114 auparavant.
 
 #### La délivrabilité, qui est un autre sujet
 
