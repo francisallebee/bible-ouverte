@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { composeMessageEmail, aEnvoyer, escapeHtml, MAX_TENTATIVES } from './message'
+import {
+  composeMessageEmail, aEnvoyer, escapeHtml, MAX_TENTATIVES,
+  ENVOIS_PAR_CONNEXION, estPanneDeConnexion,
+} from './message'
 import type { MessageAEnvoyer } from './message'
 
 const m = (over: Partial<MessageAEnvoyer> = {}): MessageAEnvoyer => ({
@@ -137,5 +140,63 @@ describe('les vœux d’anniversaire', () => {
     const c = composeMessageEmail(m({ kind: null }))!
     expect(c.text).toContain('Bonjour Marie,')
     expect(c.text).toContain('— Francis')
+  })
+})
+
+
+/**
+ * La reconnexion périodique et son garde-fou.
+ *
+ * Ces deux règles viennent d'une mesure et non d'une intuition : l'envoi
+ * groupé du 28 août 2026 a montré un serveur qui ferme après trois messages,
+ * et 37 tentatives brûlées parce que la boucle continuait sur une connexion
+ * morte.
+ */
+describe('résistance à la coupure SMTP', () => {
+  it('rouvre la connexion tous les trois envois — le chiffre mesuré', () => {
+    expect(ENVOIS_PAR_CONNEXION).toBe(3)
+  })
+
+  it('reconnaît la coupure exacte relevée en production', () => {
+    const erreur = new Error(
+      'peer closed connection without sending TLS close_notify: '
+      + 'https://docs.rs/rustls/latest/rustls/manual/_03_howto/index.html#unexpected-eof',
+    )
+    erreur.name = 'UnexpectedEof'
+    expect(estPanneDeConnexion(erreur)).toBe(true)
+  })
+
+  it('reconnaît la ressource Deno déjà refermée', () => {
+    const erreur = new Error('Bad resource ID')
+    erreur.name = 'BadResource'
+    expect(estPanneDeConnexion(erreur)).toBe(true)
+  })
+
+  it('reconnaît les coupures réseau usuelles', () => {
+    for (const nom of ['ConnectionReset', 'BrokenPipe', 'ConnectionRefused', 'ConnectionAborted']) {
+      const erreur = new Error('la connexion a été interrompue')
+      erreur.name = nom
+      expect(estPanneDeConnexion(erreur), nom).toBe(true)
+    }
+  })
+
+  /**
+   * Le cas qui donne son sens à la fonction : une erreur qui ne concerne
+   * qu'un destinataire ne doit pas faire renoncer au reste du lot.
+   */
+  it('ne prend pas une adresse refusée pour une panne de connexion', () => {
+    const erreur = new Error('550 5.1.1 <inconnu@exemple.fr>: Recipient address rejected')
+    erreur.name = 'SMTPError'
+    expect(estPanneDeConnexion(erreur)).toBe(false)
+  })
+
+  it('ne prend pas un dépassement de quota pour une panne de connexion', () => {
+    expect(estPanneDeConnexion(new Error('452 4.5.3 Too many recipients'))).toBe(false)
+  })
+
+  it('supporte ce qui n’est pas une erreur', () => {
+    expect(estPanneDeConnexion(null)).toBe(false)
+    expect(estPanneDeConnexion(undefined)).toBe(false)
+    expect(estPanneDeConnexion('BadResource: Bad resource ID')).toBe(true)
   })
 })

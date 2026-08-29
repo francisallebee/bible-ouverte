@@ -12,7 +12,10 @@
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
-import { aEnvoyer, composeMessageEmail, MAX_TENTATIVES } from './message.ts'
+import {
+  aEnvoyer, composeMessageEmail, MAX_TENTATIVES,
+  ENVOIS_PAR_CONNEXION, estPanneDeConnexion,
+} from './message.ts'
 import type { MessageAEnvoyer } from './message.ts'
 
 /** Borne du lot par passage. Large au regard du rythme réel. */
@@ -105,7 +108,16 @@ Deno.serve(async (req) => {
     return Response.json({ candidats: candidats.length, envoyes: 0, sansAdresse: candidats.length })
   }
 
-  const client = new SMTPClient({
+  /**
+   * **Une connexion ne sert que trois messages**, et c'est mesuré.
+   *
+   * Le 28 août 2026, l'envoi de 114 messages a été écoulé par le
+   * planificateur en 39 passages de trois courriels, sur 9 h 34 : le serveur
+   * mutualisé d'o2switch ferme la connexion après le troisième, et le
+   * quatrième `send` levait `UnexpectedEof`. Une seule connexion partagée par
+   * tout le lot condamnait donc 47 messages sur 50 à chaque passage.
+   */
+  const ouvrirConnexion = () => new SMTPClient({
     connection: {
       hostname: smtpHote!,
       port: 465,
@@ -114,13 +126,30 @@ Deno.serve(async (req) => {
     },
   })
 
+  let client: InstanceType<typeof SMTPClient> | null = null
+  let surCetteConnexion = 0
+
+  const fermerConnexion = async () => {
+    if (!client) return
+    try { await client.close() } catch { /* connexion déjà tombée */ }
+    client = null
+  }
+
   let envoyes = 0
   let echoues = 0
+  /** Vrai si la connexion est morte et qu'on a rendu la main au planificateur. */
+  let interrompu = false
 
   try {
     for (const message of retenus) {
       const courriel = composeMessageEmail(message)
       if (!courriel) continue
+
+      if (!client || surCetteConnexion >= ENVOIS_PAR_CONNEXION) {
+        await fermerConnexion()
+        client = ouvrirConnexion()
+        surCetteConnexion = 0
+      }
 
       // Le compteur d'abord : une coupure entre l'envoi et l'écriture ferait
       // sinon réessayer indéfiniment.
@@ -145,19 +174,36 @@ Deno.serve(async (req) => {
           .update({ emailed_at: new Date().toISOString() })
           .eq('id', message.id)
         envoyes++
+        surCetteConnexion++
       } catch (err) {
         echoues++
         console.error('message non envoyé', message.id, err)
+
+        /**
+         * **Une connexion morte fait rendre la main, elle ne fait pas
+         * continuer.** Le compteur de tentatives est incrémenté avant l'envoi ;
+         * poursuivre la boucle en brûlerait une par message sans en expédier
+         * aucun, et trois passages suffiraient à condamner un message jamais
+         * parti. 37 tentatives ont été perdues ainsi le 28 août 2026.
+         *
+         * Une erreur qui ne vise qu'un destinataire — adresse refusée, quota —
+         * laisse au contraire le lot se poursuivre.
+         */
+        if (estPanneDeConnexion(err)) {
+          interrompu = true
+          break
+        }
       }
     }
   } finally {
-    try { await client.close() } catch { /* connexion déjà tombée */ }
+    await fermerConnexion()
   }
 
   return Response.json({
     candidats: candidats.length,
     envoyes,
     echoues,
+    interrompu,
     sansAdresse: candidats.length - retenus.length,
   })
 })
