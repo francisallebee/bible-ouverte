@@ -559,6 +559,10 @@ interrompu avant la fin. Les previews passent par git.
 | Étapes du parcours découverte | **17 → 21** : Quizz, Verset du jour, Mémorisation et Messages étaient ignorés depuis leur naissance | 28 août |
 | `curl` vers `localhost:3000` | `code=000` en **0,015 s** alors que le serveur répond — le bac à sable, pas le réseau | 28 août |
 | Défaut trouvé à l'œil sur la page d'accueil | la maquette du hero affichait « + ajouter un passage » quand le relevé cherchait « Réunis plusieurs passages » — **deux libellés, un seul connu du contrôle** | 28 août |
+| Messages par connexion SMTP o2switch | **3**, puis `UnexpectedEof` — répété **39 fois** sur l'envoi de l'annonce | 28 août |
+| Envoi groupé de 114 courriels | tous acceptés, mais en **39 passages sur 9 h 34** — 3 par passage | 28 août |
+| Tentatives brûlées sans envoi | **37**, parce que la boucle continuait après la coupure | 28 août |
+| Délivrabilité vers iCloud | le courriel arrive **dans les indésirables** — toutes les remises confirmées jusqu'ici l'étaient vers Gmail | 28 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -1643,6 +1647,53 @@ telle qu'un visiteur sans session la reçoit.
   Le reste de la page est conforme, vu à l'œil : « Douze traductions, cinq
   langues, libres de droits », les douze versions avec leur langue, les neuf
   cartes dont les trois ajoutées.
+
+### L'annonce de rentrée, et le défaut que seul un envoi groupé pouvait montrer
+
+Un article de rentrée a été rédigé, une séquence animée de 32 s produite pour
+être filmée, et l'annonce envoyée **aux 114 comptes** — d'abord au seul
+propriétaire, à sa demande, puis aux 113 autres après qu'il eut vu le rendu.
+
+**Le premier courriel est arrivé dans les indésirables.** Constat du
+propriétaire, sur une boîte iCloud. La chaîne fonctionne donc de bout en bout —
+écriture, déclenchement immédiat, SMTP, remise — mais l'authentification du
+domaine expéditeur ne convainc pas Apple. **Toutes les remises confirmées
+jusqu'ici l'avaient été vers Gmail** : le corpus de preuves du dépôt reposait
+sur le destinataire le plus indulgent. SPF, DKIM et DMARC restent à instruire.
+
+**Puis l'envoi groupé a révélé un défaut de la fonction Edge.** Les 114
+courriels sont partis, mais en **39 passages de trois**, sur **9 h 34**. Le
+SMTP d'o2switch ferme la connexion après trois messages ; la fonction en
+partageait une seule pour un lot de 50. Le détail est dans
+`supabase/README.md`.
+
+**Le second défaut était le vrai danger**, et il tenait à une bonne règle mal
+bornée : le compteur de tentatives s'incrémente avant l'envoi — pour qu'une
+coupure en plein vol ne fasse pas réessayer sans fin — mais la boucle
+continuait après l'erreur. **37 tentatives ont été brûlées sans qu'un seul
+courriel parte.** Seul le crash de la fonction a limité les dégâts ; avec trois
+tentatives pour plafond, un lot plus grand aurait condamné des messages en
+silence.
+
+**Leçon de méthode.** Un mécanisme éprouvé unitairement ne l'est pas à
+l'échelle : une connexion pour un message ne dit rien d'une connexion pour
+cinquante. Et quand une garde protège d'un cas — la coupure en plein vol — il
+faut regarder ce qu'elle coûte dans le cas voisin, ici la coupure *avant* le
+vol.
+
+**Ce qui n'a pas pu être fait, et pourquoi.** Aucun encodeur vidéo sur la
+machine — ni ffmpeg, ni ImageMagick, ni Playwright — donc pas de fichier vidéo
+possible : la séquence est publiée comme page animée, à enregistrer à l'écran.
+Les captures du panneau ne peuvent pas non plus être exportées en fichiers. Et
+**la séquence n'a pas été vue en mouvement par l'agent** : le panneau Artifacts
+est en lecture seule, le middleware redirige un fichier servi depuis `public/`
+(règle 7), et le bac à sable interdit d'ouvrir un port d'écoute — trois chemins,
+trois murs.
+
+**La notification push n'a pas été envoyée**, sur décision du propriétaire : les
+six déclencheurs sont figés et aucun ne permet une annonce libre, quand
+**4 comptes sur 114** ont un appareil abonné. Le message dans l'application et
+son doublon par courriel couvrent tout le monde.
 - **Rien n'a été vu en arabe ni en mode sombre** : ni le bouton flottant, ni la
   boîte de sortie, ni l'entrée groupée. Le bouton porte `end-6` et la flèche du
   chevron `rtl:rotate-180`, mais c'est du code, pas un constat.

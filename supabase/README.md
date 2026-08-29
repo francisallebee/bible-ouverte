@@ -669,6 +669,67 @@ c'est `emailed_at` qui décide, rien ne part deux fois. La route ne remonte donc
 pas l'échec à l'appelant : le message est écrit, ce qui était demandé, et une
 erreur ferait croire à une perte là où il n'y a qu'un délai.
 
+### Une connexion SMTP ne sert que trois messages
+
+Mesuré le 28 août 2026, sur l'envoi d'une annonce à **114 comptes**. Les 114
+courriels sont partis — mais en **39 passages du planificateur, trois par
+passage**, de 12:26 à 22:00 UTC, soit **9 h 34**.
+
+À chaque passage, le quatrième `send` levait la même erreur :
+
+```
+UnexpectedEof: peer closed connection without sending TLS close_notify
+```
+
+puis la fonction mourait sur un `BadResource: Bad resource ID`. Le SMTP
+mutualisé d'o2switch **ferme la connexion après trois messages**, et le chiffre
+s'est répété trente-neuf fois de suite.
+
+Un envoi unitaire ne pouvait pas le montrer : une connexion, un message, tout
+va bien. **C'est le premier envoi groupé qui l'a révélé.**
+
+#### Le second défaut est le dangereux
+
+`increment_message_attempt` s'exécute **avant** l'envoi — à dessein, pour qu'une
+coupure en plein vol ne fasse pas réessayer sans fin. Mais la boucle continuait
+après l'erreur, si bien que chaque message suivant brûlait une tentative sans
+qu'aucun ne parte. **37 tentatives ont été perdues** ce jour-là.
+
+Seul le crash de la fonction a empêché qu'un lot de 50 y passe entièrement.
+Avec `MAX_TENTATIVES = 3`, **trois passages suffisent à condamner un message qui
+n'est jamais parti** — et rien ne le signalerait, puisque `emailed_at` reste nul
+et que la ligne sort simplement de la file.
+
+#### Ce qui est en place depuis
+
+| Garde | Effet |
+|---|---|
+| `ENVOIS_PAR_CONNEXION = 3` | une connexion neuve tous les trois envois |
+| `estPanneDeConnexion()` | distingue la connexion morte de l'erreur propre à un destinataire |
+| Arrêt sur panne | rend la main au planificateur au lieu de brûler le reste du lot |
+
+La distinction compte : un `550 Recipient address rejected` ne concerne qu'une
+adresse et le lot continue ; un `UnexpectedEof` fera échouer tout ce qui suit.
+Un test l'exige explicitement.
+
+**Le chemin d'envoi n'est pas encore éprouvé après correctif** : la fonction est
+déployée en version 3 et rend `200 {"candidats":0,"envoyes":0}`, ce qui prouve
+qu'elle se charge, lit ses secrets et interroge PostgREST — mais la file était
+vide. Le prochain envoi réel sera la vraie mesure.
+
+#### La délivrabilité, qui est un autre sujet
+
+Le premier de ces 114 courriels est **arrivé dans les indésirables** d'une boîte
+iCloud, ce que le propriétaire du dépôt a constaté. L'acceptation SMTP ne dit
+rien du classement, exactement comme elle ne dit rien de la remise.
+
+**Toutes les remises confirmées jusqu'ici l'avaient été vers Gmail** — l'alerte
+d'inscription le 18 août, la bienvenue et le vœu d'anniversaire le 20. Gmail est
+tolérant ; iCloud est strict, et c'est lui qui a montré le problème. À
+instruire : les enregistrements **SPF, DKIM et DMARC** du domaine d'expédition,
+qu'aucune vérification n'a encore couverts. La ligne `Authentication-Results`
+d'un courriel reçu porte le verdict, et c'est la mesure la plus directe.
+
 ### Le courriel seul
 
 `kind = 'courriel'` : le texte part par courriel sans apparaître dans la boîte
