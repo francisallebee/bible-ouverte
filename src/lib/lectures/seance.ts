@@ -43,6 +43,12 @@ export interface CadreDeSeance {
   date: string;
   contextId: string;
   versionId: string;
+  /**
+   * Le titre donné au moment d'enregistrer. Chaîne vide = séance non nommée,
+   * ce qui est un cas normal et non un oubli : le bandeau de nommage propose
+   * « Enregistrer sans nommer ».
+   */
+  sessionTitle: string;
   notes: string;
   links: ReadingLink[];
   photos: string[];
@@ -79,6 +85,9 @@ export function lecturesDeLaSeance(
     translationId: cadre.versionId,
     tags: [],
     contextId: cadre.contextId,
+    // Répété sur chaque ligne : c'est ce qui permet de retrouver la séance sans
+    // table jointe, et de la nommer après coup depuis n'importe laquelle.
+    sessionTitle: cadre.sessionTitle.trim(),
     notes: cadre.notes,
     // `undefined` plutôt qu'un tableau vide : c'est ce que la table attend
     // d'une colonne facultative, et ce que `handleSave` posait déjà.

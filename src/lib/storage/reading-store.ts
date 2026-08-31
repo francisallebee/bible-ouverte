@@ -23,6 +23,7 @@ function rowToEntry(row: ReadingRow): ReadingEntry {
     translationId: row.translationId,
     tags: safeParseArray(row.tags),
     contextId: row.contextId ?? '',
+    sessionTitle: row.sessionTitle ?? '',
     notes: row.notes,
     links: safeParseArray(row.links),
     photos: safeParseArray(row.photos),
@@ -46,6 +47,7 @@ function entryToRow(entry: ReadingEntry): Omit<ReadingRow, 'id' | 'createdAt' | 
     translationId: entry.translationId,
     tags: JSON.stringify(entry.tags ?? []),
     contextId: entry.contextId ?? '',
+    sessionTitle: entry.sessionTitle ?? '',
     notes: entry.notes ?? '',
     links: JSON.stringify(entry.links ?? []),
     photos: JSON.stringify(entry.photos ?? []),
@@ -203,6 +205,8 @@ export async function updateReading(id: number, data: Partial<ReadingEntry>): Pr
       // la synchronisation suivante la remplaçait par l'ancienne valeur du
       // cloud, qui fait foi.
       contextId: updated.contextId ?? '',
+      // Le troisième chemin, celui que `contextId` avait manqué avant lui.
+      sessionTitle: updated.sessionTitle ?? '',
       tags: JSON.stringify(updated.tags ?? []),
       notes: updated.notes ?? '',
       links: JSON.stringify(updated.links ?? []),

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { ReadingEntry } from "@/lib/storage";
 import {
   grouperParSaisie, referencesDe, referenceDe, SEUIL_MEME_SAISIE_MS,
+  trierParTitre, titreDe,
 } from "./saisies";
 
 /** Une lecture minimale : seuls la date, l'instant et la référence comptent ici. */
@@ -23,6 +24,7 @@ function lecture(
     translationId: "lsg1910",
     tags: [],
     contextId: "",
+    sessionTitle: "",
     notes: "",
     userId: "u1",
     createdAt: createdAt as string,
@@ -195,5 +197,71 @@ describe("referencesDe", () => {
       lecture(2, "2026-08-20", undefined, { book: "JHN", chapterStart: 3, verseStart: 16 }),
     ];
     expect(referencesDe(lot, nom)).toEqual(["Jean 3:16"]);
+  });
+});
+
+
+describe("trierParTitre", () => {
+  /** Une saisie d'une seule lecture, portant le titre voulu. */
+  const saisie = (cle: string, titre: string) => ({
+    cle,
+    entrees: [{ ...lecture(1, "2026-08-31", "2026-08-31T09:00:00Z"), sessionTitle: titre }],
+  });
+
+  it("range les séances par titre", () => {
+    const rangees = trierParTitre([
+      saisie("c", "Étude sur Romains"),
+      saisie("a", "Culte du dimanche"),
+      saisie("b", "Lecture du soir"),
+    ]);
+    expect(rangees.map((s) => titreDe(s))).toEqual([
+      "Culte du dimanche", "Étude sur Romains", "Lecture du soir",
+    ]);
+  });
+
+  it("garde côte à côte deux séances du même nom, sans les réunir", () => {
+    // Le titre trie, le temps regroupe : deux moments d'un même « Culte du
+    // dimanche » restent deux entrées, et rien ne les fusionne.
+    const rangees = trierParTitre([
+      saisie("soir", "Culte du dimanche"),
+      saisie("autre", "Méditation"),
+      saisie("matin", "Culte du dimanche"),
+    ]);
+    expect(rangees.map((s) => s.cle)).toEqual(["soir", "matin", "autre"]);
+    expect(rangees).toHaveLength(3);
+  });
+
+  it("renvoie les séances non nommées en dernier", () => {
+    // Les 347 lectures antérieures au 31 août 2026 n'ont pas de titre : sans
+    // cette règle, une chaîne vide se rangerait avant tout le reste et ce
+    // seraient elles qui décideraient de l'ordre de la journée.
+    const rangees = trierParTitre([
+      saisie("sans", ""),
+      saisie("avec", "Culte du dimanche"),
+      saisie("aussi-sans", ""),
+    ]);
+    expect(rangees.map((s) => s.cle)).toEqual(["avec", "sans", "aussi-sans"]);
+  });
+
+  it("ne se laisse pas départager par une casse ou un accent", () => {
+    const rangees = trierParTitre([
+      saisie("b", "étude"),
+      saisie("a", "Culte"),
+    ]);
+    expect(rangees.map((s) => titreDe(s))).toEqual(["Culte", "étude"]);
+  });
+
+  it("conserve l'ordre d'origine à titre égal", () => {
+    // `grouperParSaisie` rend le plus récent d'abord ; le tri par titre ne doit
+    // pas défaire cet ordre-là entre homonymes.
+    const rangees = trierParTitre([
+      saisie("recent", "Culte"), saisie("moyen", "Culte"), saisie("ancien", "Culte"),
+    ]);
+    expect(rangees.map((s) => s.cle)).toEqual(["recent", "moyen", "ancien"]);
+  });
+
+  it("tient une séance dont le titre n'est que des blancs pour non nommée", () => {
+    const rangees = trierParTitre([saisie("blancs", "   "), saisie("nomme", "Culte")]);
+    expect(rangees.map((s) => s.cle)).toEqual(["nomme", "blancs"]);
   });
 });

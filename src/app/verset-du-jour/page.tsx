@@ -82,6 +82,8 @@ export default function VersetDuJourPage() {
         translationId: versionId,
         tags: [],
         contextId: CONTEXTE,
+        // Une lecture isolée, qui n'appartient à aucune séance de saisie.
+        sessionTitle: '',
         notes: t.versetDuJour.noteLecture,
       })
       const partie = await recordSession({

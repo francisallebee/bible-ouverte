@@ -213,6 +213,14 @@ export const ar: Dictionary = {
     previewUnavailable: 'النص غير متاح لهذا المرجع.',
     summary: 'ملخص ما أدخلته',
     sessionTitle: 'الجلسة',
+    nameSession: 'سمِّ الجلسة',
+    nameSessionIntro: (n: number) => `سيتم حفظ ${n} ${lectures(n)}.`,
+    nameSessionPlaceholder: 'عبادة الأحد، دراسة في رومية…',
+    nameSessionWhy:
+      'العنوان يجمع هذه القراءات تحت اسم واحد في «قراءاتي»، حيث تُرتَّب أولًا '
+      + 'ضمن يومها. وهذا ما سيتيح لك العثور على دراسة أو عبادة بعد أشهر، دون '
+      + 'مراجعة كل المراجع.',
+    saveWithoutName: 'احفظ دون تسمية',
     sessionHint:
       'أكِّد المقطع فيُضاف إلى القائمة. التاريخ والسياق والنسخة والملاحظات '
       + 'تسري على الجلسة كلها.',

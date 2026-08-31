@@ -5,7 +5,9 @@ import Link from "next/link";
 import { History, BookPlus, ChevronRight, ChevronDown, CheckSquare, Trash2, Tag, Loader, Layers } from "lucide-react";
 import { seedIfNeeded, getAllReadings, getAllVersions, getAllContexts, deleteReading, updateReading } from "@/lib/storage";
 import type { ReadingEntry, BibleVersion, ReadingContext } from "@/lib/storage";
-import { grouperParSaisie, referencesDe, referenceDe } from "@/lib/lectures/saisies";
+import {
+  grouperParSaisie, referencesDe, referenceDe, trierParTitre, titreDe,
+} from "@/lib/lectures/saisies";
 import type { Saisie } from "@/lib/lectures/saisies";
 import { sortContexts } from "@/components/ContextPicker";
 import BookPicker from "@/components/BookPicker";
@@ -417,6 +419,7 @@ export default function HistoryPage() {
     const tetes = references.slice(0, 3).join(", ");
     const reste = references.length - Math.min(3, references.length);
     const premiere = saisie.entrees[0];
+    const titre = titreDe(saisie);
     const ctx = premiere.contextId ? contextMap[premiere.contextId] : undefined;
     const ids = saisie.entrees.map((e) => e.id as number);
     const toutCoche = ids.every((id) => selected.has(id));
@@ -446,8 +449,13 @@ export default function HistoryPage() {
             <Layers className="w-4 h-4 text-[--primary] mt-1 shrink-0" />
             <span className="flex-1 min-w-0">
               <span className="flex items-center gap-2">
+                {/*
+                  Le titre prend la tête quand il existe : c'est lui qu'on
+                  cherche des mois plus tard, pas la première référence. Les
+                  passages passent alors en sous-ligne, où ils restent lisibles.
+                */}
                 <span className="text-base font-semibold text-gray-900 truncate">
-                  {tetes}{reste > 0 ? ` ${t.history.andMore(reste)}` : ""}
+                  {titre || `${tetes}${reste > 0 ? ` ${t.history.andMore(reste)}` : ""}`}
                 </span>
                 {ctx && (
                   <span className="text-xs text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 shrink-0">
@@ -456,6 +464,7 @@ export default function HistoryPage() {
                 )}
               </span>
               <span className="block text-sm text-gray-500 mt-1">
+                {titre ? `${tetes}${reste > 0 ? ` ${t.history.andMore(reste)}` : ""} — ` : ""}
                 {t.history.passageCount(saisie.entrees.length)}
                 {premiere.notes ? ` — ${premiere.notes.length > 40 ? premiere.notes.slice(0, 40) + "…" : premiere.notes}` : ""}
               </span>
@@ -484,8 +493,15 @@ export default function HistoryPage() {
   function rendreEntrees(entrees: ReadingEntry[]) {
     return (
       <div className="border-t border-gray-100 divide-y divide-gray-100">
-        {grouperParSaisie(entrees).map((saisie) =>
-          saisie.entrees.length === 1
+        {/*
+          Le titre de la séance est la première clé de tri d'une journée ; à
+          titre égal, l'ordre reste celui de `grouperParSaisie`, du plus récent
+          au plus ancien. Les séances non nommées ferment la marche — c'est le
+          cas de toutes les lectures antérieures au 31 août 2026, et sans cette
+          règle une chaîne vide se rangerait avant tout le reste.
+        */}
+        {trierParTitre(grouperParSaisie(entrees), localeInfo(locale).tag).map((saisie) =>
+          saisie.entrees.length === 1 && !titreDe(saisie)
             ? rendreLecture(saisie.entrees[0])
             : rendreGroupe(saisie))}
       </div>

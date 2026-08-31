@@ -37,6 +37,7 @@ aucune donnée.
 | `20260820170000_presence_last_seen.sql` | `profiles.last_seen_at` : la présence réelle, que `last_sign_in_at` ne dit pas |
 | `20260821140000_envoi_immediat.sql` | `declencher_envoi_messages()` : rejoue la commande du planificateur **sans exposer son secret** |
 | `20260821150000_courriel_seul.sql` | `kind = 'courriel'` masqué de la boîte du destinataire, **par la RLS** — l'administrateur continue de le voir |
+| `20260831120000_reading_session_title.sql` | `readings.sessionTitle` : le nom d'une séance d'enregistrement, répété sur ses lectures — **aucun `grant`**, `readings` ayant l'`update` au niveau table, contrairement à `profiles` |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.

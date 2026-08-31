@@ -211,6 +211,8 @@ export default function SearchPage() {
       translationId: addTarget.versionId,
       tags: [],
       contextId: addContextId,
+      // Une lecture ajoutée depuis la recherche n'appartient à aucune séance.
+      sessionTitle: '',
       notes: addNotes,
     });
     setAddSaving(false);

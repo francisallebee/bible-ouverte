@@ -65,6 +65,16 @@ export default function NewReadingPage() {
   const [ajoutes, setAjoutes] = useState<PassageDeSeance[]>([]);
   /** Ce qui vient d'être écrit, affiché puisqu'on ne quitte plus la page. */
   const [confirmation, setConfirmation] = useState<number | null>(null);
+  /**
+   * Le nommage de la séance, entre le clic et l'écriture.
+   *
+   * `null` tant qu'il n'est pas demandé ; sinon la destination à rejoindre
+   * après coup — chaîne vide pour rester sur la page. Le même motif que
+   * `sortie` : garder la destination plutôt qu'un booléen évite de faire
+   * recommencer la navigation à qui enregistre depuis la boîte de sortie.
+   */
+  const [nommage, setNommage] = useState<string | null>(null);
+  const [titreSeance, setTitreSeance] = useState("");
 
   const [passages, setPassages] = useState<BiblePassage[]>([]);
   const [loadingPassage, setLoadingPassage] = useState(false);
@@ -213,7 +223,7 @@ export default function NewReadingPage() {
    * l'écran.
    */
   const aEcrire = lecturesDeLaSeance(
-    { date, contextId, versionId, notes, links, photos, audio },
+    { date, contextId, versionId, sessionTitle: "", notes, links, photos, audio },
     ajoutes,
   );
   const peutEnregistrer = aEcrire.length > 0;
@@ -296,12 +306,30 @@ export default function NewReadingPage() {
    * rassembler en une entrée d'historique. Une seconde d'écart y suffirait,
    * mais rien n'oblige à en introduire.
    */
-  async function handleSave(destination?: string) {
+  /**
+   * Demande le titre avant d'écrire.
+   *
+   * Le bandeau s'intercale entre le clic et l'enregistrement : c'est le seul
+   * moment où l'on sait ce que la séance contient, et le dernier où l'on peut
+   * encore la nommer d'un geste.
+   */
+  function demanderLeNom(destination: string = "") {
+    if (aEcrire.length === 0) return;
+    setSortie(null);
+    setTitreSeance("");
+    setNommage(destination);
+  }
+
+  async function handleSave(destination?: string, titre: string = "") {
     if (aEcrire.length === 0) return;
     setSaving(true);
+    setNommage(null);
 
+    // Le titre n'est pas dans `aEcrire`, calculé avant que le bandeau s'ouvre :
+    // il est posé ici, sur chaque ligne, comme le fait `lecturesDeLaSeance`.
+    const propre = titre.trim();
     for (const lecture of aEcrire) {
-      await addReading(lecture);
+      await addReading({ ...lecture, sessionTitle: propre });
     }
 
     const ecrites = aEcrire.length;
@@ -318,6 +346,7 @@ export default function NewReadingPage() {
     // notes — « ne pas laisser la dernière saisie » était la demande.
     viderLaReference();
     setAjoutes([]);
+    setTitreSeance("");
     setDate(new Date().toISOString().slice(0, 10));
     setContextId("");
     setNotes("");
@@ -576,6 +605,14 @@ export default function NewReadingPage() {
               </div>
 
               <p className="text-xs text-[--primary] opacity-75">{t.newReading.sessionHint}</p>
+              {/*
+                Pourquoi nommer, dit là où l'on regarde la liste — et non
+                seulement dans le bandeau qui suivra le clic : c'est en voyant
+                la séance se remplir qu'on peut songer à ce qui la relie.
+              */}
+              <p className="text-xs text-[--primary] opacity-75 border-t border-[--primary]/20 pt-2">
+                {t.newReading.nameSessionWhy}
+              </p>
             </div>
           )}
 
@@ -604,7 +641,7 @@ export default function NewReadingPage() {
         qui doivent continuer de le recouvrir.
       */}
       {peutEnregistrer && (
-        <button onClick={() => handleSave()} disabled={saving}
+        <button onClick={() => demanderLeNom()} disabled={saving}
           className="fixed bottom-6 end-6 z-20 flex items-center gap-2 bg-[--primary] text-white ps-4 pe-5 py-3.5 rounded-full text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-60 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-black/20">
           {saving ? (
             <>
@@ -618,6 +655,65 @@ export default function NewReadingPage() {
             </>
           )}
         </button>
+      )}
+
+      {/*
+        Le nommage de la séance, entre le clic et l'écriture.
+
+        Facultatif, et proposé plutôt qu'imposé : « Enregistrer sans nommer »
+        est une issue de plein droit, pas un renoncement. Une séance sans nom
+        est le cas des 347 lectures antérieures au 31 août 2026, et le tri de
+        « Mes lectures » les range en fin de journée sans rien casser.
+      */}
+      {nommage !== null && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setNommage(null)} aria-hidden="true" />
+
+          <div role="dialog" aria-modal="true" aria-labelledby="titre-nommage"
+            className="relative w-full sm:max-w-md bg-[--surface] rounded-t-2xl sm:rounded-2xl border border-[--border] shadow-xl p-5">
+            <p id="titre-nommage" className="font-semibold text-[--text]">
+              {t.newReading.nameSession}
+            </p>
+            <p className="text-sm text-[--text-secondary] mt-1">
+              {t.newReading.nameSessionIntro(aEcrire.length)}
+            </p>
+
+            <input
+              type="text"
+              value={titreSeance}
+              onChange={(e) => setTitreSeance(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSave(nommage || undefined, titreSeance); }}
+              placeholder={t.newReading.nameSessionPlaceholder}
+              maxLength={80}
+              autoFocus
+              aria-label={t.newReading.nameSession}
+              className="w-full mt-4 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]"
+            />
+
+            <p className="text-xs text-[--text-secondary] mt-2">
+              {t.newReading.nameSessionWhy}
+            </p>
+
+            <div className="mt-5 space-y-2">
+              <button type="button" disabled={saving}
+                onClick={() => handleSave(nommage || undefined, titreSeance)}
+                className="w-full flex items-center justify-center gap-2 bg-[--primary] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-60 transition-colors">
+                <Save className="w-4 h-4 shrink-0" />
+                {aEcrire.length > 1 ? t.newReading.saveMany(aEcrire.length) : t.newReading.saveOne}
+              </button>
+              <button type="button" disabled={saving}
+                onClick={() => handleSave(nommage || undefined, "")}
+                className="w-full border border-[--border] rounded-lg px-4 py-2.5 text-sm text-[--text] hover:bg-gray-50 disabled:opacity-60 transition-colors">
+                {t.newReading.saveWithoutName}
+              </button>
+              <button type="button" onClick={() => setNommage(null)} disabled={saving}
+                className="w-full text-[--text-secondary] px-4 py-2 rounded-lg text-sm hover:text-[--text] disabled:opacity-60 transition-colors">
+                {t.common.cancel}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/*
@@ -643,7 +739,7 @@ export default function NewReadingPage() {
 
             <div className="mt-5 space-y-2">
               {peutEnregistrer && (
-                <button type="button" onClick={() => handleSave(sortie ?? undefined)} disabled={saving}
+                <button type="button" onClick={() => demanderLeNom(sortie ?? "")} disabled={saving}
                   className="w-full flex items-center justify-center gap-2 bg-[--primary] text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-60 transition-colors">
                   {saving ? (
                     <>

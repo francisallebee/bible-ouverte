@@ -112,6 +112,16 @@ export const it: Dictionary = {
     previewUnavailable: 'Testo non disponibile per questo riferimento.',
     summary: "Riepilogo di ciò che hai inserito",
     sessionTitle: 'La sessione',
+    nameSession: 'Dai un nome alla sessione',
+    nameSessionIntro: (n: number) =>
+      `${n} ${n !== 1 ? 'letture verranno salvate' : 'lettura verrà salvata'}.`,
+    nameSessionPlaceholder: 'Culto della domenica, Studio su Romani…',
+    nameSessionWhy:
+      'Un titolo raccoglie queste letture sotto un unico nome in «Le mie '
+      + 'letture», dove si ordinano per prime nella loro giornata. È ciò che ti '
+      + 'permetterà di ritrovare uno studio o un culto mesi dopo, senza '
+      + 'rileggere tutti i riferimenti.',
+    saveWithoutName: 'Salva senza nome',
     sessionHint:
       'Conferma un passo e verrà aggiunto alla lista. La data, il contesto, la '
       + 'versione e le note valgono per tutta la sessione.',

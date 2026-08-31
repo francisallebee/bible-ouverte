@@ -10,7 +10,7 @@ import type { ReadingEntry } from '@/lib/storage/types'
 
 const lecture = (date: string, cs: number, ce = cs, vs = 1, ve = 1): ReadingEntry => ({
   date, book: 'GEN', chapterStart: cs, chapterEnd: ce, verseStart: vs, verseEnd: ve,
-  passageText: '', translationId: 'ls1910', tags: [], contextId: '', notes: '',
+  passageText: '', translationId: 'ls1910', tags: [], contextId: '', sessionTitle: '', notes: '',
   userId: 'u', createdAt: date, updatedAt: date,
 })
 

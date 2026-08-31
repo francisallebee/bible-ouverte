@@ -118,6 +118,16 @@ export const fr = {
     previewUnavailable: 'Texte non disponible pour cette référence.',
     summary: 'Résumé de la saisie',
     sessionTitle: 'La séance',
+    nameSession: 'Nommer la séance',
+    nameSessionIntro: (n: number) =>
+      `${n} lecture${n > 1 ? 's' : ''} ${n > 1 ? 'vont' : 'va'} être enregistrée${n > 1 ? 's' : ''}.`,
+    nameSessionPlaceholder: 'Culte du dimanche, Étude sur Romains…',
+    nameSessionWhy:
+      'Un titre rassemble ces lectures sous un même nom dans « Mes lectures », '
+      + 'où elles se rangent en tête de leur journée. C’est ce qui te permettra '
+      + 'de retrouver une étude ou un culte des mois plus tard, sans relire '
+      + 'toutes les références.',
+    saveWithoutName: 'Enregistrer sans nommer',
     sessionHint:
       'Valide un passage et il rejoint la liste. La date, le contexte, la '
       + 'version et les notes valent pour toute la séance.',

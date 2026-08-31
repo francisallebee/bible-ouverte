@@ -44,6 +44,48 @@ export interface Saisie {
 }
 
 /**
+ * Le titre d'une saisie, ou la chaîne vide.
+ *
+ * Pris sur la **première** ligne et non par consensus : les lectures d'un même
+ * geste sont écrites ensemble et portent donc le même titre. Une divergence ne
+ * pourrait venir que d'une modification ligne à ligne, cas où la première
+ * entrée reste la réponse la moins surprenante.
+ */
+export function titreDe(saisie: Saisie): string {
+  return saisie.entrees[0]?.sessionTitle?.trim() ?? "";
+}
+
+/**
+ * Les saisies d'une journée, titres d'abord.
+ *
+ * **Le titre trie, le temps regroupe.** Deux séances homonymes du même jour —
+ * le matin et le soir d'un même « Culte du dimanche » — restent deux entrées
+ * distinctes, mais voisines : les réunir supposerait qu'un même nom désigne un
+ * même moment, ce que rien ne garantit et que personne ne pourrait défaire
+ * après coup.
+ *
+ * Les séances **non nommées passent en dernier**, quel que soit leur horaire.
+ * C'est le cas des 347 lectures antérieures au 31 août 2026, et ce serait
+ * autrement à elles de décider de l'ordre du reste : une chaîne vide se range
+ * avant toutes les autres dans n'importe quelle collation.
+ *
+ * À titre égal, l'ordre reste celui que `grouperParSaisie` a produit — le plus
+ * récent d'abord —, ce qui garde la journée lisible de haut en bas.
+ */
+export function trierParTitre(saisies: Saisie[], tag: string = "fr"): Saisie[] {
+  return saisies
+    .map((saisie, rang) => ({ saisie, rang, titre: titreDe(saisie) }))
+    .sort((a, b) => {
+      if (a.titre === "" && b.titre === "") return a.rang - b.rang;
+      if (a.titre === "") return 1;
+      if (b.titre === "") return -1;
+      const parTitre = a.titre.localeCompare(b.titre, tag, { sensitivity: "base" });
+      return parTitre !== 0 ? parTitre : a.rang - b.rang;
+    })
+    .map((x) => x.saisie);
+}
+
+/**
  * Une date lisible, ou `null`.
  *
  * `createdAt` vient du cache local autant que de Supabase, et les lignes les

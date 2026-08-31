@@ -16,6 +16,7 @@ const cadre: CadreDeSeance = {
   date: "2026-08-31",
   contextId: "meditation",
   versionId: "ls1910",
+  sessionTitle: "",
   notes: "",
   links: [],
   photos: [],
@@ -94,6 +95,27 @@ describe("lecturesDeLaSeance", () => {
 
   it("n'écrit rien sans version : une lecture sans traduction n'a pas de texte", () => {
     expect(lecturesDeLaSeance({ ...cadre, versionId: "" }, [passage()])).toEqual([]);
+  });
+
+  it("répète le titre de la séance sur chaque ligne", () => {
+    // Sans table jointe, c'est la répétition qui fait la séance. Trois lignes,
+    // trois fois le même titre — et le tri de « Mes lectures » s'appuie dessus.
+    const lectures = lecturesDeLaSeance(
+      { ...cadre, sessionTitle: "Culte du dimanche" },
+      [passage(), passage({ book: "PSA" }), passage({ book: "JHN" })],
+    );
+    expect(lectures.map((l) => l.sessionTitle)).toEqual([
+      "Culte du dimanche", "Culte du dimanche", "Culte du dimanche",
+    ]);
+  });
+
+  it("rogne les blancs du titre", () => {
+    // Un titre fait d'espaces ne doit pas créer une catégorie invisible au
+    // tri, qui se rangerait avant tout le reste sans rien afficher.
+    const [l] = lecturesDeLaSeance({ ...cadre, sessionTitle: "  Étude  " }, [passage()]);
+    expect(l.sessionTitle).toBe("Étude");
+    const [vide] = lecturesDeLaSeance({ ...cadre, sessionTitle: "   " }, [passage()]);
+    expect(vide.sessionTitle).toBe("");
   });
 
   it("laisse les colonnes facultatives indéfinies plutôt que vides", () => {

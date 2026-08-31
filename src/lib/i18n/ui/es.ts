@@ -112,6 +112,16 @@ export const es: Dictionary = {
     previewUnavailable: 'Texto no disponible para esta referencia.',
     summary: 'Resumen de lo introducido',
     sessionTitle: 'La sesión',
+    nameSession: 'Nombrar la sesión',
+    nameSessionIntro: (n: number) =>
+      `Se ${n !== 1 ? 'guardarán' : 'guardará'} ${n} lectura${n !== 1 ? 's' : ''}.`,
+    nameSessionPlaceholder: 'Culto del domingo, Estudio sobre Romanos…',
+    nameSessionWhy:
+      'Un título reúne estas lecturas bajo un mismo nombre en «Mis lecturas», '
+      + 'donde se ordenan primero dentro de su día. Es lo que te permitirá '
+      + 'encontrar un estudio o un culto meses después, sin releer todas las '
+      + 'referencias.',
+    saveWithoutName: 'Guardar sin nombrar',
     sessionHint:
       'Valida un pasaje y se añade a la lista. La fecha, el contexto, la '
       + 'versión y las notas valen para toda la sesión.',

@@ -138,6 +138,7 @@ export interface ReadingRow {
   translationId: string
   tags: string
   contextId: string
+  sessionTitle: string | null
   notes: string
   links: string
   photos: string

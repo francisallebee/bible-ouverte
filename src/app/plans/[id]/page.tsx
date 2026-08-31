@@ -131,6 +131,10 @@ export default function PlanDetailPage() {
           // s'accumulaient sous « Sans contexte » et y représentaient
           // l'essentiel du total, ce qui rendait la répartition illisible.
           contextId: PLAN_CONTEXT_ID,
+          // Cocher un jour de plan n'est pas une séance de saisie. Le nom du
+          // plan ferait un titre tentant, mais ce serait décider à la place
+          // de l'utilisateur : laissé vide, comme toute lecture non nommée.
+          sessionTitle: "",
           notes: plan!.kind === "free"
             ? `Plan : ${plan!.name}`
             : `Plan : ${plan!.name} (jour ${day.day})`,

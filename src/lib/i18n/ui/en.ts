@@ -104,6 +104,14 @@ export const en: Dictionary = {
     previewUnavailable: 'No text available for this reference.',
     summary: 'Entry summary',
     sessionTitle: 'This session',
+    nameSession: 'Name this session',
+    nameSessionIntro: (n: number) => `${n} reading${n > 1 ? 's' : ''} will be saved.`,
+    nameSessionPlaceholder: 'Sunday service, Study on Romans…',
+    nameSessionWhy:
+      'A title gathers these readings under one name in “My readings”, where '
+      + 'they sort first within their day. That is what lets you find a study '
+      + 'or a service months later, without rereading every reference.',
+    saveWithoutName: 'Save without naming',
     sessionHint:
       'Confirm a passage and it joins the list. The date, context, version '
       + 'and notes apply to the whole session.',

@@ -32,6 +32,13 @@ export interface ReadingEntry {
   tags: string[];
   /** Identifiant du ReadingContext. Chaîne vide = aucun contexte renseigné. */
   contextId: string;
+  /**
+   * Titre de la séance, répété sur chaque lecture d'un même enregistrement.
+   *
+   * Chaîne vide = séance non nommée, ce qui est un cas normal : le nommage est
+   * facultatif, et aucune des lignes antérieures au 31 août 2026 n'en porte.
+   */
+  sessionTitle: string;
   notes: string;
   userId: string;
   links?: ReadingLink[];
