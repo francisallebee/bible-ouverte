@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { X, Check } from 'lucide-react'
 import { getPassages } from '@/lib/storage'
+import { dernierVerset, versetsAProposer } from '@/features/bible'
 import { useT } from '@/contexts/I18nContext'
 
 export interface PassageRange {
@@ -26,13 +27,6 @@ interface Props {
   onValidate: (range: PassageRange) => void
   onClose: () => void
 }
-
-/**
- * Nombre de versets proposé tant que le compte réel du chapitre est inconnu —
- * version pas encore importée, ou livre absent du cache. C'est la valeur que
- * l'ancienne liste déroulante affichait pour tous les chapitres sans exception.
- */
-const FALLBACK_VERSES = 200
 
 /** Décrit un intervalle sous la forme « Genèse 1-3:5 ». */
 export function describeRange(bookName: string, r: PassageRange): string {
@@ -87,6 +81,12 @@ function NumberGrid({
  * de versets proposé est celui du chapitre, lu dans le cache : les listes
  * déroulantes en offraient 200 quel que soit le chapitre, et l'on pouvait donc
  * demander Jude 1:180.
+ *
+ * Tant que le cache n'avait pas répondu — texte non téléchargé, ou simple
+ * aller-retour vers IndexedDB au premier rendu —, ce composant reprenait le
+ * même 200 à son compte. C'est ce que le ticket 25 a vu sur Proverbes 18. La
+ * réponse est `features/bible/versets`, qui n'invente plus rien : le cache
+ * d'abord, la versification de Louis Segond ensuite.
  */
 export default function PassagePicker({
   open, book, bookName, versionId, maxChapters,
@@ -148,7 +148,14 @@ export default function PassagePicker({
 
   if (!open) return null
 
-  const versesIn = (chapter: number) => counts[chapter] || FALLBACK_VERSES
+  // Deux questions, et une seule ne suffisait pas. La grille doit rester assez
+  // large pour montrer un verset déjà enregistré — la base porte des `verseEnd`
+  // à 200 hérités de l'ancien repli, et les masquer les rendrait
+  // incorrigibles ; « Tout le chapitre », lui, doit poser le compte réel et
+  // jamais cette valeur héritée.
+  const proposes = (chapter: number, dejaSaisi: number) =>
+    versetsAProposer(book, chapter, counts[chapter], dejaSaisi)
+  const reels = (chapter: number) => dernierVerset(book, chapter, counts[chapter])
   const sameChapter = draft.chapterStart === draft.chapterEnd
 
   function pickChapter(n: number) {
@@ -177,7 +184,7 @@ export default function PassagePicker({
   }
 
   function wholeChapters() {
-    setDraft((d) => ({ ...d, verseStart: 1, verseEnd: versesIn(d.chapterEnd) }))
+    setDraft((d) => ({ ...d, verseStart: 1, verseEnd: reels(d.chapterEnd) }))
     setVerseOpen(false)
   }
 
@@ -219,7 +226,7 @@ export default function PassagePicker({
                   {t.passagePicker.wholeChapter}
                 </button>
               </div>
-              <NumberGrid label={t.passagePicker.verses} count={versesIn(draft.chapterStart)}
+              <NumberGrid label={t.passagePicker.verses} count={proposes(draft.chapterStart, draft.verseEnd)}
                 isSelected={(n) => n === draft.verseStart || n === draft.verseEnd}
                 isBetween={(n) => n > draft.verseStart && n < draft.verseEnd}
                 onPick={pickVerse} />
@@ -240,7 +247,7 @@ export default function PassagePicker({
                   {t.passagePicker.firstVerseOf(draft.chapterStart)}
                 </p>
                 <NumberGrid label={t.passagePicker.firstVerseLabel(draft.chapterStart)}
-                  count={versesIn(draft.chapterStart)}
+                  count={proposes(draft.chapterStart, draft.verseStart)}
                   isSelected={(n) => n === draft.verseStart}
                   isBetween={() => false}
                   onPick={(n) => setDraft((d) => ({ ...d, verseStart: n }))} />
@@ -250,7 +257,7 @@ export default function PassagePicker({
                   {t.passagePicker.lastVerseOf(draft.chapterEnd)}
                 </p>
                 <NumberGrid label={t.passagePicker.lastVerseLabel(draft.chapterEnd)}
-                  count={versesIn(draft.chapterEnd)}
+                  count={proposes(draft.chapterEnd, draft.verseEnd)}
                   isSelected={(n) => n === draft.verseEnd}
                   isBetween={() => false}
                   onPick={(n) => setDraft((d) => ({ ...d, verseEnd: n }))} />

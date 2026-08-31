@@ -16,7 +16,7 @@ import {
 } from "@/lib/storage";
 import type { ReadingEntry, BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
 
-import { getBook } from "@/features/bible";
+import { getBook, versetsAProposer } from "@/features/bible";
 import { useI18n, useBookName, useBooks, useContextName } from "@/contexts/I18nContext";
 import { formatDate } from "@/lib/i18n/format";
 import { textDirection } from "@/lib/i18n/locales";
@@ -168,6 +168,14 @@ export default function ReadingDetailPage() {
     : undefined;
   const selectedBook = getBook(editBook);
   const maxChapters = selectedBook?.chapters ?? 150;
+  // Cet écran est resté aux listes déroulantes, et il portait donc le même
+  // `200` en dur que `PassagePicker` avant le ticket 25 — c'est même lui qui a
+  // écrit les « Psaumes 1:1-200 » que la base garde. Il n'interroge pas le
+  // cache : la versification de référence suffit à ne plus proposer un numéro
+  // qui n'existe nulle part, et la valeur enregistrée reste toujours dans la
+  // liste, faute de quoi on ne pourrait plus la corriger.
+  const dernierPremierVerset = versetsAProposer(editBook, editChapterStart, undefined, editVerseStart);
+  const dernierDernierVerset = versetsAProposer(editBook, editChapterEnd, undefined, editVerseEnd);
 
   function renderReference(book: string, chStart: number, chEnd: number, vStart: number, vEnd: number) {
     return (
@@ -247,7 +255,7 @@ export default function ReadingDetailPage() {
               <label className="block text-sm font-medium mb-1">{t.readingDetail.verseStart}</label>
               <select value={editVerseStart} onChange={(e) => setEditVerseStart(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                {Array.from({ length: 200 }, (_, i) => i + 1).map(n => (
+                {Array.from({ length: dernierPremierVerset }, (_, i) => i + 1).map(n => (
                   <option key={n} value={n}>{n}</option>
                 ))}
               </select>
@@ -256,7 +264,7 @@ export default function ReadingDetailPage() {
               <label className="block text-sm font-medium mb-1">{t.readingDetail.verseEnd}</label>
               <select value={editVerseEnd} onChange={(e) => setEditVerseEnd(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                {Array.from({ length: 200 - (editVerseStart - 1) }, (_, i) => i + editVerseStart).map(n => (
+                {Array.from({ length: Math.max(0, dernierDernierVerset - (editVerseStart - 1)) }, (_, i) => i + editVerseStart).map(n => (
                   <option key={n} value={n}>{n}</option>
                 ))}
               </select>

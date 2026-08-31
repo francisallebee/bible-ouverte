@@ -96,11 +96,12 @@ function motsDe(lecture: ReadingEntry): number {
   }
   const versets = Math.max(1, lecture.verseEnd - lecture.verseStart + 1);
   // Un passage tenant dans un chapitre ne peut pas peser plus qu'un chapitre.
-  // Ce n'est pas une précaution théorique : `PassagePicker` propose 200 versets
-  // quand le texte n'est pas téléchargé (`FALLBACK_VERSES`), et la base en
-  // porte la trace — Psaumes 1:1-200, 1 Samuel 18:1-200, Genèse 20:1-200 parmi
-  // les 166 lectures enregistrées. Sans cette borne, le Psaume 1 vaudrait
-  // trente minutes.
+  // Ce n'est pas une précaution théorique : `PassagePicker` a proposé 200
+  // versets jusqu'au 31 août 2026 quand le texte n'était pas téléchargé, et la
+  // base en garde la trace — Psaumes 1:1-200, 1 Samuel 18:1-200, Genèse
+  // 20:1-200. Sans cette borne, le Psaume 1 vaudrait trente minutes. Le repli
+  // est corrigé (`features/bible/versets`), les lignes déjà écrites ne le sont
+  // pas : cette borne reste donc utile pour elles.
   return Math.min(versets * poids.verset, poids.chapitre);
 }
 
