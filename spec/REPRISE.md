@@ -573,6 +573,8 @@ interrompu avant la fin. Les previews passent par git.
 | Dernière lecture hors bornes enregistrée | **17 août 2026** — aucune depuis, le sélecteur ayant remplacé les listes déroulantes | 31 août |
 | Coût d'une réexportation dans le baril `features/bible` | la table des 1189 chapitres — **3,8 kB** non compressés — servie sur la **page d'accueil prérendue**, `I18nContext` important `BOOKS` du même baril | 31 août |
 | Après l'import par chemin | **zéro occurrence** de la table dans les 17 chunks de `/`, `BOOKS` toujours servi ; chunk `5954` de 226 à 221,5 kB | 31 août |
+| Séance à plusieurs passages, écriture | une lecture par passage reste la règle en base ; seuls **date, contexte et version** sont communs, les notes et médias suivent leur passage | 31 août |
+| Sondage d'un déploiement par le texte servi | le minifieur **échappe le Latin-1** (`La s\xe9ance`) et **laisse l'arabe brut** — une sonde accentuée ne trouve jamais rien | 31 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -1878,3 +1880,86 @@ inquiétants. Ils venaient des `fetch` du contrôle lui-même, qui redemandait
 l'ancien chunk disparu au déploiement : aucune requête de la page n'a échoué.
 *Se méfier des mesures que l'on produit soi-même* vaut aussi pour les erreurs
 qu'elles fabriquent.
+
+## La séance du 31 août, seconde partie : les passages reviennent
+
+Demande du propriétaire du dépôt : enregistrer plusieurs lectures à la suite
+sans quitter la page. La fonction avait existé jusqu'au 28 août et avait été
+retirée le jour même — sa formulation exacte le dit : « c'est une fonction que
+j'avais avant seulement, cela n'était pas ergonomique ». **Ce n'est donc pas un
+retour en arrière, c'est la même fonction à une autre place.**
+
+### Ce qui change vraiment : le partage des champs
+
+L'ancienne version annonçait à l'écran que « la date, le contexte, **les notes
+et les médias** sont communs à tous les passages ». Une note et ses photos
+étaient donc recopiées à l'identique sur chaque ligne écrite : onze passages
+faisaient onze copies de la même image en base64 — dans une base où les photos
+sont déjà une dette connue — et l'historique groupé affichait onze fois la même
+réflexion.
+
+Désormais **seuls la date, le contexte et la version sont communs**. Les notes,
+liens, photos et audio suivent le passage auquel ils se rapportent et repartent
+avec lui. C'est le choix du propriétaire, retenu sur cet argument.
+
+Ce qui **ne** change pas : une lecture par passage en base. Les statistiques, la
+progression et les plans raisonnent tous par lecture, et `lib/lectures/saisies.ts`
+les rassemble à l'affichage. Les lignes partent à la suite sans attente entre
+elles, pour que leur proximité dans le temps les fasse reconnaître comme une
+seule saisie — le regroupement du 28 août s'applique donc aux séances neuves
+sans qu'on y touche.
+
+### Le bandeau, et pourquoi cette place
+
+Le bandeau de droite montrait le seul passage en cours. Il porte maintenant la
+liste de la séance, chaque ligne avec ses pastilles et une croix, et le bouton
+« Ajouter ce passage ». Il est **collé en haut au défilement** : la liste reste
+sous les yeux pendant qu'on saisit le suivant, là où l'ancien bouton se perdait
+au milieu du formulaire. C'est la place que le propriétaire lui a donnée.
+
+Le bouton flottant devient « Enregistrer les N lectures », et **ne quitte plus
+la page** : tout repart à neuf, date et contexte compris. Un message prend la
+place du retour que la navigation donnait — sans lui, plus rien ne dirait que
+les lignes sont parties. La garde de sortie se réarme dans la foulée.
+
+### Un doublon écrit puis retiré avant d'être commis
+
+`decrirePassage` avait été ajoutée au module de séance : elle refaisait
+exactement le calcul de `describeRange`, déjà employée dans **six** fichiers.
+C'est le piège 5 du dépôt — « extraire un module ne retire pas le calcul qu'il
+remplace » — sous sa forme symétrique : **ajouter un module peut aussi
+dupliquer un calcul qui existait déjà**. Repérée par `tsc`, qui a signalé les
+deux appels restants de `describeRange` dans la page, et non par une relecture.
+
+### Le sondage d'un déploiement, et l'instrument qu'il fallait vérifier
+
+Sans session, la seule façon de prouver qu'un déploiement est passé est de
+chercher dans les chunks publics de `/` un texte que le build précédent ne
+portait pas. La première sonde — « La séance » — n'a rien trouvé, et elle
+n'aurait **jamais** rien trouvé : le minifieur échappe les caractères Latin-1
+(`La s\xe9ance`) tout en laissant l'arabe brut, si bien que la clé arabe
+`أضف هذا المقطع` se trouve quand son équivalent français ne se trouve pas.
+
+C'est ce qu'une sonde de contrôle a révélé : `saveOne`, clé ancienne **sans
+accent**, était présente quand `previewEmpty`, clé tout aussi ancienne **avec
+accent**, ne l'était pas. Deux clés du même dictionnaire ne pouvaient pas
+diverger — donc c'était l'instrument.
+
+**Choisir une sonde sans accent**, et le déploiement se lit d'un coup :
+« Ajouter ce passage » et « Add this passage » sont apparus ensemble dans le
+chunk `5954-2b359b46da2a9caf`, quand le build précédent portait
+`5954-d58ed0ea1624f782`. Le fragment récupéré autour de la clé montre
+`sessionHint` entière et correctement accentuée : c'est la preuve que les cinq
+dictionnaires sont servis, l'arabe compris, et que l'aller-retour UTF-8 tient
+jusqu'en production.
+
+Vérifié du même geste : **la table de versification n'est pas revenue** sur la
+page d'accueil.
+
+### Ce qui n'a pas été vu
+
+**L'écran, encore une fois.** `/new-reading` demande une session que l'agent n'a
+pas. `typecheck`, `lint` et **650 tests** passent, la page compile en 2,4 s après
+cache vidé, et les clés sont servies en production — rien de tout cela ne dit ce
+que le bandeau affiche, ni comment la liste se comporte, ni son rendu en mode
+sombre et en arabe.
