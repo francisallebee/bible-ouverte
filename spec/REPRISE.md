@@ -566,6 +566,11 @@ interrompu avant la fin. Les previews passent par git.
 | Correctif SMTP, éprouvé | **5 envoyés sur 5 en un passage**, 0 échec, 0 tentative brûlée — 11 s contre 9 h 34 pour 114 | 29 août |
 | Signature de la reconnexion | messages 1-2-3 acceptés dans la **même seconde**, le 4ᵉ une seconde plus tard : le temps d'une connexion TLS neuve | 29 août |
 | Authentification de `bibleouverte.fr` | **SPF, DKIM et DMARC sont tous les trois présents** — DKIM sélecteur `default`, RSA 2048 ; DMARC à `p=none` **sans `rua`** | 29 août |
+| Versets de Proverbes 18 | **24 dans les douze versions**, sans exception — le repli du sélecteur en annonçait 200 | 31 août |
+| Plus grand chapitre de la Bible | **Psaume 119, 176 versets.** `200` ne désigne donc rien, dans aucune version, nulle part | 31 août |
+| Versification, écart à Louis Segond 1910 | `annotee`, `kjv` et `rv1909` **identiques sur les 1189 chapitres** ; `svd` 2, `perret` 4, `diodati` 44, `martin1744` 90, `ostervald` 91, `cramp23` 132, `darby` 142, `sacc` 322 | 31 août |
+| Lectures dont le `verseEnd` dépasse le chapitre réel | **6 sur 347**, chez **6 comptes** — quatre à 200, mais aussi `PSA 65:1-20` (13 versets) et `PSA 22:1-45` (31), saisies à la main dans les anciennes listes | 31 août |
+| Dernière lecture hors bornes enregistrée | **17 août 2026** — aucune depuis, le sélecteur ayant remplacé les listes déroulantes | 31 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -573,6 +578,31 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
 `settings` ×4, `profiles` ×3.
 
 ## Pièges vérifiés, à ne pas réintroduire
+
+- **Une valeur de repli inventée finit par être lue comme une mesure.**
+  `FALLBACK_VERSES = 200` était documenté comme tel dans `PassagePicker`, cité
+  comme tel dans le commentaire de `lib/objectifs`, et relevé comme tel en base
+  le 19 août — « Psaumes 1:1-200 existe pour de vrai ». Le dépôt savait donc
+  parfaitement ce qu'il faisait. Ce qu'il n'avait pas remarqué, c'est que **cette
+  valeur ne désigne rien** : le plus grand chapitre de la Bible en compte 176.
+  Elle n'était pas approximative, elle était impossible — et il a fallu un
+  utilisateur, le ticket 25 du 30 août 2026, pour la voir sur Proverbes 18.
+
+  Ni `tsc`, ni le lint, ni les tests ne pouvaient l'attraper : `200` est un
+  nombre parfaitement valide. Le remède n'est pas un meilleur repli mais une
+  mesure — `scripts/mesure-versets.mjs` relève les 1189 chapitres depuis Louis
+  Segond, comme `mesure-mots.mjs` relevait leur poids. **Une constante qu'on
+  documente comme un pis-aller mérite qu'on aille chercher la vraie valeur ;
+  l'écrire dans un commentaire n'est pas la mesurer.**
+
+  Deux corollaires trouvés au passage. Le repli s'affichait aussi **pendant**
+  l'aller-retour vers IndexedDB, donc à chaque ouverture de la fenêtre et pour
+  tout le monde, pas seulement quand le texte manquait — une table lue de façon
+  synchrone ferme cette fenêtre de temps que rien ne signalait. Et le même `200`
+  vivait en dur dans l'écran de modification d'une lecture, resté aux listes
+  déroulantes : c'est même **lui** qui a écrit `PSA 65:1-20` et `PSA 22:1-45`,
+  que le repli n'explique pas. Chercher une valeur en dur partout, pas seulement
+  là où le ticket la signale.
 
 - **`envoyes` ne prouve pas qu'une notification est arrivée.** Le compteur
   n'incrémente que parce que `webpush.sendNotification` n'a pas levé, c'est-à-dire
@@ -1705,3 +1735,113 @@ son doublon par courriel couvrent tout le monde.
   jour. L'affichage « Déjà suivi le 28 août 2026 » est donc inchangé. C'est la
   seule écriture de la séance, et elle est notée parce qu'une écriture non
   demandée se signale, même sans conséquence.
+
+## La séance du 31 août 2026 : le ticket 25
+
+Le premier défaut de ce dépôt **signalé par un utilisateur** plutôt que trouvé
+par l'agent ou par le propriétaire. Francis M l'ouvre le 30 août à 16:31 UTC :
+« Nouvelle lecture », Proverbes 18, Louis Segond 1910, « Tout le chapitre », et
+l'application annonce **200 versets** quand le chapitre en compte 24.
+
+### Ce que le dépôt savait déjà, et ce qu'il n'avait pas vu
+
+`FALLBACK_VERSES = 200` était documenté trois fois — dans `PassagePicker`, dans
+le commentaire de `lib/objectifs`, et dans le tableau des mesures du 19 août,
+qui notait que « Psaumes 1:1-200 existe pour de vrai ». La valeur était connue,
+assumée, et tracée jusqu'en base.
+
+Ce qui manquait tient en une mesure, faite en quelques secondes sur les fichiers
+de `public/bibles/` : **le plus grand chapitre de la Bible est le Psaume 119, et
+il en compte 176.** Le repli ne proposait donc pas un compte approximatif mais
+vingt-quatre numéros de versets qui n'existent dans aucune version. Personne
+n'avait posé la question, parce qu'une valeur documentée comme un pis-aller
+n'appelle plus de vérification.
+
+### La table, et ce que sa mesure a montré
+
+`scripts/mesure-versets.mjs` relève le dernier verset des 1189 chapitres depuis
+Louis Segond 1910 et écrit `src/features/bible/versification.ts` — même patron
+que `mesure-mots.mjs`, même version de référence, même mention « ne pas modifier
+à la main ».
+
+Le script mesure aussi l'écart des onze autres versions, plutôt que de le
+supposer, et le reporte dans l'en-tête du fichier produit :
+
+| Constat | Versions |
+|---|---|
+| Identiques sur les 1189 chapitres | `annotee`, `kjv`, `rv1909` |
+| Écart marginal | `svd` 2 chapitres, `perret` 4 |
+| Écart réel | `diodati` 44, `martin1744` 90, `ostervald` 91 |
+| Écart important | `cramp23` 132 (jusqu'à 70 versets), `darby` 142 |
+| Hors concours | `sacc` 322 — c'est la dette connue de son texte amputé |
+
+C'est ce tableau qui justifie l'architecture retenue : **la table n'est qu'un
+repli, le cache fait foi dès qu'il répond**, puisque lui seul porte la version
+que l'utilisateur a devant les yeux. Sur une version dont la versification
+diverge, la table se tromperait — mais elle ne sert précisément que quand le
+texte n'est pas là, cas où toute valeur est approchée, et où 24 vaut mieux que
+200.
+
+### Deux choses que le ticket ne disait pas
+
+**Le repli s'affichait aussi pendant l'aller-retour vers IndexedDB.** Le
+chargement des comptes est un `useEffect`, donc postérieur au premier rendu :
+la grille montrait 200 boutons puis se réduisait, à **chaque ouverture de la
+fenêtre et pour tout le monde**, indépendamment de tout cache manquant. Une
+table lue de façon synchrone ferme cette fenêtre de temps. On ne saura pas
+lequel des deux chemins Francis M a emprunté, et le correctif couvre les deux.
+
+**Le même 200 vivait en dur dans l'écran de modification d'une lecture**,
+resté aux listes déroulantes que `PassagePicker` a remplacées ailleurs. Le
+ticket ne parlait que de « Nouvelle lecture » ; corriger là seulement aurait
+laissé le défaut à l'endroit qui l'avait produit.
+
+### La mesure sur les lectures déjà enregistrées
+
+Demandée avant toute décision d'y toucher, et elle a trouvé plus large que le
+repli n'explique : **6 lectures sur 347, chez 6 comptes**, portent un `verseEnd`
+au-delà du dernier verset réel de leur chapitre.
+
+| Lecture | Dernier verset réel | Enregistrée le |
+|---|---|---|
+| `PSA 1:1-200` | 6 | 3 août |
+| `PSA 65:1-20` | 13 | 4 août |
+| `GEN 20:1-200` | 18 | 10 août |
+| `1SA 18:1-200` | 30 | 10 août |
+| `PSA 22:1-45` | 31 | 10 août |
+| `GEN 50:1-200` | 26 | 17 août |
+
+Les deux lignes qui ne sont pas à 200 sont les plus instructives : elles ont été
+**choisies à la main** dans des listes qui offraient 1 à 200 sans borne. Le
+défaut n'a donc pas seulement inscrit sa valeur de repli, il a laissé chacun
+inscrire la sienne. Aucune n'est postérieure au 17 août, date à laquelle le
+sélecteur a remplacé les listes.
+
+**Décision du propriétaire : ne rien réécrire en base.** Une lecture affichée
+« Psaumes 1:1-6 » ne serait plus celle que son auteur a enregistrée, et la borne
+de `motsDe` dans `lib/objectifs` empêche déjà ces lignes de fausser un objectif
+en minutes. Le correctif garde en revanche ces valeurs **atteignables** dans
+l'écran de modification : une donnée qu'on n'affiche plus est une donnée qu'on
+ne peut plus corriger, et c'est la raison d'être du paramètre `dejaSaisi` de
+`versetsAProposer`.
+
+### Ce qui n'a pas été vu, et pourquoi
+
+**Rien n'a été vu à l'écran.** L'agent n'a de session ni sur la production ni
+sur le serveur de développement — `/new-reading` redirige vers `/auth/login`
+dans les deux cas —, et le dépôt n'a ni jsdom ni testing-library, par la
+discipline qui veut que les règles soient sorties dans des modules purs plutôt
+que testées à travers un composant. La règle l'a donc été : treize tests sur
+`features/bible/versets`, dont celui qui reproduit exactement le ticket.
+
+Reste à voir de l'œil, avec une session ouverte : la grille de Proverbes 18 à
+24 boutons, « Tout le chapitre » rendant « Proverbes 18:1-24 », et une lecture
+héritée à 200 encore modifiable dans son écran de détail.
+
+**Une erreur d'outillage, pour la quatrième fois.** Le serveur de développement
+a signalé `'versetsAProposer' is not exported from '@/features/bible'` alors que
+`tsc` passait et que l'export était bien là : c'était le cache du rechargement à
+chaud, l'export ayant été ajouté après le démarrage du serveur. Redémarrer a
+tranché en trente secondes — `/new-reading` compile sans un avertissement. La
+leçon du 15 août tient : **un onglet neuf, ou un serveur neuf, avant de croire
+une erreur de compilation qui contredit `tsc`.**
