@@ -573,7 +573,7 @@ interrompu avant la fin. Les previews passent par git.
 | Dernière lecture hors bornes enregistrée | **17 août 2026** — aucune depuis, le sélecteur ayant remplacé les listes déroulantes | 31 août |
 | Coût d'une réexportation dans le baril `features/bible` | la table des 1189 chapitres — **3,8 kB** non compressés — servie sur la **page d'accueil prérendue**, `I18nContext` important `BOOKS` du même baril | 31 août |
 | Après l'import par chemin | **zéro occurrence** de la table dans les 17 chunks de `/`, `BOOKS` toujours servi ; chunk `5954` de 226 à 221,5 kB | 31 août |
-| Séance à plusieurs passages, écriture | une lecture par passage reste la règle en base ; seuls **date, contexte et version** sont communs, les notes et médias suivent leur passage | 31 août |
+| Séance à plusieurs passages, écriture | une lecture par passage reste la règle en base ; **date, contexte, version, notes et médias** sont communs et recopiés sur chaque ligne | 31 août |
 | Sondage d'un déploiement par le texte servi | le minifieur **échappe le Latin-1** (`La s\xe9ance`) et **laisse l'arabe brut** — une sonde accentuée ne trouve jamais rien | 31 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
@@ -1889,18 +1889,54 @@ retirée le jour même — sa formulation exacte le dit : « c'est une fonction 
 j'avais avant seulement, cela n'était pas ergonomique ». **Ce n'est donc pas un
 retour en arrière, c'est la même fonction à une autre place.**
 
-### Ce qui change vraiment : le partage des champs
+### Deux temps dans la même journée, et le second corrige le premier
 
-L'ancienne version annonçait à l'écran que « la date, le contexte, **les notes
-et les médias** sont communs à tous les passages ». Une note et ses photos
-étaient donc recopiées à l'identique sur chaque ligne écrite : onze passages
-faisaient onze copies de la même image en base64 — dans une base où les photos
-sont déjà une dette connue — et l'historique groupé affichait onze fois la même
-réflexion.
+La première version rendait la fonction telle qu'elle avait été décrite : un
+bouton « Ajouter ce passage » dans le panneau, et des notes attachées à chaque
+passage. Le propriétaire l'a essayée et tranché en une phrase — « ce passage est
+inutile », « l'ergonomie de l'application est trop lourde ». **Valider un
+passage doit suffire à le porter au panneau.**
 
-Désormais **seuls la date, le contexte et la version sont communs**. Les notes,
-liens, photos et audio suivent le passage auquel ils se rapportent et repartent
-avec lui. C'est le choix du propriétaire, retenu sur cet argument.
+Le bouton aura vécu une demi-journée, et il faisait exactement le doublon que le
+commit du 28 août reprochait déjà à son prédécesseur. La leçon est moins sur le
+bouton que sur la façon dont il est revenu : **une fonction retirée pour son
+ergonomie revient rarement sous la même forme**, et la rétablir telle qu'elle
+était consiste à réintroduire ce qui avait motivé son retrait.
+
+### Le point d'accroche n'était pas celui qu'on croit
+
+Le flux porte **deux** validations : celle du sélecteur de versets, puis celle
+de l'aperçu du texte. La seconde semblait désigner la lecture — le commit du
+28 août la nommait d'ailleurs comme le doublon du bouton retiré.
+
+Mais son bouton est **`disabled` quand le texte n'est pas téléchargé**. Y
+accrocher l'ajout au panneau aurait fermé la saisie hors ligne, c'est-à-dire
+exactement la situation qui a produit le ticket 25 le matin même. L'ajout se
+fait donc à la validation du **sélecteur**, qui répond toujours ; l'aperçu garde
+son seul rôle, faire lire le texte.
+
+Trouvé en lisant `PassagePreview` avant de coder, et non après. C'est le genre
+de régression qu'aucun test n'aurait signalée — le bouton se serait contenté de
+ne rien faire, pour les seuls utilisateurs sans texte en cache.
+
+Corollaire traité du même geste : « Modifier », depuis l'aperçu, **retire la
+ligne du panneau** avant de rouvrir le sélecteur. Corriger ce qu'on vient de
+valider ne doit pas laisser un doublon derrière soi.
+
+### Le partage des champs, décidé par la conséquence
+
+Le passage part au panneau **avant** que les notes et les médias soient saisis —
+ils sont plus bas dans la colonne. Ils ne peuvent donc plus lui appartenir. Le
+choix se réduisait à deux options, et le propriétaire a retenu la première :
+
+| Option | Ce qu'elle coûte |
+|---|---|
+| **Communs à la séance**, recopiés sur chaque ligne | trois passages annotés d'une même photo font **trois copies** en base64 |
+| Attachés au dernier passage validé | l'annotation dépend de l'ordre des gestes, et rien à l'écran ne le rappelle |
+
+C'est la prévisibilité qui l'a emporté sur le volume. Le prix est réel et il est
+écrit dans l'en-tête de `lib/lectures/seance.ts`, là où quelqu'un le relira
+avant de s'étonner de la taille des lignes.
 
 Ce qui **ne** change pas : une lecture par passage en base. Les statistiques, la
 progression et les plans raisonnent tous par lecture, et `lib/lectures/saisies.ts`
@@ -1912,15 +1948,14 @@ sans qu'on y touche.
 ### Le bandeau, et pourquoi cette place
 
 Le bandeau de droite montrait le seul passage en cours. Il porte maintenant la
-liste de la séance, chaque ligne avec ses pastilles et une croix, et le bouton
-« Ajouter ce passage ». Il est **collé en haut au défilement** : la liste reste
-sous les yeux pendant qu'on saisit le suivant, là où l'ancien bouton se perdait
-au milieu du formulaire. C'est la place que le propriétaire lui a donnée.
+liste de la séance, chaque ligne avec sa croix, et rien d'autre : ni bouton, ni
+geste. Il est **collé en haut au défilement**, donc sous les yeux pendant qu'on
+désigne le passage suivant. C'est la place que le propriétaire lui a donnée.
 
 Le bouton flottant devient « Enregistrer les N lectures », et **ne quitte plus
-la page** : tout repart à neuf, date et contexte compris. Un message prend la
-place du retour que la navigation donnait — sans lui, plus rien ne dirait que
-les lignes sont parties. La garde de sortie se réarme dans la foulée.
+la page** : tout repart à neuf, date, contexte et notes compris. Un message
+prend la place du retour que la navigation donnait — sans lui, plus rien ne
+dirait que les lignes sont parties. La garde de sortie se réarme dans la foulée.
 
 ### Un doublon écrit puis retiré avant d'être commis
 
@@ -1963,3 +1998,20 @@ pas. `typecheck`, `lint` et **650 tests** passent, la page compile en 2,4 s apr�
 cache vidé, et les clés sont servies en production — rien de tout cela ne dit ce
 que le bandeau affiche, ni comment la liste se comporte, ni son rendu en mode
 sombre et en arabe.
+
+### Le contrôle du déploiement, dans les deux sens
+
+La sonde du matin ne cherchait qu'une chose ajoutée. Celle-ci en cherche deux, et
+c'est plus concluant : **« Ajouter ce passage » doit avoir disparu** des chunks
+servis, et la nouvelle formulation anglaise « Confirm a passage and it joins the
+list » doit y être. Les deux ont été constatés ensemble sur le chunk
+`5954-e8f23addc167aad4`, quand le build précédent portait `5954-2b359b46da2a9caf`.
+
+Une clé retirée qui disparaît vraiment prouve davantage qu'une clé ajoutée : elle
+dit que c'est bien le nouveau bundle qui est servi, et non un cache qui
+contiendrait par hasard les deux.
+
+Rappel de méthode, payé le matin même : **la sonde doit être sans accent.** Le
+minifieur échappe le Latin-1 en `\xe9` et laisse l'arabe brut, si bien qu'une
+sonde française accentuée ne trouve jamais rien, quel que soit l'état du
+déploiement.
