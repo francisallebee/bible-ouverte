@@ -105,9 +105,8 @@ export const en: Dictionary = {
     summary: 'Entry summary',
     sessionTitle: 'This session',
     sessionHint:
-      'The date, context and version apply to the whole session; notes and '
-      + 'media follow each passage.',
-    addThisPassage: 'Add this passage',
+      'Confirm a passage and it joins the list. The date, context, version '
+      + 'and notes apply to the whole session.',
     removePassage: (reference: string) => `Remove ${reference}`,
     saveMany: (n: number) => `Save all ${n} readings`,
     saved: (n: number) => `${n} reading${n > 1 ? 's' : ''} saved`,

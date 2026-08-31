@@ -154,46 +154,40 @@ export default function NewReadingPage() {
     setPhotos((prev) => prev.filter((_, idx) => idx !== i));
   }
 
-  /** Le passage en cours de saisie, avec ce qui lui appartient. */
-  function currentPassage(): PassageDeSeance | null {
-    if (!book) return null;
-    return {
-      book, chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd,
-      notes, links, photos, audio,
-    };
-  }
-
   /**
-   * Vide ce qui appartient à un passage, et laisse le cadre de la séance.
+   * Libère le choix du livre pour le passage suivant.
    *
-   * La date, le contexte et la version restent : on enchaîne le plus souvent
-   * plusieurs textes d'une même lecture, et les ressaisir à chaque fois était
-   * précisément ce qui rendait l'ancien empilement pénible.
+   * Ni les notes, ni les médias, ni le contexte : ils valent pour la séance
+   * entière, et les ressaisir à chaque passage était précisément ce qui rendait
+   * l'ancien empilement pénible.
    */
-  function viderLePassage() {
+  function viderLaReference() {
     setBook("");
     setChapterStart(1);
     setChapterEnd(undefined);
     setVerseStart(1);
     setVerseEnd(undefined);
-    setNotes("");
-    setLinks([]);
-    setPhotos([]);
-    setAudio(undefined);
-    setLinkUrl("");
-    setLinkTitle("");
   }
 
-  /** Met le passage en cours de côté, et vide les champs pour le suivant. */
-  function ajouterPassage() {
-    const p = currentPassage();
-    if (!p) return;
-    setAjoutes((prev) => [...prev, p]);
-    viderLePassage();
+  /**
+   * Valider un passage l'envoie au panneau. Il n'y a pas d'autre geste.
+   *
+   * Le bouton « Ajouter ce passage » a vécu une demi-journée : il faisait
+   * doublon avec cette validation, ce que le commit du 28 août 2026 disait
+   * déjà de son prédécesseur. Le panneau se corrige par ses croix.
+   */
+  function validerPassage(r: { chapterStart: number; chapterEnd: number; verseStart: number; verseEnd: number }) {
+    if (!book) return;
+    setAjoutes((prev) => [...prev, { book, ...r }]);
   }
 
   function retirerPassage(i: number) {
     setAjoutes((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+  /** Reprendre le dernier passage validé : il quitte le panneau et revient. */
+  function reprendreLeDernier() {
+    setAjoutes((prev) => prev.slice(0, -1));
   }
 
   /**
@@ -214,14 +208,14 @@ export default function NewReadingPage() {
   /**
    * Ce que l'enregistrement écrirait, à cet instant.
    *
-   * **Une lecture par passage**, et le passage encore dans le formulaire en
-   * fait partie : enregistrer une lecture unique n'oblige donc pas à cliquer
-   * « Ajouter ce passage » d'abord. La règle vit dans
+   * **Une lecture par passage validé.** La règle vit dans
    * `lib/lectures/seance.ts`, qui la teste ; ce qui reste ici n'est que
    * l'écran.
    */
-  const passage = currentPassage();
-  const aEcrire = lecturesDeLaSeance({ date, contextId, versionId }, ajoutes, passage);
+  const aEcrire = lecturesDeLaSeance(
+    { date, contextId, versionId, notes, links, photos, audio },
+    ajoutes,
+  );
   const peutEnregistrer = aEcrire.length > 0;
 
   /**
@@ -232,7 +226,7 @@ export default function NewReadingPage() {
    * côté, si — ils ne sont nulle part ailleurs tant que rien n'est enregistré.
    */
   const enCours =
-    ajoutes.length > 0 || Boolean(book) || notes.trim().length > 0
+    ajoutes.length > 0 || notes.trim().length > 0
     || links.length > 0 || photos.length > 0 || Boolean(audio);
 
   // Une fois la lecture enregistrée, la navigation qui suit n'a plus rien à
@@ -320,12 +314,18 @@ export default function NewReadingPage() {
       return;
     }
 
-    // On reste : tout est remis à neuf, y compris la date et le contexte —
-    // « ne pas laisser la dernière saisie » était la demande.
-    viderLePassage();
+    // On reste : tout est remis à neuf, y compris la date, le contexte et les
+    // notes — « ne pas laisser la dernière saisie » était la demande.
+    viderLaReference();
     setAjoutes([]);
     setDate(new Date().toISOString().slice(0, 10));
     setContextId("");
+    setNotes("");
+    setLinks([]);
+    setPhotos([]);
+    setAudio(undefined);
+    setLinkUrl("");
+    setLinkTitle("");
     setConfirmation(ecrites);
     // La garde se réarme : une nouvelle saisie commence, et elle mérite d'être
     // protégée comme la précédente.
@@ -514,14 +514,16 @@ export default function NewReadingPage() {
         </div>
 
         {/*
-          Le bandeau porte la séance, et non plus le seul passage en cours.
-          C'est la place que le propriétaire du dépôt lui a donnée le 31 août
-          2026 : collé en haut au défilement, il reste sous les yeux pendant
-          qu'on saisit le passage suivant, là où l'ancien bouton « Ajouter un
-          autre passage » se perdait au milieu du formulaire.
+          Le bandeau porte la séance.
+          Un passage validé y tombe aussitôt : c'est le seul geste, et il n'y a
+          donc plus de bouton « Ajouter ce passage » — il faisait doublon avec
+          la validation, ce que le commit du 28 août 2026 disait déjà de son
+          prédécesseur. Le panneau se corrige par ses croix.
+          Collé en haut au défilement, il reste sous les yeux pendant qu'on
+          désigne le passage suivant.
         */}
         <div className="lg:sticky lg:top-10 lg:self-start space-y-3">
-          {ajoutes.length === 0 && !book ? (
+          {ajoutes.length === 0 ? (
             <div className="bg-[--surface] rounded-xl border border-[--border] p-8 text-center">
               <BookPlus className="w-10 h-10 text-gray-300 mx-auto mb-3" />
               <p className="text-[--text-secondary] text-sm">{t.newReading.previewEmpty}</p>
@@ -530,46 +532,36 @@ export default function NewReadingPage() {
             <div className="bg-[--primary-light] rounded-xl border border-[--primary]/10 p-4 text-sm text-[--text] space-y-3">
               <p className="font-medium text-[--primary]">{t.newReading.sessionTitle}</p>
 
-              {ajoutes.length > 0 && (
-                <ul className="space-y-1.5">
-                  {ajoutes.map((p, i) => (
-                    <li key={i}
-                      className="flex items-center gap-2 bg-[--surface] rounded-lg border border-[--border] px-3 py-2">
-                      <span className="flex-1 min-w-0 truncate text-[--text]">
-                        {describeRange(getBookName(p.book), p)}
-                      </span>
-                      {p.notes && <span className="shrink-0" title={p.notes}>📝</span>}
-                      {p.links.length > 0 && <span className="shrink-0">🔗</span>}
-                      {p.photos.length > 0 && <span className="shrink-0">📷</span>}
-                      {p.audio && <span className="shrink-0">🎵</span>}
-                      <button type="button" onClick={() => retirerPassage(i)}
-                        aria-label={t.newReading.removePassage(describeRange(getBookName(p.book), p))}
-                        className="shrink-0 text-[--text-secondary] hover:text-[--text] transition-colors">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <ul className="space-y-1.5">
+                {ajoutes.map((p, i) => (
+                  <li key={`${p.book}-${p.chapterStart}-${p.verseStart}-${i}`}
+                    className="flex items-center gap-2 bg-[--surface] rounded-lg border border-[--border] px-3 py-2">
+                    <span className="flex-1 min-w-0 truncate text-[--text]">
+                      {describeRange(getBookName(p.book), p)}
+                    </span>
+                    <button type="button" onClick={() => retirerPassage(i)}
+                      aria-label={t.newReading.removePassage(describeRange(getBookName(p.book), p))}
+                      className="shrink-0 text-[--text-secondary] hover:text-[--text] transition-colors">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
 
-              {book && (
-                <div className="space-y-1">
-                  <p className="text-[--text-secondary]">
-                    {describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
-                    <span className="ms-2">— {versions.find((v) => v.id === versionId)?.name || versionId}</span>
-                  </p>
-                  {notes && <p className="flex items-center gap-1.5"><span className="text-base">📝</span> {notes}</p>}
-                  {links.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">🔗</span> {t.newReading.linkCount(links.length)}</p>}
-                  {photos.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">📷</span> {t.newReading.photoCount(photos.length)}</p>}
-                  {audio && <p className="flex items-center gap-1.5"><span className="text-base">🎵</span> {t.newReading.audioAttached}</p>}
-
-                  <button type="button" onClick={ajouterPassage}
-                    className="w-full mt-2 flex items-center justify-center gap-2 border border-[--primary] text-[--primary] rounded-lg px-4 py-2 text-sm font-medium hover:bg-[--primary] hover:text-white transition-colors">
-                    <Plus className="w-4 h-4 shrink-0" />
-                    {t.newReading.addThisPassage}
-                  </button>
-                </div>
-              )}
+              {/*
+                Ce qui vaut pour toute la séance, rappelé là où on lit la liste.
+                Les couleurs sont explicites : le bloc `html.dark` de
+                `globals.css` ne remappe que les gris, et un texte sans classe
+                de couleur hériterait de `--text`, presque blanc sur ce fond
+                resté clair.
+              */}
+              <div className="space-y-1 text-[--text-secondary]">
+                <p>— {versions.find((v) => v.id === versionId)?.name || versionId}</p>
+                {notes && <p className="flex items-center gap-1.5 text-[--text]"><span className="text-base">📝</span> {notes}</p>}
+                {links.length > 0 && <p className="flex items-center gap-1.5 text-[--text]"><span className="text-base">🔗</span> {t.newReading.linkCount(links.length)}</p>}
+                {photos.length > 0 && <p className="flex items-center gap-1.5 text-[--text]"><span className="text-base">📷</span> {t.newReading.photoCount(photos.length)}</p>}
+                {audio && <p className="flex items-center gap-1.5 text-[--text]"><span className="text-base">🎵</span> {t.newReading.audioAttached}</p>}
+              </div>
 
               <p className="text-xs text-[--text-secondary]">{t.newReading.sessionHint}</p>
             </div>
@@ -578,9 +570,7 @@ export default function NewReadingPage() {
           {/*
             Le retour que la navigation donnait autrefois. Le bouton ne quitte
             plus la page : sans ce message, rien ne dirait que les lignes sont
-            parties. `text-green-900` est explicite — le bloc `html.dark` de
-            `globals.css` ne remappe que les gris, et un texte sans couleur
-            hériterait de `--text`, presque blanc sur ce fond resté clair.
+            parties. `text-green-900` est explicite, pour la raison ci-dessus.
           */}
           {confirmation !== null && (
             <p role="status"
@@ -686,8 +676,13 @@ export default function NewReadingPage() {
           setVerseStart(r.verseStart);
           setVerseEnd(r.verseEnd);
           setPickerOpen(false);
+          // Le passage rejoint le panneau ici, et non à la validation de
+          // l'aperçu qui suit : le bouton de celle-ci est **désactivé quand le
+          // texte n'est pas téléchargé**, et y accrocher l'ajout fermerait la
+          // saisie hors ligne — exactement le cas qui a produit le ticket 25.
+          validerPassage(r);
           // On enchaîne sur le texte : c'est pour le lire qu'on vient de le
-          // désigner, et la fenêtre porte le bouton qui le valide.
+          // désigner.
           setPreviewOpen(true);
         }}
       />
@@ -699,9 +694,13 @@ export default function NewReadingPage() {
         dir={textDirection(versions.find((v) => v.id === versionId)?.language ?? "fr")}
         passages={passages}
         loading={loadingPassage}
-        onEdit={() => { setPreviewOpen(false); setPickerOpen(true); }}
-        onValidate={() => setPreviewOpen(false)}
-        onClose={() => setPreviewOpen(false)}
+        // Corriger ce qu'on vient de valider : la ligne quitte le panneau et
+        // le sélecteur se rouvre sur elle, sans laisser de doublon derrière.
+        onEdit={() => { setPreviewOpen(false); reprendreLeDernier(); setPickerOpen(true); }}
+        // Le passage est déjà au panneau : fermer l'aperçu, de quelque façon
+        // que ce soit, libère simplement le formulaire pour le suivant.
+        onValidate={() => { setPreviewOpen(false); viderLaReference(); }}
+        onClose={() => { setPreviewOpen(false); viderLaReference(); }}
       />
 
       <PassageSearch

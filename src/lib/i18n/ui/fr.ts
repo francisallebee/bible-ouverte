@@ -119,9 +119,8 @@ export const fr = {
     summary: 'Résumé de la saisie',
     sessionTitle: 'La séance',
     sessionHint:
-      'La date, le contexte et la version valent pour toute la séance ; les '
-      + 'notes et les médias suivent chaque passage.',
-    addThisPassage: 'Ajouter ce passage',
+      'Valide un passage et il rejoint la liste. La date, le contexte, la '
+      + 'version et les notes valent pour toute la séance.',
     removePassage: (reference: string) => `Retirer ${reference}`,
     saveMany: (n: number) => `Enregistrer les ${n} lectures`,
     saved: (n: number) => `${n} lecture${n > 1 ? 's' : ''} enregistrée${n > 1 ? 's' : ''}`,

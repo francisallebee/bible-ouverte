@@ -214,9 +214,8 @@ export const ar: Dictionary = {
     summary: 'ملخص ما أدخلته',
     sessionTitle: 'الجلسة',
     sessionHint:
-      'التاريخ والسياق والنسخة تسري على الجلسة كلها؛ أما الملاحظات والملفات '
-      + 'فتتبع كل مقطع.',
-    addThisPassage: 'أضف هذا المقطع',
+      'أكِّد المقطع فيُضاف إلى القائمة. التاريخ والسياق والنسخة والملاحظات '
+      + 'تسري على الجلسة كلها.',
     removePassage: (reference: string) => `إزالة ${reference}`,
     saveMany: (n: number) => `حفظ ${n} ${lectures(n)}`,
     saved: (n: number) => `تم حفظ ${n} ${lectures(n)}`,

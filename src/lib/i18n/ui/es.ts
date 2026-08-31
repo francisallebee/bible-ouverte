@@ -113,9 +113,8 @@ export const es: Dictionary = {
     summary: 'Resumen de lo introducido',
     sessionTitle: 'La sesión',
     sessionHint:
-      'La fecha, el contexto y la versión valen para toda la sesión; las notas '
-      + 'y los archivos acompañan a cada pasaje.',
-    addThisPassage: 'Añadir este pasaje',
+      'Valida un pasaje y se añade a la lista. La fecha, el contexto, la '
+      + 'versión y las notas valen para toda la sesión.',
     removePassage: (reference: string) => `Quitar ${reference}`,
     saveMany: (n: number) => `Guardar las ${n} lecturas`,
     saved: (n: number) => `${n} lectura${n !== 1 ? 's' : ''} guardada${n !== 1 ? 's' : ''}`,
