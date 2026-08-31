@@ -117,6 +117,14 @@ export const fr = {
     previewEmpty: "Sélectionne un livre pour voir l'aperçu.",
     previewUnavailable: 'Texte non disponible pour cette référence.',
     summary: 'Résumé de la saisie',
+    sessionTitle: 'La séance',
+    sessionHint:
+      'La date, le contexte et la version valent pour toute la séance ; les '
+      + 'notes et les médias suivent chaque passage.',
+    addThisPassage: 'Ajouter ce passage',
+    removePassage: (reference: string) => `Retirer ${reference}`,
+    saveMany: (n: number) => `Enregistrer les ${n} lectures`,
+    saved: (n: number) => `${n} lecture${n > 1 ? 's' : ''} enregistrée${n > 1 ? 's' : ''}`,
     linkCount: (n: number) => `${n} lien${n > 1 ? 's' : ''}`,
     photoCount: (n: number) => `${n} photo${n > 1 ? 's' : ''}`,
     audioAttached: 'Audio joint',

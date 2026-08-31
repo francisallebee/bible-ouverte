@@ -22,15 +22,7 @@ import BookPicker from "@/components/BookPicker";
 import PassagePreview from "@/components/PassagePreview";
 import PassageSearch from "@/components/PassageSearch";
 import { resizeImage } from "@/lib/image-utils";
-
-/** Le passage en cours de saisie, une fois le livre choisi. */
-interface Passage {
-  book: string;
-  chapterStart: number;
-  chapterEnd: number;
-  verseStart: number;
-  verseEnd: number;
-}
+import { lecturesDeLaSeance, type PassageDeSeance } from "@/lib/lectures/seance";
 
 export default function NewReadingPage() {
   const router = useRouter();
@@ -63,6 +55,16 @@ export default function NewReadingPage() {
    * destination choisie fait recommencer la navigation.
    */
   const [sortie, setSortie] = useState<string | null>(null);
+
+  /**
+   * Les passages déjà mis de côté pour cette séance.
+   *
+   * Chacun emporte ses notes et ses médias : la date, le contexte et la
+   * version sont les seuls champs communs. Voir `lib/lectures/seance.ts`.
+   */
+  const [ajoutes, setAjoutes] = useState<PassageDeSeance[]>([]);
+  /** Ce qui vient d'être écrit, affiché puisqu'on ne quitte plus la page. */
+  const [confirmation, setConfirmation] = useState<number | null>(null);
 
   const [passages, setPassages] = useState<BiblePassage[]>([]);
   const [loadingPassage, setLoadingPassage] = useState(false);
@@ -118,6 +120,14 @@ export default function NewReadingPage() {
     })();
   }, []);
 
+  // Le message d'enregistrement s'efface seul : on reste sur la page, et il
+  // n'a pas à survivre à la saisie suivante.
+  useEffect(() => {
+    if (confirmation === null) return;
+    const minuterie = setTimeout(() => setConfirmation(null), 6000);
+    return () => clearTimeout(minuterie);
+  }, [confirmation]);
+
   function addLink() {
     if (!linkUrl.trim()) return;
     setLinks((prev) => [
@@ -144,10 +154,46 @@ export default function NewReadingPage() {
     setPhotos((prev) => prev.filter((_, idx) => idx !== i));
   }
 
-  /** Le passage en cours de saisie, s'il est complet. */
-  function currentPassage(): Passage | null {
+  /** Le passage en cours de saisie, avec ce qui lui appartient. */
+  function currentPassage(): PassageDeSeance | null {
     if (!book) return null;
-    return { book, chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd };
+    return {
+      book, chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd,
+      notes, links, photos, audio,
+    };
+  }
+
+  /**
+   * Vide ce qui appartient à un passage, et laisse le cadre de la séance.
+   *
+   * La date, le contexte et la version restent : on enchaîne le plus souvent
+   * plusieurs textes d'une même lecture, et les ressaisir à chaque fois était
+   * précisément ce qui rendait l'ancien empilement pénible.
+   */
+  function viderLePassage() {
+    setBook("");
+    setChapterStart(1);
+    setChapterEnd(undefined);
+    setVerseStart(1);
+    setVerseEnd(undefined);
+    setNotes("");
+    setLinks([]);
+    setPhotos([]);
+    setAudio(undefined);
+    setLinkUrl("");
+    setLinkTitle("");
+  }
+
+  /** Met le passage en cours de côté, et vide les champs pour le suivant. */
+  function ajouterPassage() {
+    const p = currentPassage();
+    if (!p) return;
+    setAjoutes((prev) => [...prev, p]);
+    viderLePassage();
+  }
+
+  function retirerPassage(i: number) {
+    setAjoutes((prev) => prev.filter((_, idx) => idx !== i));
   }
 
   /**
@@ -166,27 +212,28 @@ export default function NewReadingPage() {
   }
 
   /**
-   * Y a-t-il de quoi enregistrer ?
+   * Ce que l'enregistrement écrirait, à cet instant.
    *
-   * **Une lecture, un passage.** L'empilement de plusieurs passages sous une
-   * même date a été retiré le 28 août 2026 : il faisait doublon avec la
-   * validation qui suit la lecture du texte, et il écrivait une lecture par
-   * passage — une seule saisie produisait ainsi jusqu'à 39 entrées dans
-   * l'historique. Les lignes déjà écrites sont regroupées à l'affichage par
-   * `lib/lectures/saisies.ts`.
+   * **Une lecture par passage**, et le passage encore dans le formulaire en
+   * fait partie : enregistrer une lecture unique n'oblige donc pas à cliquer
+   * « Ajouter ce passage » d'abord. La règle vit dans
+   * `lib/lectures/seance.ts`, qui la teste ; ce qui reste ici n'est que
+   * l'écran.
    */
   const passage = currentPassage();
-  const peutEnregistrer = passage !== null && Boolean(versionId);
+  const aEcrire = lecturesDeLaSeance({ date, contextId, versionId }, ajoutes, passage);
+  const peutEnregistrer = aEcrire.length > 0;
 
   /**
    * Ce qui serait perdu en quittant la page.
    *
-   * La date et la version ne comptent pas : elles ont une valeur par défaut et
-   * n'ont donc rien d'un travail en cours.
+   * La date, le contexte et la version ne comptent pas : ils ont une valeur
+   * par défaut et n'ont rien d'un travail en cours. Les passages déjà mis de
+   * côté, si — ils ne sont nulle part ailleurs tant que rien n'est enregistré.
    */
   const enCours =
-    Boolean(book) || notes.trim().length > 0 || links.length > 0
-    || photos.length > 0 || Boolean(audio);
+    ajoutes.length > 0 || Boolean(book) || notes.trim().length > 0
+    || links.length > 0 || photos.length > 0 || Boolean(audio);
 
   // Une fois la lecture enregistrée, la navigation qui suit n'a plus rien à
   // faire confirmer — c'est nous qui la déclenchons.
@@ -241,37 +288,48 @@ export default function NewReadingPage() {
   }, [enCours]);
 
   /**
-   * Enregistre, puis va où l'on voulait aller.
+   * Enregistre toute la séance, puis rend la page à une saisie neuve.
    *
-   * La destination est un paramètre parce que l'enregistrement se déclenche
-   * désormais de deux endroits : le bouton, qui ramène à l'accueil, et la
-   * boîte de sortie, qui doit conduire au lien cliqué.
+   * `destination` n'est fournie que par la boîte de sortie, qui doit conduire
+   * au lien cliqué. Le bouton, lui, **ne quitte plus la page** : il laisse un
+   * formulaire vide et prêt, ce qui est ce qu'on vient chercher quand on
+   * enregistre plusieurs séances de suite. C'est aussi pourquoi il faut un
+   * retour visible — sans navigation, plus rien ne dirait que l'écriture a eu
+   * lieu.
+   *
+   * Les lignes partent **à la suite, sans attente entre elles** : c'est leur
+   * proximité dans le temps que `lib/lectures/saisies.ts` reconnaît pour les
+   * rassembler en une entrée d'historique. Une seconde d'écart y suffirait,
+   * mais rien n'oblige à en introduire.
    */
-  async function handleSave(destination: string = "/") {
-    if (!passage || !versionId) return;
+  async function handleSave(destination?: string) {
+    if (aEcrire.length === 0) return;
     setSaving(true);
 
-    await addReading({
-      date,
-      book: passage.book,
-      chapterStart: passage.chapterStart,
-      chapterEnd: passage.chapterEnd,
-      verseStart: passage.verseStart,
-      verseEnd: passage.verseEnd,
-      passageText: "",
-      translationId: versionId,
-      tags: [],
-      contextId,
-      notes,
-      links: links.length > 0 ? links : undefined,
-      photos: photos.length > 0 ? photos : undefined,
-      audio: audio || undefined,
-    });
+    for (const lecture of aEcrire) {
+      await addReading(lecture);
+    }
 
+    const ecrites = aEcrire.length;
     enregistre.current = true;
     setSaving(false);
     setSortie(null);
-    router.push(destination);
+
+    if (destination) {
+      router.push(destination);
+      return;
+    }
+
+    // On reste : tout est remis à neuf, y compris la date et le contexte —
+    // « ne pas laisser la dernière saisie » était la demande.
+    viderLePassage();
+    setAjoutes([]);
+    setDate(new Date().toISOString().slice(0, 10));
+    setContextId("");
+    setConfirmation(ecrites);
+    // La garde se réarme : une nouvelle saisie commence, et elle mérite d'être
+    // protégée comme la précédente.
+    enregistre.current = false;
   }
 
   /** Quitter en abandonnant la saisie : la garde est levée avant de partir. */
@@ -455,24 +513,80 @@ export default function NewReadingPage() {
 
         </div>
 
-        <div className="lg:sticky lg:top-10 lg:self-start">
-          {!book ? (
+        {/*
+          Le bandeau porte la séance, et non plus le seul passage en cours.
+          C'est la place que le propriétaire du dépôt lui a donnée le 31 août
+          2026 : collé en haut au défilement, il reste sous les yeux pendant
+          qu'on saisit le passage suivant, là où l'ancien bouton « Ajouter un
+          autre passage » se perdait au milieu du formulaire.
+        */}
+        <div className="lg:sticky lg:top-10 lg:self-start space-y-3">
+          {ajoutes.length === 0 && !book ? (
             <div className="bg-[--surface] rounded-xl border border-[--border] p-8 text-center">
               <BookPlus className="w-10 h-10 text-gray-300 mx-auto mb-3" />
               <p className="text-[--text-secondary] text-sm">{t.newReading.previewEmpty}</p>
             </div>
           ) : (
-            <div className="bg-[--primary-light] rounded-xl border border-[--primary]/10 p-4 text-sm text-[--text] space-y-1">
-              <p className="font-medium text-[--primary]">{t.newReading.summary}</p>
-              <p className="text-[--text-secondary]">
-                {describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
-                <span className="ms-2">— {versions.find((v) => v.id === versionId)?.name || versionId}</span>
-              </p>
-              {notes && <p className="flex items-center gap-1.5"><span className="text-base">📝</span> {notes}</p>}
-              {links.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">🔗</span> {t.newReading.linkCount(links.length)}</p>}
-              {photos.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">📷</span> {t.newReading.photoCount(photos.length)}</p>}
-              {audio && <p className="flex items-center gap-1.5"><span className="text-base">🎵</span> {t.newReading.audioAttached}</p>}
+            <div className="bg-[--primary-light] rounded-xl border border-[--primary]/10 p-4 text-sm text-[--text] space-y-3">
+              <p className="font-medium text-[--primary]">{t.newReading.sessionTitle}</p>
+
+              {ajoutes.length > 0 && (
+                <ul className="space-y-1.5">
+                  {ajoutes.map((p, i) => (
+                    <li key={i}
+                      className="flex items-center gap-2 bg-[--surface] rounded-lg border border-[--border] px-3 py-2">
+                      <span className="flex-1 min-w-0 truncate text-[--text]">
+                        {describeRange(getBookName(p.book), p)}
+                      </span>
+                      {p.notes && <span className="shrink-0" title={p.notes}>📝</span>}
+                      {p.links.length > 0 && <span className="shrink-0">🔗</span>}
+                      {p.photos.length > 0 && <span className="shrink-0">📷</span>}
+                      {p.audio && <span className="shrink-0">🎵</span>}
+                      <button type="button" onClick={() => retirerPassage(i)}
+                        aria-label={t.newReading.removePassage(describeRange(getBookName(p.book), p))}
+                        className="shrink-0 text-[--text-secondary] hover:text-[--text] transition-colors">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {book && (
+                <div className="space-y-1">
+                  <p className="text-[--text-secondary]">
+                    {describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
+                    <span className="ms-2">— {versions.find((v) => v.id === versionId)?.name || versionId}</span>
+                  </p>
+                  {notes && <p className="flex items-center gap-1.5"><span className="text-base">📝</span> {notes}</p>}
+                  {links.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">🔗</span> {t.newReading.linkCount(links.length)}</p>}
+                  {photos.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">📷</span> {t.newReading.photoCount(photos.length)}</p>}
+                  {audio && <p className="flex items-center gap-1.5"><span className="text-base">🎵</span> {t.newReading.audioAttached}</p>}
+
+                  <button type="button" onClick={ajouterPassage}
+                    className="w-full mt-2 flex items-center justify-center gap-2 border border-[--primary] text-[--primary] rounded-lg px-4 py-2 text-sm font-medium hover:bg-[--primary] hover:text-white transition-colors">
+                    <Plus className="w-4 h-4 shrink-0" />
+                    {t.newReading.addThisPassage}
+                  </button>
+                </div>
+              )}
+
+              <p className="text-xs text-[--text-secondary]">{t.newReading.sessionHint}</p>
             </div>
+          )}
+
+          {/*
+            Le retour que la navigation donnait autrefois. Le bouton ne quitte
+            plus la page : sans ce message, rien ne dirait que les lignes sont
+            parties. `text-green-900` est explicite — le bloc `html.dark` de
+            `globals.css` ne remappe que les gris, et un texte sans couleur
+            hériterait de `--text`, presque blanc sur ce fond resté clair.
+          */}
+          {confirmation !== null && (
+            <p role="status"
+              className="bg-green-50 border border-green-200 text-green-900 rounded-lg px-4 py-2.5 text-sm">
+              ✓ {t.newReading.saved(confirmation)}
+            </p>
           )}
         </div>
       </div>
@@ -498,7 +612,7 @@ export default function NewReadingPage() {
           ) : (
             <>
               <Save className="w-4 h-4 shrink-0" />
-              {t.newReading.saveOne}
+              {aEcrire.length > 1 ? t.newReading.saveMany(aEcrire.length) : t.newReading.saveOne}
             </>
           )}
         </button>
@@ -527,7 +641,7 @@ export default function NewReadingPage() {
 
             <div className="mt-5 space-y-2">
               {peutEnregistrer && (
-                <button type="button" onClick={() => handleSave(sortie)} disabled={saving}
+                <button type="button" onClick={() => handleSave(sortie ?? undefined)} disabled={saving}
                   className="w-full flex items-center justify-center gap-2 bg-[--primary] text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-60 transition-colors">
                   {saving ? (
                     <>

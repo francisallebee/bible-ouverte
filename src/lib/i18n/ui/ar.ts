@@ -212,6 +212,14 @@ export const ar: Dictionary = {
     previewEmpty: 'اختر سفرًا لعرض المعاينة.',
     previewUnavailable: 'النص غير متاح لهذا المرجع.',
     summary: 'ملخص ما أدخلته',
+    sessionTitle: 'الجلسة',
+    sessionHint:
+      'التاريخ والسياق والنسخة تسري على الجلسة كلها؛ أما الملاحظات والملفات '
+      + 'فتتبع كل مقطع.',
+    addThisPassage: 'أضف هذا المقطع',
+    removePassage: (reference: string) => `إزالة ${reference}`,
+    saveMany: (n: number) => `حفظ ${n} ${lectures(n)}`,
+    saved: (n: number) => `تم حفظ ${n} ${lectures(n)}`,
     linkCount: (n: number) => `${n} ${rawabit(n)}`,
     photoCount: (n: number) => `${n} ${suwar(n)}`,
     audioAttached: 'تسجيل صوتي مرفق',

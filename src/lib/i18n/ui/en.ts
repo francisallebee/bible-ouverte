@@ -103,6 +103,14 @@ export const en: Dictionary = {
     previewEmpty: 'Select a book to see the preview.',
     previewUnavailable: 'No text available for this reference.',
     summary: 'Entry summary',
+    sessionTitle: 'This session',
+    sessionHint:
+      'The date, context and version apply to the whole session; notes and '
+      + 'media follow each passage.',
+    addThisPassage: 'Add this passage',
+    removePassage: (reference: string) => `Remove ${reference}`,
+    saveMany: (n: number) => `Save all ${n} readings`,
+    saved: (n: number) => `${n} reading${n > 1 ? 's' : ''} saved`,
     linkCount: (n: number) => `${n} link${n > 1 ? 's' : ''}`,
     photoCount: (n: number) => `${n} photo${n > 1 ? 's' : ''}`,
     audioAttached: 'Audio attached',

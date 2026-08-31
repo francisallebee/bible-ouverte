@@ -111,6 +111,14 @@ export const it: Dictionary = {
     previewEmpty: "Seleziona un libro per vedere l'anteprima.",
     previewUnavailable: 'Testo non disponibile per questo riferimento.',
     summary: "Riepilogo di ciò che hai inserito",
+    sessionTitle: 'La sessione',
+    sessionHint:
+      'La data, il contesto e la versione valgono per tutta la sessione; le '
+      + 'note e i file seguono ogni passo.',
+    addThisPassage: 'Aggiungi questo passo',
+    removePassage: (reference: string) => `Rimuovi ${reference}`,
+    saveMany: (n: number) => `Salva le ${n} letture`,
+    saved: (n: number) => `${n} ${n !== 1 ? 'letture salvate' : 'lettura salvata'}`,
     linkCount: (n: number) => `${n} ${n !== 1 ? 'link' : 'link'}`,
     photoCount: (n: number) => `${n} ${n !== 1 ? 'foto' : 'foto'}`,
     audioAttached: 'Audio allegato',
