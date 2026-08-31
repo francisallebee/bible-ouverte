@@ -549,21 +549,33 @@ export default function NewReadingPage() {
               </ul>
 
               {/*
-                Ce qui vaut pour toute la séance, rappelé là où on lit la liste.
-                Les couleurs sont explicites : le bloc `html.dark` de
-                `globals.css` ne remappe que les gris, et un texte sans classe
-                de couleur hériterait de `--text`, presque blanc sur ce fond
-                resté clair.
+                Tout ce qui est posé sur ce fond porte `text-[--primary]`, et
+                c'est mesuré, pas décoratif.
+
+                `bg-[--primary-light]` **reste clair en mode sombre**, quelle
+                que soit la charte : `applyTheme()` pose cette variable en style
+                inline sur `<html>`, ce qui bat la règle `html.dark` de
+                `globals.css` qui la remapperait en `#1a2840`. Un style inline
+                l'emporte toujours sur une feuille.
+
+                Sur ce fond resté clair, `--text-secondary` bascule au gris
+                clair du thème sombre : **2,15** de contraste, relevé le 31 août
+                2026 sur la production locale. `--text` y serait pire, presque
+                blanc. `--primary` est foncé dans les dix chartes — il est
+                éclairci à 92 % vers le blanc pour donner `--primary-light` —,
+                donc le couple tient par construction : **11,02** mesuré.
+                `opacity-75` atténue sans changer de teinte, là où une classe
+                grise retomberait dans les remaps de la règle 15.
               */}
-              <div className="space-y-1 text-[--text-secondary]">
-                <p>— {versions.find((v) => v.id === versionId)?.name || versionId}</p>
-                {notes && <p className="flex items-center gap-1.5 text-[--text]"><span className="text-base">📝</span> {notes}</p>}
-                {links.length > 0 && <p className="flex items-center gap-1.5 text-[--text]"><span className="text-base">🔗</span> {t.newReading.linkCount(links.length)}</p>}
-                {photos.length > 0 && <p className="flex items-center gap-1.5 text-[--text]"><span className="text-base">📷</span> {t.newReading.photoCount(photos.length)}</p>}
-                {audio && <p className="flex items-center gap-1.5 text-[--text]"><span className="text-base">🎵</span> {t.newReading.audioAttached}</p>}
+              <div className="space-y-1 text-[--primary]">
+                <p className="opacity-75">— {versions.find((v) => v.id === versionId)?.name || versionId}</p>
+                {notes && <p className="flex items-center gap-1.5"><span className="text-base">📝</span> {notes}</p>}
+                {links.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">🔗</span> {t.newReading.linkCount(links.length)}</p>}
+                {photos.length > 0 && <p className="flex items-center gap-1.5"><span className="text-base">📷</span> {t.newReading.photoCount(photos.length)}</p>}
+                {audio && <p className="flex items-center gap-1.5"><span className="text-base">🎵</span> {t.newReading.audioAttached}</p>}
               </div>
 
-              <p className="text-xs text-[--text-secondary]">{t.newReading.sessionHint}</p>
+              <p className="text-xs text-[--primary] opacity-75">{t.newReading.sessionHint}</p>
             </div>
           )}
 

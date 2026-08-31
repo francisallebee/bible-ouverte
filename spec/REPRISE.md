@@ -574,6 +574,10 @@ interrompu avant la fin. Les previews passent par git.
 | Coût d'une réexportation dans le baril `features/bible` | la table des 1189 chapitres — **3,8 kB** non compressés — servie sur la **page d'accueil prérendue**, `I18nContext` important `BOOKS` du même baril | 31 août |
 | Après l'import par chemin | **zéro occurrence** de la table dans les 17 chunks de `/`, `BOOKS` toujours servi ; chunk `5954` de 226 à 221,5 kB | 31 août |
 | Séance à plusieurs passages, écriture | une lecture par passage reste la règle en base ; **date, contexte, version, notes et médias** sont communs et recopiés sur chaque ligne | 31 août |
+| Le panneau de séance vu à l'écran | **par l'agent, session ouverte par le propriétaire** : Proverbes 18 rend 24 boutons, « Tout le chapitre » donne `Proverbes 18:1-24`, deux passages au panneau, croix et pluriel du bouton | 31 août |
+| `bg-[--primary-light]` en mode sombre | **reste clair quelle que soit la charte** : `applyTheme()` pose la variable en style **inline** sur `<html>`, ce qui bat la règle `html.dark` qui la remapperait en `#1a2840` | 31 août |
+| Contraste du panneau, mode sombre | `--text-secondary` sur ce fond : **2,15** — porté à **5,57** par `text-[--primary] opacity-75`, le titre restant à 11,02 | 31 août |
+| Étendue de ce défaut | **13 fichiers** emploient `bg-[--primary-light]` : Réglages ×7, Support ×6, parcours ×3, historique ×3 | 31 août |
 | Sondage d'un déploiement par le texte servi | le minifieur **échappe le Latin-1** (`La s\xe9ance`) et **laisse l'arabe brut** — une sonde accentuée ne trouve jamais rien | 31 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
@@ -2015,3 +2019,63 @@ Rappel de méthode, payé le matin même : **la sonde doit être sans accent.** 
 minifieur échappe le Latin-1 en `\xe9` et laisse l'arabe brut, si bien qu'une
 sonde française accentuée ne trouve jamais rien, quel que soit l'état du
 déploiement.
+
+### L'écran, enfin — et ce qu'il a seul montré
+
+Le propriétaire du dépôt a ouvert une session dans le panneau. Trois
+fonctionnalités livrées dans la journée avaient été poussées sans qu'aucune ait
+été vue ; elles l'ont été d'un coup.
+
+| Constat | Ce qui a été vu |
+|---|---|
+| **Ticket 25** | Proverbes 1 propose **33** versets, Proverbes 18 en propose **24**, Jean 3 en propose **36** — leurs comptes exacts |
+| **Le geste du ticket** | « Tout le chapitre » rend **« Proverbes 18:1-24 »**, là où le matin il rendait 1-200 |
+| Validation d'un passage | il tombe **aussitôt au panneau**, et le formulaire se vide |
+| Deux passages | « Proverbes 18:1-24 » et « Jean 3:16-17 » listés, bouton **« Enregistrer les 2 lectures »** |
+| La croix | retire la ligne ; le bouton repasse à **« Enregistrer la lecture »** |
+| RTL | panneau aligné à droite, croix passée à gauche, bouton flottant à gauche — les propriétés logiques tiennent |
+
+### Le défaut que seul le mode sombre pouvait montrer
+
+**`bg-[--primary-light]` reste clair en mode sombre, et pour toutes les
+chartes.** `globals.css` le remappe pourtant en `#1a2840` sous `html.dark` — mais
+`applyTheme()` pose la variable en **style inline sur `<html>`**, et un style
+inline l'emporte toujours sur une feuille de style. Le remap existe et n'est
+jamais atteint.
+
+Sur ce fond resté clair, `--text-secondary` bascule au gris clair du thème
+sombre : **2,15** de contraste, mesuré. C'est le troisième cas de la même
+famille après la barre latérale (1,01) et les badges (1,06), et c'est la
+règle 15 sous un visage de plus — sauf que la cause n'est pas ici l'absence de
+remap, mais un remap **écrasé par une spécificité supérieure**.
+
+Le panneau de séance est corrigé : tout ce qui est posé sur ce fond porte
+désormais `text-[--primary]`, foncé dans les dix chartes puisque
+`--primary-light` en est précisément l'éclaircissement à 92 % vers le blanc. Le
+couple tient donc par construction, et non par chance — **11,02** pour le texte
+plein, **5,57** avec `opacity-75`, qui atténue sans changer de teinte là où une
+classe grise retomberait dans les remaps.
+
+**Le défaut, lui, dépasse cette page** : **13 fichiers** emploient
+`bg-[--primary-light]`, dont Réglages sept fois et Support six. Ils n'ont pas
+été mesurés, et rien ne dit qu'ils portent tous des textes gris — mais la cause
+leur est commune. Le corriger à la racine supposerait que `applyTheme()` cesse
+de poser cette variable en mode sombre, ou en pose une valeur assombrie : cela
+changerait l'apparence de treize écrans, et c'est une décision du propriétaire,
+pas de l'agent.
+
+Symptôme visible du même défaut, laissé tel quel : dans le panneau, les lignes
+de passages sont des cartes **sombres** — `bg-[--surface]`, lui, est bien
+remappé — posées sur un fond **clair**. Lisible, mais incohérent. Empiler une
+rustine ici aurait masqué la cause.
+
+### Ce qui n'a pas été vu, même avec la session
+
+**L'enregistrement lui-même.** Le serveur de développement écrit dans la base de
+**production** : une lecture d'essai y serait une vraie lecture, dans les données
+du propriétaire. Le message de confirmation et la remise à neuf de la page
+restent donc non vus, et c'est délibéré.
+
+Aucune écriture n'a eu lieu pendant cette revue. La note d'essai et le passage
+posés au panneau vivaient dans l'état React ; ils ont été retirés avant de
+rendre la main.
