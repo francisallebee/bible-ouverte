@@ -571,6 +571,8 @@ interrompu avant la fin. Les previews passent par git.
 | Versification, écart à Louis Segond 1910 | `annotee`, `kjv` et `rv1909` **identiques sur les 1189 chapitres** ; `svd` 2, `perret` 4, `diodati` 44, `martin1744` 90, `ostervald` 91, `cramp23` 132, `darby` 142, `sacc` 322 | 31 août |
 | Lectures dont le `verseEnd` dépasse le chapitre réel | **6 sur 347**, chez **6 comptes** — quatre à 200, mais aussi `PSA 65:1-20` (13 versets) et `PSA 22:1-45` (31), saisies à la main dans les anciennes listes | 31 août |
 | Dernière lecture hors bornes enregistrée | **17 août 2026** — aucune depuis, le sélecteur ayant remplacé les listes déroulantes | 31 août |
+| Coût d'une réexportation dans le baril `features/bible` | la table des 1189 chapitres — **3,8 kB** non compressés — servie sur la **page d'accueil prérendue**, `I18nContext` important `BOOKS` du même baril | 31 août |
+| Après l'import par chemin | **zéro occurrence** de la table dans les 17 chunks de `/`, `BOOKS` toujours servi ; chunk `5954` de 226 à 221,5 kB | 31 août |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -1845,3 +1847,34 @@ chaud, l'export ayant été ajouté après le démarrage du serveur. Redémarrer
 tranché en trente secondes — `/new-reading` compile sans un avertissement. La
 leçon du 15 août tient : **un onglet neuf, ou un serveur neuf, avant de croire
 une erreur de compilation qui contredit `tsc`.**
+
+### Le déploiement a montré ce que le laboratoire ne pouvait pas voir
+
+Le correctif poussé, la production a servi de mesure — et elle a trouvé une
+régression que ni `tsc`, ni le lint, ni les 642 tests ne pouvaient signaler.
+
+Le contrôle cherchait seulement à **prouver que le déploiement avait eu lieu**,
+sans session : le HTML de `/` liste ses chunks, et il suffit d'y chercher la
+signature de la table, `31,25,24,26,32,…`. Elle y était. C'était la preuve
+demandée, et en même temps le défaut.
+
+`src/contexts/I18nContext.tsx` importe `BOOKS` depuis `@/features/bible`. **Tout
+ce que ce baril réexporte entre donc dans le chunk partagé de toutes les
+routes** — la table des 1189 chapitres s'est retrouvée sur la page d'accueil
+prérendue, qui ne choisit aucun passage. 3,8 kB non compressés, mesurés dans le
+chunk `5954` servi en production.
+
+Le remède est un import par chemin — `@/features/bible/versets` —, ce que
+`seed.ts` fait déjà pour `@/features/bible/import` : le patron existait, il n'a
+pas été suivi. Le baril porte désormais la mesure en commentaire, pour que la
+réexportation ne revienne pas par commodité.
+
+Après déploiement : **zéro occurrence** de la table dans les 17 chunks de `/`,
+`BOOKS` toujours servi, chunk `5954` ramené de 226 à 221,5 kB. Page d'accueil
+vue à l'écran, aucune erreur réelle au réseau.
+
+**Un piège de mesure, dans la même minute.** La console montrait deux `404`
+inquiétants. Ils venaient des `fetch` du contrôle lui-même, qui redemandait
+l'ancien chunk disparu au déploiement : aucune requête de la page n'a échoué.
+*Se méfier des mesures que l'on produit soi-même* vaut aussi pour les erreurs
+qu'elles fabriquent.
