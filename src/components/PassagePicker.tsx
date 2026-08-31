@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { X, Check } from 'lucide-react'
 import { getPassages } from '@/lib/storage'
-import { dernierVerset, versetsAProposer } from '@/features/bible'
+import { dernierVerset, versetsAProposer } from '@/features/bible/versets'
 import { useT } from '@/contexts/I18nContext'
 
 export interface PassageRange {

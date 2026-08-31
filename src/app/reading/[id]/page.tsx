@@ -16,7 +16,8 @@ import {
 } from "@/lib/storage";
 import type { ReadingEntry, BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
 
-import { getBook, versetsAProposer } from "@/features/bible";
+import { getBook } from "@/features/bible";
+import { versetsAProposer } from "@/features/bible/versets";
 import { useI18n, useBookName, useBooks, useContextName } from "@/contexts/I18nContext";
 import { formatDate } from "@/lib/i18n/format";
 import { textDirection } from "@/lib/i18n/locales";
