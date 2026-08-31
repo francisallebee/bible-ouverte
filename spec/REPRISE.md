@@ -575,6 +575,10 @@ interrompu avant la fin. Les previews passent par git.
 | Après l'import par chemin | **zéro occurrence** de la table dans les 17 chunks de `/`, `BOOKS` toujours servi ; chunk `5954` de 226 à 221,5 kB | 31 août |
 | Séance à plusieurs passages, écriture | une lecture par passage reste la règle en base ; **date, contexte, version, notes et médias** sont communs et recopiés sur chaque ligne | 31 août |
 | Le panneau de séance vu à l'écran | **par l'agent, session ouverte par le propriétaire** : Proverbes 18 rend 24 boutons, « Tout le chapitre » donne `Proverbes 18:1-24`, deux passages au panneau, croix et pluriel du bouton | 31 août |
+| Droits sur `readings`, au niveau table | **`SELECT, INSERT, UPDATE, DELETE`** — contrairement à `profiles`, qui n'a que `SELECT` : une colonne neuve y est couverte d'office, la règle 2 ne s'y applique pas | 31 août |
+| Points de création d'une lecture | **cinq**, et non trois : Nouvelle lecture, recherche biblique, verset du jour, cochage d'un jour de plan, et un test — tous trouvés par `tsc`, aucun par relecture | 31 août |
+| `readings` après la migration du titre | **360 lignes sur 360** à `sessionTitle` nul, aucune reprise de données ; la colonne porte bien `INSERT, SELECT, UPDATE` pour `anon` et `authenticated` | 31 août |
+| Lectures du propriétaire dans la journée | **347 → 360** : les essais d'enregistrement de la séance à plusieurs passages ont abouti, dont une séance de **12 passages** le 30 août | 31 août |
 | `bg-[--primary-light]` en mode sombre | **reste clair quelle que soit la charte** : `applyTheme()` pose la variable en style **inline** sur `<html>`, ce qui bat la règle `html.dark` qui la remapperait en `#1a2840` | 31 août |
 | Contraste du panneau, mode sombre | `--text-secondary` sur ce fond : **2,15** — porté à **5,57** par `text-[--primary] opacity-75`, le titre restant à 11,02 | 31 août |
 | Étendue de ce défaut | **13 fichiers** emploient `bg-[--primary-light]` : Réglages ×7, Support ×6, parcours ×3, historique ×3 | 31 août |
@@ -2079,3 +2083,96 @@ restent donc non vus, et c'est délibéré.
 Aucune écriture n'a eu lieu pendant cette revue. La note d'essai et le passage
 posés au panneau vivaient dans l'état React ; ils ont été retirés avant de
 rendre la main.
+
+## Nommer la séance — la quatrième demande du 31 août
+
+Un bandeau après le clic sur « Enregistrer », pour donner un nom à la séance ;
+ce nom sert ensuite de première clé de tri dans « Mes lectures ». Première
+évolution du schéma depuis le 21 août.
+
+### La migration d'abord, et l'ordre n'est pas négociable
+
+Le code envoie `sessionTitle` à chaque écriture. **Tant que la colonne n'existe
+pas, PostgREST rejette la ligne et les lectures cessent de se synchroniser** —
+pour tout le monde, dès le déploiement. La migration a donc été appliquée
+**avant** le push, et relue dans une instruction séparée, comme le veut le piège
+des CTE sœurs.
+
+C'est un ordre que ce dépôt n'avait pas encore eu à respecter : les migrations
+précédentes ajoutaient des tables ou des colonnes que le code d'alors ignorait
+encore. Celle-ci est lue et écrite par du code qui part en même temps.
+
+### Aucun `grant`, et c'est mesuré
+
+La règle 2 d'`AGENTS.md` — « toute colonne ajoutée à `profiles` exige son propre
+`grant update (…)` » — ne vaut **pas** pour `readings`, et la différence se lit
+en une requête, avec `profiles` en témoin pour prouver que l'instrument
+distingue bien les deux cas :
+
+| Table | Au niveau table |
+|---|---|
+| `profiles` | `SELECT` seulement — d'où la règle 2 |
+| `readings` | `SELECT, INSERT, UPDATE, DELETE` |
+
+`information_schema.column_privileges` ne suffisait pas : il décompose un grant
+de table en autant de lignes que de colonnes, si bien qu'il montre la même chose
+dans les deux cas. C'est `table_privileges` qui tranche. Vérifié après coup sur
+la colonne neuve : `INSERT, SELECT, UPDATE` pour `anon` comme pour
+`authenticated`, sans qu'aucun `grant` ait été écrit.
+
+### Il y a cinq points de création d'une lecture, pas trois
+
+Le piège documenté du dépôt nomme **trois chemins** — `toRemote` à la création,
+`rowToReading` à la lecture, le payload de mise à jour. Ils ont été traités.
+Mais rendre `sessionTitle` obligatoire sur `ReadingEntry` a fait échouer la
+compilation en **quatre endroits de plus** :
+
+| Écran | Ce qu'il écrit |
+|---|---|
+| Recherche biblique | une lecture ajoutée depuis un résultat |
+| Verset du jour | la lecture qui entre dans les statistiques |
+| Plans de lecture | une lecture par passage, au cochage d'un jour |
+| `objectifs.test.ts` | une lecture de laboratoire |
+
+**Aucun n'a été trouvé par relecture : tous par `tsc`.** C'est l'exact inverse
+du piège des trois chemins, où le typage ne voyait rien parce que le champ était
+facultatif. Un champ obligatoire transforme la compilation en inventaire.
+
+Chacun pose une chaîne vide, ce qui est exact : ce sont des lectures isolées,
+qui n'appartiennent à aucune séance de saisie. Pour les plans, le nom du plan
+aurait fait un titre tentant — ce serait décider à la place de l'utilisateur, et
+c'est noté dans le code plutôt que fait.
+
+### Le titre trie, le temps regroupe
+
+Décision du propriétaire, entre deux options présentées :
+
+- **Retenue** : le regroupement reste temporel, le titre s'affiche en tête et
+  sert de première clé de tri dans la journée. Deux séances homonymes du même
+  jour restent deux entrées, voisines.
+- Écartée : le titre regroupe aussi. Elle réunissait deux moments distincts
+  nommés pareil, sans qu'on puisse les séparer ensuite.
+
+Les séances **non nommées ferment la marche**. Sans cette règle, une chaîne vide
+se rangerait avant toutes les autres dans n'importe quelle collation, et ce
+seraient les 360 lectures sans titre qui décideraient de l'ordre de la journée.
+
+Le nommage est **facultatif** — « Enregistrer sans nommer » est une issue de
+plein droit. C'est ce qui fait des lignes antérieures un cas déjà traité plutôt
+qu'une exception à gérer : une séance neuve non nommée se comporte exactement
+comme elles.
+
+### Ce qui a été vu, et ce qui ne l'a pas été
+
+Vu à l'écran, session ouverte par le propriétaire : le bandeau et ses trois
+issues, l'accord au singulier de « 1 lecture va être enregistrée », l'explication
+présente à la fois dans le bandeau et sous la liste du panneau, et la
+non-régression de « Mes lectures » sur 158 lectures. Psaume 23 propose ses
+6 versets, ce qui éprouve le correctif du ticket 25 sur un troisième livre après
+Proverbes et Jean.
+
+**Non vu, et c'est un choix du propriétaire** : le titre écrit en base, puis
+affiché en tête de groupe et trié dans sa journée. Le vérifier demandait
+d'enregistrer une vraie séance dans ses données ; il a préféré s'en tenir là.
+Le maillon est donc éprouvé par huit tests et par le typage, pas par l'écran —
+et c'est exactement le genre de chose que ce document existe pour dire.
