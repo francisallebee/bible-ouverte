@@ -591,6 +591,15 @@ interrompu avant la fin. Les previews passent par git.
 | Contraste du panneau, mode sombre | `--text-secondary` sur ce fond : **2,15** — porté à **5,57** par `text-[--primary] opacity-75`, le titre restant à 11,02 | 31 août |
 | Étendue de ce défaut | **13 fichiers** emploient `bg-[--primary-light]` : Réglages ×7, Support ×6, parcours ×3, historique ×3 | 31 août |
 | Sondage d'un déploiement par le texte servi | le minifieur **échappe le Latin-1** (`La s\xe9ance`) et **laisse l'arabe brut** — une sonde accentuée ne trouve jamais rien | 31 août |
+| Hauteur d'une entrée de menu | `py-2.5` + `text-sm` donne **40 px** — c'est la **boîte de ligne** de 20 px qui gouverne, pas la police de 14 px | 2 sept. |
+| Ce que `py-3` donnerait | **44 px**, le seuil Apple — l'audit le proposait en annonçant 48, tout en chiffrant son coût à huit pixels par entrée, qui est celui de `py-3.5` | 2 sept. |
+| Cibles du menu après correctif | **19 sur 19 à 48 px ou plus**, relevé au navigateur : 17 à 48, le profil à 52, le logo passé de 36 à 48 | 2 sept. |
+| Le logo de la barre latérale | **36 px** — dix-neuvième cible, affichée dans le relevé de l'audit mais **hors de son correctif**, qui ne portait que sur les entrées | 2 sept. |
+| Champs sans nom accessible, après correctif | **0 sur Nouvelle lecture, 0 sur Mes lectures, 0 sur les 12 listes de Réglages** — relevé dans le DOM, nom par nom | 2 sept. |
+| `placeholder` sur `<input type="date">` | **jamais rendu** : le navigateur y affiche son format. Les deux dates de Mes lectures n'avaient donc aucun nom, pas même visible — l'audit les disait pourvues | 2 sept. |
+| `<h2>` réellement rendus par Réglages | **16**, quand un `grep` sur le source en compte **1** : `SectionCard` est une source unique rendue quinze fois | 2 sept. |
+| Champs sans `htmlFor` au `grep` | **~64 sur 11 écrans**, contre **10 sur 3** mesurés à l'écran par l'audit — le relevé ignore `aria-label` et les `<label>` englobants | 2 sept. |
+| Coût d'un titre `sr-only` | **1 × 1 px en position absolue** — aucun décalage de mise en page, vérifié par `getComputedStyle` | 2 sept. |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -2437,3 +2446,136 @@ L'historique était déjà poussé quand je l'ai vu ; le réécrire aurait été
 que le consigner. **Le geste qui manquait est de nommer les fichiers à
 `git add`, plutôt que de balayer l'arbre**, et il ne coûte rien quand on sait ce
 qu'on vient de toucher.
+
+## Le 2 septembre, seconde partie : les trois premiers correctifs de l'audit
+
+L'audit d'interface du 2 septembre 2026 classait six correctifs. Les trois
+premiers — cibles du menu, intitulés de champs, sections en titres — étaient
+annoncés comme ne touchant à aucune décision de design, et ils tiennent cette
+promesse. Mais **aucun des trois n'était exact tel qu'il était écrit**, et c'est
+la mesure qui l'a montré à chaque fois.
+
+### L'audit se trompait de quatre pixels sur son propre correctif
+
+Il proposait `py-2.5` → `py-3` en annonçant 48 px. La mesure sur le thème réel
+donne 44 :
+
+| Classe | Boîte de ligne `text-sm` | Padding | Hauteur |
+|---|---|---|---|
+| `py-2.5` | 20 px | 2 × 10 | **40** — le relevé de l'audit est juste |
+| `py-3` | 20 px | 2 × 12 | **44**, le seuil Apple |
+| `py-3.5` | 20 px | 2 × 14 | **48**, le seuil Google |
+
+L'erreur est d'avoir pris **14 px pour la hauteur du texte**. C'est la taille de
+police ; ce qui occupe la place est la boîte de ligne, `1.25rem` pour `text-sm`.
+
+Son propre chiffrage le contredisait : « huit pixels de plus chacune allongent
+la colonne de 120 px » décrit `py-3.5`, pas `py-3` qui n'en ajoute que quatre.
+**La classe proposée et le coût annoncé ne décrivaient pas le même correctif** —
+et c'est cette incohérence interne, plus que le calcul, qui a fait rouvrir la
+question.
+
+### « Une seule ligne » en était quatre, dont une à ne pas toucher
+
+`Sidebar.tsx` porte quatre `py-2.5`. Trois sont à 40 px et relèvent du
+correctif ; le **lien de profil est déjà à 52 px**, son avatar de 32 px
+gouvernant la hauteur. L'allonger n'aurait ajouté que de la hauteur à une
+colonne qui déborde déjà.
+
+Et la mesure a trouvé une cible que l'audit affichait sans la corriger : **le
+logo, à 36 px**. Son graphique le montre — « Logo · 36 px » — mais son remède ne
+visait que les entrées. Passé à `py-2.5`, il atteint 48. Relevé après correctif,
+au navigateur : **19 cibles sur 19 à 48 px ou plus.**
+
+### Les dix champs, et ce que trois relevés successifs ont dit
+
+Un `grep` sur les balises sans `htmlFor` compte **~64 champs sur 11 écrans**.
+L'audit en mesure **10 sur 3**. C'est le `grep` qui a tort, et de la manière
+prévisible : il ne sait pas qu'une case enveloppée dans son `<label>` n'a besoin
+de rien, ni qu'un `aria-label` fait le travail. **Le relevé compte des balises,
+l'audit a regardé l'écran** — la leçon du 15 août sur Progression, prise dans
+l'autre sens.
+
+Le même travers a frappé une seconde fois dans la séance : un `grep` sur `<h2`
+donne **1** pour Réglages, quand l'écran en rend **16**. `SectionCard` est une
+source unique rendue quinze fois.
+
+Trois motifs différents ont été nécessaires, là où l'audit n'en proposait qu'un :
+
+| Cas | Motif | Pourquoi pas `htmlFor` |
+|---|---|---|
+| Version, Notes (Nouvelle lecture) | `htmlFor` / `id` | rien — c'est le cas nominal |
+| Les trois listes de Réglages | `aria-label` | leur nom visible est le **titre de la `SectionCard`**, un `<h2>` ; il n'y a pas de `<label>` où s'accrocher |
+| Titre et adresse d'un lien, recherche et dates de Mes lectures | `aria-label` | aucun `<label>`, et le `placeholder` s'efface à la première frappe |
+
+**Une correction à l'audit** : il écrivait que ces dix champs « portent tous un
+intitulé visible ». C'est faux des deux dates de Mes lectures. Elles portaient un
+`placeholder`, et **un `placeholder` sur `<input type="date">` n'est jamais
+rendu** — le navigateur y affiche son format. Ces deux champs n'avaient aucun
+nom, ni visible ni programmatique.
+
+L'adresse d'un lien n'avait même pas de clé de dictionnaire : un `https://…` en
+dur. `linkUrlLabel` a été ajoutée aux cinq langues.
+
+### Les sections en titres, et la promesse qui ne valait que pour un écran
+
+« Les passer en `<h2>` ne change pas un pixel si la classe reste la même » est
+vrai de Nouvelle lecture, où « Liens », « Audio » et « Photos » existaient déjà
+comme `<label>` visibles n'étiquetant rien. Ce sont désormais des `<h2>`, aux
+classes inchangées.
+
+**« Notes » n'a pas suivi**, et c'est délibéré : il nomme un champ unique, pas
+une section. L'audit le rangeait avec les trois autres ; en faire un titre lui
+aurait retiré son association. Il est resté `<label>`, avec son `htmlFor`.
+
+Sur **Mes lectures** et **Verset du jour**, la prémisse ne tenait pas : il n'y
+avait **aucun libellé à convertir**. Créer des titres visibles aurait redécoré
+deux écrans que personne n'a demandé à redécorer — Verset du jour est
+volontairement dépouillé. Décision du propriétaire : des titres **`sr-only`**,
+qui donnent les repères au lecteur d'écran sans rien afficher. Le motif existait
+déjà dans `history/page.tsx`, sur les intitulés de la barre de sélection.
+Mesuré : `1 × 1 px`, position absolue, aucun décalage.
+
+### Trois sauts de niveau que l'audit n'avait pas relevés
+
+Traités dans le même lot, sur décision du propriétaire. Les trois avaient un
+`<h3>` sans `<h2>` au-dessus, et ce n'était pas le même défaut :
+
+| Écran | Ce que le `<h3>` était | Correctif |
+|---|---|---|
+| Feuille de route | le titre d'un **item**, sous un groupe de statut dont l'en-tête est un `<button>` sans balise de titre | le `<h2>` **enveloppe** le bouton — motif du dépliant accessible ; l'ordre devient statut puis item |
+| Détail d'un plan | le titre du panneau d'édition, sous le nom du plan | `<h3>` → `<h2>` |
+| Recherche biblique | le titre d'une **fenêtre modale** | `<h3>` → `<h2>` |
+
+Aucun changement visuel : le `preflight` de Tailwind remet `font-size`,
+`font-weight` et `margin` des titres à ceux du parent.
+
+**Réserve laissée ouverte** : la fenêtre d'ajout de Recherche biblique n'a ni
+`role="dialog"`, ni `aria-modal`, ni `aria-labelledby`, là où Nouvelle lecture
+les pose sur ses deux boîtes. C'est un autre sujet, qui va avec la question du
+piège de focus, et il est noté dans le fichier plutôt que traité en passant.
+
+### Ce qui a été vu à l'écran, et ce qui ne l'a pas été
+
+Session ouverte par le propriétaire, sur le serveur de développement — donc sur
+la base de production. Aucune écriture : rien n'a été enregistré, et le panneau
+d'édition du plan 3 a été rouvert puis refermé sans rien soumettre.
+
+| Écran | Constat, relevé dans le DOM |
+|---|---|
+| Barre latérale | **19 cibles sur 19 à 48 px ou plus** ; la liste défile toujours, le bloc du bas reste entier |
+| Nouvelle lecture | **0 champ sans nom accessible** ; plan `H1 → H2 ×3` |
+| Mes lectures | **0 champ sans nom** ; plan `H1 → H2 Filtres → H2 Lectures` |
+| Réglages | **12 listes, 0 sans nom** ; 16 `<h2>` rendus |
+| Verset du jour | `H1 → H2 Le verset → H2 Statistiques` |
+| Feuille de route | `H1 → H2 statut → H3 item` — le saut est fermé |
+| Détail d'un plan | `H1 → H2 Modifier le plan` |
+
+**Non vu, et pour une raison assumée** : le `<h2>` de la fenêtre d'ajout de
+Recherche biblique. L'ouvrir demande de cliquer « ajouter aux lectures » sur un
+résultat, c'est-à-dire de s'engager sur un chemin qui mène à une écriture dans
+les données du propriétaire. Le correctif y est éprouvé par le typage seul.
+
+**Non vu non plus** : rien en arabe, ni en mode sombre. Les quatre clés neuves
+sont traduites dans les cinq langues et l'aller-retour UTF-8 est vérifié, mais
+aucun de ces écrans n'a été repassé en RTL.
