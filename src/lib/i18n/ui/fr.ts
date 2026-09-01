@@ -237,6 +237,10 @@ export const fr = {
     customPrimary: 'Couleur principale',
     customAccent: 'Couleur d’accent',
     pages: 'Pages visibles',
+    homePage: 'Page d’accueil',
+    homePageHint:
+      'L’écran sur lequel tu arrives en ouvrant l’application. Si tu masques '
+      + 'cette page plus bas, tu reviendras sur Nouvelle lecture.',
     pagesHint:
       'Choisis les pages à garder dans le menu. Réglages et Nouvelle lecture '
       + 'restent toujours accessibles.',

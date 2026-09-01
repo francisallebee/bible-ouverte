@@ -215,6 +215,10 @@ export const en: Dictionary = {
     customPrimary: 'Main colour',
     customAccent: 'Accent colour',
     pages: 'Visible pages',
+    homePage: 'Home page',
+    homePageHint:
+      'The screen you land on when opening the app. If you hide that page '
+      + 'below, you will land on New reading instead.',
     pagesHint:
       'Choose which pages stay in the menu. Settings and New reading are '
       + 'always available.',

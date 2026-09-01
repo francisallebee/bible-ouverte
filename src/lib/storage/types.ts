@@ -296,6 +296,15 @@ export interface AppSettings {
   /** Heure du rappel quotidien, au format `HH:MM`. */
   dailyReminderTime?: string;
   /**
+   * La page où l'on arrive en ouvrant l'application.
+   *
+   * Absente = `/new-reading`, le comportement de tous les comptes jusqu'au
+   * 1er septembre 2026. C'est le **middleware** qui la lit, donc le serveur :
+   * elle doit rester un chemin de `PAGES_ACCUEIL` (`lib/accueil.ts`), qui
+   * arbitre aussi le cas d'une page masquée entre-temps.
+   */
+  homePage?: string;
+  /**
    * Le verset du jour déjà tiré, et le jour local pour lequel il l'a été.
    *
    * Sans cette mémoire, le tirage se refaisait à chaque ouverture — et il

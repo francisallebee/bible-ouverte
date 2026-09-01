@@ -28,6 +28,7 @@ import {
   UI_SCALES, DEFAULT_UI_SCALE, READING_SIZES, DEFAULT_READING_SIZE,
   READING_STYLES, DEFAULT_READING_STYLE,
 } from "@/lib/fonts";
+import { ACCUEIL_DEFAUT, PAGES_ACCUEIL } from '@/lib/accueil';
 import {
   HIDEABLE_PAGES, isPageVisible, shouldForceSetup, ordonnerPages, deplacerPage,
 } from "@/lib/setup";
@@ -167,6 +168,17 @@ export default function SettingsPage() {
    * quoi la démasquer plus tard la renverrait en fin de liste.
    */
   const pagesOrdonnees = ordonnerPages(NAV_LINKS, settings?.pageOrder);
+
+  /**
+   * Change la page d'arrivée.
+   *
+   * L'état local est mis à jour plutôt que resynchronisé : `getSettings`
+   * rapporterait l'ancienne valeur tant que la poussée est en vol.
+   */
+  async function changerAccueil(href: string) {
+    await updateSettings({ homePage: href });
+    setSettings((prev) => (prev ? { ...prev, homePage: href } : prev));
+  }
 
   /**
    * Déplace une page d'un cran.
@@ -1000,6 +1012,33 @@ export default function SettingsPage() {
         </SectionCard>
 
         <SectionCard icon={LayoutList} title={t.settings.pages}>
+          {/*
+            La page d'accueil, en tête de cette section parce que c'est le même
+            sujet : ce que le menu contient, et par où l'on y entre. Le choix
+            est relu par `pageAccueil` au moment de la redirection — masquer
+            plus bas la page qu'on a désignée ici ne mène donc pas sur un écran
+            caché, mais sur le défaut.
+          */}
+          <div className="mb-4">
+            <label htmlFor="home-page" className="block text-sm font-medium mb-1.5 text-[--text]">
+              {t.settings.homePage}
+            </label>
+            <select
+              id="home-page"
+              value={settings?.homePage ?? ACCUEIL_DEFAUT}
+              onChange={(e) => changerAccueil(e.target.value)}
+              className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]"
+            >
+              {NAV_LINKS.filter((l) => (PAGES_ACCUEIL as readonly string[]).includes(l.href))
+                .map((lien) => (
+                  <option key={lien.href} value={lien.href}>{lien.label(t)}</option>
+                ))}
+            </select>
+            <p className="text-xs text-[--text-secondary] mt-1.5">
+              {t.settings.homePageHint}
+            </p>
+          </div>
+
           <p className="text-sm text-[--text-secondary] mb-3">
             {t.settings.pagesHint}
           </p>

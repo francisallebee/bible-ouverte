@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { pageAccueil } from '@/lib/accueil'
 
 /**
  * Chemins servis sans session.
@@ -50,8 +51,26 @@ export async function updateSession(request: NextRequest) {
     // prérendue : le middleware a déjà la session sous la main, la page n'a
     // donc aucune raison de la redemander à chaque visite anonyme.
     if (request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/auth')) {
+      // La destination est un réglage depuis le 1er septembre 2026, et non plus
+      // `/new-reading` pour tout le monde.
+      //
+      // La requête est faite **ici seulement**, sur les deux chemins qui
+      // redirigent : c'est le moment d'une connexion ou d'un retour à la
+      // racine, pas une navigation ordinaire. Les autres écrans n'en paient
+      // donc rien, ce qui compte dans un dépôt où le temps de chargement tient
+      // déjà aux appels Supabase.
+      //
+      // Une erreur ou une absence de ligne rend le défaut : un réglage
+      // illisible ne doit pas empêcher d'entrer dans l'application.
+      const { data: reglages } = await supabase
+        .from('settings')
+        .select('data')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      const donnees = (reglages?.data ?? {}) as { homePage?: string; hiddenPages?: string[] }
+
       const url = request.nextUrl.clone()
-      url.pathname = '/new-reading'
+      url.pathname = pageAccueil(donnees.homePage, donnees.hiddenPages ?? [])
       url.search = ''
       return NextResponse.redirect(url)
     }

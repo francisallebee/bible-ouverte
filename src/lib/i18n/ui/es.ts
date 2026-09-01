@@ -225,6 +225,10 @@ export const es: Dictionary = {
     customPrimary: 'Color principal',
     customAccent: 'Color de acento',
     pages: 'Páginas visibles',
+    homePage: 'Página de inicio',
+    homePageHint:
+      'La pantalla a la que llegas al abrir la aplicación. Si ocultas esa '
+      + 'página más abajo, volverás a Nueva lectura.',
     pagesHint:
       'Elige qué páginas quedan en el menú. Ajustes y Nueva lectura siempre '
       + 'están disponibles.',
