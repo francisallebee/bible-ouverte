@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  FlaskConical,
   BookPlus, Search, History, BarChart3,
   BookOpen, Settings, Menu, X, Trophy, LogOut, Shield,
   User, Route, MessageCircle, Heart, Sparkles, Sun, Brain, Mail } from "lucide-react";
@@ -67,6 +68,7 @@ export const NAV_COMPTE: {
 }[] = [
   { href: "/settings", label: (t) => t.nav.settings, icon: Settings },
   { href: "/admin", label: (t) => t.nav.admin, icon: Shield, adminOnly: true },
+  { href: "/avance", label: (t) => t.nav.avance, icon: FlaskConical, adminOnly: true },
 ];
 
 export default function Sidebar(

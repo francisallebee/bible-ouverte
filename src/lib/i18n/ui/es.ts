@@ -63,6 +63,7 @@ export const es: Dictionary = {
     donate: 'Apoyar el proyecto',
     profile: 'Mi perfil',
     admin: 'Administración',
+    avance: 'Funciones avanzadas',
     signOut: 'Cerrar sesión',
     menu: 'Menú',
   },
@@ -849,6 +850,14 @@ export const es: Dictionary = {
     } as Record<string, string>,
   },
 
+  avance: {
+    title: 'Funciones avanzadas',
+    subtitle: 'El banco de pruebas de las próximas funciones',
+    empty: 'Nada en prueba por ahora.',
+    emptyHint:
+      'Esta sección acoge las funciones en prueba, antes de ofrecerse a todos. '
+      + 'Solo tu cuenta puede verla.',
+  },
   admin: {
     tabOverview: 'Resumen',
     tabAcquisition: 'Adquisición',
@@ -1236,6 +1245,14 @@ export const es: Dictionary = {
         body:
           'Reservada a tu cuenta: la lista de usuarios, los mensajes de '
           + 'soporte recibidos y el mantenimiento de la hoja de ruta.',
+        points: [],
+      },
+      avance: {
+        title: 'Funciones avanzadas',
+        body:
+          'El banco de pruebas: las funciones se muestran aquí antes de '
+          + 'ofrecerse a todos. Reservado a tu cuenta, y vacío mientras no haya '
+          + 'nada en prueba.',
         points: [],
       },
       fin: {

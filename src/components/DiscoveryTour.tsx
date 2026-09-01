@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import {
+  FlaskConical,
   BarChart3, Bell, BookOpen, BookPlus, Brain, Check, CloudOff, Compass, Heart,
   History, Mail, MessageCircle, Route, Search, Settings, Shield, Sparkles, Sun,
   Tags, Trophy, User, X,
@@ -49,6 +50,7 @@ const ICONES: Record<TourIcon, React.ComponentType<{ className?: string }>> = {
   heart: Heart,
   user: User,
   shield: Shield,
+  flask: FlaskConical,
   check: Check,
 }
 

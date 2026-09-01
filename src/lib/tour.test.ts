@@ -16,7 +16,7 @@ import { DICTIONARIES } from '@/lib/i18n/ui'
  * latérale doit rejoindre le parcours **et** cette liste.
  */
 const ECRANS_REELS = [
-  '/admin', '/history', '/memorisation', '/messages', '/new-reading', '/plans',
+  '/admin', '/avance', '/history', '/memorisation', '/messages', '/new-reading', '/plans',
   '/profil', '/progress', '/quiz', '/roadmap', '/search', '/settings',
   '/soutenir', '/stats', '/support', '/verset-du-jour',
 ]
@@ -121,8 +121,22 @@ describe('visibleSteps', () => {
     expect(ids).toContain('administration')
   })
 
-  it("ne retire qu'elle", () => {
-    expect(visibleSteps(true).length - visibleSteps(false).length).toBe(1)
+  it("cache les fonctions avancées aux comptes ordinaires", () => {
+    expect(visibleSteps(false).map((s) => s.id)).not.toContain('avance')
+    expect(visibleSteps(true).map((s) => s.id)).toContain('avance')
+  })
+
+  it("ne retire que les étapes réservées, et toutes", () => {
+    // Ce test comptait « 1 » quand l'administration était seule réservée, et
+    // il a donc échoué à l'arrivée des fonctions avancées le 1er septembre
+    // 2026. Il avait raison de s'arrêter : c'est son énoncé qui était trop
+    // étroit. Compter les étapes `adminOnly` plutôt qu'un nombre figé dit
+    // l'intention — le filtre retire celles-là, et rien d'autre — et reste
+    // vrai à la prochaine.
+    const reservees = TOUR_STEPS.filter((s) => s.adminOnly).length
+    expect(reservees).toBeGreaterThan(0)
+    expect(visibleSteps(true).length - visibleSteps(false).length).toBe(reservees)
+    expect(visibleSteps(true).length).toBe(TOUR_STEPS.length)
   })
 })
 

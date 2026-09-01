@@ -55,6 +55,7 @@ export const en: Dictionary = {
     donate: 'Support the project',
     profile: 'My profile',
     admin: 'Administration',
+    avance: 'Advanced features',
     signOut: 'Sign out',
     menu: 'Menu',
   },
@@ -823,6 +824,14 @@ export const en: Dictionary = {
     } as Record<string, string>,
   },
 
+  avance: {
+    title: 'Advanced features',
+    subtitle: 'The test bench for upcoming features',
+    empty: 'Nothing being tried out yet.',
+    emptyHint:
+      'This section hosts features under trial, before they are offered to '
+      + 'everyone. Only your account can see it.',
+  },
   admin: {
     tabOverview: 'Overview',
     tabAcquisition: 'Acquisition',
@@ -1205,6 +1214,14 @@ export const en: Dictionary = {
         body:
           'Reserved for your account: the list of users, the support messages '
           + 'received, and the upkeep of the roadmap.',
+        points: [],
+      },
+      avance: {
+        title: 'Advanced features',
+        body:
+          'The test bench: features appear here before being offered to '
+          + 'everyone. Restricted to your account, and empty while nothing is '
+          + 'being tried out.',
         points: [],
       },
       fin: {

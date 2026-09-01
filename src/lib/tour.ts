@@ -22,7 +22,7 @@ export type TourIcon =
   | 'compass' | 'book-plus' | 'tags' | 'book-open' | 'search' | 'trophy'
   | 'history' | 'chart' | 'sparkles' | 'sun' | 'brain' | 'settings' | 'bell'
   | 'cloud-off' | 'route' | 'mail' | 'message' | 'heart' | 'user' | 'shield'
-  | 'check'
+  | 'flask' | 'check'
 
 export interface TourStep {
   /** Stable : il sert de clé de rendu et d'ancre dans les tests. */
@@ -79,6 +79,7 @@ export const TOUR_STEPS: TourStep[] = [
   { id: 'soutenir', href: '/soutenir', icon: 'heart' },
   { id: 'profil', href: '/profil', icon: 'user' },
   { id: 'administration', href: '/admin', icon: 'shield', adminOnly: true },
+  { id: 'avance', href: '/avance', icon: 'flask', adminOnly: true },
   { id: 'fin', href: null, icon: 'check' },
 ]
 

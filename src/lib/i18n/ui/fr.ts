@@ -64,6 +64,7 @@ export const fr = {
     donate: 'Soutenir le projet',
     profile: 'Mon profil',
     admin: 'Administration',
+    avance: 'Fonctions avancées',
     signOut: 'Déconnexion',
     menu: 'Menu',
   },
@@ -866,6 +867,14 @@ export const fr = {
     } as Record<string, string>,
   },
 
+  avance: {
+    title: 'Fonctions avancées',
+    subtitle: 'Le banc d’essai des fonctions à venir',
+    empty: 'Rien à l’essai pour le moment.',
+    emptyHint:
+      'Cette section accueille les fonctions en cours d’essai, avant qu’elles '
+      + 'soient proposées à tout le monde. Elle n’est visible que de ton compte.',
+  },
   admin: {
     tabOverview: 'Aperçu',
     tabAcquisition: 'Acquisition',
@@ -1250,6 +1259,14 @@ export const fr = {
         body:
           'Réservée à ton compte : la liste des utilisateurs, les messages de '
           + 'support reçus et la tenue de la feuille de route.',
+        points: [],
+      },
+      avance: {
+        title: 'Les fonctions avancées',
+        body:
+          'Le banc d’essai : les fonctions s’y montrent avant d’être proposées '
+          + 'à tout le monde. Réservé à ton compte, et vide tant que rien n’y '
+          + 'est à l’essai.',
         points: [],
       },
       fin: {
