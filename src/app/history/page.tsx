@@ -45,6 +45,15 @@ export default function HistoryPage() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState(false);
   const [bulkContext, setBulkContext] = useState("");
+  /**
+   * Le titre de séance à appliquer en bloc.
+   *
+   * Le pendant du contexte : on pouvait déjà ranger des lectures anciennes
+   * sous un contexte commun, mais rien ne permettait de leur donner après coup
+   * le nom de la séance qui les avait produites — et c'est le cas des 360
+   * lignes antérieures au 31 août 2026, qui n'ont aucun titre.
+   */
+  const [bulkTitle, setBulkTitle] = useState("");
 
   /** L'axe de regroupement. La date reste le défaut : c'est le journal d'un lecteur. */
   const [axe, setAxe] = useState<"date" | "book" | "context">("date");
@@ -319,6 +328,33 @@ export default function HistoryPage() {
   }
 
   /**
+   * Nomme la séance de plusieurs lectures d'un coup.
+   *
+   * Un champ vide **efface** le titre, et c'est voulu : c'est le seul moyen de
+   * défaire un nommage regretté, l'écran de détail ne traitant qu'une ligne à
+   * la fois. Le libellé du bouton dit donc « Appliquer », pas « Nommer ».
+   */
+  async function handleBulkTitle() {
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+
+    const titre = bulkTitle.trim();
+    setBusy(true);
+    for (const readingId of ids) {
+      await updateReading(readingId, { sessionTitle: titre });
+    }
+    // L'état local plutôt qu'une resynchronisation, qui rapporterait l'ancienne
+    // valeur tant que l'écriture distante est en vol.
+    setReadings((prev) =>
+      prev.map((r) =>
+        selected.has(r.id as number) ? { ...r, sessionTitle: titre } : r,
+      ),
+    );
+    setBusy(false);
+    exitSelectMode();
+  }
+
+  /**
    * Seul le contexte est modifiable en bloc. Les autres champs — livre,
    * chapitres, versets — décrivent un passage précis et n'ont pas de sens
    * commun à plusieurs entrées.
@@ -570,13 +606,6 @@ export default function HistoryPage() {
               {t.history.select}
             </button>
           )}
-          <Link
-            href="/new-reading"
-            className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover] no-underline flex items-center gap-1.5"
-          >
-            <BookPlus className="w-4 h-4" />
-            {t.nav.newReading}
-          </Link>
         </div>
       </div>
 
@@ -616,6 +645,28 @@ export default function HistoryPage() {
               className="border border-gray-300 bg-white rounded-lg px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-1.5"
             >
               <Tag className="w-3.5 h-3.5" aria-hidden="true" />
+              {t.history.apply}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="bulk-title" className="sr-only">{t.newReading.nameSession}</label>
+            <input
+              id="bulk-title"
+              type="text"
+              value={bulkTitle}
+              onChange={(e) => setBulkTitle(e.target.value)}
+              placeholder={t.newReading.nameSession}
+              maxLength={80}
+              disabled={busy || selected.size === 0}
+              className="border border-gray-300 bg-white rounded-lg px-2 py-1.5 text-xs disabled:opacity-50 w-36"
+            />
+            <button
+              onClick={handleBulkTitle}
+              disabled={busy || selected.size === 0}
+              className="border border-gray-300 bg-white rounded-lg px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <Layers className="w-3.5 h-3.5" aria-hidden="true" />
               {t.history.apply}
             </button>
           </div>
@@ -716,6 +767,24 @@ export default function HistoryPage() {
         <div className="space-y-2">
           {arbre.map((n) => rendreNoeud(n, 0))}
         </div>
+      )}
+
+      {/*
+        « Nouvelle lecture », sorti du flux comme le bouton d'enregistrement de
+        la page de saisie. Il vivait en tête d'écran : sur une liste de 158
+        lectures, il fallait remonter tout l'historique pour le retrouver.
+        `end-6` et non `right-6` : en arabe, il passe à gauche. `z-20` le place
+        au-dessus de la page et sous les fenêtres, qui doivent le recouvrir.
+        Masqué en mode sélection, où la barre d'actions occupe déjà le geste.
+      */}
+      {!selectMode && (
+        <Link
+          href="/new-reading"
+          className="fixed bottom-6 end-6 z-20 flex items-center gap-2 bg-[--primary] text-white ps-4 pe-5 py-3.5 rounded-full text-sm font-medium hover:bg-[--primary-hover] transition-all active:scale-95 shadow-lg shadow-black/20 no-underline"
+        >
+          <BookPlus className="w-4 h-4 shrink-0" />
+          {t.nav.newReading}
+        </Link>
       )}
     </div>
   );

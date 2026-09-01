@@ -3,7 +3,9 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink, X, Play, Square } from "lucide-react";
+import {
+  ExternalLink, X, Play, Square, Link as LinkIcon, ImageIcon, Camera, Upload, Music,
+} from "lucide-react";
 import {
   seedIfNeeded,
   getReadingById,
@@ -14,7 +16,9 @@ import {
   updateReading,
   deleteReading,
 } from "@/lib/storage";
-import type { ReadingEntry, BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
+import type {
+  ReadingEntry, BibleVersion, BiblePassage, ReadingContext, ReadingLink,
+} from "@/lib/storage";
 
 import { getBook } from "@/features/bible";
 import { versetsAProposer } from "@/features/bible/versets";
@@ -22,6 +26,8 @@ import { useI18n, useBookName, useBooks, useContextName } from "@/contexts/I18nC
 import { formatDate } from "@/lib/i18n/format";
 import { textDirection } from "@/lib/i18n/locales";
 import ContextPicker from "@/components/ContextPicker";
+import AudioRecorder from "@/components/AudioRecorder";
+import { resizeImage } from "@/lib/image-utils";
 
 export default function ReadingDetailPage() {
   const { t, locale } = useI18n();
@@ -51,6 +57,17 @@ export default function ReadingDetailPage() {
   const [editVersionId, setEditVersionId] = useState("");
   const [editContextId, setEditContextId] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  // Ce que l'écran ne savait pas modifier : le titre de séance, les liens, les
+  // photos et l'audio. Une lecture s'éditait donc à moitié — on pouvait tout
+  // saisir à la création, et corriger seulement une partie ensuite.
+  const [editSessionTitle, setEditSessionTitle] = useState("");
+  const [editLinks, setEditLinks] = useState<ReadingLink[]>([]);
+  const [editPhotos, setEditPhotos] = useState<string[]>([]);
+  const [editAudio, setEditAudio] = useState<string | undefined>();
+  const [editLinkUrl, setEditLinkUrl] = useState("");
+  const [editLinkTitle, setEditLinkTitle] = useState("");
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -111,6 +128,12 @@ export default function ReadingDetailPage() {
     setEditVersionId(reading.translationId);
     setEditContextId(reading.contextId ?? "");
     setEditNotes(reading.notes);
+    setEditSessionTitle(reading.sessionTitle ?? "");
+    setEditLinks(reading.links ?? []);
+    setEditPhotos(reading.photos ?? []);
+    setEditAudio(reading.audio || undefined);
+    setEditLinkUrl("");
+    setEditLinkTitle("");
     setIsEditing(true);
   }
 
@@ -126,6 +149,10 @@ export default function ReadingDetailPage() {
       translationId: editVersionId,
       contextId: editContextId,
       notes: editNotes,
+      sessionTitle: editSessionTitle.trim(),
+      links: editLinks.length > 0 ? editLinks : undefined,
+      photos: editPhotos.length > 0 ? editPhotos : undefined,
+      audio: editAudio || undefined,
     });
     setIsEditing(false);
     const updated = await getReadingById(id);
@@ -139,6 +166,34 @@ export default function ReadingDetailPage() {
         results.push(...chPassages);
       }
       setPassages(results);
+    }
+  }
+
+  function addEditLink() {
+    if (!editLinkUrl.trim()) return;
+    setEditLinks((prev) => [
+      ...prev,
+      { url: editLinkUrl.trim(), title: editLinkTitle.trim() || editLinkUrl.trim() },
+    ]);
+    setEditLinkUrl("");
+    setEditLinkTitle("");
+  }
+
+  async function handleEditFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    for (const file of Array.from(files)) {
+      setEditPhotos((prev) => [...prev, ""]);
+      const dataUrl = await resizeImage(file, 640, 640);
+      // Remplacer le jeton posé plus haut : deux fichiers choisis ensemble
+      // arrivent dans un ordre que rien ne garantit, et un simple `push`
+      // aurait pu les intervertir.
+      setEditPhotos((prev) => {
+        const i = prev.indexOf("");
+        if (i === -1) return [...prev, dataUrl];
+        const copie = [...prev];
+        copie[i] = dataUrl;
+        return copie;
+      });
     }
   }
 
@@ -303,6 +358,95 @@ export default function ReadingDetailPage() {
               rows={3}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none"
             />
+          </div>
+          <div>
+            <label htmlFor="edit-session" className="block text-sm font-medium mb-1">
+              {t.newReading.nameSession}
+            </label>
+            <input
+              id="edit-session"
+              type="text"
+              value={editSessionTitle}
+              onChange={(e) => setEditSessionTitle(e.target.value)}
+              placeholder={t.newReading.nameSessionPlaceholder}
+              maxLength={80}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 flex items-center gap-1.5">
+              <LinkIcon className="w-4 h-4 text-blue-500" /> {t.newReading.links}
+            </label>
+            {editLinks.length > 0 && (
+              <ul className="space-y-1.5 mb-2">
+                {editLinks.map((lien, i) => (
+                  <li key={i} className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
+                    <span className="flex-1 min-w-0 truncate text-sm">{lien.title}</span>
+                    <button type="button" onClick={() => setEditLinks((p) => p.filter((_, j) => j !== i))}
+                      aria-label={t.newReading.removeLink}
+                      className="shrink-0 text-gray-500 hover:text-gray-900 transition-colors">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <input type="text" value={editLinkTitle} onChange={(e) => setEditLinkTitle(e.target.value)}
+              placeholder={t.newReading.linkTitlePlaceholder}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-1.5" />
+            <div className="flex gap-2">
+              <input type="url" value={editLinkUrl} onChange={(e) => setEditLinkUrl(e.target.value)}
+                placeholder="https://…"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <button type="button" onClick={addEditLink} aria-label={t.newReading.addLink}
+                className="shrink-0 bg-blue-500 text-white rounded-lg px-3 hover:bg-blue-600 transition-colors">
+                +
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 flex items-center gap-1.5">
+              <Music className="w-4 h-4 text-purple-500" /> {t.newReading.audio}
+            </label>
+            <AudioRecorder value={editAudio} onChange={setEditAudio} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 flex items-center gap-1.5">
+              <ImageIcon className="w-4 h-4 text-green-500" /> {t.newReading.photos}
+            </label>
+            <div className="flex gap-2 mb-2">
+              <button type="button" onClick={() => cameraRef.current?.click()}
+                className="flex items-center gap-1.5 border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50 transition-colors">
+                <Camera className="w-4 h-4" /> {t.newReading.camera}
+              </button>
+              <button type="button" onClick={() => galleryRef.current?.click()}
+                className="flex items-center gap-1.5 border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50 transition-colors">
+                <Upload className="w-4 h-4" /> {t.newReading.gallery}
+              </button>
+            </div>
+            {/* `capture` n'a de sens que sur le bouton Appareil : c'est lui qui
+                ouvre la caméra du téléphone plutôt que le sélecteur de fichiers. */}
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment"
+              className="hidden" onChange={(e) => handleEditFiles(e.target.files)} />
+            <input ref={galleryRef} type="file" accept="image/*" multiple
+              className="hidden" onChange={(e) => handleEditFiles(e.target.files)} />
+            {editPhotos.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {editPhotos.filter(Boolean).map((photo, i) => (
+                  <div key={i} className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square">
+                    <img src={photo} alt="" width="640" height="640" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => setEditPhotos((p) => p.filter((_, j) => j !== i))}
+                      aria-label={t.newReading.removePhoto}
+                      className="absolute top-1 end-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className="flex gap-3">
             <button
