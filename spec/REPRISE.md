@@ -581,6 +581,7 @@ interrompu avant la fin. Les previews passent par git.
 | Contrainte sur `roadmap_items.status` | **aucune** : un statut neuf ne demande pas de migration, seulement du typage, une couleur et cinq traductions | 1er sept. |
 | Cause de l'instabilité du verset du jour | le **diviseur** : `condense(jour) % matiere.length`, et marquer le verset « lu » enregistre une lecture — il se déplaçait lui-même | 1er sept. |
 | Archivage d'un message, exercé | passé en Archivés et confirmé en base à 08:14:22 UTC, puis désarchivé — base rendue à **0 archivé, 0 supprimé sur 244** | 1er sept. |
+| Tickets support | **20, tous clos** — le 25 fermé le 1er septembre à 07:02:49 UTC, une réponse ; plus aucun ouvert | 1er sept. |
 | `readings` après la migration du titre | **360 lignes sur 360** à `sessionTitle` nul, aucune reprise de données ; la colonne porte bien `INSERT, SELECT, UPDATE` pour `anon` et `authenticated` | 31 août |
 | Lectures du propriétaire dans la journée | **347 → 360** : les essais d'enregistrement de la séance à plusieurs passages ont abouti, dont une séance de **12 passages** le 30 août | 31 août |
 | `bg-[--primary-light]` en mode sombre | **reste clair quelle que soit la charte** : `applyTheme()` pose la variable en style **inline** sur `<html>`, ce qui bat la règle `html.dark` qui la remapperait en `#1a2840` | 31 août |
@@ -1753,6 +1754,14 @@ son doublon par courriel couvrent tout le monde.
   demandée se signale, même sans conséquence.
 
 ## La séance du 31 août 2026 : le ticket 25
+
+> **Clos le 1er septembre 2026 à 07:02:49 UTC, par le propriétaire du dépôt**,
+> qui a répondu lui-même à Francis M. L'agent avait rédigé une réponse et ne
+> l'a pas écrite : écrire dans `replies` déclenche une notification
+> `support-reply`, et un message à un utilisateur ne part pas sans accord.
+> C'est le premier défaut de ce dépôt signalé par un utilisateur, et le premier
+> dont le cycle complet — signalement, mesure, correctif, déploiement, réponse
+> — se soit refermé.
 
 Le premier défaut de ce dépôt **signalé par un utilisateur** plutôt que trouvé
 par l'agent ou par le propriétaire. Francis M l'ouvre le 30 août à 16:31 UTC :
