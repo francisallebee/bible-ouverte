@@ -577,6 +577,10 @@ interrompu avant la fin. Les previews passent par git.
 | Le panneau de séance vu à l'écran | **par l'agent, session ouverte par le propriétaire** : Proverbes 18 rend 24 boutons, « Tout le chapitre » donne `Proverbes 18:1-24`, deux passages au panneau, croix et pluriel du bouton | 31 août |
 | Droits sur `readings`, au niveau table | **`SELECT, INSERT, UPDATE, DELETE`** — contrairement à `profiles`, qui n'a que `SELECT` : une colonne neuve y est couverte d'office, la règle 2 ne s'y applique pas | 31 août |
 | Points de création d'une lecture | **cinq**, et non trois : Nouvelle lecture, recherche biblique, verset du jour, cochage d'un jour de plan, et un test — tous trouvés par `tsc`, aucun par relecture | 31 août |
+| Droits d'écriture, table par table | **rien ne se généralise** : `readings` a l'`UPDATE` au niveau table, `messages` et `profiles` non — ces deux-là exigent un `grant update (…)` par colonne ajoutée | 1er sept. |
+| Contrainte sur `roadmap_items.status` | **aucune** : un statut neuf ne demande pas de migration, seulement du typage, une couleur et cinq traductions | 1er sept. |
+| Cause de l'instabilité du verset du jour | le **diviseur** : `condense(jour) % matiere.length`, et marquer le verset « lu » enregistre une lecture — il se déplaçait lui-même | 1er sept. |
+| Archivage d'un message, exercé | passé en Archivés et confirmé en base à 08:14:22 UTC, puis désarchivé — base rendue à **0 archivé, 0 supprimé sur 244** | 1er sept. |
 | `readings` après la migration du titre | **360 lignes sur 360** à `sessionTitle` nul, aucune reprise de données ; la colonne porte bien `INSERT, SELECT, UPDATE` pour `anon` et `authenticated` | 31 août |
 | Lectures du propriétaire dans la journée | **347 → 360** : les essais d'enregistrement de la séance à plusieurs passages ont abouti, dont une séance de **12 passages** le 30 août | 31 août |
 | `bg-[--primary-light]` en mode sombre | **reste clair quelle que soit la charte** : `applyTheme()` pose la variable en style **inline** sur `<html>`, ce qui bat la règle `html.dark` qui la remapperait en `#1a2840` | 31 août |
@@ -2176,3 +2180,93 @@ affiché en tête de groupe et trié dans sa journée. Le vérifier demandait
 d'enregistrer une vraie séance dans ses données ; il a préféré s'en tenir là.
 Le maillon est donc éprouvé par huit tests et par le typage, pas par l'écran —
 et c'est exactement le genre de chose que ce document existe pour dire.
+
+## Les cinq demandes du 1er septembre 2026
+
+Cinq modifications d'un coup, dont deux touchant la base. Ce qu'elles ont appris
+dépasse chacune d'elles.
+
+### Rien ne se généralise sur les droits d'écriture
+
+Trois tables, trois vérifications, deux réponses opposées **en deux jours** :
+
+| Table | `UPDATE` au niveau table | Conséquence pour une colonne neuve |
+|---|---|---|
+| `readings` | oui | couverte d'office — aucun `grant` à écrire |
+| `profiles` | non | `grant update (…)` obligatoire (règle 2) |
+| `messages` | non | `grant update (…)` obligatoire |
+
+La veille, la mesure sur `readings` avait conclu qu'aucun `grant` n'était
+nécessaire, et c'était juste. Le lendemain, la même question sur `messages` a
+donné l'inverse. **La règle 2 n'est donc pas « toujours » ni « jamais » : elle
+est « à vérifier », et la vérification tient en une requête** sur
+`information_schema.table_privileges` — jamais sur `column_privileges`, qui
+décompose un grant de table en autant de lignes que de colonnes et montre donc
+la même chose dans les deux cas.
+
+L'enjeu n'est pas théorique : sans le grant, l'écriture échoue **sans message
+exploitable**. C'est ce qui rend ce piège coûteux, et pourquoi l'archivage a été
+exercé pour de vrai plutôt que supposé.
+
+### Le verset du jour se déplaçait lui-même
+
+Son tirage est déterministe depuis l'origine, et le module le dit en toutes
+lettres. Mais il vaut `condense(jour) % matiere.length`, et la matière vient des
+lectures de l'utilisateur : **toute lecture enregistrée change la longueur, donc
+le reste, donc le verset**. Or marquer le verset « lu » enregistre une lecture.
+
+Le défaut était auto-référentiel, et invisible à la lecture du module : celui-ci
+est correct. C'est le contrat entre le module et son appelant qui ne l'était
+pas — « une matière stable », dit le commentaire de la page, sur une matière qui
+ne l'est pas.
+
+Le choix est désormais retenu dans les réglages, avec le jour pour lequel il
+vaut. Les réglages sont la colonne `jsonb` : ni migration, ni piège des trois
+chemins, et la mémoire se synchronise entre appareils — ce que le module
+promettait sans pouvoir le tenir.
+
+La mémoire n'est suivie que si le verset **existe encore dans la matière** :
+désactiver une version vide le cache de ses versets, et servir une référence
+dont on n'a plus le texte afficherait un cadre vide toute la journée.
+
+### Un statut de feuille de route ne coûte rien à la base
+
+`roadmap_items.status` n'a **aucune contrainte `CHECK`** — vérifié avant
+d'écrire quoi que ce soit. « Suspendu » tient donc dans le typage, l'ordre
+d'affichage, une couleur et cinq traductions. Le déclencheur `roadmap-done` ne
+vise que `status = 'done'` : un item suspendu ne notifie personne, ce qui est
+l'intention.
+
+L'identifiant est `suspendu` et non `suspended` : il suit `projet`, déjà en
+français, et évite l'homonymie avec `profiles.suspended`, qui désigne un compte
+et non un chantier.
+
+### Une lecture ne s'éditait qu'à moitié
+
+L'écran de détail savait changer la date, le livre, le passage, la version, le
+contexte et les notes — mais ni les liens, ni les photos, ni l'audio, ni le
+titre de séance. On pouvait donc tout saisir à la création et n'en corriger
+qu'une partie ensuite, ce que rien ne signalait.
+
+C'est le pendant du défaut des « trois chemins » : là, un champ ne partait pas
+jusqu'à la base ; ici, quatre champs n'avaient jamais eu de contrôle pour les
+reprendre. **Un formulaire de création plus riche que son formulaire de
+modification est une dette qui ne se voit qu'à l'usage.**
+
+### Ce qui a été vu à l'écran
+
+Session ouverte par le propriétaire, sur le serveur de développement — donc sur
+la base de production.
+
+| Écran | Constat |
+|---|---|
+| Détail d'une lecture | **treize champs**, dont les quatre neufs ; quitté par « Annuler », aucune lecture modifiée |
+| Barre de sélection | le champ « Nommer la séance » à côté du contexte, désactivé tant que rien n'est coché |
+| « Mes lectures » | bouton **flottant** à 24 px du bas et de la droite, masqué en mode sélection |
+| Messages | onglets « Actifs 10 » / « Archivés 0 », deux actions par message |
+| Long message | l'annonce de rentrée du 28 août tient dans **256 px** avec son ascenseur |
+| Archivage | **exercé pour de vrai**, confirmé en base, puis annulé — la base est rendue intacte |
+
+**Non vu** : le statut « Suspendu » à l'écran de la feuille de route, et le
+verset du jour d'un jour à l'autre — ce dernier demanderait d'attendre demain,
+ou de manipuler l'horloge.
