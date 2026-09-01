@@ -12,16 +12,41 @@ import { pageAccueil, PAGES_ACCUEIL, ACCUEIL_DEFAUT } from './accueil'
  * inhabituel vaut mieux que pas de garde-fou. Il casse si le format des entrées
  * change, ce qui est exactement le moment où quelqu'un doit relire ce test.
  */
-function hrefsDuMenu(): string[] {
+function bloc(nom: string, suivant: string): string {
   const source = readFileSync('src/components/Sidebar.tsx', 'utf8')
-  const debut = source.indexOf('export const NAV_LINKS')
-  const fin = source.indexOf('export const NAV_COMPTE')
-  expect(debut, 'NAV_LINKS introuvable dans Sidebar.tsx').toBeGreaterThan(-1)
-  expect(fin, 'NAV_COMPTE introuvable dans Sidebar.tsx').toBeGreaterThan(debut)
+  const debut = source.indexOf(`export const ${nom}`)
+  const fin = suivant ? source.indexOf(suivant, debut) : source.length
+  expect(debut, `${nom} introuvable dans Sidebar.tsx`).toBeGreaterThan(-1)
+  expect(fin, `fin de ${nom} introuvable`).toBeGreaterThan(debut)
+  return source.slice(debut, fin)
+}
+
+/** Les entrées du menu principal. */
+function hrefsDuMenu(): string[] {
   // `Array.from` et non l'étalement : `matchAll` rend un itérateur, que `tsc`
   // refuse d'étaler sans `--downlevelIteration` — vitest, lui, laisse passer.
   // C'est le piège 10 du dépôt, sous un autre visage que le `Set`.
-  return Array.from(source.slice(debut, fin).matchAll(/\{ href: "([^"]+)"/g), (m) => m[1])
+  return Array.from(
+    bloc('NAV_LINKS', 'export const NAV_COMPTE').matchAll(/\{ href: "([^"]+)"/g),
+    (m) => m[1],
+  )
+}
+
+/**
+ * Les entrées du bloc du bas restées masquables.
+ *
+ * Feuille de route, Support et Soutenir y sont descendues le 2 septembre 2026
+ * sans cesser d'être des pages ordinaires : elles ont perdu le
+ * réordonnancement, pas la visibilité ni le droit d'être une page d'accueil.
+ * C'est `masquable: true` qui les distingue de Réglages et des écrans réservés.
+ */
+function hrefsMasquablesDuBas(): string[] {
+  return Array.from(
+    bloc('NAV_COMPTE', 'export default function').matchAll(
+      /\{ href: "([^"]+)"[^}]*masquable: true/g,
+    ),
+    (m) => m[1],
+  )
 }
 
 /**
@@ -36,10 +61,21 @@ function hrefsDuMenu(): string[] {
  * garde-fou possible ici.
  */
 describe('les deux listes de pages', () => {
-  it('proposent exactement les écrans du menu principal', () => {
+  it('proposent exactement les écrans ordinaires, des deux blocs', () => {
     const menu = hrefsDuMenu()
+    const basMasquables = hrefsMasquablesDuBas()
     expect(menu.length, 'le menu principal doit avoir des entrées').toBeGreaterThan(5)
-    expect([...PAGES_ACCUEIL].sort()).toEqual([...menu].sort())
+    expect(basMasquables.length, 'le bloc du bas doit porter ses masquables').toBe(3)
+    expect([...PAGES_ACCUEIL].sort()).toEqual([...menu, ...basMasquables].sort())
+  })
+
+  it('portent les trois pages descendues sous Réglages', () => {
+    // Elles ont changé de bloc le 2 septembre 2026 ; les retirer du choix
+    // d'accueil aurait été un effet de bord, pas une décision.
+    for (const href of ['/roadmap', '/support', '/soutenir']) {
+      expect(PAGES_ACCUEIL).toContain(href)
+      expect(hrefsDuMenu(), `${href} a quitté le menu principal`).not.toContain(href)
+    }
   })
 
   it('ne proposent aucun écran de compte', () => {
@@ -91,5 +127,45 @@ describe('pageAccueil', () => {
     // pas dépendre de cette promesse : il vaut mieux un écran caché qu'une
     // redirection vers rien.
     expect(pageAccueil('/quiz', ['/quiz', ACCUEIL_DEFAUT])).toBe(ACCUEIL_DEFAUT)
+  })
+})
+
+/**
+ * Les chemins par lesquels on entre dans l'application.
+ *
+ * Le réglage a été livré le 1er septembre 2026 et **n'a rien changé pour son
+ * demandeur**, qui a signalé le lendemain que l'application revenait toujours
+ * sur Nouvelle lecture. La cause : le middleware ne décide que sur `/` et
+ * `/auth/*`, et **quatre chemins ne passaient pas par là** — le `start_url` du
+ * manifeste, que la PWA rouvre directement ; la redirection après connexion ;
+ * celle du lien de confirmation ; et le logo de la barre latérale.
+ *
+ * L'essai qui avait validé la fonction naviguait explicitement vers `/` : il
+ * n'a donc prouvé que le chemin qu'il avait traversé. C'est « un `200` ne
+ * prouve que ce qu'il a traversé », transposé à une redirection.
+ *
+ * Ces tests-ci veillent sur les chemins, pas sur la règle : ils lisent les
+ * sources, comme celui du menu plus haut, et pour la même raison.
+ */
+describe('les chemins d’entrée', () => {
+  it('le manifeste ouvre la racine, pas un écran nommé', () => {
+    // `start_url` est ce que la PWA ouvre depuis l'écran d'accueil, sans jamais
+    // passer par le middleware si on y nomme une page.
+    const manifeste = JSON.parse(readFileSync('public/manifest.json', 'utf8'))
+    expect(manifeste.start_url).toBe('/')
+  })
+
+  it('la connexion et le lien de confirmation laissent décider le middleware', () => {
+    for (const fichier of ['src/app/auth/login/page.tsx', 'src/app/auth/callback/page.tsx']) {
+      const source = readFileSync(fichier, 'utf8')
+      const pousses = Array.from(source.matchAll(/router\.(?:push|replace)\('([^']+)'\)/g), (m) => m[1])
+      expect(pousses, `${fichier} ne doit pousser aucun écran nommé`)
+        .not.toContain(ACCUEIL_DEFAUT)
+    }
+  })
+
+  it('le logo de la barre latérale suit le réglage', () => {
+    const source = readFileSync('src/components/Sidebar.tsx', 'utf8')
+    expect(source, 'le logo doit appeler pageAccueil').toContain('href={pageAccueil(')
   })
 })

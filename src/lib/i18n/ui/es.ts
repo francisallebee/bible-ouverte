@@ -229,6 +229,7 @@ export const es: Dictionary = {
     homePageHint:
       'La pantalla a la que llegas al abrir la aplicación. Si ocultas esa '
       + 'página más abajo, volverás a Nueva lectura.',
+    pagesUnderSettings: 'Colocadas bajo Ajustes, en orden fijo:',
     pagesHint:
       'Elige qué páginas quedan en el menú. Ajustes y Nueva lectura siempre '
       + 'están disponibles.',

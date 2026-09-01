@@ -14,6 +14,7 @@ import { APP_VERSION } from "@/lib/version";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useT } from "@/contexts/I18nContext";
+import { pageAccueil } from '@/lib/accueil'
 import type { Dictionary } from "@/lib/i18n/ui/fr";
 import { isPageVisible, ordonnerPages } from "@/lib/setup";
 
@@ -37,10 +38,7 @@ export const NAV_LINKS: {
   { href: "/quiz", label: (t) => t.nav.quiz, icon: Sparkles },
   { href: "/verset-du-jour", label: (t) => t.nav.versetDuJour, icon: Sun },
   { href: "/memorisation", label: (t) => t.nav.memorisation, icon: Brain },
-  { href: "/roadmap", label: (t) => t.nav.roadmap, icon: Route },
   { href: "/messages", label: (t) => t.nav.messages, icon: Mail },
-  { href: "/support", label: (t) => t.nav.support, icon: MessageCircle },
-  { href: "/soutenir", label: (t) => t.nav.donate, icon: Heart },
   // `/profil` n'est PAS dans cette liste : le bloc du bas de la barre —
   // avatar, nom, puis déconnexion — y mène déjà. Deux entrées vers le même
   // écran encombraient un menu qui débordait déjà de l'écran.
@@ -65,14 +63,30 @@ export const NAV_COMPTE: {
   label: (t: Dictionary) => string
   icon: React.ComponentType<{ className?: string }>
   adminOnly?: boolean
+  /**
+   * Masquable depuis les Réglages, malgré sa place dans ce bloc.
+   *
+   * Le bloc du bas était tout entier fixe : Réglages ne peut pas se masquer
+   * sans rendre tout réglage irréversible, et les écrans réservés n'ont pas à
+   * l'être. Les trois pages descendues ici le 2 septembre 2026 sont d'une autre
+   * nature — ordinaires, accessibles à tous, et masquables depuis toujours.
+   * Les fixer sous Réglages ne devait pas leur retirer cette propriété : elles
+   * perdent le réordonnancement, ce qui est le sens même de les fixer, et rien
+   * d'autre.
+   */
+  masquable?: boolean
 }[] = [
   { href: "/settings", label: (t) => t.nav.settings, icon: Settings },
+  { href: "/roadmap", label: (t) => t.nav.roadmap, icon: Route, masquable: true },
+  { href: "/support", label: (t) => t.nav.support, icon: MessageCircle, masquable: true },
+  { href: "/soutenir", label: (t) => t.nav.donate, icon: Heart, masquable: true },
   { href: "/admin", label: (t) => t.nav.admin, icon: Shield, adminOnly: true },
   { href: "/avance", label: (t) => t.nav.avance, icon: FlaskConical, adminOnly: true },
 ];
 
 export default function Sidebar(
-  { hiddenPages, pageOrder }: { hiddenPages?: string[]; pageOrder?: string[] },
+  { hiddenPages, pageOrder, homePage }:
+  { hiddenPages?: string[]; pageOrder?: string[]; homePage?: string },
 ) {
   const pathname = usePathname();
   const router = useRouter();
@@ -140,7 +154,14 @@ export default function Sidebar(
           open ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
         } lg:translate-x-0`}
       >
-        <Link href="/new-reading" onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2 shrink-0">
+        {/*
+          Le logo mène à la page d'accueil choisie, et non plus à
+          `/new-reading` en dur : c'était l'un des quatre chemins qui
+          contournaient le réglage. `pageAccueil` relit le choix plutôt que de
+          lui faire confiance — une page masquée depuis ne doit pas devenir un
+          cul-de-sac au clic sur le logo.
+        */}
+        <Link href={pageAccueil(homePage, hiddenPages ?? [])} onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2 shrink-0">
           <img src="/logo.svg" alt="Logo" width="28" height="28" className="w-7 h-7" />
           <span>Bible Ouverte</span>
         </Link>
@@ -210,6 +231,9 @@ export default function Sidebar(
 
             {NAV_COMPTE
               .filter(l => !l.adminOnly || isAdmin)
+              // Les trois pages descendues sous Réglages restent masquables :
+              // elles ont perdu le réordonnancement, pas la visibilité.
+              .filter(l => !l.masquable || isPageVisible(l.href, hiddenPages))
               .map(({ href, label, icon: Icon }) => {
                 const active = pathname === href || pathname.startsWith(href + "/");
                 return (

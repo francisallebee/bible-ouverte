@@ -241,6 +241,7 @@ export const fr = {
     homePageHint:
       'L’écran sur lequel tu arrives en ouvrant l’application. Si tu masques '
       + 'cette page plus bas, tu reviendras sur Nouvelle lecture.',
+    pagesUnderSettings: 'Rangées sous Réglages, sans ordre modifiable :',
     pagesHint:
       'Choisis les pages à garder dans le menu. Réglages et Nouvelle lecture '
       + 'restent toujours accessibles.',

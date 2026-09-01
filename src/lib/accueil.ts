@@ -22,10 +22,15 @@ export const ACCUEIL_DEFAUT = '/new-reading'
 /**
  * Les pages qu'on peut désigner comme accueil.
  *
- * Ce sont les écrans de lecture — ceux de `NAV_LINKS` —, et pas les écrans de
- * compte : arriver sur Réglages ou sur l'Administration en ouvrant
- * l'application n'aurait pas de sens, et une page réservée laisserait un compte
- * ordinaire devant un refus d'accès à chaque ouverture.
+ * **Toutes les pages ordinaires**, et pas seulement celles du menu principal.
+ * Feuille de route, Support et Soutenir sont descendues sous Réglages le
+ * 2 septembre 2026, mais elles restent des écrans comme les autres : rien ne
+ * justifie d'interdire d'arriver sur la Feuille de route.
+ *
+ * Ce qui en est exclu, ce sont les écrans de **configuration** — arriver sur
+ * Réglages ou sur son Profil en ouvrant l'application n'aurait pas de sens — et
+ * les écrans **réservés**, qui laisseraient un compte ordinaire devant un refus
+ * d'accès à chaque ouverture.
  */
 export const PAGES_ACCUEIL: readonly string[] = [
   '/new-reading',
@@ -37,8 +42,9 @@ export const PAGES_ACCUEIL: readonly string[] = [
   '/quiz',
   '/verset-du-jour',
   '/memorisation',
-  '/roadmap',
   '/messages',
+  // Sous Réglages depuis le 2 septembre 2026, et toujours choisissables.
+  '/roadmap',
   '/support',
   '/soutenir',
 ]

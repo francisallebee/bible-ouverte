@@ -219,6 +219,7 @@ export const en: Dictionary = {
     homePageHint:
       'The screen you land on when opening the app. If you hide that page '
       + 'below, you will land on New reading instead.',
+    pagesUnderSettings: 'Filed under Settings, in a fixed order:',
     pagesHint:
       'Choose which pages stay in the menu. Settings and New reading are '
       + 'always available.',

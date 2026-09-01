@@ -3,7 +3,7 @@
   "short_name": "BibleOuverte",
   "description": "Suivi de lectures bibliques hors ligne",
   "id": "/",
-  "start_url": "/new-reading",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",

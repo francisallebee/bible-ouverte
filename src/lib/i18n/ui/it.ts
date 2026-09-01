@@ -229,6 +229,7 @@ export const it: Dictionary = {
     homePageHint:
       'La schermata su cui arrivi aprendo l’applicazione. Se nascondi quella '
       + 'pagina più sotto, tornerai a Nuova lettura.',
+    pagesUnderSettings: 'Collocate sotto Impostazioni, in ordine fisso:',
     pagesHint:
       'Scegli quali pagine restano nel menu. Impostazioni e Nuova lettura '
       + 'sono sempre disponibili.',

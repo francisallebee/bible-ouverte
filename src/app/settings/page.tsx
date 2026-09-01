@@ -17,7 +17,7 @@ import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion, ReadingPlan } from "@/lib/storage";
 import { COLOR_THEMES, applyColorTheme, applyTheme, CUSTOM_THEME_ID, DEFAULT_CUSTOM } from "@/lib/themes";
-import { NAV_LINKS } from "@/components/Sidebar";
+import { NAV_LINKS, NAV_COMPTE } from "@/components/Sidebar";
 import {
   normaliserObjectif, PORTEE_PAR_DEFAUT, MOTS_PAR_MINUTE,
   normaliserCible,
@@ -1029,7 +1029,14 @@ export default function SettingsPage() {
               onChange={(e) => changerAccueil(e.target.value)}
               className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]"
             >
-              {NAV_LINKS.filter((l) => (PAGES_ACCUEIL as readonly string[]).includes(l.href))
+              {/*
+                Les deux blocs, et pas le seul menu principal : les trois pages
+                descendues sous Réglages restent choisissables. Filtrer sur
+                `PAGES_ACCUEIL` plutôt que de recopier une liste garde une seule
+                source de vérité, celle que `accueil.test.ts` surveille.
+              */}
+              {[...NAV_LINKS, ...NAV_COMPTE]
+                .filter((l) => (PAGES_ACCUEIL as readonly string[]).includes(l.href))
                 .map((lien) => (
                   <option key={lien.href} value={lien.href}>{lien.label(t)}</option>
                 ))}
@@ -1078,6 +1085,37 @@ export default function SettingsPage() {
               );
             })}
           </div>
+          {/*
+            Les pages descendues sous Réglages le 2 septembre 2026. Elles ont
+            perdu le réordonnancement — c'est le sens de les avoir fixées — mais
+            **pas le masquage** : ce sont des écrans ordinaires, et les faire
+            disparaître de cette liste aurait rendu leur réglage existant
+            irrévocable. Pas de flèches, donc, mais une case.
+          */}
+          {NAV_COMPTE.filter((l) => l.masquable).length > 0 && (
+            <div className="mt-4 pt-3 border-t border-[--border] space-y-1">
+              <p className="text-xs text-[--text-secondary] mb-2">
+                {t.settings.pagesUnderSettings}
+              </p>
+              {NAV_COMPTE.filter((l) => l.masquable).map((lien) => {
+                const visible = isPageVisible(lien.href, settings?.hiddenPages);
+                const Icone = lien.icon;
+                const nom = lien.label(t);
+                return (
+                  <div key={lien.href}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                    <input type="checkbox" checked={visible}
+                      aria-label={nom}
+                      onChange={(e) => basculerPage(lien.href, e.target.checked)}
+                      className="accent-[--primary] w-4 h-4 shrink-0" />
+                    <Icone className="w-4 h-4 text-[--text-secondary] shrink-0" />
+                    <span className="text-sm text-[--text] flex-1 truncate">{nom}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {(settings?.pageOrder?.length ?? 0) > 0 && (
             <button type="button" onClick={retablirOrdre}
               className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[--text-secondary] hover:text-[--primary] hover:bg-[--primary-light] transition-colors">

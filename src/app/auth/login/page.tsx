@@ -43,9 +43,14 @@ function LoginForm() {
       return
     }
 
-    // Vers /new-reading directement : `/` sert la page de présentation, dont le
+    // Vers `/`, et non vers un écran nommé : c'est le middleware qui sait où
+    // ce compte veut arriver, depuis que la page d'accueil est un réglage.
+    // Pousser une destination en dur ici contournait ce choix, et c'était l'un
+    // des quatre chemins qui le rendaient sans effet.
+    // Ancien commentaire, conservé pour la mémoire du raisonnement : `/` sert
+    // la page de présentation, dont le
     // middleware renverrait aussitôt quelqu'un de connecté.
-    router.push('/new-reading')
+    router.push('/')
     router.refresh()
   }
 

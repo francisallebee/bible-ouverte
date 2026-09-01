@@ -14,10 +14,10 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.onAuthStateChange((event) => {
-      // Vers /new-reading directement : `/` sert la page de présentation, dont
+      // Vers `/` : le middleware y lit la page d'accueil choisie. Autrefois
       // le middleware renverrait aussitôt quelqu'un de connecté.
       if (event === 'SIGNED_IN') {
-        router.push('/new-reading')
+        router.push('/')
       }
     })
   }, [router])
