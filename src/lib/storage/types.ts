@@ -229,7 +229,12 @@ export interface RoadmapItem {
   id?: number;
   title: string;
   description: string;
-  status: 'planned' | 'projet' | 'in-progress' | 'done' | 'cancelled';
+  /**
+   * `suspendu` plutôt que `suspended` : ce champ suit `projet`, déjà en
+   * français, et évite l'homonymie avec `profiles.suspended`, qui désigne
+   * tout autre chose — un compte, pas un chantier.
+   */
+  status: 'planned' | 'projet' | 'in-progress' | 'suspendu' | 'done' | 'cancelled';
   reactions?: Record<string, string>;
   createdAt: string;
   updatedAt: string;
@@ -290,6 +295,20 @@ export interface AppSettings {
   notificationTriggers?: Record<string, boolean>;
   /** Heure du rappel quotidien, au format `HH:MM`. */
   dailyReminderTime?: string;
+  /**
+   * Le verset du jour déjà tiré, et le jour local pour lequel il l'a été.
+   *
+   * Sans cette mémoire, le tirage se refaisait à chaque ouverture — et il
+   * changeait, parce qu'il vaut `condense(jour) % matiere.length` et que la
+   * matière vient des lectures de l'utilisateur. Marquer le verset « lu »
+   * enregistre une lecture : le verset se déplaçait donc lui-même, ce qu'un
+   * « verset du jour » ne peut pas faire.
+   *
+   * Vit dans les réglages parce qu'ils sont une colonne `jsonb` poussée en
+   * bloc : ni migration, ni piège des trois chemins — et la mémoire se
+   * synchronise entre appareils, ce qui donne le même verset partout.
+   */
+  versetDuJour?: { jour: string; book: string; chapter: number; verse: number };
   /**
    * Fuseau de l'appareil, en identifiant IANA. Sans lui, « à 7 h » n'a pas de
    * sens côté serveur : les dates de l'application sont des `YYYY-MM-DD` nus.

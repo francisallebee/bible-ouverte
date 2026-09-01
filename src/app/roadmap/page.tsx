@@ -14,6 +14,10 @@ const STATUS_CONFIG: Record<string, { color: string }> = {
   planned: { color: 'text-gray-500 bg-gray-100' },
   projet: { color: 'text-purple-600 bg-purple-50' },
   'in-progress': { color: 'text-blue-600 bg-blue-50' },
+  // `amber-700` et non `amber-600` : la leçon du 19 août sur la pastille de
+  // palier, où `orange-600` sur `orange-50` ne donnait que 3,35 de contraste
+  // et a dû passer à `orange-700` pour atteindre 4,88.
+  suspendu: { color: 'text-amber-700 bg-amber-50' },
   done: { color: 'text-green-600 bg-green-50' },
   cancelled: { color: 'text-red-500 bg-red-50' },
 }
@@ -23,12 +27,13 @@ const STATUS_CONFIG: Record<string, { color: string }> = {
  * ensuite. Il ne suit pas l'ordre de STATUS_CONFIG, qui sert au menu du
  * formulaire.
  */
-const STATUS_ORDER = ['in-progress', 'projet', 'planned', 'done', 'cancelled'] as const
+const STATUS_ORDER = ['in-progress', 'projet', 'planned', 'suspendu', 'done', 'cancelled'] as const
 
 /**
  * Groupes repliés au chargement. Terminé et Annulé n'appellent plus d'action :
  * les replier par défaut est ce qui « gagne de la place », comme le demandait
- * la feuille de route.
+ * la feuille de route. **Suspendu n'en est pas** : un chantier en pause reste
+ * une décision vivante, qu'on doit voir sans la déplier.
  */
 const COLLAPSED_BY_DEFAULT = ['done', 'cancelled']
 

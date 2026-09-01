@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Sun, Check, CalendarDays, Sparkles } from 'lucide-react'
 import {
-  seedIfNeeded, getAllReadings, getEnabledVersions, getSettings,
+  seedIfNeeded, getAllReadings, getEnabledVersions, getSettings, updateSettings,
   recordSession, getSessions, addReading,
 } from '@/lib/storage'
 import type { BiblePassage, GameSession } from '@/lib/storage'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
 import { textDirection } from '@/lib/i18n/locales'
 import { rassemblerVersets } from '@/lib/quiz/matiere'
-import { versetDuJour, degradeDe, jourLocal } from '@/lib/verset-du-jour/choix'
+import { versetStable, degradeDe, jourLocal } from '@/lib/verset-du-jour/choix'
 
 /**
  * Le contexte donné aux lectures nées d'ici.
@@ -51,10 +51,16 @@ export default function VersetDuJourPage() {
       if (version) {
         setVersionId(version)
         setLangueDuTexte(versions.find((v) => v.id === version)?.language ?? 'fr')
-        // Le tirage du jour se fait sur une matière stable : on ne mélange pas
-        // ici, `versetDuJour` trie lui-même avant de choisir.
+        // Le tirage se fait sur une matière triée — `versetStable` s'en charge —
+        // mais surtout il ne se refait pas si le jour a déjà le sien : la
+        // matière grandit à chaque lecture, marquer celle-ci « lu » comprise,
+        // et le verset se déplaçait donc lui-même dans la journée.
         const versets = await rassemblerVersets({ lectures, versionId: version, alea: () => 0.5 })
-        setVerset(versetDuJour(versets, jour))
+        const { verset: choisi, aRetenir } = versetStable(versets, jour, reglages?.versetDuJour)
+        setVerset(choisi)
+        // N'écrire que lorsque le tirage a réellement eu lieu : la mémoire
+        // vaut pour la journée, pas pour chaque ouverture de l'écran.
+        if (aRetenir) await updateSettings({ versetDuJour: aRetenir })
       }
       setChargement(false)
     })()

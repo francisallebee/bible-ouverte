@@ -625,6 +625,7 @@ export const it: Dictionary = {
       planned: 'Pianificato',
       projet: 'Progetto',
       'in-progress': 'In corso',
+      suspendu: 'Sospeso',
       done: 'Completato',
       cancelled: 'Annullato',
     } as Record<string, string>,

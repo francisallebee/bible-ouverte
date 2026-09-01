@@ -52,6 +52,54 @@ export function versetDuJour(versets: BiblePassage[], jour: string): BiblePassag
   return ordonnes[condense(jour) % ordonnes.length];
 }
 
+/** Ce qu'on retient d'un verset pour le retrouver le lendemain matin. */
+export interface VersetRetenu {
+  jour: string;
+  book: string;
+  chapter: number;
+  verse: number;
+}
+
+/**
+ * Le verset du jour, **stable d'une ouverture à l'autre**.
+ *
+ * `versetDuJour` est déterministe, et pourtant le verset changeait dans la
+ * journée. La cause n'est pas le tirage mais son **diviseur** :
+ * `condense(jour) % matiere.length`, où la matière vient des lectures de
+ * l'utilisateur. Toute lecture enregistrée change la longueur, donc le reste,
+ * donc le verset. Et marquer le verset « lu » enregistre une lecture : il se
+ * déplaçait lui-même, ce qu'un « verset du jour » ne peut pas faire.
+ *
+ * La mémoire tranche. Si elle porte le jour courant et que le verset retenu
+ * existe toujours dans la matière, c'est lui — quoi qu'on ait enregistré
+ * depuis. Sinon on tire, et l'appelant retient le résultat.
+ *
+ * **La condition « existe toujours » n'est pas une précaution de style** : une
+ * version désactivée vide le cache de ses versets, et servir une référence
+ * dont on n'a plus le texte afficherait un cadre vide toute la journée.
+ *
+ * Rend le verset et, séparément, ce qu'il faut retenir — `null` quand la
+ * mémoire suffisait, pour n'écrire les réglages que lorsque c'est utile.
+ */
+export function versetStable(
+  versets: BiblePassage[],
+  jour: string,
+  retenu: VersetRetenu | undefined,
+): { verset: BiblePassage | null; aRetenir: VersetRetenu | null } {
+  if (retenu && retenu.jour === jour) {
+    const encore = versets.find(
+      (v) => v.book === retenu.book && v.chapter === retenu.chapter && v.verse === retenu.verse,
+    );
+    if (encore) return { verset: encore, aRetenir: null };
+  }
+  const verset = versetDuJour(versets, jour);
+  if (!verset) return { verset: null, aRetenir: null };
+  return {
+    verset,
+    aRetenir: { jour, book: verset.book, chapter: verset.chapter, verse: verset.verse },
+  };
+}
+
 export interface Degrade {
   /** La valeur CSS complète, prête pour `background-image`. */
   css: string;

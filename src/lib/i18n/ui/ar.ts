@@ -704,6 +704,7 @@ export const ar: Dictionary = {
       planned: 'مُخطَّط',
       projet: 'مشروع',
       'in-progress': 'قيد التنفيذ',
+      suspendu: 'مُعلَّق',
       done: 'مُنجز',
       cancelled: 'مُلغى',
     } as Record<string, string>,

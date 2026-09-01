@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { condense, versetDuJour, degradeDe, jourLocal } from './choix'
+import { condense, versetDuJour, degradeDe, jourLocal, versetStable} from './choix'
 import type { BiblePassage } from '@/lib/storage/types'
 
 const v = (book: string, chapter: number, verse: number): BiblePassage =>
@@ -94,5 +94,61 @@ describe('jour local', () => {
     // donc en pleine soirée pour une partie des lecteurs.
     const soir = new Date(2026, 7, 19, 23, 30)
     expect(jourLocal(soir)).toBe('2026-08-19')
+  })
+})
+
+describe('versetStable', () => {
+  const matiere = [v('GEN', 1, 1), v('JHN', 3, 16), v('PSA', 23, 1), v('PRO', 18, 24)]
+
+  it('garde le verset retenu pour le jour, quoi qu’on ait enregistré depuis', () => {
+    // Le cœur du défaut : marquer le verset « lu » enregistre une lecture, la
+    // matière grandit, et `condense(jour) % length` désignait alors un autre
+    // verset. La mémoire l'emporte sur le tirage.
+    const { verset } = versetStable(
+      [...matiere, v('ROM', 8, 1), v('ACT', 2, 38)],
+      '2026-08-31',
+      { jour: '2026-08-31', book: 'JHN', chapter: 3, verse: 16 },
+    )
+    expect(verset).toMatchObject({ book: 'JHN', chapter: 3, verse: 16 })
+  })
+
+  it('ne réécrit pas la mémoire quand elle a suffi', () => {
+    const { aRetenir } = versetStable(matiere, '2026-08-31',
+      { jour: '2026-08-31', book: 'JHN', chapter: 3, verse: 16 })
+    expect(aRetenir).toBeNull()
+  })
+
+  it('retire un nouveau verset le lendemain', () => {
+    const { verset, aRetenir } = versetStable(matiere, '2026-09-01',
+      { jour: '2026-08-31', book: 'JHN', chapter: 3, verse: 16 })
+    expect(verset).not.toBeNull()
+    expect(aRetenir).toMatchObject({ jour: '2026-09-01' })
+  })
+
+  it('retire quand le verset retenu a disparu de la matière', () => {
+    // Désactiver une version vide le cache de ses versets : servir une
+    // référence dont on n'a plus le texte afficherait un cadre vide.
+    const { verset, aRetenir } = versetStable(matiere, '2026-08-31',
+      { jour: '2026-08-31', book: 'REV', chapter: 22, verse: 21 })
+    expect(verset).not.toBeNull()
+    expect(verset!.book).not.toBe('REV')
+    expect(aRetenir).not.toBeNull()
+  })
+
+  it('tire et demande à retenir quand rien n’est mémorisé', () => {
+    const { verset, aRetenir } = versetStable(matiere, '2026-08-31', undefined)
+    expect(verset).not.toBeNull()
+    expect(aRetenir).toMatchObject({ jour: '2026-08-31', book: verset!.book })
+  })
+
+  it('ne retient rien sans matière', () => {
+    expect(versetStable([], '2026-08-31', undefined)).toEqual({ verset: null, aRetenir: null })
+  })
+
+  it('rend le même verset que le tirage direct, mémoire vide', () => {
+    // La mémoire ne change pas le choix, elle le fige : sans elle, le
+    // comportement d'origine doit être intact.
+    const { verset } = versetStable(matiere, '2026-08-31', undefined)
+    expect(verset).toEqual(versetDuJour(matiere, '2026-08-31'))
   })
 })

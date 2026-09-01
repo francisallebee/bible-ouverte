@@ -636,6 +636,7 @@ export const fr = {
       planned: 'Planifié',
       projet: 'Projet',
       'in-progress': 'En cours',
+      suspendu: 'Suspendu',
       done: 'Terminé',
       cancelled: 'Annulé',
     } as Record<string, string>,
