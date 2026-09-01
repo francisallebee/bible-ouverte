@@ -583,6 +583,7 @@ interrompu avant la fin. Les previews passent par git.
 | Archivage d'un message, exercé | passé en Archivés et confirmé en base à 08:14:22 UTC, puis désarchivé — base rendue à **0 archivé, 0 supprimé sur 244** | 1er sept. |
 | Tickets support | **20, tous clos** — le 25 fermé le 1er septembre à 07:02:49 UTC, une réponse ; plus aucun ouvert | 1er sept. |
 | Page d'accueil au choix, éprouvée | `/history` choisie → `/` mène à `/history` ; la même page **masquée** → `/` ramène à `/new-reading`. Le chaînage réglage → base → middleware tient | 1er sept. |
+| Chemins qui contournaient le réglage d'accueil | **quatre** : `start_url` du manifeste, la connexion, le lien de confirmation, le logo — le middleware ne décide que sur `/` et `/auth/*` | 2 sept. |
 | Coût de ce réglage | **une requête, sur `/` et `/auth/*` seulement** — les deux chemins qui redirigent ; aucune navigation ordinaire n'en paie le prix | 1er sept. |
 | `readings` après la migration du titre | **360 lignes sur 360** à `sessionTitle` nul, aucune reprise de données ; la colonne porte bien `INSERT, SELECT, UPDATE` pour `anon` et `authenticated` | 31 août |
 | Lectures du propriétaire dans la journée | **347 → 360** : les essais d'enregistrement de la séance à plusieurs passages ont abouti, dont une séance de **12 passages** le 30 août | 31 août |
@@ -2366,3 +2367,73 @@ relevé **avant** l'essai. Il portait `/profil` après coup, et le raisonnement 
 qu'il le portait déjà — le clic n'a touché que « Mes lectures » — mais c'est un
 raisonnement, pas une mesure. Relever l'état d'un réglage avant d'y toucher,
 comme on vérifie l'identifiant d'un cobaye avant d'écrire.
+
+## Le 2 septembre : le réglage qui n'avait rien changé
+
+### Quatre chemins, et l'essai n'en avait vu qu'un
+
+Le choix de page d'accueil a été livré le 1er septembre et **n'a rien changé
+pour son demandeur**. Il l'a signalé le lendemain : « lorsque je quitte
+l'application, cela revient à la page initiale ».
+
+Le middleware ne décide que sur `/` et `/auth/*`. Quatre chemins ne passaient
+pas par là :
+
+| Chemin | Ce qu'il faisait |
+|---|---|
+| `manifest.json` | `start_url: "/new-reading"` — la PWA rouvre cette page **directement** |
+| `auth/login` | `router.push('/new-reading')` après connexion |
+| `auth/callback` | idem après le lien de confirmation |
+| Le logo de la barre latérale | `href="/new-reading"` en dur |
+
+Le premier explique le symptôme au mot près : une PWA lancée depuis l'écran
+d'accueil ouvre son `start_url` sans traverser la racine.
+
+**L'essai de la veille naviguait explicitement vers `/`** — c'est-à-dire vers le
+seul chemin qui fonctionnait déjà. Il n'a donc prouvé que ce qu'il avait
+traversé, et il était sincère : la chaîne réglage → base → middleware →
+redirection marchait, sur ce chemin-là.
+
+C'est « un `200` ne prouve que ce qu'il a traversé », transposé à une
+redirection. La leçon qui s'y ajoute : **une fonction qui s'active sur un chemin
+demande l'inventaire de tous ceux qui y mènent.** Un `grep` sur la destination
+en dur — ici `/new-reading` — l'aurait donné en dix secondes, et c'est le geste
+qui manquait. Trois tests veillent désormais sur les quatre chemins.
+
+**Réserve sur le manifeste** : `start_url` est lu par le système à
+l'installation. Un appareil qui a déjà installé la PWA peut garder l'ancienne
+valeur jusqu'à ce qu'il relise le manifeste — délai que ni le dépôt ni l'agent
+ne maîtrisent. Réinstaller le raccourci tranche.
+
+### Trois pages descendues sous Réglages, sans rien perdre d'autre
+
+Feuille de route, Support et Soutenir rejoignent le bloc du bas, entre Réglages
+et les écrans réservés. Le bloc était jusqu'ici **tout entier fixe**, pour deux
+raisons qui ne valent que pour ses occupants d'alors : Réglages ne peut pas se
+masquer sans rendre tout réglage irréversible, et un écran réservé n'a pas à
+l'être.
+
+Ces trois-là sont d'une autre nature — ordinaires, ouvertes à tous, masquables
+depuis toujours. Les fixer ne devait pas leur retirer cette propriété : elles
+perdent le **réordonnancement**, ce qui est le sens même de la demande, et rien
+d'autre. D'où un `masquable` sur `NAV_COMPTE`, et une seconde liste dans les
+Réglages, sans flèches mais avec ses cases.
+
+**Un piège évité de justesse** : le sélecteur de page d'accueil filtrait
+`NAV_LINKS`, d'où les trois venaient de sortir. Elles auraient disparu du choix
+sans que rien ne le signale — ni `tsc`, ni le lint, ni les tests, puisque la
+liste se serait simplement raccourcie. C'est la même famille que la règle 13 :
+deux endroits qui décrivent la même réalité, et l'un qui bouge sans l'autre.
+
+### Une erreur de découpage, à ma charge
+
+`git add -A` a mis **les deux travaux dans un seul commit**, `e569dac`, dont le
+message ne décrit que le correctif de la page d'accueil. Le déplacement des
+trois pages y est aussi, sans être annoncé.
+
+`AGENTS.md` met en garde contre exactement cela, et pour les cinq dictionnaires
+en particulier — ici c'est la totalité de deux demandes qui a fusionné.
+L'historique était déjà poussé quand je l'ai vu ; le réécrire aurait été pire
+que le consigner. **Le geste qui manquait est de nommer les fichiers à
+`git add`, plutôt que de balayer l'arbre**, et il ne coûte rien quand on sait ce
+qu'on vient de toucher.
