@@ -600,6 +600,13 @@ interrompu avant la fin. Les previews passent par git.
 | `<h2>` réellement rendus par Réglages | **16**, quand un `grep` sur le source en compte **1** : `SectionCard` est une source unique rendue quinze fois | 2 sept. |
 | Champs sans `htmlFor` au `grep` | **~64 sur 11 écrans**, contre **10 sur 3** mesurés à l'écran par l'audit — le relevé ignore `aria-label` et les `<label>` englobants | 2 sept. |
 | Coût d'un titre `sr-only` | **1 × 1 px en position absolue** — aucun décalage de mise en page, vérifié par `getComputedStyle` | 2 sept. |
+| Où vont les 3 820 px de Progression | **84 % dans cinq sections de liste** — Succès 836, par contexte 598, par catégorie 550, Détail par livre 466 ; les quatre cartes n'en font que 625, soit 16 % | 2 sept. |
+| Cartes en deux colonnes, effet réel | Progression **3 820 → 3 462 px** (4,70 → 4,26 écrans), Statistiques **2 126 → 1 878** — l'audit promettait « sous trois écrans », ce que la disposition seule ne peut pas rendre | 2 sept. |
+| `text-[--primary]` sur `--surface` en mode sombre | **1,11** de contraste — `#4a1a5e` sur `rgb(30,41,59)`. Le « 141 / 1189 » de Progression est illisible en thème sombre | 2 sept. |
+| Étendue de ce défaut | **87 occurrences dans 29 fichiers** ; toutes ne sont pas sur un fond remappé, mais la cause leur est commune | 2 sept. |
+| Sonde de contrôle du même relevé | le `h1`, lisible à l'œil, mesure **16,30** — l'instrument est bon avant qu'on l'accuse | 2 sept. |
+| Progression et Statistiques en arabe | **premiers écrans internes jamais vus en RTL** : grille inversée, barres remplies depuis la droite, aucun débordement | 2 sept. |
+| « Aller au contenu » | **écrit en dur**, donc français dans les cinq langues — et `focus:left-2`, propriété physique. Seul texte visible échappant aux dictionnaires, parce qu'il ne s'affiche qu'au clavier | 2 sept. |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -2579,3 +2586,133 @@ les données du propriétaire. Le correctif y est éprouvé par le typage seul.
 **Non vu non plus** : rien en arabe, ni en mode sombre. Les quatre clés neuves
 sont traduites dans les cinq langues et l'aller-retour UTF-8 est vérifié, mais
 aucun de ces écrans n'a été repassé en RTL.
+
+## Le 2 septembre, troisième partie : les colonnes, le dialogue, et l'arabe
+
+### Le quatrième correctif de l'audit ne tient pas sa promesse, et la mesure dit pourquoi
+
+L'audit annonçait : « Gain estimé : Progression passe sous trois écrans ». Le
+correctif a été fait, mesuré avant et après, et il ne le rend pas.
+
+| Écran | Avant | Après | Écrans de défilement |
+|---|---|---|---|
+| Progression | 3 820 px | **3 462 px** | 4,70 → 4,26 |
+| Statistiques | 2 126 px | **1 878 px** | 2,62 → 2,31 |
+
+Les deux chiffres de départ reproduisent exactement ceux de l'audit : sur ses
+**relevés**, l'instrument est bon. C'est son **diagnostic** qui ne l'est pas.
+« La cause n'est pas le contenu mais sa disposition », écrivait-il. La
+décomposition dit l'inverse :
+
+| Bloc de Progression | Hauteur | Part |
+|---|---|---|
+| Succès & Récompenses | 836 px | **22 %** |
+| Les quatre cartes | 625 px | 16 % |
+| Progression par contexte | 598 px | 16 % |
+| Progression par catégorie | 550 px | 14 % |
+| Détail par livre | 466 px | 12 % |
+| Testaments | 244 px | 6 % |
+
+**84 % de la hauteur est dans cinq sections de liste.** Deux colonnes ne peuvent
+récupérer que ce que les cartes occupent, soit 358 px sur les 1 384 qu'il
+faudrait pour descendre sous trois écrans. Raccourcir vraiment cet écran suppose
+de traiter les listes — replier, paginer, ou déplacer —, ce qui est une décision
+de produit et non une disposition. **Un gain annoncé sans décomposition du
+budget est une estimation, pas une mesure.**
+
+Corrigé au passage : l'audit disait la carte Niveau « la seule qui porte une
+barre de progression ». La carte Série en porte une aussi, plus ses pastilles de
+palier — c'est même la plus haute des quatre, 194 px contre 130, et c'est elle
+qui fixe la hauteur de la première ligne.
+
+### Le mode sombre a livré pire que ce que l'audit avait mesuré
+
+L'audit avait relevé `--primary-light` resté clair, et un texte gris par-dessus
+à **2,15**. En regardant Progression en thème sombre, le symétrique apparaît, et
+il est plus grave :
+
+| Élément | Couleur | Fond | Contraste |
+|---|---|---|---|
+| `h1` — **sonde de contrôle** | `#f1f5f9` | `#0f172a` | **16,30** |
+| « 14 jours », série | `orange-500` | `#1e293b` | 5,22 |
+| « 1 / 12 », objectif | `green-600` | `#1e293b` | 4,44 |
+| **« 141 / 1189 », chapitres lus** | `text-[--primary]` = `#4a1a5e` | `#1e293b` | **1,11** |
+
+La sonde de contrôle a été posée **avant** de conclure, comme l'audit lui-même
+l'enseigne : un titre parfaitement lisible mesure 16,30, donc l'instrument dit
+vrai. Le « 141 » est bien invisible.
+
+**C'est la même cause que `--primary-light`, retournée.** `applyTheme()` pose
+`--primary` en style inline sur `<html>` ; `html.dark` ne peut donc pas le
+remapper. Sur un fond qui, lui, est remappé en sombre, un texte à `--primary`
+devient illisible. Le correctif du 31 août sur le panneau de séance employait
+justement `text-[--primary]` — et il était juste **là**, sur `bg-[--primary-light]`
+qui reste clair. Les deux règles sont en tension :
+
+| Fond | `text-[--primary]` |
+|---|---|
+| `bg-[--primary-light]` — jamais remappé | **juste**, 11,02 |
+| `bg-[--surface]` — remappé sombre | **1,11** |
+
+Étendue : **87 occurrences dans 29 fichiers**. Toutes ne sont pas sur un fond
+remappé, et aucune n'a été corrigée ici : c'est la même décision de racine que
+`--primary-light`, et elle appartient au propriétaire.
+
+Ce défaut est **antérieur** au passage en deux colonnes ; celui-ci n'a touché
+aucune couleur. Il n'a été trouvé que parce que le mode sombre a été regardé.
+
+### La fenêtre d'ajout de Recherche biblique
+
+La réserve laissée ouverte le matin est levée. Elle porte désormais
+`role="dialog"`, `aria-modal="true"` et `aria-labelledby` désignant son `<h2>` —
+le motif des sept autres fenêtres du dépôt, qu'elle était seule à ne pas suivre.
+Échap la ferme, comme les cinq autres.
+
+**Elle cachait deux champs de plus sans intitulé programmatique**, la date et les
+notes. L'audit ne pouvait pas les compter : il a marché dix écrans, et **une
+fenêtre fermée est invisible à ses deux instruments** — ni le relevé ni la marche
+à l'écran ne l'ouvrent. Le compte de « dix champs » était donc juste pour ce
+qu'il pouvait voir, et incomplet pour l'application.
+
+Vu à l'écran : la fenêtre ouverte porte les trois attributs, ses trois champs
+ont tous un nom, et **Échap la referme par une vraie frappe** — les 71 résultats
+de la recherche restent en place, rien n'a été enregistré.
+
+### L'arabe, et le seul texte qui échappait aux dictionnaires
+
+Progression, Statistiques et Mes lectures ont été vues en arabe. **Ce sont les
+premiers écrans internes de ce dépôt jamais vus en RTL** — jusqu'ici seuls
+`/auth/login` et `/auth/signup`, les deux publics, l'avaient été.
+
+Les fondations tiennent : grilles inversées, barres de progression remplies
+depuis la droite, testaments dans le bon ordre, aucun débordement horizontal, et
+les clés neuves — les deux dates, les deux titres `sr-only` — toutes rendues en
+arabe.
+
+**Et l'arabe a trouvé ce qu'aucun relevé n'aurait vu.** Le lien d'évitement de
+`AppShell.tsx` portait « Aller au contenu » **écrit en dur**, donc français dans
+les cinq langues, et `focus:left-2`, une propriété physique qui l'aurait posé du
+mauvais côté en RTL. C'est le seul texte visible du dépôt qui échappait aux
+dictionnaires, et il y a une raison : **il ne s'affiche qu'au clavier.** Ni un
+relevé sur les accents, ni une marche à l'écran à la souris ne le rencontrent —
+il a fallu lire le texte du corps de la page dans une langue où le français
+saute aux yeux.
+
+### La discipline de l'essai, et son résidu
+
+Le mode sombre a été éprouvé **sans aucune écriture**, en posant la classe
+`dark` à la main : `applyTheme()` pose les mêmes variables de charte dans les
+deux thèmes, si bien que la classe seule reproduit fidèlement la situation.
+
+L'arabe, lui, n'avait pas d'équivalent : changer la langue est une écriture dans
+la colonne `jsonb`. L'état a donc été relevé **avant** — `theme: light`,
+`language: fr`, `homePage: /progress`, `updatedAt` au 1er septembre 10:25:49 —,
+puis restauré et **vérifié après**, identique. Seul l'`updatedAt` a bougé, au
+2 septembre 13:09:57. C'est le seul résidu de la séance, et il est noté.
+
+Incident d'outillage : le panneau Navigateur a expiré sur un clic, sans que le
+clic n'aboutisse. Vérifié par lecture du DOM plutôt que repris à l'aveugle, puis
+contourné par un pilotage en script — ce qui éprouve le rendu, pas le clic, et
+c'est bien le rendu qui était en question. Et **une capture a montré
+« Chargement… » quand le DOM disait la page pleine** : le serveur de
+développement recompilait. Le relevé DOM fait foi, une fois de plus.
