@@ -466,7 +466,12 @@ export default function SearchPage() {
               </div>
             ) : (
               <>
-                <h3 className="font-semibold mb-1">{t.search.addTitle}</h3>
+                {/* `<h2>` : seul titre sous le `<h1>` de la page, il était
+                    en `<h3>`. Réserve à traiter ailleurs : cette fenêtre
+                    n'a ni `role="dialog"`, ni `aria-modal`, ni
+                    `aria-labelledby` — Nouvelle lecture les pose sur ses
+                    deux boîtes, celle-ci non. */}
+                <h2 className="font-semibold mb-1">{t.search.addTitle}</h2>
                 <p className="text-sm text-gray-500 mb-4">
                   {getBookName(addTarget.book)} {addTarget.chapterStart}
                   {addTarget.chapterEnd !== addTarget.chapterStart ? `-${addTarget.chapterEnd}` : ""}

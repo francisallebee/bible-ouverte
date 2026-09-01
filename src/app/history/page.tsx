@@ -692,9 +692,33 @@ export default function HistoryPage() {
         </div>
       )}
 
+      {/*
+        Deux titres `sr-only`, et c'est délibéré.
+
+        L'audit du 2 septembre 2026 relevait que cet écran n'a qu'un `<h1>` :
+        un lecteur d'écran qui parcourt les titres pour se repérer ne trouve
+        rien entre le titre de la page et sa fin. Mais contrairement à Nouvelle
+        lecture, il n'y avait ici **aucun libellé à convertir** — la promesse
+        « ne change pas un pixel » de l'audit ne tenait que là où le texte
+        existait déjà. Créer des titres visibles aurait redécoré un écran que
+        personne n'a demandé à redécorer ; `sr-only` donne les repères sans
+        toucher à l'affichage. Le motif est déjà employé plus haut dans ce
+        fichier, sur les intitulés de la barre de sélection.
+      */}
+      <h2 className="sr-only">{t.history.sectionFilters}</h2>
+
       <div className="flex flex-wrap gap-3 mb-6">
+        {/*
+          Les trois champs de cette barre portent un `aria-label` : aucun n'a
+          de `<label>` auquel accrocher un `htmlFor`, et les deux dates n'ont
+          même pas de nom visible — un `placeholder` sur `<input type="date">`
+          n'est **jamais** rendu, le navigateur y affiche son format. L'audit
+          du 2 septembre les rangeait parmi les champs « qui portent tous un
+          intitulé visible » ; ce n'est vrai que de la recherche.
+        */}
         <input
           type="text"
+          aria-label={t.history.searchPlaceholder}
           placeholder={t.history.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -713,6 +737,7 @@ export default function HistoryPage() {
         </div>
         <input
           type="date"
+          aria-label={t.history.startDate}
           value={dateStart}
           onChange={(e) => setDateStart(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
@@ -720,6 +745,7 @@ export default function HistoryPage() {
         />
         <input
           type="date"
+          aria-label={t.history.endDate}
           value={dateEnd}
           onChange={(e) => setDateEnd(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
@@ -752,6 +778,10 @@ export default function HistoryPage() {
           </button>
         )}
       </div>
+
+      {/* Le second repère : là où les filtres s'arrêtent et où les lectures
+          commencent. `sr-only`, pour la raison exposée plus haut. */}
+      <h2 className="sr-only">{t.history.sectionReadings}</h2>
 
       {filtered.length === 0 ? (
         <div className="text-center py-12">

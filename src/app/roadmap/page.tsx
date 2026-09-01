@@ -177,6 +177,19 @@ export default function RoadmapPage() {
             const panelId = `statut-${key}`
             return (
               <section key={key}>
+                {/*
+                  Le `<h2>` enveloppe le bouton plutôt que de le remplacer :
+                  c'est le motif habituel d'un dépliant accessible, où l'en-tête
+                  reste actionnable tout en existant dans le plan du document.
+                  Sans lui, l'écran passait du `<h1>` au `<h3>` du titre d'item
+                  — un saut de niveau, que l'audit du 2 septembre 2026 n'avait
+                  pas relevé.
+
+                  Aucun changement visuel : le `preflight` de Tailwind remet
+                  `font-size`, `font-weight` et `margin` des titres à ceux du
+                  parent, et toute la mise en forme vit sur le bouton.
+                */}
+                <h2>
                 <button
                   type="button"
                   onClick={() => toggleGroup(key)}
@@ -192,6 +205,7 @@ export default function RoadmapPage() {
                     {t.roadmap.itemCount(groupItems.length)}
                   </span>
                 </button>
+                </h2>
 
                 {isOpen && (
                   <div id={panelId} className="space-y-3">

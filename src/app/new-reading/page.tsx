@@ -440,8 +440,8 @@ export default function NewReadingPage() {
             </button>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.version}</label>
-              <select value={versionId} onChange={(e) => setVersionId(e.target.value)}
+              <label htmlFor="reading-version" className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.version}</label>
+              <select id="reading-version" value={versionId} onChange={(e) => setVersionId(e.target.value)}
                 className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
                 {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
               </select>
@@ -450,25 +450,49 @@ export default function NewReadingPage() {
           </div>
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
-            <label className="block text-sm font-medium mb-2 text-[--text]">{t.newReading.notes}</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
+            {/*
+              « Notes » reste un `<label>` et ne devient pas un `<h2>` :
+              il nomme un champ unique, et non une section. L'audit du
+              2 septembre le rangeait avec « Liens », « Audio » et « Photos »,
+              qui eux n'étiquettent rien — les passer en titres ne coûte donc
+              rien, celui-ci y perdrait son association.
+            */}
+            <label htmlFor="reading-notes" className="block text-sm font-medium mb-2 text-[--text]">{t.newReading.notes}</label>
+            <textarea id="reading-notes" value={notes} onChange={(e) => setNotes(e.target.value)}
               rows={4} placeholder={t.newReading.notesPlaceholder}
               className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] resize-none placeholder:text-gray-400" />
           </div>
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
-            <label className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
+            {/*
+              `<h2>` et non `<label>` : ce texte nomme une section, pas un
+              champ — la section en porte deux. En `<label>` sans `htmlFor` il
+              n'étiquetait rien, et un lecteur d'écran qui parcourt les titres
+              pour se repérer ne trouvait rien entre le `<h1>` et la fin de la
+              page. Les classes sont inchangées : l'écran ne bouge pas d'un
+              pixel. Même chose pour Audio et Photos plus bas.
+            */}
+            <h2 className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
               <LinkIcon className="w-4 h-4 text-blue-500" />
               {t.newReading.links}
-            </label>
+            </h2>
             <div className="space-y-2 mb-2">
+              {/*
+                Les deux champs portent un `aria-label` plutôt qu'un `<label>`
+                visible : le `placeholder` disparaît dès la première frappe, et
+                c'est justement là qu'on cherche à savoir ce qu'on remplit.
+                L'adresse n'avait même pas de `placeholder` traduit — un
+                « https://… » en dur, qui ne nomme rien.
+              */}
               <input type="text" value={linkTitle}
                 onChange={(e) => setLinkTitle(e.target.value)}
+                aria-label={t.newReading.linkTitlePlaceholder}
                 placeholder={t.newReading.linkTitlePlaceholder} className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
               <div className="flex gap-2">
                 <input type="url" value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addLink()}
+                  aria-label={t.newReading.linkUrlLabel}
                   placeholder="https://..." className="flex-1 border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
                 <button onClick={addLink} disabled={!linkUrl.trim()} aria-label={t.newReading.addLink}
                   className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 disabled:opacity-50 flex items-center gap-1 transition-colors shrink-0">
@@ -499,18 +523,18 @@ export default function NewReadingPage() {
           </div>
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
-            <label className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
+            <h2 className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
               <Music className="w-4 h-4 text-purple-500" />
               {t.newReading.audio}
-            </label>
+            </h2>
             <AudioRecorder value={audio} onChange={setAudio} />
           </div>
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
-            <label className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
+            <h2 className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
               <ImageIcon className="w-4 h-4 text-green-500" />
               {t.newReading.photos}
-            </label>
+            </h2>
             <div className="flex flex-wrap gap-2 mb-3">
               <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
                 onChange={(e) => handleFile(e.target.files)} />

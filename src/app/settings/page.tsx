@@ -499,7 +499,20 @@ export default function SettingsPage() {
 
       <div className="space-y-4">
         <SectionCard icon={Languages} title={t.language.title}>
+          {/*
+            `aria-label` et non `htmlFor` : le nom visible de cette liste est le
+            titre de la `SectionCard`, un `<h2>`, et non un `<label>` auquel
+            s'attacher. Le motif `htmlFor`/`id` employé ailleurs dans cet écran
+            n'a donc pas de point d'accroche ici.
+
+            La clé du dictionnaire est la même que celle du titre : il n'y a
+            qu'une source, et une reformulation suit d'elle-même. Sans cet
+            attribut, un lecteur d'écran n'annonce que « menu déroulant ».
+            Relevé par l'audit du 2 septembre 2026 sur trois listes de cet
+            écran — celle-ci, le thème et la déconnexion automatique.
+          */}
           <select
+            aria-label={t.language.title}
             value={locale}
             onChange={(e) => { void setLocale(e.target.value as Locale) }}
             className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] w-full sm:w-auto"
@@ -514,7 +527,9 @@ export default function SettingsPage() {
         </SectionCard>
 
         <SectionCard icon={Sun} title={t.settings.theme}>
+          {/* Même raison qu'à la section Langue : le nom visible est le titre. */}
           <select
+            aria-label={t.settings.theme}
             value={settings?.theme ?? "light"}
             onChange={(e) => handleThemeChange(e.target.value)}
             className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] w-full sm:w-auto"
@@ -993,7 +1008,9 @@ export default function SettingsPage() {
           <p className="text-sm text-[--text-secondary] mb-3">
             {t.settings.autoLogoutHint}
           </p>
+          {/* Même raison qu'à la section Langue : le nom visible est le titre. */}
           <select
+            aria-label={t.settings.autoLogout}
             value={settings?.autoLogoutMinutes ?? 0}
             onChange={(e) => handleAutoLogoutChange(Number(e.target.value))}
             className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] w-full sm:w-auto"

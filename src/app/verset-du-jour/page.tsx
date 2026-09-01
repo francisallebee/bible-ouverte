@@ -138,6 +138,15 @@ export default function VersetDuJourPage() {
         </div>
       ) : (
         <>
+          {/*
+            Deux titres `sr-only`. Cet écran n'avait qu'un `<h1>`, et rien à
+            convertir : contrairement à Nouvelle lecture, aucun libellé ne
+            nommait de section. Des titres visibles auraient chargé un écran
+            volontairement dépouillé ; ceux-ci donnent les repères au lecteur
+            d'écran sans rien afficher. Voir `history/page.tsx`, même choix.
+          */}
+          <h2 className="sr-only">{t.versetDuJour.sectionVerset}</h2>
+
           {/* Le décor se déduit de la référence : le même verset donne toujours
               le même fond, et aucun fichier n'est téléchargé. */}
           <div className="rounded-3xl p-8 sm:p-10 text-white shadow-lg"
@@ -171,6 +180,7 @@ export default function VersetDuJourPage() {
             )}
           </div>
 
+          <h2 className="sr-only">{t.versetDuJour.sectionStats}</h2>
           <div className="grid grid-cols-2 gap-3 mt-6">
             <div className="rounded-xl border border-[--border] bg-[--surface] p-4">
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white bg-gradient-to-br from-amber-400 to-orange-500 mb-2">

@@ -320,7 +320,10 @@ export default function PlanDetailPage() {
 
       {editing && (
         <div className="bg-blue-50 rounded-xl border border-blue-200 p-5 mb-6">
-          <h3 className="font-semibold mb-4">{t.planDetail.editPlan}</h3>
+          {/* `<h2>` : ce panneau est une section de premier rang sous le
+              nom du plan, qui porte le `<h1>`. Il était en `<h3>` — un
+              saut de niveau. Les classes sont inchangées. */}
+          <h2 className="font-semibold mb-4">{t.planDetail.editPlan}</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.name}</label>

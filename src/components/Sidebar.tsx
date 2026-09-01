@@ -161,7 +161,14 @@ export default function Sidebar(
           lui faire confiance — une page masquée depuis ne doit pas devenir un
           cul-de-sac au clic sur le logo.
         */}
-        <Link href={pageAccueil(homePage, hiddenPages ?? [])} onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline pt-2 shrink-0">
+        {/*
+          `py-2.5` et non `pt-2` : le logo est un lien de navigation comme les
+          autres, et il mesurait 36 px — son image de 28 px plus 8 px de haut,
+          rien en bas. C'est la dix-neuvième cible du menu ; l'audit du
+          2 septembre 2026 l'affichait bien à 36 px dans son relevé, mais son
+          correctif ne portait que sur les entrées. 28 + 2 × 10 = 48.
+        */}
+        <Link href={pageAccueil(homePage, hiddenPages ?? [])} onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline py-2.5 shrink-0">
           <img src="/logo.svg" alt="Logo" width="28" height="28" className="w-7 h-7" />
           <span>Bible Ouverte</span>
         </Link>
@@ -184,11 +191,27 @@ export default function Sidebar(
           ).map(({ href, label, icon: Icon }) => {
             const active = pathname === href || (href !== "/" && pathname.startsWith(href));
             return (
+              /*
+                `py-3.5` et non `py-2.5` : la cible tactile passe de 40 à 48 px,
+                le seuil recommandé par Google — Apple s'arrête à 44.
+
+                Ce qui gouverne la hauteur est la **boîte de ligne** de
+                `text-sm`, soit 1,25rem = 20 px, et non la taille de police de
+                14 px. 20 + 2 × 14 = 48. L'audit du 2 septembre 2026 proposait
+                `py-3` en annonçant 48 : il comptait 14 px de texte, et sa
+                proposition atterrissait à 44. Son propre chiffrage du coût —
+                huit pixels par entrée — décrivait pourtant bien `py-3.5`.
+
+                Les trois endroits qui portent `text-sm` sont concernés :
+                cette liste, le bloc du compte et la déconnexion. Le lien de
+                profil, lui, garde `py-2.5` — son avatar de 32 px lui donne
+                déjà 52 px, et l'allonger n'ajouterait que de la hauteur.
+              */
               <Link
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
-                className={`rounded-lg px-3 py-2.5 text-sm transition no-underline flex items-center gap-3 ${
+                className={`rounded-lg px-3 py-3.5 text-sm transition no-underline flex items-center gap-3 ${
                   active
                     ? "bg-[--primary] text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-100"
@@ -241,7 +264,7 @@ export default function Sidebar(
                     key={href}
                     href={href}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mt-0.5 transition-colors no-underline ${
+                    className={`flex items-center gap-3 px-3 py-3.5 rounded-lg text-sm mt-0.5 transition-colors no-underline ${
                       active
                         ? "bg-[--primary] text-white shadow-sm"
                         : "text-gray-600 hover:bg-gray-100"
@@ -255,7 +278,7 @@ export default function Sidebar(
 
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 w-full mt-0.5 transition-colors"
+              className="flex items-center gap-3 px-3 py-3.5 rounded-lg text-sm text-red-500 hover:bg-red-50 w-full mt-0.5 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               {t.nav.signOut}
