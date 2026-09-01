@@ -18,7 +18,7 @@ import type { Message } from '@/lib/messages/messages'
  * version de plus de la base IndexedDB.
  */
 
-const CHAMPS = 'id, user_id, from_admin, subject, body, sent_by_name, read_at, "createdAt"'
+const CHAMPS = 'id, user_id, from_admin, subject, body, sent_by_name, read_at, archived_at, "createdAt"'
 
 function versMessage(ligne: Record<string, any>): Message {
   return {
@@ -29,6 +29,7 @@ function versMessage(ligne: Record<string, any>): Message {
     body: (ligne.body as string) ?? '',
     sentByName: (ligne.sent_by_name as string) ?? '',
     readAt: (ligne.read_at as string | null) ?? null,
+    archivedAt: (ligne.archived_at as string | null) ?? null,
     createdAt: (ligne.createdAt as string) ?? new Date().toISOString(),
   }
 }
@@ -79,6 +80,50 @@ export async function marquerLus(ids: number[]): Promise<void> {
     .from('messages')
     .update({ read_at: new Date().toISOString() })
     .in('id', ids).is('read_at', null)
+}
+
+/**
+ * Archive un message, ou le rend à la boîte active.
+ *
+ * `archived_at` a rejoint `read_at` dans le `grant update` de la table le
+ * 1er septembre 2026, **et il le fallait** : `messages` n'a aucun `UPDATE` au
+ * niveau table — comme `profiles`, contrairement à `readings`. Sans ce grant,
+ * l'écriture aurait échoué sans message exploitable.
+ *
+ * Rend `false` si rien n'a bougé. `.select()` n'est pas décoratif : sous RLS,
+ * une écriture qui ne correspond à aucune ligne réussit en silence.
+ */
+export async function archiverMessage(id: number, archive: boolean): Promise<boolean> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('messages')
+    .update({ archived_at: archive ? new Date().toISOString() : null })
+    .eq('id', id)
+    .select('id')
+  return !error && !!data && data.length > 0
+}
+
+/**
+ * Retire un message de la boîte du destinataire.
+ *
+ * **La ligne n'est pas effacée**, et c'est un choix : elle devient invisible
+ * pour lui, l'administration continue de la lire. Un message envoyé doit
+ * rester retrouvable par qui l'a écrit — c'est la contrepartie exacte du
+ * `kind = 'courriel'`, qui masque dans l'autre sens.
+ *
+ * Le masquage est dans la policy `messages_select`, jamais dans la requête
+ * ci-dessous : un filtre d'affichage se contournerait depuis la console.
+ * Conséquence directe : après cet appel, la ligne cesse d'être lisible par son
+ * propre auteur, et `.select()` ne peut donc rien rendre — c'est l'absence
+ * d'erreur qui fait foi ici, à l'inverse des autres écritures.
+ */
+export async function supprimerMessage(id: number): Promise<boolean> {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('messages')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
+  return !error
 }
 
 /**

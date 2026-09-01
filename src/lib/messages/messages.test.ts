@@ -10,6 +10,7 @@ const msg = (over: Partial<Message> = {}): Message => ({
   fromAdmin: true,
   subject: 'Bonjour',
   body: 'Un message',
+  archivedAt: null,
   sentByName: 'Admin',
   readAt: null,
   createdAt: '2026-08-20T09:00:00.000Z',

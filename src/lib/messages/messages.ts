@@ -15,6 +15,8 @@ export interface Message {
   body: string
   sentByName: string
   readAt: string | null
+  /** Quand le destinataire l'a archivé. Nul = actif, dans la boîte. */
+  archivedAt: string | null
   createdAt: string
 }
 

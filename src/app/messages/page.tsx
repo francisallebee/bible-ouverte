@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Mail, Send, Loader2 } from 'lucide-react'
+import { Mail, Send, Loader2, Archive, ArchiveRestore, Trash2 } from 'lucide-react'
 import { useI18n } from '@/contexts/I18nContext'
 import { formatDate } from '@/lib/i18n/format'
 import {
-  getMesMessages, marquerLus, repondre,
+  getMesMessages, marquerLus, repondre, archiverMessage, supprimerMessage,
 } from '@/lib/storage/messages-store'
 import { ordonnerFil, CORPS_MAX } from '@/lib/messages/messages'
 import type { Message } from '@/lib/messages/messages'
@@ -18,6 +18,40 @@ export default function MessagesPage() {
   const [envoi, setEnvoi] = useState(false)
   const [erreur, setErreur] = useState('')
   const dejaMarques = useRef(false)
+  /**
+   * L'onglet regardé. Les archivés ne sont pas cachés par la RLS — seuls les
+   * supprimés le sont —, c'est donc l'écran qui les range, et l'on peut y
+   * revenir pour désarchiver.
+   */
+  const [ongletArchives, setOngletArchives] = useState(false)
+  const [enCours, setEnCours] = useState<number | null>(null)
+  /** Le fil de l'onglet regardé. `!!` parce que la colonne est une date, pas un booléen. */
+  const visibles = fil.filter((m) => !!m.archivedAt === ongletArchives)
+
+  /**
+   * Archive ou désarchive, et met à jour l'état local.
+   *
+   * Pas de relecture après l'écriture : elle rapporterait l'ancienne valeur
+   * tant que la mutation est en vol, comme le rappelle `AGENTS.md`.
+   */
+  const basculerArchive = async (id: number, archive: boolean) => {
+    setEnCours(id)
+    const ok = await archiverMessage(id, archive)
+    if (ok) {
+      setFil((prev) => prev.map((m) =>
+        m.id === id ? { ...m, archivedAt: archive ? new Date().toISOString() : null } : m))
+    }
+    setEnCours(null)
+  }
+
+  /** Retire un message de la boîte. La ligne demeure, l'administration la voit. */
+  const supprimer = async (id: number) => {
+    if (!window.confirm(t.messages.confirmDelete)) return
+    setEnCours(id)
+    const ok = await supprimerMessage(id)
+    if (ok) setFil((prev) => prev.filter((m) => m.id !== id))
+    setEnCours(null)
+  }
 
   useEffect(() => {
     let annule = false
@@ -68,15 +102,40 @@ export default function MessagesPage() {
         {t.messages.title}
       </h1>
 
-      {fil.length === 0 ? (
+      {/*
+        Deux vues d'un même fil. Les archivés ne sont pas masqués par la RLS —
+        seuls les supprimés le sont —, donc c'est ici que le partage se fait,
+        et l'on peut revenir en arrière depuis l'onglet.
+      */}
+      <div className="flex gap-2 mb-4">
+        {[false, true].map((archives) => (
+          <button key={String(archives)} type="button"
+            onClick={() => setOngletArchives(archives)}
+            aria-pressed={ongletArchives === archives}
+            className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
+              ongletArchives === archives
+                ? 'bg-[--primary] text-white'
+                : 'border border-gray-300 text-gray-600 hover:bg-gray-100'
+            }`}>
+            {archives ? t.messages.archived : t.messages.active}
+            <span className="ms-1.5 opacity-75">
+              {fil.filter((m) => !!m.archivedAt === archives).length}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {visibles.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
           <Mail className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="font-medium text-gray-600">{t.messages.empty}</p>
-          <p className="text-sm text-gray-400 mt-1">{t.messages.emptyHint}</p>
+          <p className="font-medium text-gray-600">
+            {ongletArchives ? t.messages.emptyArchived : t.messages.empty}
+          </p>
+          {!ongletArchives && <p className="text-sm text-gray-400 mt-1">{t.messages.emptyHint}</p>}
         </div>
       ) : (
         <ul className="space-y-3 list-none p-0 m-0 mb-6">
-          {fil.map((m) => (
+          {visibles.map((m) => (
             <li key={m.id}
               className={`rounded-xl border p-4 ${m.fromAdmin ? 'border-gray-200 bg-white' : 'border-[--primary] bg-[--primary-light] ms-6'}`}>
               <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1">
@@ -88,9 +147,34 @@ export default function MessagesPage() {
                 </span>
               </div>
               {m.subject && <p className="text-sm font-medium mb-1">{m.subject}</p>}
-              {/* `whitespace-pre-wrap` : les sauts de ligne tapés sont ceux
-                  qu'on lit. Le corps n'est jamais interprété comme du HTML. */}
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{m.body}</p>
+              {/*
+                `whitespace-pre-wrap` : les sauts de ligne tapés sont ceux qu'on
+                lit. Le corps n'est jamais interprété comme du HTML.
+                Le plafond de hauteur et son ascenseur : un message long
+                occupait tout l'écran et repoussait le suivant hors de vue.
+                `max-h-64` plutôt qu'un nombre de lignes — un texte tronqué à
+                `line-clamp` cache sa fin sans dire qu'elle existe, quand un
+                ascenseur la montre et la rend atteignable.
+              */}
+              <p className="text-sm text-gray-700 whitespace-pre-wrap max-h-64 overflow-y-auto">
+                {m.body}
+              </p>
+
+              <div className="flex justify-end gap-1.5 mt-2 pt-2 border-t border-gray-100">
+                <button type="button" disabled={enCours === m.id}
+                  onClick={() => basculerArchive(m.id, !m.archivedAt)}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 disabled:opacity-50 rounded-lg px-2 py-1 transition-colors">
+                  {m.archivedAt
+                    ? <><ArchiveRestore className="w-3.5 h-3.5" aria-hidden="true" />{t.messages.unarchive}</>
+                    : <><Archive className="w-3.5 h-3.5" aria-hidden="true" />{t.messages.archive}</>}
+                </button>
+                <button type="button" disabled={enCours === m.id}
+                  onClick={() => supprimer(m.id)}
+                  className="flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 disabled:opacity-50 rounded-lg px-2 py-1 transition-colors">
+                  <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                  {t.common.delete}
+                </button>
+              </div>
             </li>
           ))}
         </ul>

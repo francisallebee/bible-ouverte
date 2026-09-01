@@ -38,6 +38,7 @@ aucune donnée.
 | `20260821140000_envoi_immediat.sql` | `declencher_envoi_messages()` : rejoue la commande du planificateur **sans exposer son secret** |
 | `20260821150000_courriel_seul.sql` | `kind = 'courriel'` masqué de la boîte du destinataire, **par la RLS** — l'administrateur continue de le voir |
 | `20260831120000_reading_session_title.sql` | `readings.sessionTitle` : le nom d'une séance d'enregistrement, répété sur ses lectures — **aucun `grant`**, `readings` ayant l'`update` au niveau table, contrairement à `profiles` |
+| `20260901120000_messages_archive_delete.sql` | `archived_at` et `deleted_at` sur `messages` : archiver, et retirer de sa boîte sans effacer la ligne — **avec le `grant update` colonne**, `messages` étant dans le cas de `profiles` |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
