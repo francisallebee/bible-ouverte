@@ -181,16 +181,37 @@ export default function StatsPage() {
         {t.stats.title}
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+      {/*
+        Trois colonnes dès le téléphone. Ces cartes ne portent qu'un libellé et
+        un nombre : une par ligne en gaspillait deux tiers. Le rembourrage
+        descend à `p-4` sous `sm`, sans quoi il ne resterait pas la place du
+        libellé sur 375 px de large.
+      */}
+      <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
+        {/* `justify-between` : sur 106 px de large, « Total lectures » et
+            « Cette semaine » passent à la ligne quand « Ce mois » tient sur
+            une — sans cela les trois nombres ne s'alignent plus entre eux.
+            Les cartes ayant déjà la même hauteur par la grille, pousser le
+            nombre en bas suffit. */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 flex flex-col justify-between">
           <p className="text-sm text-gray-500 mb-1">{t.stats.total}</p>
           <p className="text-3xl font-bold text-[--primary]">{total}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        {/* `justify-between` : sur 106 px de large, « Total lectures » et
+            « Cette semaine » passent à la ligne quand « Ce mois » tient sur
+            une — sans cela les trois nombres ne s'alignent plus entre eux.
+            Les cartes ayant déjà la même hauteur par la grille, pousser le
+            nombre en bas suffit. */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 flex flex-col justify-between">
           <p className="text-sm text-gray-500 mb-1">{t.stats.thisWeek}</p>
           <p className="text-3xl font-bold text-[#4a90d9]">{weekCount}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        {/* `justify-between` : sur 106 px de large, « Total lectures » et
+            « Cette semaine » passent à la ligne quand « Ce mois » tient sur
+            une — sans cela les trois nombres ne s'alignent plus entre eux.
+            Les cartes ayant déjà la même hauteur par la grille, pousser le
+            nombre en bas suffit. */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 flex flex-col justify-between">
           <p className="text-sm text-gray-500 mb-1">{t.stats.thisMonth}</p>
           <p className="text-3xl font-bold text-[#7b68ee]">{monthCount}</p>
         </div>

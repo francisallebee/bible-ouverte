@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { useT } from '@/contexts/I18nContext'
 import Sidebar from '@/components/Sidebar'
 import AutoLogout from '@/components/AutoLogout'
 import DiscoveryTour from '@/components/DiscoveryTour'
@@ -17,6 +18,7 @@ import { APP_VERSION } from '@/lib/version'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const t = useT()
   const isAuthPage = pathname.startsWith('/auth')
   const isLanding = pathname === '/'
 
@@ -79,11 +81,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <LayoutClient>
+      {/*
+        Deux défauts trouvés le 2 septembre 2026, et **seul l'arabe pouvait les
+        montrer** : le texte était écrit en dur, donc français dans les cinq
+        langues (règle 10), et `focus:left-2` est une propriété physique, qui
+        aurait posé le lien à gauche en écriture droite-à-gauche.
+
+        C'est le seul texte visible du dépôt qui échappait aux dictionnaires,
+        parce qu'il ne s'affiche qu'au clavier — ni un relevé sur les accents,
+        ni une marche à l'écran à la souris ne le rencontrent.
+      */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:bg-white focus:text-[--primary] focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:start-2 focus:z-[60] focus:bg-white focus:text-[--primary] focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg"
       >
-        Aller au contenu
+        {t.nav.skipToContent}
       </a>
       <Sidebar hiddenPages={hiddenPages} pageOrder={pageOrder} homePage={homePage} />
       <AutoLogout minutes={autoLogoutMinutes} />

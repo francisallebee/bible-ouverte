@@ -58,6 +58,7 @@ export const en: Dictionary = {
     avance: 'Advanced features',
     signOut: 'Sign out',
     menu: 'Menu',
+    skipToContent: 'Skip to content',
   },
 
   language: {

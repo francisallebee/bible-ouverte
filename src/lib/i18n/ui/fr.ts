@@ -67,6 +67,7 @@ export const fr = {
     avance: 'Fonctions avancées',
     signOut: 'Déconnexion',
     menu: 'Menu',
+    skipToContent: 'Aller au contenu',
   },
 
   language: {

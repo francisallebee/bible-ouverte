@@ -310,8 +310,24 @@ export default function ProgressPage() {
         </button>
       </h1>
 
-      {/* Level + Streak */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/*
+        Deux colonnes dès le téléphone, et non plus une.
+
+        Ces quatre cartes ne portent qu'une valeur courte chacune ; leur donner
+        toute la largeur coûtait 625 px sur 375 de large, quand deux par ligne
+        en demandent 333. La hauteur d'une ligne est celle de sa carte la plus
+        haute — Série, à 194 px, qui porte une barre **et** ses pastilles de
+        palier. L'audit du 2 septembre disait la carte Niveau seule à porter une
+        barre de progression ; elles sont deux, et c'est Série la plus haute.
+
+        Réserve à connaître, mesurée le 2 septembre 2026 : ce correctif ne rend
+        pas la promesse de l'audit, « Progression passe sous trois écrans ». Les
+        cartes ne pèsent que 16 % des 3 820 px de l'écran ; 84 % sont dans cinq
+        sections de liste — Succès 836 px, par contexte 598, par catégorie 550,
+        Détail par livre 466. Raccourcir vraiment cet écran suppose de traiter
+        celles-là, ce qui est une décision de produit et non une disposition.
+      */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-gradient-to-br from-[--primary] to-[--primary-hover] text-white rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <Trophy className="w-5 h-5 text-yellow-300" />
@@ -441,8 +457,8 @@ export default function ProgressPage() {
         </div>
       )}
 
-      {/* Testaments */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      {/* Testaments — deux cartes courtes, même raison que la grille du haut. */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-3">
             <ScrollText className="w-5 h-5 text-amber-700" />

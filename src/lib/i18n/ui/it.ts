@@ -66,6 +66,7 @@ export const it: Dictionary = {
     avance: 'Funzioni avanzate',
     signOut: 'Esci',
     menu: 'Menu',
+    skipToContent: 'Vai al contenuto',
   },
 
   language: {

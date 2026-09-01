@@ -168,6 +168,7 @@ export const ar: Dictionary = {
     avance: 'الوظائف المتقدمة',
     signOut: 'تسجيل الخروج',
     menu: 'القائمة',
+    skipToContent: 'انتقل إلى المحتوى',
   },
 
   language: {

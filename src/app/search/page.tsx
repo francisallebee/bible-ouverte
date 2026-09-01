@@ -196,6 +196,25 @@ export default function SearchPage() {
     setAddTarget(null);
   }
 
+  /**
+   * Échap ferme la fenêtre d'ajout.
+   *
+   * Le motif des cinq autres fenêtres du dépôt — `BookPicker`,
+   * `PassagePicker`, `PassagePreview`, `PassageSearch` et le parcours — que
+   * celle-ci était seule à ne pas suivre. Sans lui, une fenêtre déclarée
+   * `aria-modal` piège le clavier : rien ne permet d'en sortir autrement qu'en
+   * visant le bouton Annuler.
+   *
+   * L'écouteur n'existe que tant que la fenêtre est ouverte, sinon Échap
+   * appellerait `setAddTarget(null)` sur chaque frappe de la page.
+   */
+  useEffect(() => {
+    if (!addTarget) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setAddTarget(null) };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [addTarget]);
+
   async function saveAdd() {
     if (!addTarget) return;
     setAddSaving(true);
@@ -459,7 +478,19 @@ export default function SearchPage() {
 
       {addTarget && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-5 max-w-md w-full mx-4 shadow-xl">
+          {/*
+            `role="dialog"`, `aria-modal` et `aria-labelledby` : le motif des
+            sept autres fenêtres du dépôt, que celle-ci était seule à ne pas
+            porter. Sans eux, un lecteur d'écran continue d'annoncer la page
+            derrière comme si de rien n'était, et rien ne dit ce que la fenêtre
+            demande. Échap la ferme, voir l'effet plus haut.
+
+            `aria-labelledby` plutôt qu'`aria-label`, comme les deux boîtes de
+            Nouvelle lecture : le titre est déjà à l'écran, le désigner évite
+            d'en écrire un second qui pourrait diverger.
+          */}
+          <div role="dialog" aria-modal="true" aria-labelledby="titre-ajout-lecture"
+            className="bg-white rounded-xl p-5 max-w-md w-full mx-4 shadow-xl">
             {addDone ? (
               <div className="text-center py-6">
                 <p className="text-green-700 font-semibold text-lg">{addDone}</p>
@@ -467,11 +498,8 @@ export default function SearchPage() {
             ) : (
               <>
                 {/* `<h2>` : seul titre sous le `<h1>` de la page, il était
-                    en `<h3>`. Réserve à traiter ailleurs : cette fenêtre
-                    n'a ni `role="dialog"`, ni `aria-modal`, ni
-                    `aria-labelledby` — Nouvelle lecture les pose sur ses
-                    deux boîtes, celle-ci non. */}
-                <h2 className="font-semibold mb-1">{t.search.addTitle}</h2>
+                    en `<h3>`. Son `id` sert aussi de nom à la fenêtre. */}
+                <h2 id="titre-ajout-lecture" className="font-semibold mb-1">{t.search.addTitle}</h2>
                 <p className="text-sm text-gray-500 mb-4">
                   {getBookName(addTarget.book)} {addTarget.chapterStart}
                   {addTarget.chapterEnd !== addTarget.chapterStart ? `-${addTarget.chapterEnd}` : ""}
@@ -479,8 +507,13 @@ export default function SearchPage() {
                 </p>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.date}</label>
-                    <input type="date" value={addDate}
+                    {/* Deux champs de plus sans intitulé programmatique, que
+                        l'audit du 2 septembre n'a pas pu compter : il a marché
+                        dix écrans, et une fenêtre fermée n'est visible d'aucun
+                        de ses deux instruments. Le contexte, lui, portait déjà
+                        son `htmlFor`. */}
+                    <label htmlFor="search-add-date" className="block text-xs font-medium text-gray-500 mb-1">{t.search.date}</label>
+                    <input id="search-add-date" type="date" value={addDate}
                       onChange={(e) => setAddDate(e.target.value)}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
                   </div>
@@ -495,8 +528,8 @@ export default function SearchPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.notes}</label>
-                    <textarea value={addNotes} onChange={(e) => setAddNotes(e.target.value)}
+                    <label htmlFor="search-add-notes" className="block text-xs font-medium text-gray-500 mb-1">{t.search.notes}</label>
+                    <textarea id="search-add-notes" value={addNotes} onChange={(e) => setAddNotes(e.target.value)}
                       rows={2}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none" />
                   </div>
