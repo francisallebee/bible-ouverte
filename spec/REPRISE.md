@@ -582,6 +582,8 @@ interrompu avant la fin. Les previews passent par git.
 | Cause de l'instabilité du verset du jour | le **diviseur** : `condense(jour) % matiere.length`, et marquer le verset « lu » enregistre une lecture — il se déplaçait lui-même | 1er sept. |
 | Archivage d'un message, exercé | passé en Archivés et confirmé en base à 08:14:22 UTC, puis désarchivé — base rendue à **0 archivé, 0 supprimé sur 244** | 1er sept. |
 | Tickets support | **20, tous clos** — le 25 fermé le 1er septembre à 07:02:49 UTC, une réponse ; plus aucun ouvert | 1er sept. |
+| Page d'accueil au choix, éprouvée | `/history` choisie → `/` mène à `/history` ; la même page **masquée** → `/` ramène à `/new-reading`. Le chaînage réglage → base → middleware tient | 1er sept. |
+| Coût de ce réglage | **une requête, sur `/` et `/auth/*` seulement** — les deux chemins qui redirigent ; aucune navigation ordinaire n'en paie le prix | 1er sept. |
 | `readings` après la migration du titre | **360 lignes sur 360** à `sessionTitle` nul, aucune reprise de données ; la colonne porte bien `INSERT, SELECT, UPDATE` pour `anon` et `authenticated` | 31 août |
 | Lectures du propriétaire dans la journée | **347 → 360** : les essais d'enregistrement de la séance à plusieurs passages ont abouti, dont une séance de **12 passages** le 30 août | 31 août |
 | `bg-[--primary-light]` en mode sombre | **reste clair quelle que soit la charte** : `applyTheme()` pose la variable en style **inline** sur `<html>`, ce qui bat la règle `html.dark` qui la remapperait en `#1a2840` | 31 août |
@@ -2279,3 +2281,88 @@ la base de production.
 **Non vu** : le statut « Suspendu » à l'écran de la feuille de route, et le
 verset du jour d'un jour à l'autre — ce dernier demanderait d'attendre demain,
 ou de manipuler l'horloge.
+
+## Les fonctions avancées, et la page d'accueil au choix
+
+### Une section réservée, volontairement vide
+
+`/avance` rejoint `NAV_COMPTE` juste après `/admin` : un écran de compte, donc
+hors du réordonnancement et du masquage. La **règle 16 est faite en entier** —
+l'entrée, l'étape du parcours avec ses cinq traductions, la ligne
+d'`ECRANS_REELS` — et le parcours savait déjà réserver une étape par `adminOnly`.
+
+Elle est vide, et c'est son état juste : c'est un cadre, pas une
+fonctionnalité. Elle dit néanmoins ce qu'elle attend, un emplacement blanc sans
+explication se lisant comme un écran cassé.
+
+**Réserve écrite dans le fichier lui-même** : `isAdmin` vient d'`AuthContext`,
+donc du navigateur. Il décide de ce qui s'affiche, jamais de ce qui est permis.
+Toute fonction posée là qui touchera aux données d'autrui devra porter sa propre
+barrière — RLS ou clé service_role. **Une page réservée n'est pas une donnée
+protégée**, et c'est la phrase à relire avant d'y mettre quoi que ce soit.
+
+### Un test qui avait raison de s'arrêter
+
+`« ne retire qu'elle »` vérifiait que le filtre du parcours ôte **une** étape aux
+comptes ordinaires. Il a échoué à l'arrivée de la seconde.
+
+Son intention était juste — le filtre ne retire que les étapes réservées — mais
+son énoncé figeait un nombre. Il compte désormais les étapes `adminOnly`, et
+vérifie du même geste qu'aucune autre n'est retirée. **Un test qui encode un
+comptage plutôt qu'une règle réclame une modification à chaque ajout**, et cette
+modification est le moment où l'on risque de le relâcher au lieu de le corriger.
+
+### La page d'accueil : où la lire, et ce que ça coûte
+
+La redirection vivait en dur dans le middleware. Elle est désormais un réglage,
+lu **dans le middleware** — donc sur le serveur, dans `settings.data`.
+
+Le coût est borné, et c'est ce qui rendait la chose acceptable : la requête n'a
+lieu que sur `/` et `/auth/*`, les deux seuls chemins qui redirigent. Une
+connexion, un retour à la racine — jamais une navigation ordinaire. Le
+middleware interrogeait déjà `profiles` sur tous les autres chemins.
+
+**Trois raisons de revenir au défaut**, dont la dernière est la moins évidente :
+rien n'est choisi ; la page n'existe plus ; ou **elle a été masquée**.
+`homePage` et `hiddenPages` vivent dans le même `jsonb` et peuvent donc se
+contredire — atterrir sur une page cachée donnerait un écran qu'on ne pourrait
+plus quitter par la barre latérale.
+
+### Deux listes, et un garde-fou qu'il a fallu inventer
+
+`PAGES_ACCUEIL` ne peut pas être `NAV_LINKS` : le middleware s'exécute sur le
+serveur, `NAV_LINKS` porte des icônes React. C'est exactement la configuration
+de la règle 13 — deux tables indépendantes décrivant la même réalité.
+
+Le test les compare en **lisant le fichier source** de `Sidebar.tsx`, parce que
+vitest n'a pas de plugin JSX ici : ce dépôt ne teste que des modules purs, et
+importer un `.tsx` échoue à l'analyse. C'est inhabituel et c'est assumé — un
+garde-fou inhabituel vaut mieux que pas de garde-fou, et celui-ci cassera au
+moment précis où le format des entrées changera, c'est-à-dire quand quelqu'un
+devra le relire.
+
+**Le piège 10 s'est présenté sous un autre visage** : `matchAll` rend un
+itérateur, que vitest étale volontiers et que `tsc` refuse sans
+`--downlevelIteration`. Ce n'était pas un `Set`, c'était la même famille.
+
+### Ce qui a été éprouvé de bout en bout
+
+Session ouverte par le propriétaire, sur la base de production. C'était le seul
+contrôle capable de prouver que le middleware lit vraiment le réglage — un test
+unitaire ne dit rien du chaînage.
+
+| Étape | Constat |
+|---|---|
+| Choix « Mes lectures » | écrit en base à 08:44:42 UTC |
+| `/` | mène à `/history` — « Mes lectures » |
+| La même page **masquée** | `/` ramène à `/new-reading` : le middleware passe bien `hiddenPages` |
+| Remise à l'état initial | `homePage = /new-reading`, `/history` de nouveau visible, vérifié en base |
+
+Vu aussi : la page `/avance`, et l'ordre du menu — Réglages, Administration,
+Fonctions avancées.
+
+**Une omission de méthode, notée** : l'état initial de `hiddenPages` n'a pas été
+relevé **avant** l'essai. Il portait `/profil` après coup, et le raisonnement dit
+qu'il le portait déjà — le clic n'a touché que « Mes lectures » — mais c'est un
+raisonnement, pas une mesure. Relever l'état d'un réglage avant d'y toucher,
+comme on vérifie l'identifiant d'un cobaye avant d'écrire.
