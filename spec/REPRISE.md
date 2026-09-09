@@ -3237,9 +3237,32 @@ seul un balayage systématique en donne le compte.
 
 ### Ce qui reste, et qui est antérieur à tout
 
-Les **pastilles de statut de la feuille de route** tiennent 3,15 — en mode clair
-comme en sombre, car ce sont des îlots. Le dépôt a déjà rencontré ce cas exact :
-le 19 août, `text-orange-600` sur `bg-orange-50` donnait 3,35 et a été porté à
-`orange-700`, soit 4,88. Le même remède s'appliquerait ici, et il toucherait les
-six statuts dans les deux modes. **Non fait : c'est une retouche de mode clair,
-hors du balayage demandé.**
+Les **pastilles de statut** ont été corrigées dans la foulée, à la demande du
+propriétaire, par le remède du 19 août — foncer la couleur jusqu'à franchir le
+seuil.
+
+**Trois des six statuts de la feuille de route passaient déjà**, ce que je
+n'avais pas supposé : `projet` 5,02, `in-progress` 4,75, `suspendu` 4,84. Mesurer
+paire par paire a donc évité de retoucher la moitié de la table pour rien.
+
+| Statut | Avant | Après |
+|---|---|---|
+| `done` | 3,15 | `green-700`, **4,79** |
+| `cancelled` | 3,44 | `red-700`, **5,91** |
+| `planned` | 4,39 | `gray-600`, **6,87** |
+
+`cancelled` est la seule paire où un seul cran n'a pas suffi : `red-600` ne rend
+que 4,41.
+
+**Une seconde table existait, et le balayage d'écrans ne l'aurait pas trouvée** —
+les statuts de ticket, dans `lib/tickets.ts`, dont trois des quatre paires
+échouaient. La pire de toutes y était : `open`, `text-yellow-600` sur
+`bg-yellow-50`, à **2,84**. C'est le fichier pour lequel `src/lib` avait été
+ajouté au scan de Tailwind le 18 août ; sans cela, `text-yellow-700` aurait été
+purgée sans que rien ne le signale. **Vérifié après déploiement** : la classe
+figure bien dans le CSS produit — le seul contrôle qui vaille pour la règle 14.
+
+Relevé en production, dans les deux modes : « Terminé » 4,79, « Projet » 5,02,
+« en cours » 4,75, « Suggestion » 5,02. Identiques en clair et en sombre, ce qui
+est la propriété recherchée : une pastille est un îlot, une seule paire sert les
+deux thèmes.
