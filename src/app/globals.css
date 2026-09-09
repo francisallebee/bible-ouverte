@@ -305,8 +305,34 @@ html.dark .text-gray-800 { color: var(--text) !important; }
  *
  * `text-red-400` n'a pas besoin de remap : il tient déjà 5,29.
  */
-html.dark .text-red-500, html.dark .text-red-600 { color: #f87171 !important; }
-html.dark .text-green-600, html.dark .text-green-700 { color: #22c55e !important; }
+/*
+ * `:not([class~="bg-…-50"])` — l'exception des pastilles, et pourquoi elle
+ * existe.
+ *
+ * Une pastille de statut porte **sa propre paire** : `text-green-600` sur
+ * `bg-green-50`, un texte foncé sur une teinte claire. Ces fonds-là ne sont pas
+ * remappés en mode sombre : ce sont des îlots clairs, cohérents en eux-mêmes.
+ * Éclaircir leur texte sans toucher à leur fond les casse.
+ *
+ * C'est arrivé : le remap posé le 9 septembre au matin a fait passer « Terminé »
+ * de la feuille de route de **3,15 à 2,18**. Trouvé le soir même en balayant les
+ * dix-neuf écrans, et non par relecture — un remap se juge sur ce qu'il
+ * rencontre, pas sur ce qu'il vise.
+ *
+ * `[class~=…]` et non `[class*=…]` : le premier compare des jetons entiers, le
+ * second aurait aussi attrapé `bg-green-500`.
+ *
+ * Le bleu et le violet rejoignent la liste : `text-blue-600` et
+ * `text-purple-600` tenaient 2,83 et 2,72 sur `--surface`, relevés sur l'écran
+ * d'administration. Le bloc `html.dark` ne remappait que les gris, et chaque
+ * balayage en découvre une famille de plus.
+ */
+html.dark .text-red-500:not([class~="bg-red-50"]),
+html.dark .text-red-600:not([class~="bg-red-50"]) { color: #f87171 !important; }
+html.dark .text-green-600:not([class~="bg-green-50"]),
+html.dark .text-green-700:not([class~="bg-green-50"]) { color: #22c55e !important; }
+html.dark .text-blue-600:not([class~="bg-blue-50"]) { color: #60a5fa !important; }
+html.dark .text-purple-600:not([class~="bg-purple-50"]) { color: #c084fc !important; }
 html.dark .bg-red-500, html.dark .bg-red-600 { background-color: #b91c1c !important; }
 html.dark .border-gray-100 { border-color: var(--border) !important; }
 html.dark .hover\:border-gray-300:hover,
