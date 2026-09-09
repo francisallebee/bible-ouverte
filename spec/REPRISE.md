@@ -3170,3 +3170,76 @@ sombre, le couple `--primary` / `--primary-light` basculant ensemble depuis le
 correctif de mode sombre du même jour.
 
 Non vu : les écrans en mode sombre après ce changement, et rien en arabe.
+
+## Les dix-neuf écrans balayés en mode sombre — 9 septembre 2026
+
+Demandé par le propriétaire du dépôt après le correctif de mode sombre, qui
+n'avait porté que sur trois écrans. Mené **en production**, session ouverte par
+lui, classe `dark` posée à la main pour n'écrire aucun réglage.
+
+| Écran | Textes mesurés | Sous 4,5 |
+|---|---|---|
+| Progression | 187 | 0 |
+| Administration › utilisateurs | 133 | 0 |
+| Réglages | 131 | 0 |
+| Détail d'un plan | 51 | 0 |
+| Plans de lecture | 47 | 0 |
+| Mémorisation | 42 | 1 — **faux positif** |
+| Support | 33 | 0 |
+| Feuille de route | 22 | 1 — **régression, de mon fait** |
+| Nouvelle lecture | 21 | 0 |
+| Administration | 20 | 2 — **préexistants** |
+| Profil | 19 | 0 |
+| Verset du jour | 14 | 0 |
+| Mes lectures, Statistiques | 12 chacun | 0 · 2 — **seuil mal appliqué** |
+| Recherche, Quizz | 11 chacun | 0 |
+| Soutenir | 12 | 0 |
+| Messages | 9 | 0 |
+| Fonctions avancées | 5 | 0 |
+
+### La régression, et ce qu'elle enseigne sur les remaps
+
+Le remap posé le matin même éclaircissait `text-green-600` et `text-red-500`
+**sans regarder ce qu'ils rencontrent**. Or une pastille de statut porte sa
+propre paire : un texte foncé sur une teinte claire, `text-green-600` sur
+`bg-green-50`. Ces fonds ne sont pas remappés — ce sont des îlots clairs,
+cohérents en eux-mêmes. Éclaircir le texte sans toucher au fond les casse :
+« Terminé » est passé de **3,15 à 2,18**.
+
+**Un remap se juge sur ce qu'il rencontre, pas sur ce qu'il vise.** Les
+pastilles sont désormais exclues par `:not([class~="bg-…-50"])` — `~=` et non
+`*=`, qui aurait aussi attrapé `bg-green-500`.
+
+Ce défaut n'était trouvable que par un balayage complet. Les trois écrans du
+matin n'en portaient aucune.
+
+### Deux relevés qui ne sont pas des défauts
+
+À ne pas rouvrir.
+
+- **Statistiques, 3,52 et 4,38.** Ce sont des caractères de 30 px en gras, dont
+  le seuil applicable est **3,0** et non 4,5. La sonde appliquait un seuil
+  unique et surdéclarait.
+- **Mémorisation, 1,00.** Un bouton `bg-white/15` posé sur un dégradé émeraude,
+  avec du texte blanc. Ma fonction s'arrêtait sur cette couche **translucide**
+  en la traitant comme opaque. Même famille que le 1,05 de l'audit du
+  2 septembre — le sien remontait trop haut dans l'arbre, le mien s'arrêtait
+  trop tôt. **Vérifier l'instrument avant d'accuser l'écran**, dans les deux
+  sens.
+
+### Le bloc `html.dark` ne remappait que les gris
+
+C'est le constat qui relie tout : le rouge et le vert le matin, le bleu et le
+violet le soir — `text-blue-600` à 2,83 et `text-purple-600` à 2,72 sur
+`--surface`, portés à `blue-400` (5,75) et `purple-400` (5,54). **Chaque
+balayage y découvre une famille de plus.** La règle 15 se paie par tranches, et
+seul un balayage systématique en donne le compte.
+
+### Ce qui reste, et qui est antérieur à tout
+
+Les **pastilles de statut de la feuille de route** tiennent 3,15 — en mode clair
+comme en sombre, car ce sont des îlots. Le dépôt a déjà rencontré ce cas exact :
+le 19 août, `text-orange-600` sur `bg-orange-50` donnait 3,35 et a été porté à
+`orange-700`, soit 4,88. Le même remède s'appliquerait ici, et il toucherait les
+six statuts dans les deux modes. **Non fait : c'est une retouche de mode clair,
+hors du balayage demandé.**
