@@ -2971,3 +2971,104 @@ livraison est une friction que ce document doit supprimer.
 Le mode sombre, lui, reste une réserve ouverte : il n'a fait l'objet d'aucune
 décision de mise en pause, et le défaut de `--primary-light` — et de `--primary`
 en texte, mesuré à 1,11 — attend toujours un arbitrage du propriétaire.
+
+## Le mode sombre corrigé à la racine — 9 septembre 2026
+
+La dernière réserve ouverte, laissée au propriétaire depuis le 31 août parce
+qu'elle changeait l'apparence de plusieurs écrans. Il l'a tranchée : corriger.
+
+### L'audit s'était approché sans tenir la cause
+
+Il visait `--primary-light` et la fonction `applyTheme()`. Deux corrections :
+
+- **`applyTheme` ne pose aucune variable** — elle ne fait que basculer la classe
+  `dark`. C'est `applyColorTheme` qui écrit la charte en style inline.
+- **Le pire défaut n'était pas le fond mais le texte.** L'audit mesurait 2,15 sur
+  un texte gris posé sur `--primary-light`. Le chiffre phare de Progression,
+  `text-[--primary]` sur `--surface`, mesurait **1,11**.
+
+Et les deux ne se corrigent pas de la même façon, parce que `--primary` sert aux
+**deux rôles** : 65 `bg-[--primary]` avec du texte blanc, 96 `text-[--primary]`.
+
+### Pourquoi une seule valeur ne pouvait pas suffire
+
+Ce n'est pas une appréciation, c'est une arithmétique. Sur `--surface`
+(#1e293b, luminance 0,0246), un texte au seuil de 4,5 exige une luminance d'au
+moins **0,285** ; porter du texte blanc au même seuil en exige au plus **0,183**.
+Les deux intervalles ne se croisent pas.
+
+Les rôles sont donc séparés — **sans toucher aux 161 emplois**, par des remaps
+de classes sous `html.dark`, ce qui est l'idiome de la règle 15. Un contrôle a
+vérifié qu'aucune couleur n'échappe à ce mécanisme : **zéro** `var(--primary)`
+en style inline, **zéro** `stroke` ou `fill` SVG l'employant.
+
+| Variable | Rôle en sombre | Mesuré sur les dix chartes |
+|---|---|---|
+| `--primary` | inchangée : fond, blanc dessus | 5,90 à 13,12 |
+| `--primary-clair` | texte et bordures | **6,60 à 8,17** sur `--surface` |
+| `--primary-panneau` | remplace `--primary-light` | texte clair dessus : 7,59 à 7,86 |
+
+Elles sont posées **dans les deux modes**, et c'est essentiel : une variable
+définie sous `html.dark` seul reperdrait exactement le combat que ce correctif
+répare.
+
+### Deux remaps qui n'avaient jamais rien fait
+
+`--primary-light: #1a2840` et `--accent-light: #1e1a3a` figuraient sous
+`html.dark` depuis l'origine. Ce sont **précisément les deux seules variables**
+que `applyColorTheme` écrit en ligne — les autres, `--bg`, `--surface`,
+`--text`, ne le sont pas et fonctionnaient. `--accent-light` n'étant employée
+nulle part dans `src`, elle a été retirée plutôt que corrigée.
+
+### Le bloc ne remappait que les gris
+
+Second défaut, antérieur et d'une autre famille, trouvé en balayant les écrans
+plutôt qu'en lisant. Le rouge et le vert traversaient le mode sombre inchangés :
+
+| Élément | Avant | Après |
+|---|---|---|
+| `text-red-600`, « Cette action est irréversible » | 3,03 | 5,29 |
+| `bg-red-500` sous du blanc, « Supprimer mon compte » | 3,76 | 6,47 |
+| `text-red-500`, « Déconnexion », sur **tous** les écrans | 3,89 | 5,29 |
+| `text-green-600`, « Synchronisé automatiquement » | 4,44 | 6,42 |
+
+### Le test qui avait tort, et ce qu'il a appris
+
+Premier énoncé : « le panneau reste plus sombre que la surface ». Échec sur
+turquoise — et c'était **le test**. Il transposait une intuition de mode clair,
+où la teinte s'éloigne du blanc dans un seul sens. En mode sombre `--surface`
+est déjà plus claire que `--bg` : le panneau est **encadré par deux fonds**, et
+s'écarter de l'un le rapproche de l'autre.
+
+Le repère du mode clair — ses propres panneaux tiennent 1,064 à 1,191 contre
+leurs fonds — s'est révélé inatteignable pour cette raison. Toutes les parts de
+0,40 à 0,86 ont été mesurées : le meilleur écart minimal possible est **1,047**,
+atteint à 0,72. La valeur choisie d'instinct était l'optimum, mais rien ne le
+disait avant la mesure.
+
+Les 46 tests parcourent `COLOR_THEMES` plutôt que d'énumérer dix couleurs, et
+une sonde de contrôle y vérifie l'instrument avant toute conclusion.
+
+### Une sonde à laquelle j'ai fait dire n'importe quoi
+
+Le premier relevé au navigateur annonçait 4,39 sur `--surface`, sous le seuil.
+J'y avais **saisi une valeur de `--primary-clair` inventée** — `#9d84a8` — au
+lieu de la dériver ; la vraie est `#baa8c2`, et elle donne 6,60. *Se méfier des
+mesures que l'on produit soi-même* vaut aussi pour leurs entrées.
+
+### Ce qui a été vu, et ce qui ne l'a pas été
+
+Session ouverte par le propriétaire, mode sombre posé **à la main** pour
+n'écrire aucun réglage — la même discipline que le 2 septembre.
+
+| Écran | Textes mesurés | Sous 4,5 |
+|---|---|---|
+| Progression | 208 | **0** — le chiffre phare passé de 1,11 à 6,60 |
+| Réglages | 131 | **0** — les trois panneaux au fond teinté |
+| Support | 33 | **0** |
+
+Mode clair vérifié inchangé après coup : le chiffre phare y revient à 13,12.
+
+**Signalé sans être corrigé**, hors du périmètre demandé : en mode **clair**,
+`text-orange-500` sur blanc donne **2,80**, sous le seuil de 3,0 applicable aux
+grands caractères. Les seize autres écrans n'ont pas été balayés en sombre.
