@@ -11,15 +11,24 @@ import { getCurrentUserId } from '@/lib/storage/user-id'
 
 /** Couleur de chaque statut. Les libellés vivent dans les dictionnaires. */
 const STATUS_CONFIG: Record<string, { color: string }> = {
-  planned: { color: 'text-gray-500 bg-gray-100' },
-  projet: { color: 'text-purple-600 bg-purple-50' },
-  'in-progress': { color: 'text-blue-600 bg-blue-50' },
+  // Chaque paire est mesurée sur sa propre teinte, le 9 septembre 2026, et
+  // seules celles qui échouaient ont bougé — trois des six passaient déjà.
+  //
+  // Ces pastilles sont des **îlots clairs** : `bg-*-50` n'est pas remappé en
+  // mode sombre, si bien que la paire vaut pour les deux thèmes. C'est aussi
+  // pourquoi les remaps de `globals.css` les excluent explicitement.
+  planned: { color: 'text-gray-600 bg-gray-100' },      // 4,39 → 6,87
+  projet: { color: 'text-purple-600 bg-purple-50' },    // 5,02, inchangé
+  'in-progress': { color: 'text-blue-600 bg-blue-50' }, // 4,75, inchangé
   // `amber-700` et non `amber-600` : la leçon du 19 août sur la pastille de
   // palier, où `orange-600` sur `orange-50` ne donnait que 3,35 de contraste
   // et a dû passer à `orange-700` pour atteindre 4,88.
-  suspendu: { color: 'text-amber-700 bg-amber-50' },
-  done: { color: 'text-green-600 bg-green-50' },
-  cancelled: { color: 'text-red-500 bg-red-50' },
+  suspendu: { color: 'text-amber-700 bg-amber-50' },    // 4,84, inchangé
+  done: { color: 'text-green-700 bg-green-50' },        // 3,15 → 4,79
+  // `red-700` et non `red-600` : un seul cran ne suffisait pas, `red-600` ne
+  // rendant que 4,41. C'est la seule paire où le remède du 19 août a demandé
+  // deux crans.
+  cancelled: { color: 'text-red-700 bg-red-50' },       // 3,44 → 5,91
 }
 
 /**

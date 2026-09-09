@@ -11,10 +11,10 @@ export const TICKET_STATUSES = ['open', 'in_progress', 'resolved', 'closed'] as 
 export type TicketStatus = (typeof TICKET_STATUSES)[number]
 
 export const TICKET_STATUS_BADGE: Record<string, string> = {
-  open: 'text-yellow-600 bg-yellow-50',
-  in_progress: 'text-blue-600 bg-blue-50',
-  resolved: 'text-green-600 bg-green-50',
-  closed: 'text-gray-500 bg-gray-100',
+  open: 'text-yellow-700 bg-yellow-50',      // 2,84 → 4,76
+  in_progress: 'text-blue-600 bg-blue-50',   // 4,75, inchangé
+  resolved: 'text-green-700 bg-green-50',    // 3,15 → 4,79
+  closed: 'text-gray-600 bg-gray-100',       // 4,39 → 6,87
 }
 
 /** Un ticket clos n'accepte plus de réponse : la base le refuse, l'écran le dit. */
