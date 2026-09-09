@@ -476,7 +476,8 @@ export const es: Dictionary = {
     nextMilestone: (n: number) => `Próximo hito: ${n} días`,
     allMilestones: 'Todos los hitos alcanzados',
     milestoneReached: (n: number) => `${n} días`,
-    chaptersRead: 'Capítulos leídos',
+    chaptersRead: 'Capítulos empezados',
+    chaptersWhole: 'Leídos por completo',
     booksStarted: (n: number) =>
       `${n} ${n !== 1 ? 'libros empezados' : 'libro empezado'}`,
     dailyGoal: 'Objetivo',
@@ -956,6 +957,7 @@ export const es: Dictionary = {
     colEmail: 'Correo',
     colRole: 'Rol',
     colStatus: 'Estado',
+    colReadings: 'Lecturas',
     changeStatus: 'Cambiar el estado',
     colPlans: 'Planes',
     colLastSignIn: 'Conexión',

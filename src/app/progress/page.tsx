@@ -18,6 +18,7 @@ import {
 } from "@/lib/objectifs/objectifs";
 import { useI18n, useBookName, useContextName } from "@/contexts/I18nContext";
 import { formatPart } from "@/lib/progression/rapport";
+import { compterChapitres } from "@/lib/progression/chapitres";
 import { localeInfo } from "@/lib/i18n/locales";
 import type { Dictionary } from "@/lib/i18n/ui/fr";
 import {
@@ -95,15 +96,21 @@ export default function ProgressPage() {
     })();
   }, []);
 
-  const chapterCount = useMemo(() => {
-    const chapters = new Set<string>();
-    for (const r of readings) {
-      for (let ch = r.chapterStart; ch <= r.chapterEnd; ch++) {
-        chapters.add(`${r.book}:${ch}`);
-      }
-    }
-    return chapters.size;
-  }, [readings]);
+  /**
+   * Les chapitres entamés et ceux lus en entier.
+   *
+   * Le `Set<`livre:chapitre`>` qui vivait ici ne regardait jamais les versets :
+   * Jean 3:16-18, trois versets sur trente-six, comptait tout Jean 3 comme lu.
+   * Mesuré le 9 septembre 2026 sur le compte du propriétaire : **129 de ses
+   * 169 chapitres étaient partiels**, soit 76 %.
+   *
+   * La règle est sortie dans `lib/progression/chapitres.ts`, et le calcul local
+   * est **retiré** et non doublé — le piège 5 du dépôt, quatre fois rencontré.
+   * `entames` rend exactement ce que rendait ce `Set`, ce qu'un test vérifie :
+   * le niveau et les badges ne bougent donc pour personne.
+   */
+  const comptage = useMemo(() => compterChapitres(readings), [readings]);
+  const chapterCount = comptage.entames;
 
   const uniqueBooks = useMemo(() => {
     return new Set(readings.map((r) => r.book)).size;
@@ -396,7 +403,12 @@ export default function ProgressPage() {
               ? rapport(chapterCount, totalBibleChapters)
               : <>{chapterCount}<span className="text-lg font-normal text-gray-400 ms-1">/ {totalBibleChapters}</span></>}
           </p>
-          <p className="text-xs text-gray-400 mt-1">{t.progress.booksStarted(uniqueBooks)}</p>
+          {/* Le second chiffre, qui est tout l'objet du correctif : le grand
+              nombre dit ce qu'on a touché, celui-ci ce qu'on a fini. */}
+          <p className="text-xs text-gray-400 mt-1">
+            {t.progress.chaptersWhole} : {comptage.entiers}
+          </p>
+          <p className="text-xs text-gray-400">{t.progress.booksStarted(uniqueBooks)}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">

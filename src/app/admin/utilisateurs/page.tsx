@@ -254,7 +254,12 @@ export default function AdminUtilisateursPage() {
                   <th className="text-start p-3 font-medium text-gray-600 hidden lg:table-cell">{t.profile.city}</th>
                   <th className="text-center p-3 font-medium text-gray-600">{t.admin.colRole}</th>
                   <th className="text-center p-3 font-medium text-gray-600">{t.admin.colStatus}</th>
-                  <th className="text-center p-3 font-medium text-gray-600">{t.progress.chaptersRead}</th>
+                  {/* `colReadings` et non `progress.chaptersRead` : cette colonne
+                      affiche `u.readings`, le **nombre de lectures**, et jamais des
+                      chapitres. Elle empruntait la clé de Progression, si bien que
+                      deux réalités différentes partageaient un seul libellé — la
+                      famille de la règle 13. Relevé le 9 septembre 2026. */}
+                  <th className="text-center p-3 font-medium text-gray-600">{t.admin.colReadings}</th>
                   <th className="text-start p-3 font-medium text-gray-600 hidden lg:table-cell">{t.admin.colLastSignIn}</th>
                   <th className="text-center p-3 font-medium text-gray-600">{t.admin.colActions}</th>
                 </tr>
