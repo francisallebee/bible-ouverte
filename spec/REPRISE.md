@@ -600,6 +600,13 @@ interrompu avant la fin. Les previews passent par git.
 | `<h2>` réellement rendus par Réglages | **16**, quand un `grep` sur le source en compte **1** : `SectionCard` est une source unique rendue quinze fois | 2 sept. |
 | Champs sans `htmlFor` au `grep` | **~64 sur 11 écrans**, contre **10 sur 3** mesurés à l'écran par l'audit — le relevé ignore `aria-label` et les `<label>` englobants | 2 sept. |
 | Coût d'un titre `sr-only` | **1 × 1 px en position absolue** — aucun décalage de mise en page, vérifié par `getComputedStyle` | 2 sept. |
+| Chapitres réellement lus en entier | **40 sur 169** au relevé SQL, **38** au calcul juste — 129 partiels, soit 76 %, dont beaucoup d'un seul verset | 9 sept. |
+| Ce que le comptage strict coûterait | du **niveau 4 au niveau 2**, et **deux badges déjà obtenus** retirés — au propriétaire comme aux 33 autres comptes ayant des lectures | 9 sept. |
+| Base au 9 septembre | **597 lectures**, 34 comptes en portent — contre 412 au briefing du 2 septembre | 9 sept. |
+| Ce qu'écrivait le cochage d'un plan daté | `verseEnd: 1` — cocher « Genèse 1-4 » enregistrait une lecture s'arrêtant à **Genèse 4:1** | 9 sept. |
+| Largeur rendue par le rail | contenu de **1 020 → 1 193 px** sur un écran de 1 280 ; barre de 260 à 80 px | 9 sept. |
+| Cibles du menu en rail, avant correctif | **44 × 40 px** — le libellé passé en `sr-only` ne soutenait plus la hauteur, et la barre de défilement prenait 15 px de large | 9 sept. |
+| `lg:ml-[var(--nav-width)]` en arabe | propriété **physique** : la barre passe à droite, le contenu restait poussé depuis la gauche et passait dessous | 9 sept. |
 | Où vont les 3 820 px de Progression | **84 % dans cinq sections de liste** — Succès 836, par contexte 598, par catégorie 550, Détail par livre 466 ; les quatre cartes n'en font que 625, soit 16 % | 2 sept. |
 | Cartes en deux colonnes, effet réel | Progression **3 820 → 3 462 px** (4,70 → 4,26 écrans), Statistiques **2 126 → 1 878** — l'audit promettait « sous trois écrans », ce que la disposition seule ne peut pas rendre | 2 sept. |
 | `text-[--primary]` sur `--surface` en mode sombre | **1,11** de contraste — `#4a1a5e` sur `rgb(30,41,59)`. Le « 141 / 1189 » de Progression est illisible en thème sombre | 2 sept. |
@@ -2716,3 +2723,147 @@ contourné par un pilotage en script — ce qui éprouve le rendu, pas le clic, 
 c'est bien le rendu qui était en question. Et **une capture a montré
 « Chargement… » quand le DOM disait la page pleine** : le serveur de
 développement recompilait. Le relevé DOM fait foi, une fois de plus.
+
+## La séance du 9 septembre 2026 : lire avant de cocher, compter juste, replier le menu
+
+Trois demandes du propriétaire, plus une quatrième qu'il traite lui-même — les
+lettres de demande de droits, voir `spec/DROITS.md`.
+
+### Le comptage des chapitres mentait, et la mesure a décidé de la forme du correctif
+
+L'écran Progression comptait un chapitre dès qu'une lecture le touchait. Cocher
+Jean 3:16-18 — trois versets sur trente-six — marquait tout Jean 3 comme lu.
+
+**Ce défaut n'était pas corrigeable avant le 31 août** : distinguer « entamé »
+de « lu en entier » suppose de connaître la longueur réelle de chaque chapitre,
+et cette table est née du correctif du ticket 25. La demande du 9 septembre
+devient possible grâce à un correctif de neuf jours plus tôt, ce que ni l'un ni
+l'autre n'avait prévu.
+
+La mesure, faite **avant** de proposer quoi que ce soit : sur les 169 chapitres
+touchés par le propriétaire, **40 seulement sont entiers** au relevé SQL, et
+**38** au calcul juste. 129 sont partiels, soit 76 %, et beaucoup ne portent
+qu'un seul verset — `1 Ch 6:76 sur 81`, `2 Ch 7:14 sur 22`, `Ga 3:28 sur 29`.
+
+**C'est ce chiffre qui a écarté le comptage strict.** 40 chapitres au lieu de
+169 ramènent du niveau 4 au niveau 2 et font disparaître les badges
+« cinquante » et « cent », déjà obtenus — pour le propriétaire comme pour les
+trente-trois autres comptes. Retirer une récompense acquise donne exactement
+l'envie de tout couper que le 14 août avait relevée à propos des notifications.
+
+Décision du propriétaire : **le nombre garde sa valeur et change de nom**. La
+carte annonce « Chapitres entamés · 169 / 1189 », et une ligne dessous dit
+« Lus en entier : 38 ». Le niveau et les badges restent sur les entamés ; un
+test l'exige, en comparant le nouveau comptage à l'ancien `Set`.
+
+La règle vit dans `lib/progression/chapitres.ts`, et **l'ancien calcul a été
+retiré, pas doublé** — le piège 5, rencontré quatre fois.
+
+#### Ma contre-épreuve était circulaire, et c'est le navigateur qui l'a dit
+
+Le module rendait 40 sur les données du relevé SQL, ce que j'ai pris pour un
+accord entre deux instruments. L'écran, lui, rend **38**.
+
+L'explication tient à l'agrégation : le SQL réduisait chaque chapitre à
+`min(premier)` et `max(dernier)`, c'est-à-dire à un **empan** — un chapitre lu
+1-2 puis 4-6 y devenait « 1-6 », donc entier. J'ai ensuite nourri le module avec
+cette sortie **déjà aplatie**, et il a naturellement retrouvé le même chiffre.
+Le navigateur part des lectures brutes et fusionne réellement les intervalles :
+les deux chapitres d'écart sont ceux qui ont un trou au milieu.
+
+**Deux instruments ne se contrôlent que s'ils sont indépendants.** Le second ne
+doit pas consommer la sortie du premier, faute de quoi il ne mesure que sa
+propre fidélité à une agrégation.
+
+#### Le piège 10, pour la troisième fois
+
+Itérer une `Map` a fait échouer `tsc` quand les quatorze tests passaient déjà
+sous vitest. Après un `Set` le 21 août et un `matchAll` le 1er septembre, c'est
+la troisième famille. `Array.from` partout.
+
+#### Un libellé pour deux réalités
+
+`progress.chaptersRead` servait aussi d'en-tête à une colonne de l'écran
+d'administration — qui affiche `u.readings`, le **nombre de lectures**, jamais
+des chapitres. Elle était donc déjà mal intitulée avant la séance. Elle a
+désormais sa clé, `admin.colReadings`. C'est la famille de la règle 13 : deux
+endroits décrivant des choses différentes sous un seul nom.
+
+### Le texte à lire dans un plan, et ce que le cochage écrivait vraiment
+
+Un jour de plan n'affichait que sa **référence** ; il fallait quitter l'écran
+pour lire ce qu'il demandait. La fenêtre est celle de Nouvelle lecture,
+`PassagePreview`, dont trois propriétés sont devenues facultatives — un jour de
+plan n'a rien à « Modifier », et un jour déjà coché n'a rien à valider.
+
+**Le cochage reste sur la ligne, et ce n'est pas un doublon.** Le bouton de la
+fenêtre est `disabled` tant que le texte n'est pas téléchargé : en faire le seul
+chemin fermerait le plan à qui lit hors ligne, ce qui est le piège exact du
+31 août sur la validation de l'aperçu.
+
+**Le défaut trouvé en chemin est plus grave que la demande.** Un plan daté
+« raisonne au chapitre et pose 1:1 » : ses `verseStart` et `verseEnd` sont un
+remplissage. Trois conséquences, toutes fausses, et aucune n'avait été vue :
+
+| Endroit | Ce qu'il faisait |
+|---|---|
+| L'intitulé | annonçait « Genèse **1-4:1** » |
+| L'aperçu, tel que je l'avais d'abord écrit | n'aurait chargé que le verset 1 du chapitre 4 |
+| `markRead`, **depuis toujours** | enregistrait une lecture s'arrêtant à Genèse 4:1 |
+
+Le troisième est le vrai : cocher un jour de plan écrivait en base une lecture
+plus courte que ce que le plan fait lire. Personne ne l'avait vu **parce que la
+progression ne regardait pas les versets** — elle les regarde depuis ce jour, et
+le défaut serait devenu visible sous la forme d'un dernier chapitre
+éternellement « entamé ». Les trois endroits passent désormais par
+`bornesReelles`, et la description du jour est **factorisée** avec celle de la
+ligne plutôt que recopiée.
+
+Vu à l'écran : « Genèse 1-4 » rend **106 versets** — 31 + 25 + 24 + 26 —, et un
+jour non lu offre « Fermer » et « Marquer comme lu », sans « Modifier ».
+**Non vu : le cochage depuis la fenêtre**, qui écrirait une vraie lecture dans
+les données du propriétaire.
+
+### La barre latérale réduite aux icônes
+
+260 px en permanence sur grand écran, soit un quart d'un écran de 1024. Elle
+tient désormais dans **80 px** : icônes seules, libellé au survol et pour les
+lecteurs d'écran. Le contenu passe de 1 020 à **1 193 px** sur un écran de 1 280.
+
+Trois choix qui méritent d'être connus :
+
+- **`lg:sr-only` et non `lg:hidden`** sur chaque libellé : il disparaît de
+  l'écran, jamais du lecteur d'écran. Vaut aussi pour le numéro de version.
+- **`title` plutôt qu'une infobulle dessinée.** La liste porte
+  `overflow-y-auto`, qui crée un contexte de rognage sur les **deux** axes :
+  une bulle en `absolute` posée à côté de l'icône y serait coupée net, sans que
+  rien ne le signale.
+- Le tiroir de téléphone est **inchangé** : le rail ne s'applique qu'à `lg`.
+
+#### Une régression introduite, puis trouvée par la mesure
+
+Après passage en rail, les cibles retombaient à **44 × 40 px** — sous le seuil
+de 48 que le 2 septembre avait justement établi. Deux causes qu'aucune relecture
+n'aurait données : le libellé sorti du flux ne soutenait plus la hauteur, c'était
+l'icône de 16 px qui gouvernait ; et **la barre de défilement de la liste prenait
+quinze pixels de large**. D'où `lg:min-h-12` et une largeur portée à 80 px.
+Relevé après correctif : **19 cibles sur 19 à 48 px ou plus.**
+
+#### Le correctif RTL que ce chantier a mis à découvert
+
+`lg:ml-[var(--nav-width)]` est une propriété **physique**. La barre se place par
+`start-0`, donc à droite en arabe — le contenu, lui, restait poussé depuis la
+gauche et passait sous la barre. Passé en `ms-`, vérifié en posant `dir="rtl"` à
+la main : la marge bascule bien à droite, sans chevauchement.
+
+**Pourquoi ne l'avais-je pas vu le 2 septembre ?** Parce que l'arabe n'avait été
+regardé qu'à **375 px**, où `--nav-width` vaut `0px`. C'est « un essai ne prouve
+que le chemin qu'il a emprunté », appliqué à ma propre vérification — et la
+preuve qu'une revue en RTL doit se faire aux deux largeurs.
+
+### Ce qui n'a pas été vu
+
+Le cochage depuis la fenêtre d'aperçu, pour ne pas écrire dans les données du
+propriétaire. Le rail en arabe **avec du texte arabe réel** — seul le sens
+d'écriture a été éprouvé, pas le rendu des libellés au survol. Et rien en mode
+sombre.
