@@ -63,6 +63,40 @@ body {
 [data-preset="tablet"] textarea { min-height: 40px !important; }
 
 /* ---------------------------------------------------------------------------
+ * Le zoom automatique de Safari iOS
+ *
+ * iOS agrandit la page dès qu'on met le doigt dans un champ dont le texte fait
+ * moins de 16 px, et **ce grossissement ne se défait pas** : il faut quitter
+ * l'application et la relancer. Signalé le 9 septembre 2026 par le propriétaire
+ * du dépôt, qui le voyait à chaque reconnexion — le seul moment où l'on tape.
+ *
+ * Trois symptômes, une cause : cela n'arrive qu'à la connexion, la page « prend
+ * plus d'espace » parce qu'elle est zoomée, et seul un redémarrage la rend à sa
+ * taille.
+ *
+ * Le garde-fou existait, mais **conditionné à la largeur** — `max-width: 767px`.
+ * Un iPad n'y entre pas, ni un iPhone tenu à l'horizontale. Et sur `/auth/*` le
+ * repli `data-preset` manque également, `LayoutClient` n'y étant pas monté :
+ * les deux protections manquaient à l'endroit exact où l'on saisit son mot de
+ * passe. `[data-preset="tablet"]` n'imposait par ailleurs que la hauteur.
+ *
+ * **La condition juste n'est pas la largeur mais le tactile** : c'est le doigt
+ * qui déclenche le zoom, pas la taille de l'écran.
+ *
+ * Mesuré en production le 9 septembre 2026, à 768 px : les deux champs de
+ * `/auth/login` rendaient **15 px**, et `data-preset` y valait `null`.
+ *
+ * Seule la taille du texte est imposée ici, et sur les seuls champs de saisie :
+ * c'est elle qui déclenche le zoom. La hauteur des cibles reste l'affaire des
+ * règles ci-dessus, et un bouton ne reçoit jamais de frappe.
+ * ------------------------------------------------------------------------- */
+@media (pointer: coarse) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
  * Les champs de date sous Safari iOS
  *
  * Safari y rend `input[type="date"]` avec le format long de la locale — « 19
