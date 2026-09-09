@@ -300,9 +300,26 @@ export default function PlansPage() {
         </div>
       )}
 
-      {/* Le catalogue, avant la liste : c'est la porte d'entrée pour qui n'a
-          encore aucun plan, et elle ne doit pas se mériter par un défilement. */}
-      <section className="mb-8">
+      {/*
+        L'ordre des deux blocs dépend de ce que le lecteur possède, et ce n'est
+        pas un caprice : le catalogue passait **toujours** en premier, avec une
+        raison qui ne vaut que pour qui n'a encore aucun plan — « c'est la porte
+        d'entrée, et elle ne doit pas se mériter par un défilement ».
+
+        Cette raison tombe dès qu'un plan existe : on vient alors pour reprendre
+        sa lecture, pas pour en choisir une autre, et faire défiler tout le
+        catalogue pour retrouver son propre plan est le défaut signalé le
+        9 septembre 2026 par le propriétaire du dépôt.
+
+        Les deux cas sont donc servis par `order`, et non par un second rendu :
+        le catalogue reste premier tant que la liste est vide — un état vide
+        placé au-dessus de lui n'aurait rien à montrer —, et passe dessous dès
+        qu'il y a un plan. Les classes sont écrites en toutes lettres des deux
+        côtés du ternaire : une classe Tailwind construite à l'exécution
+        n'existe pas (règle 14).
+      */}
+      <div className="flex flex-col gap-8">
+      <section className={plans.length === 0 ? "order-1" : "order-2"}>
         <h2 className="text-lg font-semibold mb-1">{t.planCatalog.title}</h2>
         <p className="text-sm text-gray-500 mb-4">{t.planCatalog.hint}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -351,6 +368,7 @@ export default function PlansPage() {
         </div>
       </section>
 
+      <div className={plans.length === 0 ? "order-2" : "order-1"}>
       {plans.length === 0 ? (
         <div className="text-center py-12">
           <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -407,6 +425,8 @@ export default function PlansPage() {
           })}
         </div>
       )}
+      </div>
+      </div>
 
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
