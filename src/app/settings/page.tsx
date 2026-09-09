@@ -820,7 +820,27 @@ export default function SettingsPage() {
                     <span className="text-sm truncate">{v.name}</span>
                   </label>
                   {isDefault && <span className="text-xs bg-[--primary] text-white px-2 py-0.5 rounded-full font-medium">{t.settings.versionDefault}</span>}
-                  <label className={`flex items-center gap-1.5 text-xs text-[--text-secondary] shrink-0 ${
+                  {/*
+                    La couleur suit la ligne, comme l'intitulé voisin au-dessus.
+                    La ligne de la version par défaut porte `bg-[--primary-light]`,
+                    et `--text-secondary` n'y tenait que **4,06** de contraste —
+                    relevé le 9 septembre 2026 en balayant les 36 intitulés de
+                    l'écran. Sur les autres lignes, sans fond teinté, il tient
+                    4,83 et reste donc le bon choix.
+
+                    `text-[--primary]` et non `text-[--primary] opacity-75`,
+                    l'idiome du 31 août : l'opacité porterait sur le `<label>`
+                    entier, **case à cocher comprise**, qui serait ternie avec le
+                    texte. Ce jour-là elle ne portait que sur du texte.
+
+                    Le couple tient dans les deux modes par construction depuis
+                    le correctif du 9 septembre : quand le fond passe au panneau
+                    sombre, `--primary` passe à `--primary-clair`. Mesuré 11,02
+                    en clair et 7,57 en sombre.
+                  */}
+                  <label className={`flex items-center gap-1.5 text-xs shrink-0 ${
+                    isDefault ? 'text-[--primary]' : 'text-[--text-secondary]'
+                  } ${
                     isDefault || busyVersion ? 'cursor-default' : 'cursor-pointer'
                   }`}>
                     {busyVersion === v.id ? (

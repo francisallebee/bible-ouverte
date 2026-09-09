@@ -3148,10 +3148,25 @@ Relevés à **375 px**, la largeur de l'audit :
 | Profil | **7** | 16 px | 12 px | aucun |
 
 Sur Réglages, 36 intitulés mesurés, dont **10 modifiés** par ce correctif : le
-pire des dix tient **4,83** de contraste. Le seul sous 4,5 est « Activée », à
-**4,06** — sa classe ne porte ni `block` ni `font-medium`, donc il n'a pas été
-touché. C'est `--text-secondary` sur `--primary-light`, la famille que le
-31 août avait corrigée sur le panneau de séance. **Signalé, non corrigé** : la
-demande portait sur l'échelle, pas sur les contrastes.
+pire des dix tient **4,83** de contraste. Le seul sous 4,5 était « Activée », à
+**4,06** — sa classe ne portait ni `block` ni `font-medium`, donc ce correctif
+ne l'avait pas touché.
+
+**Corrigé dans la foulée, à la demande du propriétaire.** C'était
+`--text-secondary` sur `--primary-light`, la famille que le 31 août avait
+traitée sur le panneau de séance — mais **une seule des douze lignes** était en
+cause : le fond teinté n'existe que sur la version par défaut, et sur les onze
+autres `--text-secondary` tient 4,83 sur blanc. La couleur suit donc la ligne,
+exactement comme l'intitulé voisin une ligne plus haut.
+
+`text-[--primary]` et **non** `text-[--primary] opacity-75`, l'idiome du
+31 août : ici l'opacité porterait sur le `<label>` entier, **case à cocher
+comprise**, qui serait ternie avec le texte. Ce jour-là elle ne portait que sur
+du texte — un idiome ne se transpose pas sans regarder le balisage.
+
+Relevé après correctif, les 36 intitulés dans les deux modes : **zéro sous
+4,5**. La ligne teintée passe de 4,06 à **11,02** en clair et tient **7,57** en
+sombre, le couple `--primary` / `--primary-light` basculant ensemble depuis le
+correctif de mode sombre du même jour.
 
 Non vu : les écrans en mode sombre après ce changement, et rien en arabe.
