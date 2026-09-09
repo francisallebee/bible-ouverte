@@ -1033,6 +1033,8 @@ export const fr = {
     notReadYet: 'Pas encore lu',
     remove: (reference: string) => `Retirer ${reference}`,
     readOnLabel: 'Lu le',
+    readText: (ref: string) => `Lire le texte : ${ref}`,
+    markAsRead: 'Marquer comme lu',
     validate: 'Valider',
   },
   readingDetail: {

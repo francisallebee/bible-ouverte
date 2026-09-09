@@ -14,9 +14,23 @@ interface Props {
   dir: 'ltr' | 'rtl'
   passages: BiblePassage[]
   loading: boolean
-  /** Revenir au choix des chapitres et des versets. */
-  onEdit: () => void
-  onValidate: () => void
+  /**
+   * Revenir au choix des chapitres et des versets.
+   *
+   * Facultatif depuis le 9 septembre 2026 : un jour de plan de lecture n'a
+   * rien à modifier — son passage est fixé par le plan. Absent, le bouton ne
+   * s'affiche pas.
+   */
+  onEdit?: () => void
+  /**
+   * L'action de confirmation, après lecture.
+   *
+   * Facultative pour la même raison : un jour déjà coché n'a plus rien à
+   * confirmer. Si les deux actions manquent, le pied de la fenêtre disparaît.
+   */
+  onValidate?: () => void
+  /** Le libellé de cette action. Par défaut, « Valider ». */
+  validateLabel?: string
   onClose: () => void
 }
 
@@ -35,7 +49,8 @@ interface Props {
  * ouvre cette fenêtre pour vérifier, donc pour corriger le cas échéant.
  */
 export default function PassagePreview({
-  open, title, versionName, dir, passages, loading, onEdit, onValidate, onClose,
+  open, title, versionName, dir, passages, loading, onEdit, onValidate,
+  validateLabel, onClose,
 }: Props) {
   const t = useT()
 
@@ -86,18 +101,32 @@ export default function PassagePreview({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-[--surface] border-t border-[--border] px-5 py-4 flex gap-3">
-          <button type="button" onClick={onEdit}
-            className="flex-1 flex items-center justify-center gap-2 border border-[--border] rounded-lg px-4 py-2.5 text-sm text-[--text] hover:border-[--primary] transition-colors">
-            <SlidersHorizontal className="w-4 h-4" />
-            {t.common.edit}
-          </button>
-          <button type="button" onClick={onValidate} disabled={passages.length === 0}
-            className="flex-1 flex items-center justify-center gap-2 bg-[--primary] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-50 transition-colors">
-            <Check className="w-4 h-4" />
-            {t.passagePicker.validate}
-          </button>
-        </div>
+        {(onEdit || onValidate) && (
+          <div className="sticky bottom-0 bg-[--surface] border-t border-[--border] px-5 py-4 flex gap-3">
+            {onEdit && (
+              <button type="button" onClick={onEdit}
+                className="flex-1 flex items-center justify-center gap-2 border border-[--border] rounded-lg px-4 py-2.5 text-sm text-[--text] hover:border-[--primary] transition-colors">
+                <SlidersHorizontal className="w-4 h-4" />
+                {t.common.edit}
+              </button>
+            )}
+            {onValidate && (
+              /*
+                `disabled` tant que le texte n'est pas là — et c'est pourquoi
+                ce bouton ne peut jamais être le **seul** chemin vers l'action
+                qu'il propose. Sur un jour de plan, le cochage reste sur la
+                ligne : sans cela, un lecteur hors ligne ne pourrait plus
+                cocher son jour, ce qui est exactement le piège du 31 août 2026
+                sur la validation de l'aperçu.
+              */
+              <button type="button" onClick={onValidate} disabled={passages.length === 0}
+                className="flex-1 flex items-center justify-center gap-2 bg-[--primary] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-50 transition-colors">
+                <Check className="w-4 h-4" />
+                {validateLabel ?? t.passagePicker.validate}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -4,13 +4,13 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft, BookOpen, CheckCircle2, Circle, ChevronLeft, ChevronRight,
+  ArrowLeft, BookOpen, BookOpenText, CheckCircle2, Circle, ChevronLeft, ChevronRight,
   Loader2, Edit3, Download, FileText, Table, Code, FileJson, File, Trash2, ListChecks, X,
 } from "lucide-react";
 import {
   seedIfNeeded, getPlan, getPlanDays, updatePlanDay, updatePlan,
   addReading, deleteReading, getAllVersions, generatePlanDays, deletePlanDaysByPlan, addPlanDays,
-  addPlanEntry, deletePlanDay,
+  addPlanEntry, deletePlanDay, getPassagesForRange,
   getCurrentUserId, PLAN_CONTEXT_ID,
   exportPlanCSV, exportPlanMarkdown, exportPlanJSON, exportPlanHTML, exportPlanPDF,
 } from "@/lib/storage";
@@ -20,7 +20,10 @@ import PlanEntryAdder from "@/components/PlanEntryAdder";
 import type { PlanEntryDraft } from "@/components/PlanEntryAdder";
 import { describeRange } from "@/components/PassagePicker";
 import { dayPassages, readingIdsOf } from "@/lib/storage/plan-passages";
-import type { ReadingPlan, PlanDay, BibleVersion, PlanDuration } from "@/lib/storage";
+import PassagePreview from "@/components/PassagePreview";
+import { versetsDuChapitre } from "@/lib/progression/chapitres";
+import { textDirection } from "@/lib/i18n/locales";
+import type { ReadingPlan, PlanDay, BibleVersion, PlanDuration, BiblePassage } from "@/lib/storage";
 
 /** Les durées proposées. Leurs libellés vivent dans les dictionnaires. */
 const DURATIONS: { value: PlanDuration }[] = [
@@ -43,6 +46,22 @@ export default function PlanDetailPage() {
   const [days, setDays] = useState<PlanDay[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
+
+  /**
+   * Le texte du jour, lu avant de cocher.
+   *
+   * Jusqu'ici l'écran n'affichait que la **référence** — « Genèse 1-3 » — et
+   * il fallait sortir du plan pour lire ce qu'il demandait. La fenêtre est
+   * celle de Nouvelle lecture, `PassagePreview`, plutôt qu'un second afficheur
+   * : le piège 5 du dépôt joue dans les deux sens, et un module qu'on ajoute
+   * peut dupliquer un calcul qui existe déjà.
+   *
+   * Le texte est lu dans la version **du plan**, pas dans celle des réglages :
+   * c'est elle qui a servi à composer les passages.
+   */
+  const [apercu, setApercu] = useState<PlanDay | null>(null);
+  const [passagesApercu, setPassagesApercu] = useState<BiblePassage[]>([]);
+  const [chargementApercu, setChargementApercu] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [togglingDay, setTogglingDay] = useState<number | null>(null);
   const [editing, setEditing] = useState(false);
@@ -120,10 +139,15 @@ export default function PlanDetailPage() {
           book: passage.book,
           chapterStart: passage.chapterStart,
           chapterEnd: passage.chapterEnd,
-          // Les plans datés raisonnent au chapitre et posent 1:1 ; les plans
-          // libres portent le passage exact qu'on a choisi.
-          verseStart: passage.verseStart ?? 1,
-          verseEnd: passage.verseEnd ?? 1,
+          // Les plans libres portent le passage exact qu'on a choisi ; les
+          // plans datés raisonnent au chapitre, et `bornesReelles` y substitue
+          // le dernier verset réel au `1` de remplissage.
+          //
+          // Ce `1` était écrit tel quel jusqu'au 9 septembre 2026, si bien que
+          // cocher « Genèse 1-4 » enregistrait une lecture s'arrêtant à
+          // Genèse 4:1. Nul ne l'avait vu, la progression ne regardant pas les
+          // versets ; elle les regarde désormais.
+          ...bornesReelles(passage),
           passageText: "",
           translationId: plan!.versionId,
           tags: ["general"],
@@ -187,6 +211,79 @@ export default function PlanDetailPage() {
     // Un plan daté a déjà sa date ; un plan libre la demande.
     if (plan?.kind !== "free") return markRead(day, day.date);
     setDating({ day: day.day, date: new Date().toISOString().slice(0, 10) });
+  }
+
+  /**
+   * Les bornes de versets **réelles** d'un passage de plan.
+   *
+   * Un plan daté « raisonne au chapitre et pose 1:1 » — voir `markRead`. Ces
+   * deux valeurs sont donc un remplissage, pas une intention de lecture, et les
+   * prendre au mot a trois conséquences, toutes fausses : l'intitulé annonce
+   * « Genèse 1-4:1 », l'aperçu ne charge que le premier verset du dernier
+   * chapitre, et le comptage de Progression tient ce chapitre pour à peine
+   * entamé alors que le plan le fait lire en entier.
+   *
+   * Un plan **libre**, lui, porte le passage exact qu'on a choisi : ses bornes
+   * sont vraies et se gardent telles quelles.
+   */
+  const bornesReelles = useCallback((passage: ReturnType<typeof dayPassages>[number]) => {
+    if (isFree) {
+      return { verseStart: passage.verseStart ?? 1, verseEnd: passage.verseEnd ?? 1 };
+    }
+    return { verseStart: 1, verseEnd: versetsDuChapitre(passage.book, passage.chapterEnd) ?? 999 };
+  }, [isFree]);
+
+  /**
+   * La référence lisible d'un passage.
+   *
+   * Une seule source pour la ligne du jour **et** pour le titre de l'aperçu :
+   * deux endroits décrivant la même chose finissent par diverger, et c'est la
+   * famille de la règle 13.
+   */
+  const referenceDuPassage = useCallback((passage: ReturnType<typeof dayPassages>[number]) => {
+    if (!isFree) {
+      return `${getBookName(passage.book)} ${passage.chapterStart}${
+        passage.chapterEnd !== passage.chapterStart ? `-${passage.chapterEnd}` : ""}`;
+    }
+    return describeRange(getBookName(passage.book), {
+      chapterStart: passage.chapterStart,
+      chapterEnd: passage.chapterEnd,
+      ...bornesReelles(passage),
+    });
+  }, [isFree, getBookName, bornesReelles]);
+
+  /** La référence d'un jour, tous passages confondus. */
+  const referenceDuJour = useCallback((day: PlanDay) =>
+    dayPassages(day).map(referenceDuPassage).join(" · "),
+  [referenceDuPassage]);
+
+  /**
+   * Ouvre le texte du jour.
+   *
+   * Les passages sont lus **en parallèle** : un jour classique en porte
+   * plusieurs, d'un livre différent chacun, et les enchaîner n'ajouterait
+   * qu'une attente. Un passage introuvable — version non téléchargée, ou
+   * versification différente — rend une liste vide sans interrompre les
+   * autres, comme le fait déjà la recherche thématique.
+   */
+  async function ouvrirApercu(day: PlanDay) {
+    if (!plan) return;
+    setApercu(day);
+    setPassagesApercu([]);
+    setChargementApercu(true);
+    try {
+      const lots = await Promise.all(dayPassages(day).map((passage) =>
+        getPassagesForRange(plan.versionId, passage.book, {
+          chapterStart: passage.chapterStart,
+          chapterEnd: passage.chapterEnd,
+          ...bornesReelles(passage),
+        }).catch(() => [] as BiblePassage[]),
+      ));
+      setPassagesApercu(lots.flat());
+    } catch {
+      setPassagesApercu([]);
+    }
+    setChargementApercu(false);
   }
 
   async function handleAddEntry(entry: PlanEntryDraft) {
@@ -460,18 +557,21 @@ export default function PlanDetailPage() {
                   <div className="text-sm font-medium text-gray-900 space-y-0.5">
                     {dayPassages(day).map((passage, i) => (
                       <p key={`${passage.book}-${passage.chapterStart}-${i}`}>
-                        {isFree
-                          ? describeRange(getBookName(passage.book), {
-                              chapterStart: passage.chapterStart,
-                              chapterEnd: passage.chapterEnd,
-                              verseStart: passage.verseStart ?? 1,
-                              verseEnd: passage.verseEnd ?? 1,
-                            })
-                          : `${getBookName(passage.book)} ${passage.chapterStart}${passage.chapterEnd !== passage.chapterStart ? `-${passage.chapterEnd}` : ""}`}
+                        {referenceDuPassage(passage)}
                       </p>
                     ))}
                   </div>
                 </div>
+              </button>
+              {/*
+                Frère du bouton de cochage, jamais dedans : un bouton dans un
+                bouton n'est pas du HTML valide, et le clic n'irait pas au bon
+                endroit. Même disposition que la corbeille des plans libres.
+              */}
+              <button onClick={() => ouvrirApercu(day)}
+                aria-label={t.planDetail.readText(referenceDuJour(day))}
+                className="px-3 py-3 min-h-12 min-w-12 flex items-center justify-center text-gray-400 hover:text-[--primary] transition-colors shrink-0">
+                <BookOpenText className="w-4 h-4" />
               </button>
               {isFree && (
                 <button onClick={() => handleRemoveEntry(day)}
@@ -505,6 +605,34 @@ export default function PlanDetailPage() {
           </div>
         ))}
       </div>
+
+      {/*
+        Le texte du jour. `onEdit` est absent — un jour de plan n'a rien à
+        modifier —, et `onValidate` ne l'est que tant que le jour n'est pas
+        déjà coché.
+
+        **Le cochage reste sur la ligne**, et ce n'est pas un doublon : le
+        bouton de cette fenêtre est désactivé quand le texte n'est pas
+        téléchargé. En faire le seul chemin fermerait le plan à qui lit hors
+        ligne — le piège exact du 31 août 2026.
+      */}
+      {apercu && plan && (
+        <PassagePreview
+          open
+          title={referenceDuJour(apercu)}
+          versionName={versions.find((v) => v.id === plan.versionId)?.name ?? plan.versionId}
+          dir={textDirection(versions.find((v) => v.id === plan.versionId)?.language ?? "fr")}
+          passages={passagesApercu}
+          loading={chargementApercu}
+          validateLabel={t.planDetail.markAsRead}
+          onValidate={apercu.isRead ? undefined : () => {
+            const jour = apercu;
+            setApercu(null);
+            handleToggleDay(jour);
+          }}
+          onClose={() => setApercu(null)}
+        />
+      )}
     </div>
   );
 }

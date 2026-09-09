@@ -990,6 +990,8 @@ export const en: Dictionary = {
     notReadYet: 'Not read yet',
     remove: (reference: string) => `Remove ${reference}`,
     readOnLabel: 'Read on',
+    readText: (ref: string) => `Read the text: ${ref}`,
+    markAsRead: 'Mark as read',
     validate: 'Confirm',
   },
   readingDetail: {

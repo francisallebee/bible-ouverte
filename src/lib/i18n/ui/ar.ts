@@ -1088,6 +1088,8 @@ export const ar: Dictionary = {
     notReadYet: 'لم يُقرأ بعد',
     remove: (reference: string) => `إزالة ${reference}`,
     readOnLabel: 'قُرئ في',
+    readText: (ref: string) => `اقرأ النص: ${ref}`,
+    markAsRead: 'وضع علامة مقروء',
     validate: 'تأكيد',
   },
   readingDetail: {

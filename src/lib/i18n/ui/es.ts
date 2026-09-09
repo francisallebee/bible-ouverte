@@ -1017,6 +1017,8 @@ export const es: Dictionary = {
     notReadYet: 'Todavía no leído',
     remove: (reference: string) => `Quitar ${reference}`,
     readOnLabel: 'Leído el',
+    readText: (ref: string) => `Leer el texto: ${ref}`,
+    markAsRead: 'Marcar como leído',
     validate: 'Validar',
   },
   readingDetail: {
