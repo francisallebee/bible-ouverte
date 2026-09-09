@@ -2945,3 +2945,29 @@ vide placé au-dessus de lui n'aurait rien à montrer.
 
 Vu à l'écran, session ouverte par le propriétaire : trois plans en tête à
 y = 124, « Plans proposés » à y = 396.
+
+## Ce que le propriétaire a confirmé le 9 septembre 2026
+
+**Le cochage depuis la fenêtre d'aperçu d'un plan fonctionne.** C'est la réserve
+que la livraison du jour portait explicitement : l'agent avait ouvert la fenêtre,
+mesuré ses 106 versets et ses deux boutons, mais **n'avait pas cliqué** — le
+serveur de développement écrit dans la base de production, et « Marquer comme
+lu » y aurait enregistré une vraie lecture dans le plan du propriétaire.
+
+C'est donc une preuve d'écran **qui ne vient pas de l'agent**, et sur le seul
+chemin qu'il s'était interdit. Elle rejoint celles des notifications push, du
+parcours découverte et de la synchronisation de langue.
+
+### Deux sujets parqués, à ne pas resservir
+
+Ils ne sont pas des réserves ouvertes, et les lister comme telles à chaque
+livraison est une friction que ce document doit supprimer.
+
+| Sujet | État |
+|---|---|
+| La revue de l'arabe, et le rendu RTL des écrans | **En pause depuis le 19 août 2026**, sur décision du propriétaire, rappelée le 9 septembre. Ne pas la relancer, et ne pas la porter en réserve d'une livraison : les fondations logiques sont posées et vérifiées au cas par cas, la revue d'ensemble attendra qu'il la demande |
+| La relance des quatre éditeurs de bibles sous droits | **Au 30 septembre 2026**, décidée le 9 septembre. Tout ce qu'il faut est dans `spec/DROITS.md` |
+
+Le mode sombre, lui, reste une réserve ouverte : il n'a fait l'objet d'aucune
+décision de mise en pause, et le défaut de `--primary-light` — et de `--primary`
+en texte, mesuré à 1,11 — attend toujours un arbitrage du propriétaire.
