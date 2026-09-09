@@ -131,19 +131,19 @@ export default function RoadmapPage() {
       {isAdmin && showForm && (
         <div className="bg-[--surface] rounded-xl border border-[--border] p-5 mb-6 space-y-3 shadow-[--shadow]">
           <div>
-            <label className="block text-sm font-medium text-[--text] mb-1">{t.roadmap.itemTitle}</label>
+            <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.roadmap.itemTitle}</label>
             <input type="text" value={title} onChange={e => setTitle(e.target.value)}
               placeholder={t.roadmap.titlePlaceholder}
               className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]" autoFocus />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[--text] mb-1">{t.roadmap.description}</label>
+            <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.roadmap.description}</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)}
               rows={3} placeholder={t.roadmap.descriptionPlaceholder}
               className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] resize-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[--text] mb-1">{t.roadmap.status}</label>
+            <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.roadmap.status}</label>
             <select value={status} onChange={e => setStatus(e.target.value as RoadmapItem['status'])}
               className="border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
               {Object.keys(STATUS_CONFIG).map((k) => (

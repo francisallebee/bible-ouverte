@@ -270,7 +270,7 @@ export default function SearchPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.book}</label>
+                <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.book}</label>
                 <BookPicker value={refBook} onSelect={(b) => {
                   setRefBook(b);
                   setRefRange({ chapterStart: 1, chapterEnd: 1, verseStart: 1, verseEnd: 1 });
@@ -278,7 +278,7 @@ export default function SearchPage() {
                 }} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.chapter}</label>
+                <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.chapter}</label>
                 <button type="button" onClick={() => setRefPickerOpen(true)} disabled={!refBook}
                   className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
                   <span className={refBook ? "truncate" : "truncate text-[--text-secondary]"}>
@@ -288,7 +288,7 @@ export default function SearchPage() {
                 </button>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.version}</label>
+                <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.version}</label>
                 <select value={refVersion} onChange={(e) => setRefVersion(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                   {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
@@ -340,14 +340,14 @@ export default function SearchPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
             <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
               <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.keyword}</label>
+                <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.keyword}</label>
                 <input type="text" value={kwQuery}
                   onChange={(e) => setKwQuery(e.target.value)}
                   placeholder={t.search.keywordPlaceholder}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" autoFocus />
               </div>
               <div className="w-full sm:w-48">
-                <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.version}</label>
+                <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.version}</label>
                 <select value={kwVersion} onChange={(e) => setKwVersion(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                   {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
@@ -422,7 +422,7 @@ export default function SearchPage() {
               ))}
             </div>
             <div className="w-full sm:w-64">
-              <label className="block text-xs font-medium text-gray-500 mb-1">{t.search.version}</label>
+              <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.version}</label>
               <select value={themeVersion} onChange={(e) => setThemeVersion(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
@@ -512,13 +512,13 @@ export default function SearchPage() {
                         dix écrans, et une fenêtre fermée n'est visible d'aucun
                         de ses deux instruments. Le contexte, lui, portait déjà
                         son `htmlFor`. */}
-                    <label htmlFor="search-add-date" className="block text-xs font-medium text-gray-500 mb-1">{t.search.date}</label>
+                    <label htmlFor="search-add-date" className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.date}</label>
                     <input id="search-add-date" type="date" value={addDate}
                       onChange={(e) => setAddDate(e.target.value)}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
                   </div>
                   <div>
-                    <label htmlFor="search-add-context" className="block text-xs font-medium text-gray-500 mb-1">{t.search.context}</label>
+                    <label htmlFor="search-add-context" className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.context}</label>
                     <ContextPicker
                       id="search-add-context"
                       contexts={contexts}
@@ -528,7 +528,7 @@ export default function SearchPage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="search-add-notes" className="block text-xs font-medium text-gray-500 mb-1">{t.search.notes}</label>
+                    <label htmlFor="search-add-notes" className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.notes}</label>
                     <textarea id="search-add-notes" value={addNotes} onChange={(e) => setAddNotes(e.target.value)}
                       rows={2}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none" />

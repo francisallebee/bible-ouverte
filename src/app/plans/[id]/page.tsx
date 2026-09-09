@@ -423,13 +423,13 @@ export default function PlanDetailPage() {
           <h2 className="font-semibold mb-4">{t.planDetail.editPlan}</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.name}</label>
+              <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.planDetail.name}</label>
               <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {!isFree && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.duration}</label>
+                  <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.planDetail.duration}</label>
                   <select value={formDuration} onChange={(e) => setFormDuration(e.target.value as PlanDuration)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     {DURATIONS.map((d) => <option key={d.value} value={d.value}>{t.planDetail.durations[d.value]}</option>)}
                   </select>
@@ -437,19 +437,19 @@ export default function PlanDetailPage() {
               )}
               {!isFree && formDuration === "custom" && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.customDays}</label>
+                  <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.planDetail.customDays}</label>
                   <input type="number" min={1} value={formCustomDays} onChange={(e) => setFormCustomDays(Math.max(1, Number(e.target.value)))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
                 </div>
               )}
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.version}</label>
+                <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.planDetail.version}</label>
                 <select value={formVersion} onChange={(e) => setFormVersion(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                   {selectableVersions.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                 </select>
               </div>
               {!isFree && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">{t.planDetail.startDate}</label>
+                  <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.planDetail.startDate}</label>
                   <input type="date" value={formStartDate} onChange={(e) => setFormStartDate(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
                 </div>
               )}
@@ -457,7 +457,7 @@ export default function PlanDetailPage() {
             {/* Un plan libre n'a pas de jours à régénérer : sa liste se construit
                 passage par passage, et rejouer le générateur l'effacerait. */}
             <div className={isFree ? "hidden" : undefined}>
-              <label className="block text-xs font-medium text-gray-500 mb-2">{t.planDetail.booksLabel}</label>
+              <label className="block text-xs font-medium text-[--text-secondary] mb-2">{t.planDetail.booksLabel}</label>
               <details className="text-sm">
                 <summary className="cursor-pointer text-[--primary] hover:underline">
                   {formBooks.length === 0 ? t.planDetail.allBooks : t.planDetail.booksSelected(formBooks.length)}

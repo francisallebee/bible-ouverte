@@ -135,7 +135,7 @@ export default function ContextPicker({ contexts, value, onChange, onContextAdde
 
       {adding && (
         <div className="mt-3 border border-gray-200 rounded-lg p-3 bg-gray-50/60">
-          <label htmlFor="new-context-name" className="block text-xs font-medium text-gray-600 mb-1">
+          <label htmlFor="new-context-name" className="block text-xs font-medium text-[--text-secondary] mb-1">
             {t.contextPicker.newName}
           </label>
           <div className="flex gap-2">

@@ -224,7 +224,7 @@ export default function SupportPage() {
       {showForm && (
         <div className="bg-[--surface] rounded-xl border border-[--border] p-5 mb-6 space-y-4 shadow-[--shadow]">
           <div>
-            <label className="block text-sm font-medium text-[--text] mb-1.5">{t.support.type}</label>
+            <label className="block text-xs font-medium text-[--text-secondary] mb-1.5">{t.support.type}</label>
             <div className="flex gap-2">
               {([{ id: 'bug', label: t.support.bug }] as const).map(o => (
                 <button key={o.id} onClick={() => setType(o.id)}
@@ -245,13 +245,13 @@ export default function SupportPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[--text] mb-1.5">{t.support.name}</label>
+            <label className="block text-xs font-medium text-[--text-secondary] mb-1.5">{t.support.name}</label>
             <input type="text" value={userName} onChange={e => setUserName(e.target.value)}
               placeholder={t.support.namePlaceholder}
               className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[--text] mb-1.5">{t.support.message}</label>
+            <label className="block text-xs font-medium text-[--text-secondary] mb-1.5">{t.support.message}</label>
             <textarea value={message} onChange={e => setMessage(e.target.value)}
               rows={4} placeholder={type === 'bug' ? t.support.bugPlaceholder : t.support.suggestionPlaceholder}
               className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] resize-none" />

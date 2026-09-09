@@ -3072,3 +3072,86 @@ Mode clair vérifié inchangé après coup : le chiffre phare y revient à 13,12
 **Signalé sans être corrigé**, hors du périmètre demandé : en mode **clair**,
 `text-orange-500` sur blanc donne **2,80**, sous le seuil de 3,0 applicable aux
 grands caractères. Les seize autres écrans n'ont pas été balayés en sombre.
+
+## L'échelle typographique — le dernier des six correctifs de l'audit
+
+### L'audit avait mesuré un écran, et un écran ne dit pas la règle du dépôt
+
+Il annonçait une échelle « presque plate » : quatre tailles, vingt-six éléments
+en 14 px sur Nouvelle lecture. Le constat se reproduit — relevé du 9 septembre
+2026 : **19 des 21 éléments de texte** de cet écran partageaient une seule
+taille, et seule la graisse les distinguait.
+
+Mais le relevé sur **tout** le dépôt dit autre chose, et change la nature du
+travail :
+
+| Convention d'intitulé | Occurrences |
+|---|---|
+| `text-xs` + couleur secondaire — l'intitulé recule | **27** |
+| `text-sm` + `text-gray-700` — l'intitulé au rang de la valeur | **34** |
+
+**La moitié du dépôt faisait déjà ce que l'audit recommandait.** Il ne
+s'agissait donc pas d'inventer une échelle mais de converger sur celle qui
+existe — ce qui est mieux fondé, et ce que l'audit ne pouvait pas voir : il
+avait mesuré l'écran qui suit la mauvaise convention.
+
+C'est la leçon du 2 septembre retournée. Là, un `grep` avait sur-compté quand
+l'écran mesurait juste. Ici, l'écran a sous-compté quand le relevé voit la
+structure.
+
+### L'échelle retenue
+
+Décisions du propriétaire : champs à 16 px, intitulés en minuscules — les
+petites capitales que l'audit proposait restent aux 13 étiquettes de
+statistiques, courtes par nature —, et un écran témoin avant d'étendre.
+
+| Rang | Classe | px |
+|---|---|---|
+| Titre d'écran | `text-2xl sm:text-3xl font-bold` | 24 / 30 |
+| Titre de section | `text-base font-semibold` | 16 |
+| Valeur et champ | `text-base` | 16 |
+| Corps, boutons | `text-sm` | 14 |
+| Intitulé de champ | `text-xs font-medium text-[--text-secondary]` | 12 |
+| Aide | `text-xs text-[--text-secondary]` | 12 |
+
+**La hiérarchie ne vient pas d'avoir agrandi mais d'avoir fait reculer.** Ce
+sont les intitulés passés de 14 à 12 px et en couleur secondaire qui créent le
+rang, plus que les 16 px des champs. L'audit l'avait vu — « l'intitulé recule,
+la valeur avance » — mais son exemple ne montrait que la moitié qui avance.
+
+### Les champs : une règle qui en remplace trois
+
+Les 113 champs n'ont pas été édités un par un. `globals.css` imposait déjà 16 px
+sous **trois** conditions — `max-width: 767px`, `[data-preset="smartphone"]`, et
+le `(pointer: coarse)` posé le matin même contre le zoom iOS. Une seule règle
+inconditionnelle les remplace toutes.
+
+**Le correctif a donc moins de CSS après qu'avant**, et le zoom iOS devient
+impossible partout plutôt qu'à trois endroits sur quatre. Les 16 px sont à la
+fois le rang de l'échelle et le seuil d'iOS : les deux raisons convergent sur le
+même nombre, ce qui n'était pas prévu.
+
+**Un piège retiré du même geste** : `label { font-size: 14px !important }`
+existait sous les deux conditions de largeur. Il **écrasait les intitulés à
+12 px sur téléphone**, c'est-à-dire exactement là où l'audit avait mesuré la
+platitude. Sans son retrait, l'échelle n'aurait rien changé sur mobile — et le
+relevé de contrôle l'aurait dit à 375 px, pas à 921.
+
+### Ce qui a été vu, et le défaut que la mesure a écarté
+
+Relevés à **375 px**, la largeur de l'audit :
+
+| Écran | Rangs | Champs | Intitulés | Débordement |
+|---|---|---|---|---|
+| Nouvelle lecture | **6** (contre 3) | 16 px | 12 px | aucun |
+| Réglages | **8** | 16 px | 12 px | aucun |
+| Profil | **7** | 16 px | 12 px | aucun |
+
+Sur Réglages, 36 intitulés mesurés, dont **10 modifiés** par ce correctif : le
+pire des dix tient **4,83** de contraste. Le seul sous 4,5 est « Activée », à
+**4,06** — sa classe ne porte ni `block` ni `font-medium`, donc il n'a pas été
+touché. C'est `--text-secondary` sur `--primary-light`, la famille que le
+31 août avait corrigée sur le panneau de séance. **Signalé, non corrigé** : la
+demande portait sur l'échelle, pas sur les contrastes.
+
+Non vu : les écrans en mode sombre après ce changement, et rien en arabe.

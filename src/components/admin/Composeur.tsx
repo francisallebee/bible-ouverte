@@ -62,7 +62,7 @@ export default function Composeur({
   return (
     <div className="space-y-3">
       <div>
-        <label htmlFor="msg-sujet" className="block text-xs font-medium text-gray-500 mb-1">
+        <label htmlFor="msg-sujet" className="block text-xs font-medium text-[--text-secondary] mb-1">
           {t.messages.subject}
         </label>
         <input id="msg-sujet" type="text" value={sujet} maxLength={SUJET_MAX}
@@ -71,7 +71,7 @@ export default function Composeur({
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
       </div>
       <div>
-        <label htmlFor="msg-corps" className="block text-xs font-medium text-gray-500 mb-1">
+        <label htmlFor="msg-corps" className="block text-xs font-medium text-[--text-secondary] mb-1">
           {t.messages.body}
         </label>
         <textarea id="msg-corps" value={corps} rows={4} maxLength={CORPS_MAX}

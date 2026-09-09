@@ -1037,7 +1037,7 @@ export default function SettingsPage() {
             caché, mais sur le défaut.
           */}
           <div className="mb-4">
-            <label htmlFor="home-page" className="block text-sm font-medium mb-1.5 text-[--text]">
+            <label htmlFor="home-page" className="block text-xs font-medium mb-1.5 text-[--text-secondary]">
               {t.settings.homePage}
             </label>
             <select

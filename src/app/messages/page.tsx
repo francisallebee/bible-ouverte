@@ -181,7 +181,7 @@ export default function MessagesPage() {
       )}
 
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <label htmlFor="reponse" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="reponse" className="block text-xs font-medium text-[--text-secondary] mb-1">
           {t.messages.reply}
         </label>
         <textarea

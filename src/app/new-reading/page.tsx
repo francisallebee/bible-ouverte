@@ -393,13 +393,13 @@ export default function NewReadingPage() {
         <div className="space-y-5">
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow] space-y-5">
             <div>
-              <label htmlFor="reading-date" className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.date}</label>
+              <label htmlFor="reading-date" className="block text-xs font-medium mb-1.5 text-[--text-secondary]">{t.newReading.date}</label>
               <input id="reading-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} autoComplete="off"
-                className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
+                className="w-full border border-[--border] rounded-lg px-3 py-2 text-base bg-[--surface] text-[--text]" />
             </div>
 
             <div>
-              <label htmlFor="reading-context" className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.context}</label>
+              <label htmlFor="reading-context" className="block text-xs font-medium mb-1.5 text-[--text-secondary]">{t.newReading.context}</label>
               <ContextPicker
                 id="reading-context"
                 contexts={contexts}
@@ -410,14 +410,14 @@ export default function NewReadingPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.book}</label>
+              <label className="block text-xs font-medium mb-1.5 text-[--text-secondary]">{t.newReading.book}</label>
               <BookPicker value={book} onSelect={selectBook} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.chaptersAndVerses}</label>
+              <label className="block text-xs font-medium mb-1.5 text-[--text-secondary]">{t.newReading.chaptersAndVerses}</label>
               <button type="button" onClick={() => setPickerOpen(true)} disabled={!book}
-                className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
+                className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-base bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
                 <span className="truncate">
                   {book
                     ? describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })
@@ -440,9 +440,9 @@ export default function NewReadingPage() {
             </button>
 
             <div>
-              <label htmlFor="reading-version" className="block text-sm font-medium mb-1.5 text-[--text]">{t.newReading.version}</label>
+              <label htmlFor="reading-version" className="block text-xs font-medium mb-1.5 text-[--text-secondary]">{t.newReading.version}</label>
               <select id="reading-version" value={versionId} onChange={(e) => setVersionId(e.target.value)}
-                className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text]">
+                className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-base bg-[--surface] text-[--text]">
                 {versions.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
               </select>
             </div>
@@ -457,10 +457,10 @@ export default function NewReadingPage() {
               qui eux n'étiquettent rien — les passer en titres ne coûte donc
               rien, celui-ci y perdrait son association.
             */}
-            <label htmlFor="reading-notes" className="block text-sm font-medium mb-2 text-[--text]">{t.newReading.notes}</label>
+            <label htmlFor="reading-notes" className="block text-xs font-medium mb-2 text-[--text-secondary]">{t.newReading.notes}</label>
             <textarea id="reading-notes" value={notes} onChange={(e) => setNotes(e.target.value)}
               rows={4} placeholder={t.newReading.notesPlaceholder}
-              className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] resize-none placeholder:text-gray-400" />
+              className="w-full border border-[--border] rounded-lg px-3 py-2.5 text-base bg-[--surface] text-[--text] resize-none placeholder:text-gray-400" />
           </div>
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
@@ -472,7 +472,7 @@ export default function NewReadingPage() {
               page. Les classes sont inchangées : l'écran ne bouge pas d'un
               pixel. Même chose pour Audio et Photos plus bas.
             */}
-            <h2 className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
+            <h2 className="block text-base font-semibold mb-3 flex items-center gap-2 text-[--text]">
               <LinkIcon className="w-4 h-4 text-blue-500" />
               {t.newReading.links}
             </h2>
@@ -487,13 +487,13 @@ export default function NewReadingPage() {
               <input type="text" value={linkTitle}
                 onChange={(e) => setLinkTitle(e.target.value)}
                 aria-label={t.newReading.linkTitlePlaceholder}
-                placeholder={t.newReading.linkTitlePlaceholder} className="w-full border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
+                placeholder={t.newReading.linkTitlePlaceholder} className="w-full border border-[--border] rounded-lg px-3 py-2 text-base bg-[--surface] text-[--text]" />
               <div className="flex gap-2">
                 <input type="url" value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addLink()}
                   aria-label={t.newReading.linkUrlLabel}
-                  placeholder="https://..." className="flex-1 border border-[--border] rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]" />
+                  placeholder="https://..." className="flex-1 border border-[--border] rounded-lg px-3 py-2 text-base bg-[--surface] text-[--text]" />
                 <button onClick={addLink} disabled={!linkUrl.trim()} aria-label={t.newReading.addLink}
                   className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 disabled:opacity-50 flex items-center gap-1 transition-colors shrink-0">
                   <Plus className="w-4 h-4" />
@@ -523,7 +523,7 @@ export default function NewReadingPage() {
           </div>
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
-            <h2 className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
+            <h2 className="block text-base font-semibold mb-3 flex items-center gap-2 text-[--text]">
               <Music className="w-4 h-4 text-purple-500" />
               {t.newReading.audio}
             </h2>
@@ -531,7 +531,7 @@ export default function NewReadingPage() {
           </div>
 
           <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
-            <h2 className="block text-sm font-medium mb-3 flex items-center gap-2 text-[--text]">
+            <h2 className="block text-base font-semibold mb-3 flex items-center gap-2 text-[--text]">
               <ImageIcon className="w-4 h-4 text-green-500" />
               {t.newReading.photos}
             </h2>
@@ -699,7 +699,7 @@ export default function NewReadingPage() {
             <p id="titre-nommage" className="font-semibold text-[--text]">
               {t.newReading.nameSession}
             </p>
-            <p className="text-sm text-[--text-secondary] mt-1">
+            <p className="text-xs text-[--text-secondary] mt-1">
               {t.newReading.nameSessionIntro(aEcrire.length)}
             </p>
 
@@ -757,7 +757,7 @@ export default function NewReadingPage() {
             <p id="titre-sortie" className="font-semibold text-[--text]">
               {t.newReading.leaveTitle}
             </p>
-            <p className="text-sm text-[--text-secondary] mt-2">
+            <p className="text-xs text-[--text-secondary] mt-2">
               {t.newReading.leaveWarning}
             </p>
 

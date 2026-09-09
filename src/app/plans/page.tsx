@@ -184,7 +184,7 @@ export default function PlansPage() {
           <h3 className="font-medium text-sm mb-4">{t.plans.createTitle}</h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">{t.plans.name}</label>
+              <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.name}</label>
               <input
                 type="text"
                 value={formName}
@@ -195,7 +195,7 @@ export default function PlansPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">{t.plans.kind}</label>
+              <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.kind}</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -236,7 +236,7 @@ export default function PlansPage() {
 
             {formKind === "scheduled" && (
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">{t.plans.duration}</label>
+                <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.duration}</label>
                 <select
                   value={formDuration}
                   onChange={(e) => setFormDuration(e.target.value as PlanDuration)}
@@ -259,7 +259,7 @@ export default function PlansPage() {
               </div>
             )}
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">{t.plans.version}</label>
+              <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.version}</label>
               <select
                 value={formVersion}
                 onChange={(e) => setFormVersion(e.target.value)}
@@ -272,7 +272,7 @@ export default function PlansPage() {
             </div>
             {formKind === "scheduled" && (
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">{t.plans.startDate}</label>
+                <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.startDate}</label>
                 <input
                   type="date"
                   value={formStartDate}

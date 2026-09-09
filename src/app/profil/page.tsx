@@ -253,14 +253,14 @@ export default function ProfilPage() {
         {/* Prénom et nom. Le nom d'affichage en découle à l'enregistrement. */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="profil-prenom" className="block text-sm font-medium text-gray-700 mb-1">{t.profile.firstName}</label>
+            <label htmlFor="profil-prenom" className="block text-xs font-medium text-[--text-secondary] mb-1">{t.profile.firstName}</label>
             <input id="profil-prenom" type="text" autoComplete="given-name"
               value={profile.first_name || ''}
               onChange={e => setProfile({ ...profile, first_name: e.target.value })}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
           </div>
           <div>
-            <label htmlFor="profil-nom" className="block text-sm font-medium text-gray-700 mb-1">{t.profile.lastName}</label>
+            <label htmlFor="profil-nom" className="block text-xs font-medium text-[--text-secondary] mb-1">{t.profile.lastName}</label>
             <input id="profil-nom" type="text" autoComplete="family-name"
               value={profile.last_name || ''}
               onChange={e => setProfile({ ...profile, last_name: e.target.value })}
@@ -270,21 +270,21 @@ export default function ProfilPage() {
 
         {/* Email (read-only) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t.profile.email}</label>
+          <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.profile.email}</label>
           <input type="email" value={user?.email || ''} disabled
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500" />
         </div>
 
         {/* Birth date */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t.profile.birthDate}</label>
+          <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.profile.birthDate}</label>
           <input type="date" value={profile.birth_date || ''} onChange={e => setProfile({ ...profile, birth_date: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
         </div>
 
         {/* Phone */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t.profile.phone}</label>
+          <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.profile.phone}</label>
           <input type="tel" value={profile.phone || ''} onChange={e => setProfile({ ...profile, phone: e.target.value })}
             placeholder={t.profile.phonePlaceholder}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
@@ -292,7 +292,7 @@ export default function ProfilPage() {
 
         {/* Ville */}
         <div>
-          <label htmlFor="profil-ville" className="block text-sm font-medium text-gray-700 mb-1">{t.profile.city}</label>
+          <label htmlFor="profil-ville" className="block text-xs font-medium text-[--text-secondary] mb-1">{t.profile.city}</label>
           <input id="profil-ville" type="text" autoComplete="address-level2"
             value={profile.city || ''}
             onChange={e => setProfile({ ...profile, city: e.target.value })}
@@ -302,7 +302,7 @@ export default function ProfilPage() {
         {/* Provenance. Les libellés viennent d'`authScreens` plutôt que d'être
             recopiés ici : quatre traductions à un seul endroit. */}
         <div>
-          <label htmlFor="profil-provenance" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="profil-provenance" className="block text-xs font-medium text-[--text-secondary] mb-1">
             {t.authScreens.discoverySource}
           </label>
           <select id="profil-provenance" value={profile.discovery_source || ''}
@@ -317,7 +317,7 @@ export default function ProfilPage() {
 
         {/* Bio */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t.profile.bio}</label>
+          <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.profile.bio}</label>
           <textarea value={profile.bio || ''} onChange={e => setProfile({ ...profile, bio: e.target.value })}
             rows={3} placeholder={t.profile.bioPlaceholder}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none" />
@@ -362,7 +362,7 @@ export default function ProfilPage() {
         </h2>
 
         <div>
-          <label htmlFor="current-password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="current-password" className="block text-xs font-medium text-[--text-secondary] mb-1">
             {t.profile.currentPassword}
           </label>
           <input id="current-password" type="password" autoComplete="current-password"
@@ -371,7 +371,7 @@ export default function ProfilPage() {
         </div>
 
         <div>
-          <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="new-password" className="block text-xs font-medium text-[--text-secondary] mb-1">
             {t.profile.newPassword}
           </label>
           <input id="new-password" type="password" autoComplete="new-password"
@@ -383,7 +383,7 @@ export default function ProfilPage() {
         </div>
 
         <div>
-          <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="confirm-password" className="block text-xs font-medium text-[--text-secondary] mb-1">
             {t.profile.confirmPassword}
           </label>
           <input id="confirm-password" type="password" autoComplete="new-password"

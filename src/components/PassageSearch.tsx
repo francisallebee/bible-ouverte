@@ -174,7 +174,7 @@ export default function PassageSearch({ open, versionId, versionLanguage, onPick
                           verseStart: p.verse, verseEnd: p.verse,
                         })}
                         className="w-full text-start border border-[--border] rounded-lg px-3 py-2 hover:border-[--primary] transition-colors">
-                        <span className="block text-xs font-medium text-[--primary]">
+                        <span className="block text-xs font-medium text-[--primary] text-[--text-secondary]">
                           {getBookName(p.book)} {p.chapter}:{p.verse}
                         </span>
                         <span className="texte-biblique block text-sm text-[--text] line-clamp-2" dir={dir}>{p.text}</span>

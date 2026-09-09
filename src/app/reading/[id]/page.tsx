@@ -260,7 +260,7 @@ export default function ReadingDetailPage() {
       {isEditing ? (
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 mb-8">
           <div>
-            <label className="block text-sm font-medium mb-1">{t.readingDetail.date}</label>
+            <label className="block text-xs font-medium mb-1 text-[--text-secondary]">{t.readingDetail.date}</label>
             <input
               type="date"
               value={editDate}
@@ -269,7 +269,7 @@ export default function ReadingDetailPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">{t.readingDetail.book}</label>
+            <label className="block text-xs font-medium mb-1 text-[--text-secondary]">{t.readingDetail.book}</label>
             <select
               value={editBook}
               onChange={(e) => {
@@ -288,7 +288,7 @@ export default function ReadingDetailPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">{t.readingDetail.chapterStart}</label>
+              <label className="block text-xs font-medium mb-1 text-[--text-secondary]">{t.readingDetail.chapterStart}</label>
               <select value={editChapterStart} onChange={(e) => setEditChapterStart(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 {Array.from({ length: maxChapters }, (_, i) => i + 1).map(n => (
@@ -297,7 +297,7 @@ export default function ReadingDetailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">{t.readingDetail.chapterEnd}</label>
+              <label className="block text-xs font-medium mb-1 text-[--text-secondary]">{t.readingDetail.chapterEnd}</label>
               <select value={editChapterEnd} onChange={(e) => setEditChapterEnd(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 {Array.from({ length: maxChapters - (editChapterStart - 1) }, (_, i) => i + editChapterStart).map(n => (
@@ -308,7 +308,7 @@ export default function ReadingDetailPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">{t.readingDetail.verseStart}</label>
+              <label className="block text-xs font-medium mb-1 text-[--text-secondary]">{t.readingDetail.verseStart}</label>
               <select value={editVerseStart} onChange={(e) => setEditVerseStart(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 {Array.from({ length: dernierPremierVerset }, (_, i) => i + 1).map(n => (
@@ -317,7 +317,7 @@ export default function ReadingDetailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">{t.readingDetail.verseEnd}</label>
+              <label className="block text-xs font-medium mb-1 text-[--text-secondary]">{t.readingDetail.verseEnd}</label>
               <select value={editVerseEnd} onChange={(e) => setEditVerseEnd(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 {Array.from({ length: Math.max(0, dernierDernierVerset - (editVerseStart - 1)) }, (_, i) => i + editVerseStart).map(n => (
@@ -327,7 +327,7 @@ export default function ReadingDetailPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">{t.readingDetail.version}</label>
+            <label className="block text-xs font-medium mb-1 text-[--text-secondary]">{t.readingDetail.version}</label>
             <select
               value={editVersionId}
               onChange={(e) => setEditVersionId(e.target.value)}
@@ -341,7 +341,7 @@ export default function ReadingDetailPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="edit-context" className="block text-sm font-medium mb-1">Contexte</label>
+            <label htmlFor="edit-context" className="block text-xs font-medium mb-1 text-[--text-secondary]">Contexte</label>
             <ContextPicker
               id="edit-context"
               contexts={contexts}
@@ -351,7 +351,7 @@ export default function ReadingDetailPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Notes</label>
+            <label className="block text-xs font-medium mb-1 text-[--text-secondary]">Notes</label>
             <textarea
               value={editNotes}
               onChange={(e) => setEditNotes(e.target.value)}
@@ -360,7 +360,7 @@ export default function ReadingDetailPage() {
             />
           </div>
           <div>
-            <label htmlFor="edit-session" className="block text-sm font-medium mb-1">
+            <label htmlFor="edit-session" className="block text-xs font-medium mb-1 text-[--text-secondary]">
               {t.newReading.nameSession}
             </label>
             <input
@@ -375,7 +375,7 @@ export default function ReadingDetailPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 flex items-center gap-1.5">
+            <label className="block text-xs font-medium mb-1 flex items-center gap-1.5 text-[--text-secondary]">
               <LinkIcon className="w-4 h-4 text-blue-500" /> {t.newReading.links}
             </label>
             {editLinks.length > 0 && (
@@ -407,14 +407,14 @@ export default function ReadingDetailPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 flex items-center gap-1.5">
+            <label className="block text-xs font-medium mb-1 flex items-center gap-1.5 text-[--text-secondary]">
               <Music className="w-4 h-4 text-purple-500" /> {t.newReading.audio}
             </label>
             <AudioRecorder value={editAudio} onChange={setEditAudio} />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 flex items-center gap-1.5">
+            <label className="block text-xs font-medium mb-1 flex items-center gap-1.5 text-[--text-secondary]">
               <ImageIcon className="w-4 h-4 text-green-500" /> {t.newReading.photos}
             </label>
             <div className="flex gap-2 mb-2">

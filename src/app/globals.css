@@ -47,17 +47,14 @@ body {
 @media (max-width: 767px) {
   button, .btn, input, select, textarea, [role="button"], a.btn {
     min-height: 44px !important;
-    font-size: 16px !important;
   }
-  label { font-size: 14px !important; }
 }
 
 [data-preset="smartphone"] button, [data-preset="smartphone"] .btn,
 [data-preset="smartphone"] input, [data-preset="smartphone"] select,
 [data-preset="smartphone"] textarea {
-  min-height: 44px !important; font-size: 16px !important;
+  min-height: 44px !important;
 }
-[data-preset="smartphone"] label { font-size: 14px !important; }
 [data-preset="tablet"] button, [data-preset="tablet"] .btn,
 [data-preset="tablet"] input, [data-preset="tablet"] select,
 [data-preset="tablet"] textarea { min-height: 40px !important; }
@@ -86,14 +83,26 @@ body {
  * Mesuré en production le 9 septembre 2026, à 768 px : les deux champs de
  * `/auth/login` rendaient **15 px**, et `data-preset` y valait `null`.
  *
- * Seule la taille du texte est imposée ici, et sur les seuls champs de saisie :
- * c'est elle qui déclenche le zoom. La hauteur des cibles reste l'affaire des
- * règles ci-dessus, et un bouton ne reçoit jamais de frappe.
+ * **La règle est devenue inconditionnelle le 9 septembre 2026**, en posant
+ * l'échelle typographique. Elle remplace trois conditions — `max-width: 767px`,
+ * `[data-preset="smartphone"]` et le `(pointer: coarse)` du matin même — par une
+ * seule ligne, et le zoom iOS devient impossible partout plutôt qu'à trois
+ * endroits sur quatre. **Le correctif a donc moins de CSS après qu'avant.**
+ *
+ * 16 px est aussi le rang que l'échelle donne à un champ : il porte la valeur,
+ * quand son intitulé recule à 12. Les deux raisons convergent sur le même
+ * nombre, ce qui n'était pas prévu.
+ *
+ * Retiré du même geste : `label { font-size: 14px !important }`, qui existait
+ * sous les deux conditions de largeur. Il **écrasait les intitulés à 12 px sur
+ * téléphone**, c'est-à-dire là où l'audit avait mesuré la platitude de
+ * l'échelle. Chaque libellé suit désormais sa propre classe.
+ *
+ * Seuls les champs de saisie sont visés : un bouton ne reçoit jamais de frappe,
+ * et la hauteur des cibles reste l'affaire des règles de largeur.
  * ------------------------------------------------------------------------- */
-@media (pointer: coarse) {
-  input, select, textarea {
-    font-size: 16px !important;
-  }
+input, select, textarea {
+  font-size: 16px !important;
 }
 
 /* ---------------------------------------------------------------------------
