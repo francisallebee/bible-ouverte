@@ -146,3 +146,59 @@ sur zéro.
 |---|---|
 | 16 août 2026 | Onze versions examinées, neuf sous droits (SBG, ABF, Biblica). **Liste perdue.** api.bible écartée : cache 500 versets, purge 14 jours, 5 000 appels/mois |
 | 2 sept. 2026 | Enquête refaite et consignée. Trois seuils de 500 versets relevés. Contact ABF vérifié. AELF renvoie au Cerf. Piste Biblica trouvée, non vérifiée (403) |
+| **9 sept. 2026** | **Les quatre lettres envoyées**, par le propriétaire du dépôt, chacune par le moyen que son éditeur propose. Aucune réponse à ce jour |
+
+## En attendant les réponses
+
+### Ce qu'il faut surveiller, et quand
+
+Les quatre lettres sont parties le **9 septembre 2026**. L'ordre d'envoi
+recommandé n'a pas été suivi — elles sont parties ensemble —, ce qui retire la
+possibilité de corriger les trois suivantes à la lumière de la première réponse.
+C'est un choix du propriétaire, et il a un avantage que l'échelonnement n'avait
+pas : les quatre délais courent en parallèle.
+
+**Une relance est à prévoir vers le 30 septembre.** Un service de droits qui ne
+répond pas sous trois semaines n'a le plus souvent pas refusé : il a classé. Une
+relance courte, citant la date et l'objet du premier envoi, suffit généralement.
+
+Ce qui vaut réponse, et ce qui n'en est pas une :
+
+| Reçu | Ce que cela vaut |
+|---|---|
+| Un accord de principe par courriel | **Suffisant pour développer**, pas pour publier — demander les termes écrits, la mention exacte et la durée |
+| Un renvoi vers un autre service | Une réponse utile : elle corrige l'aiguillage, comme l'AELF l'a fait vers le Cerf |
+| Un barème ou un contrat | La question devient économique, et elle sort du dépôt |
+| Rien, après relance | Ne pas conclure au refus : consigner la date et passer à la suivante |
+
+### La seule chose certaine, quelle que soit la réponse
+
+**Les quatre exigeront une mention de copyright affichée avec le texte.** C'est
+la condition commune à toutes les licences bibliques, et la seule que l'on
+puisse préparer sans connaître la réponse.
+
+Or `copyrightStatus` n'est aujourd'hui qu'une `string` que **personne ne lit** —
+`lib/storage/types.ts` et `features/bible/import.ts` la déclarent, aucun écran ne
+l'affiche. La préparer demande trois choses, dans cet ordre :
+
+1. **Typer plus fort.** Une union littérale — `'public-domain' | 'licensed'` —
+   et jamais un `as Record`, qui désarmerait le garde-fou (piège 9, rencontré
+   trois fois).
+2. **Porter le texte de la mention**, et non seulement le statut : chaque
+   éditeur impose sa formule exacte. « Version Segond 21 © 2007 Société Biblique
+   de Genève » n'est pas interchangeable avec celle de l'Alliance biblique.
+3. **L'afficher partout où le texte apparaît** — l'aperçu, la recherche
+   biblique, le verset du jour, la mémorisation, le détail d'une lecture. C'est
+   un inventaire de chemins, du même genre que les cinq points de création d'une
+   lecture, et il se fera par `tsc` si le champ devient obligatoire.
+
+Ajouter la version elle-même reste ensuite les **trois gestes de la règle 13** :
+le script de téléchargement, `TEXT_VERSIONS`, et `VERSIONS` de
+`features/bible/import.ts`.
+
+### Ce qui n'est toujours pas vérifié
+
+La page `biblica.com/permissions` n'a jamais pu être lue — `403` à l'outil le
+2 septembre. La piste d'une autorisation immédiate pour usage non commercial
+reste donc une information de seconde main, et la lettre partie chez eux pose
+justement la question. **Leur réponse tranchera ; le résumé de recherche, non.**
