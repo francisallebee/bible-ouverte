@@ -107,7 +107,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <SetupGate />
       <ProfileGate />
       <Presence />
-      <main id="main" className="lg:ml-[var(--nav-width)] min-h-screen">
+      {/*
+        `ms-` et non `ml-` : la barre se place par `start-0`, donc à droite
+        en écriture droite-à-gauche, quand `ml-` poussait le contenu depuis
+        la gauche — le contenu passait sous la barre. Invisible jusqu'ici
+        parce que l'arabe n'avait été regardé qu'à 375 px, où
+        `--nav-width` vaut zéro : un essai ne prouve que le chemin qu'il a
+        emprunté.
+      */}
+      <main id="main" className="lg:ms-[var(--nav-width)] min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pt-24 lg:pt-10">
           {children}
         </div>

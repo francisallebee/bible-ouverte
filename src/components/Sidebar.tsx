@@ -150,7 +150,7 @@ export default function Sidebar(
         // `start-0` et `border-e` plutôt que `left-0` et `border-r` : la barre
         // passe d'elle-même à droite en écriture droite-à-gauche. Le retrait
         // hors écran, lui, doit changer de signe — d'où la variante `rtl:`.
-        className={`fixed top-0 start-0 bottom-0 w-64 lg:w-[var(--nav-width)] bg-white border-e border-gray-200 flex flex-col p-4 z-40 transition-transform duration-300 ease-out ${
+        className={`fixed top-0 start-0 bottom-0 w-64 lg:w-[var(--nav-width)] bg-white border-e border-gray-200 flex flex-col p-4 lg:p-2 z-40 transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
         } lg:translate-x-0`}
       >
@@ -168,9 +168,14 @@ export default function Sidebar(
           2 septembre 2026 l'affichait bien à 36 px dans son relevé, mais son
           correctif ne portait que sur les entrées. 28 + 2 × 10 = 48.
         */}
-        <Link href={pageAccueil(homePage, hiddenPages ?? [])} onClick={() => setOpen(false)} className="flex items-center gap-2.5 text-xl font-bold text-[--primary] mb-8 no-underline py-2.5 shrink-0">
+        <Link href={pageAccueil(homePage, hiddenPages ?? [])} onClick={() => setOpen(false)}
+          title="Bible Ouverte"
+          className="flex items-center lg:justify-center gap-2.5 text-xl font-bold text-[--primary] mb-8 lg:mb-4 no-underline py-2.5 shrink-0">
           <img src="/logo.svg" alt="Logo" width="28" height="28" className="w-7 h-7" />
-          <span>Bible Ouverte</span>
+          {/* `lg:sr-only` et non `lg:hidden` : en rail le nom disparaît de
+              l'écran, jamais du lecteur d'écran. Vaut pour tous les libellés
+              de cette barre. */}
+          <span className="lg:sr-only">Bible Ouverte</span>
         </Link>
 
         {/* `overflow-y-auto` et surtout `min-h-0`.
@@ -211,14 +216,27 @@ export default function Sidebar(
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
-                className={`rounded-lg px-3 py-3.5 text-sm transition no-underline flex items-center gap-3 ${
+                /*
+                  `lg:min-h-12` : sans le libellé dans le flux, c'est l'icône de
+                  16 px qui gouvernait la hauteur, et la ligne retombait de 48 à
+                  44 px — la régression exacte du correctif du 2 septembre 2026,
+                  trouvée par la mesure et non par la relecture.
+
+                  `title` plutôt qu'une infobulle dessinée : la liste porte
+                  `overflow-y-auto`, qui crée un contexte de rognage sur les
+                  **deux** axes. Une bulle en `absolute` posée à côté de l'icône
+                  y serait coupée net, et rien ne le signalerait. L'infobulle
+                  native sort du cadre, elle.
+                */
+                title={label(t)}
+                className={`rounded-lg px-3 lg:px-0 py-3.5 lg:min-h-12 text-sm transition no-underline flex items-center lg:justify-center gap-3 ${
                   active
                     ? "bg-[--primary] text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
-                <span className="flex-1">{label(t)}</span>
+                <span className="flex-1 lg:sr-only">{label(t)}</span>
                 {/* La pastille des messages non lus. Ses couleurs de texte sont
                     posées explicitement : `bg-red-500` n'est remappé nulle part
                     en mode sombre, et un texte sans classe y hériterait de
@@ -241,7 +259,8 @@ export default function Sidebar(
         {user && (
           <div className="pt-3 border-t border-gray-100 shrink-0">
             <Link href="/profil" onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors no-underline">
+              title={profileName || user.email || undefined}
+              className="flex items-center lg:justify-center gap-3 px-3 lg:px-0 py-2.5 rounded-lg hover:bg-gray-100 transition-colors no-underline">
               {profileAvatar ? (
                 <img src={profileAvatar} alt="" width="32" height="32" className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-gray-100" />
               ) : (
@@ -249,7 +268,7 @@ export default function Sidebar(
                   {(profileName?.[0] || user.email?.[0] || "?").toUpperCase()}
                 </div>
               )}
-              <span className="flex-1 truncate text-sm text-gray-700">{profileName || user.email}</span>
+              <span className="flex-1 truncate text-sm text-gray-700 lg:sr-only">{profileName || user.email}</span>
             </Link>
 
             {NAV_COMPTE
@@ -264,29 +283,37 @@ export default function Sidebar(
                     key={href}
                     href={href}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-3.5 rounded-lg text-sm mt-0.5 transition-colors no-underline ${
+                    title={label(t)}
+                    className={`flex items-center lg:justify-center gap-3 px-3 lg:px-0 py-3.5 lg:min-h-12 rounded-lg text-sm mt-0.5 transition-colors no-underline ${
                       active
                         ? "bg-[--primary] text-white shadow-sm"
                         : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
-                    <span className="flex-1">{label(t)}</span>
+                    <span className="flex-1 lg:sr-only">{label(t)}</span>
                   </Link>
                 );
               })}
 
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-3 py-3.5 rounded-lg text-sm text-red-500 hover:bg-red-50 w-full mt-0.5 transition-colors"
+              title={t.nav.signOut}
+              className="flex items-center lg:justify-center gap-3 px-3 lg:px-0 py-3.5 lg:min-h-12 rounded-lg text-sm text-red-500 hover:bg-red-50 w-full mt-0.5 transition-colors"
             >
-              <LogOut className="w-4 h-4" />
-              {t.nav.signOut}
+              <LogOut className="w-4 h-4 shrink-0" />
+              {/* Enveloppé dans un `<span>` : le texte était nu, et une chaîne
+                  nue ne peut pas porter `lg:sr-only`. */}
+              <span className="lg:sr-only">{t.nav.signOut}</span>
             </button>
           </div>
         )}
 
-        <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100 shrink-0">
+        {/* `lg:sr-only` plutôt que `lg:hidden` : « Bible Ouverte v1.0.0 » ne
+            tient pas sur 72 px, mais le numéro de version reste une information
+            utile — au support, notamment — et il n'a aucune raison de
+            disparaître pour qui lit l'écran autrement qu'avec les yeux. */}
+        <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100 shrink-0 lg:sr-only">
           Bible Ouverte v{APP_VERSION}
         </p>
       </nav>

@@ -3,7 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --nav-width: 260px;
+  /* La barre latérale réduite aux icônes, depuis le 9 septembre 2026.
+     260px auparavant : elle occupait un quart d'un écran de 1024. Le
+     libellé n'est plus affiché sur grand écran, il reste lisible au
+     survol et pour les lecteurs d'écran. */
+  /* 80 et non 72 : le rembourrage de 8 px de chaque côté laisse 64 px, et
+     la barre de défilement de la liste en prend une quinzaine. Sans cette
+     marge, les cibles retombaient à 40 px de large — sous le seuil que le
+     2 septembre 2026 avait justement porté à 48. */
+  --nav-width: 80px;
   --primary: #1e3a5f;
   --primary-hover: #2a4f7a;
   --primary-light: #e8eef5;
