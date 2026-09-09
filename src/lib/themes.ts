@@ -153,6 +153,55 @@ function versLeBlanc(canaux: [number, number, number], part: number): [number, n
 }
 
 /**
+ * Le fond du mode sombre — `--bg` de `html.dark` dans `globals.css`.
+ *
+ * Écrit ici en canaux parce que c'est vers lui qu'on tire les panneaux teintés,
+ * et non vers le noir : mélanger vers le noir donnait du `#070d15`, plus sombre
+ * que la page elle-même, donc un trou plutôt qu'un panneau. Mesuré le
+ * 9 septembre 2026 sur les dix chartes.
+ */
+const FOND_SOMBRE: [number, number, number] = [15, 23, 42]
+
+function versLeFond(canaux: [number, number, number], part: number): [number, number, number] {
+  return canaux.map((v, i) => v + (FOND_SOMBRE[i] - v) * part) as [number, number, number]
+}
+
+/**
+ * Les deux variantes que le mode sombre réclame, et pourquoi il en faut deux.
+ *
+ * `--primary` sert aux **deux** rôles : fond de bouton avec du texte blanc
+ * (65 emplois de `bg-[--primary]`) et couleur de texte (96 emplois de
+ * `text-[--primary]`). En mode sombre, aucune valeur unique ne peut servir les
+ * deux, et ce n'est pas une appréciation mais une arithmétique : sur
+ * `--surface` (#1e293b), un texte lisible exige une luminance d'au moins 0,285,
+ * quand porter du blanc en exige au plus 0,183.
+ *
+ * Les deux rôles sont donc séparés — sans toucher aux 161 emplois, par des
+ * remaps de classes dans `globals.css`, ce qui est l'idiome du dépôt (règle 15).
+ *
+ * | Variable | Rôle en mode sombre | Mesuré sur les dix chartes |
+ * |---|---|---|
+ * | `--primary` | inchangée : fond, avec du blanc dessus | 5,90 à 13,12 |
+ * | `--primary-clair` | le texte et les bordures | **6,60 à 8,17** sur `--surface` |
+ * | `--primary-panneau` | remplace `--primary-light` en fond | `--primary-clair` dessus : 7,59 à 7,86 |
+ *
+ * Elles sont posées **dans les deux modes**. Une variable définie seulement
+ * sous `html.dark` serait à nouveau battue par le style en ligne, ce qui est
+ * exactement le défaut que ce correctif répare.
+ */
+export const PART_CLAIR = 0.62
+export const PART_PANNEAU = 0.72
+
+export function variantesSombres(primary: string): { clair: string; panneau: string } | null {
+  const p = versCanaux(primary)
+  if (!p) return null
+  return {
+    clair: versHex(versLeBlanc(p, PART_CLAIR)),
+    panneau: versHex(versLeFond(p, PART_PANNEAU)),
+  }
+}
+
+/**
  * Complète deux couleurs en une charte entière.
  *
  * L'utilisateur n'en choisit que deux : demander cinq nuances cohérentes à
@@ -184,6 +233,15 @@ export function applyColorTheme(themeId: string, custom?: CustomColors) {
   Object.entries(colors).forEach(([key, val]) => {
     root.style.setProperty(`--${key}`, val)
   })
+
+  // Les deux variantes que le mode sombre emploie. Elles sont dérivées de la
+  // charte, donc elles suivent la couleur choisie — y compris la charte
+  // personnalisée, dont `derivedColors` a déjà produit le `primary`.
+  const variantes = variantesSombres(colors.primary)
+  if (variantes) {
+    root.style.setProperty('--primary-clair', variantes.clair)
+    root.style.setProperty('--primary-panneau', variantes.panneau)
+  }
 }
 
 /** Mode d'apparence enregistré dans les réglages (`AppSettings.theme`). */

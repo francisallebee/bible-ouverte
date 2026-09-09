@@ -203,9 +203,32 @@ body {
   font-weight: 400;
 }
 
+/* ---------------------------------------------------------------------------
+ * Le mode sombre et la charte : deux remaps qui n'étaient jamais atteints
+ *
+ * `--primary-light: #1a2840` et `--accent-light: #1e1a3a` figuraient ici depuis
+ * l'origine et **n'ont jamais rien fait**. `applyColorTheme` pose la charte en
+ * style **inline** sur `<html>`, et un style en ligne bat toujours une feuille :
+ * les deux seules variables que cette fonction écrit sont précisément
+ * `--primary-light` et `--accent-light`. Les autres — `--bg`, `--surface`,
+ * `--text` — ne sont pas posées en ligne, et fonctionnaient donc bien.
+ *
+ * Relevé le 31 août 2026 sur le panneau de séance (contraste 2,15), puis le
+ * 9 septembre sur le chiffre phare de Progression : `text-[--primary]` sur
+ * `--surface` mesurait **1,11**.
+ *
+ * Le correctif ne passe donc pas par des variables — elles reperdraient le même
+ * combat — mais par des **remaps de classes**, l'idiome de la règle 15. Les deux
+ * variantes qu'ils emploient sont dérivées de la charte par `applyColorTheme`,
+ * dans les deux modes.
+ *
+ * `--accent-light` a été retirée : elle n'est employée nulle part dans `src`.
+ * ------------------------------------------------------------------------- */
+html.dark .text-\[--primary\] { color: var(--primary-clair) !important; }
+html.dark .border-\[--primary\] { border-color: var(--primary-clair) !important; }
+html.dark .bg-\[--primary-light\] { background-color: var(--primary-panneau) !important; }
+
 html.dark {
-  --primary-light: #1a2840;
-  --accent-light: #1e1a3a;
   --success-light: #0a2e1a;
   --warning-light: #2a2208;
   --danger-light: #2a0a0a;
@@ -255,6 +278,27 @@ html.dark .hover\:text-gray-600:hover,
 html.dark .hover\:text-gray-700:hover { color: var(--text) !important; }
 
 html.dark .text-gray-800 { color: var(--text) !important; }
+
+/* Les couleurs sémantiques, que ce bloc ne remappait pas
+ *
+ * Il ne réécrivait que les gris. Le rouge et le vert traversaient donc le mode
+ * sombre inchangés, et y perdaient leur lisibilité — mesuré le 9 septembre 2026
+ * sur Réglages, en balayant les 131 textes de l'écran :
+ *
+ *   text-red-600  sur --surface : 3,03   « Cette action est irréversible »
+ *   bg-red-500    sous du blanc : 3,76   « Supprimer mon compte »
+ *   text-red-500  sur --surface : 3,89   « Déconnexion », sur tous les écrans
+ *   text-green-600 sur --surface : 4,44  « Synchronisé automatiquement »
+ *
+ * Les valeurs de remplacement sont mesurées, non choisies : `red-400` rend 5,29
+ * sur `--surface` et 6,45 sur `--bg` ; `green-500`, 6,42 et 7,83 ; et le fond
+ * `red-700` porte du blanc à 6,47 là où `red-500` ne le portait qu'à 3,76.
+ *
+ * `text-red-400` n'a pas besoin de remap : il tient déjà 5,29.
+ */
+html.dark .text-red-500, html.dark .text-red-600 { color: #f87171 !important; }
+html.dark .text-green-600, html.dark .text-green-700 { color: #22c55e !important; }
+html.dark .bg-red-500, html.dark .bg-red-600 { background-color: #b91c1c !important; }
 html.dark .border-gray-100 { border-color: var(--border) !important; }
 html.dark .hover\:border-gray-300:hover,
 html.dark .hover\:border-gray-400:hover { border-color: var(--border) !important; }
