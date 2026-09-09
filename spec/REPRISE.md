@@ -614,6 +614,8 @@ interrompu avant la fin. Les previews passent par git.
 | Sonde de contrôle du même relevé | le `h1`, lisible à l'œil, mesure **16,30** — l'instrument est bon avant qu'on l'accuse | 2 sept. |
 | Progression et Statistiques en arabe | **premiers écrans internes jamais vus en RTL** : grille inversée, barres remplies depuis la droite, aucun débordement | 2 sept. |
 | « Aller au contenu » | **écrit en dur**, donc français dans les cinq langues — et `focus:left-2`, propriété physique. Seul texte visible échappant aux dictionnaires, parce qu'il ne s'affiche qu'au clavier | 2 sept. |
+| Champs de `/auth/login` à 768 px, en production | **15 px** — sous le seuil de 16 qui déclenche le zoom automatique de Safari iOS, et `data-preset` y vaut `null` | 9 sept. |
+| Écarts entre l'état après connexion et après rechargement | **zéro sur seize mesures**, sur navigateur de bureau : le défaut ne s'y reproduit pas, ce qui a désigné le tactile | 9 sept. |
 
 Le prochain levier de performance reste identifié : **chaque écran resynchronise
 contextes, lectures et réglages à son ouverture** sans mémoire de ce qui vient
@@ -2867,3 +2869,79 @@ Le cochage depuis la fenêtre d'aperçu, pour ne pas écrire dans les données d
 propriétaire. Le rail en arabe **avec du texte arabe réel** — seul le sens
 d'écriture a été éprouvé, pas le rendu des libellés au survol. Et rien en mode
 sombre.
+
+## Le zoom de Safari iOS, ou ce qu'une mesure vide a fait trouver
+
+Signalé le 9 septembre 2026 par le propriétaire du dépôt : à chaque
+reconnexion, la page d'accueil choisie — Progression, pour lui — « prend plus
+d'espace que d'habitude », et il faut **quitter l'application et la relancer**
+pour qu'elle revienne à la normale.
+
+### Deux hypothèses tuées, et une mesure à zéro
+
+L'échelle d'interface d'abord : `applyFonts` retombe sur `normal` (100 %) quand
+le réglage manque, ce qui aurait agrandi une interface réglée en `compact`. La
+requête l'a écartée en une ligne — **`uiScale` vaut `null`** pour ce compte, donc
+le défaut *est* ce qu'il a toujours eu.
+
+Le `data-preset` ensuite, absent sur `/auth/*` puisque `LayoutClient` n'y est pas
+monté. Écarté aussi : cet attribut ne commande que la **hauteur minimale** des
+boutons et des champs, donc son absence les rendrait plus petits, pas plus
+grands.
+
+Puis l'essai décisif, mené sur une session ouverte par le propriétaire : seize
+mesures relevées juste après la connexion — style inline de `<html>`, taille de
+police calculée, `data-preset`, largeurs, hauteur du document, débordement —,
+puis la même page rechargée, et les deux jeux comparés. **Zéro écart.**
+
+**C'est ce zéro qui a fait avancer le diagnostic.** Il disait que la cause tenait
+à ce que le panneau n'a pas, et la seule chose qu'un navigateur de bureau n'a pas
+est un doigt. Une mesure qui ne trouve rien n'est pas une mesure ratée, à
+condition de savoir ce qu'elle élimine.
+
+### La cause, et pourquoi le garde-fou ne couvrait pas le cas
+
+iOS agrandit la page dès qu'on met le doigt dans un champ dont le texte fait
+moins de 16 px, et ce grossissement ne se défait pas. Cela explique les trois
+symptômes d'un coup : le défaut n'apparaît qu'à la connexion — le seul moment où
+l'on tape —, la page est zoomée, et seul un redémarrage la rend à sa taille.
+
+Le dépôt s'en protégeait, mais **par la largeur** :
+
+| Protection | Portée | Pourquoi elle manquait |
+|---|---|---|
+| `@media (max-width: 767px)` | 16 px sur les champs | un iPad n'y entre pas, ni un iPhone à l'horizontale |
+| `[data-preset="smartphone"]` | 16 px | `LayoutClient` n'est pas monté sur `/auth/*` : l'attribut y est absent |
+| `[data-preset="tablet"]` | hauteur seule | **n'imposait aucune taille de texte** |
+
+Les trois manquaient à l'endroit exact où l'on saisit son mot de passe. Mesuré en
+production à 768 px : les deux champs de `/auth/login` rendaient **15 px**.
+
+**La condition juste n'est pas la largeur mais le tactile** — c'est le doigt qui
+déclenche le zoom, pas la taille de l'écran. D'où
+`@media (pointer: coarse) { input, select, textarea { font-size: 16px } }`, posé
+sur les seuls champs de saisie : un bouton ne reçoit jamais de frappe.
+
+### Ce qui n'est pas vérifié
+
+Le panneau n'émule le tactile qu'**en dessous de 768 px**, largeur où l'ancienne
+règle agit déjà. Est donc prouvé que le média s'évalue à vrai sur un appareil
+tactile et que la règle est compilée dans la feuille servie ; **n'est pas prouvé
+qu'elle est celle qui agit à 768 px et au-delà**. La preuve décisive appartient
+au propriétaire, sur son appareil, après déploiement.
+
+## Les plans du lecteur avant le catalogue
+
+Le catalogue passait toujours en premier, avec une raison écrite dans le code :
+« c'est la porte d'entrée pour qui n'a encore aucun plan, et elle ne doit pas se
+mériter par un défilement ». Elle est juste — **et ne vaut que dans ce cas**.
+Dès qu'un plan existe, on vient reprendre sa lecture, pas en choisir une autre.
+
+L'ordre est donc conditionnel, obtenu par `order` sur un conteneur `flex` plutôt
+que par un second rendu, et les deux classes sont écrites en toutes lettres de
+part et d'autre du ternaire — une classe Tailwind construite à l'exécution
+n'existe pas. Le catalogue reste premier tant que la liste est vide : un état
+vide placé au-dessus de lui n'aurait rien à montrer.
+
+Vu à l'écran, session ouverte par le propriétaire : trois plans en tête à
+y = 124, « Plans proposés » à y = 396.
