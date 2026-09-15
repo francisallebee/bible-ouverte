@@ -138,14 +138,16 @@ export default function QuizPage() {
         <>
           {/* Le dégradé est mesuré sous le texte, pas choisi : `to bottom right`
               donne une couleur par point, et le blanc tombait à 2,64 au pire coin
-              de l'aide à 343 px sur `via-fuchsia-500 to-orange-400`. Avec
-              `fuchsia-700` et `orange-700`, 5,71 au repos et 5,28 sous
-              `hover:brightness-105`, texte sur toute la largeur — le pire cas
-              des cinq langues. L'aide est opaque : à 80 %, aucun dégradé ne
-              passait. Même dégradé sur la carte de résultat, où le voile du
-              bouton est noir et non blanc : un voile blanc qui s'épaissit au
-              survol éclaircit le fond sous du texte blanc (3,84), un voile noir
-              le fonce. Relevé le 15 septembre 2026. */}
+              de l'aide à 343 px sur l'ancien passage par le fuchsia 500 vers
+              l'orange 400. Avec le fuchsia 700 et l'orange 700, 5,71 au repos et
+              5,28 sous l'éclaircissement du survol, texte sur toute la largeur
+              — le pire cas des cinq langues. L'aide est opaque : à 80 %, aucun
+              dégradé ne passait. Même dégradé sur la carte de résultat, où le
+              voile du bouton est noir et non blanc : un voile blanc qui
+              s'épaissit au survol éclaircit le fond sous du texte blanc (3,84),
+              un voile noir le fonce. Relevé le 15 septembre 2026.
+              Les anciennes classes ne sont pas nommées ici : Tailwind lit un
+              commentaire comme du code, et les générait encore. */}
           <button onClick={commencer} disabled={prepare}
             className="w-full rounded-2xl p-6 text-white text-start bg-gradient-to-br from-violet-600 via-fuchsia-700 to-orange-700 shadow-lg hover:brightness-105 disabled:opacity-70 transition-all active:scale-[0.99]">
             <p className="text-lg font-semibold">{prepare ? t.quiz.preparation : t.quiz.commencer}</p>
