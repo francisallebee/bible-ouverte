@@ -3518,3 +3518,110 @@ interdit — l'écran de résultat de Quizz, après une partie.
 | Bouton `bg-white/15` de Mémorisation, sur son dégradé émeraude | non mesuré ; même famille que « Rejouer » | le faux positif du 9 septembre en cachait peut-être un vrai |
 | Graphique « Inscriptions par mois » d'Acquisition | barres presque effacées en sombre sur la capture | remplissage Recharts, à mesurer |
 | Carrés d'icône ambre-orange | 1,90 au pire coin | décoratifs, un libellé porte le sens |
+
+## Le 15 septembre, troisième partie : un passage de son choix en mémorisation
+
+Demande du propriétaire : en plus du verset au hasard, mémoriser un passage
+choisi — un verset ou un groupe de versets — avec le sélecteur commun de
+l'application. Un commit, `f0448a4`, et une migration appliquée en production.
+
+### La décision qui a tout commandé n'était pas d'interface
+
+Une ligne par groupe, ou une par verset. Elle s'est prise en lisant la table
+avant tout composant : `memorised_verses` ne portait qu'un verset par ligne,
+et une ligne par verset aurait fait réviser Psaume 23 en six séances sans
+lien, chacune à son niveau et à son échéance. **Un groupe de versets est un
+seul texte appris, donc une seule ligne.** Tout le reste en découle, dans cet
+ordre : la migration, l'unicité, le type, les deux stores, deux fonctions
+pures, l'assemblage du texte. Le sélecteur commun, lui, n'a coûté qu'un
+renommage.
+
+### La migration, et le nom qu'il fallait citer
+
+`20260915120000_memorised_verse_ranges.sql` ajoute `chapterEnd` et
+`verseEnd`, remplies avec le verset de chaque ligne — aucune ne change de
+sens —, pose une contrainte d'ordre, et fait passer l'unicité du verset de
+départ à l'intervalle entier : Jean 3:16 et Jean 3:16-17 sont deux textes.
+
+Deux relevés faits avant d'écrire, et non supposés :
+
+- `authenticated` a l'`UPDATE` **au niveau table**, par
+  `information_schema.table_privileges` — donc aucun `grant` colonne, comme
+  `readings` et à l'inverse de `profiles` et `messages`.
+- L'ancienne contrainte s'appelle
+  `memorised_verses_user_id_book_chapter_verse_versionId_key`, **avec la
+  majuscule de `versionId`**, relevée dans `pg_constraint`. Un `drop
+  constraint if exists` sans guillemets aurait replié le nom en minuscules,
+  *réussi* sans rien supprimer, et laissé l'unicité de départ en place :
+  Jean 3:16-17 aurait été refusé après Jean 3:16, sans message exploitable.
+
+Appliquée par l'outil MCP, comme le 18 août, après accord du propriétaire.
+Relu après coup : l'ancienne unicité a disparu, la nouvelle et la contrainte
+d'ordre sont là, les deux colonnes `not null`, **7 lignes sur 7** avec leur
+fin égale à leur début, journal à `20260915123038` — 30 fichiers, 28
+enregistrées, l'écart étant toujours celui du 9 août.
+
+### Ce que `tsc` a trouvé, et pourquoi le champ est obligatoire
+
+`chapterEnd` et `verseEnd` sont obligatoires dans `MemorisedVerse`, pas
+facultatifs. C'est ce qui a fait trouver le **sixième point de création** — le
+bouton d'un candidat de « Parmi tes lectures » —, que j'avais laissé. Un
+`chapterEnd?` l'aurait laissé écrire des lignes sans fin d'intervalle, que
+PostgREST aurait refusées en silence derrière une écriture locale réussie.
+Le cache local, lui, normalise à la lecture les lignes d'avant la migration.
+
+Deux fonctions pures dans `lib/memorisation/revision.ts`, huit tests :
+`memeIntervalle`, parce que la page et le store comparaient chacun à leur
+façon — le piège 5, une comparaison de plus à oublier d'un côté — et
+`texteDe`, qui joint les versets d'un groupe sans leur numéro : un numéro
+n'est pas un mot à retrouver.
+
+`PlanEntryAdder` devient `PassageAdder`. Il faisait exactement le geste
+demandé — livre, puis chapitres et versets dans la même fenêtre — mais son nom
+disait « plan », et un nom qui ment se paie plus tard. Deux libellés
+facultatifs ; le détail de plan garde les siens. Trois clés dans les cinq
+dictionnaires, dont un message pour la séance qui ne trouve pas son texte —
+elle se taisait, et un bouton muet passe pour cassé.
+
+### Ce qui a été vu, sur le compte du propriétaire, sans trace
+
+Le serveur de développement écrit dans la base de production ; l'essai a donc
+été un aller-retour. Psaumes 23:1-3 posé par la fenêtre — **6 versets
+proposés pour le Psaume 1**, la versification réelle et non les 200 du repli
+—, la ligne 41 écrite avec `23:1 → 23:3` et `ls1910`, « 1 à revoir
+aujourd'hui », la séance **d'entraînement** sur les trois versets assemblés
+en un texte, onze mots masqués, référence « Psaumes 23:1-3 ». Puis le retrait
+par le bouton de la liste : ligne disparue, table revenue à 7 lignes,
+**aucune séance écrite** — vérifié dans `game_sessions`.
+
+Le détail de plan compile et se sert toujours ; l'erreur de console sur
+`PlanEntryAdder` datait du renommage lui-même, le graphe du serveur de
+développement l'ayant gardée.
+
+**Le propriétaire a regardé la production et a dit « c'est parfait ».**
+
+### Ce qui n'a pas été vu
+
+Une séance **réelle** terminée sur un groupe — elle écrirait niveau et
+échéance dans ses données —, et un groupe qui enjambe un chapitre : le
+sélecteur le permet, la base et `getPassagesForRange` le savent, personne ne
+l'a exercé. Les captures du panneau sont restées un état en arrière,
+`visibilityState` à `hidden` de nouveau.
+
+### La sonde de déploiement, et quatre instruments pour une clé
+
+Une clé de dictionnaire vit dans un chunk **partagé**, que `/auth/login` —
+page traduite et publique — charge sans session : c'est de là qu'on la sonde.
+Une classe de composant, non : elle vit dans le chunk de route. Et le App
+Router n'écrit pas de `buildId` dans le HTML ; le manifeste de build n'est
+pas atteignable par ce chemin.
+
+Pour y arriver, quatre instruments se sont succédé, et trois ont cédé :
+**zsh** ne découpe pas `$var` sur les sauts de ligne et s'étrangle sur du
+minifié (« character not in range ») ; **Node** ne voit pas le mandataire du
+bac à sable ; **`urllib`** lit incomplet derrière lui. Seul **`curl`**
+traverse proprement, et la boucle demande `bash` explicitement. La
+combinaison qui tient : `curl` télécharge, Python lit des fichiers.
+
+Résultat : `mettreEnApprentissage` cinq fois dans `5954-51fe5ec2…`, avec les
+cinq valeurs — français, anglais, espagnol, italien, arabe.
