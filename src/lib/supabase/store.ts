@@ -624,6 +624,8 @@ export interface MemorisedRow {
   book: string
   chapter: number
   verse: number
+  chapterEnd: number
+  verseEnd: number
   versionId: string
   niveau: number
   prochain: string
@@ -642,7 +644,10 @@ export async function fetchMemorised(): Promise<MemorisedRow[] | null> {
 }
 
 export async function insertMemorised(
-  v: { book: string; chapter: number; verse: number; versionId: string; niveau: number; prochain: string; createdAt: string; updatedAt: string },
+  v: {
+    book: string; chapter: number; verse: number; chapterEnd: number; verseEnd: number
+    versionId: string; niveau: number; prochain: string; createdAt: string; updatedAt: string
+  },
 ): Promise<MemorisedRow | null> {
   return tryAuthenticated(async () => {
     const supabase = createClient()
@@ -659,6 +664,8 @@ export async function insertMemorised(
         book: v.book,
         chapter: v.chapter,
         verse: v.verse,
+        chapterEnd: v.chapterEnd,
+        verseEnd: v.verseEnd,
         versionId: v.versionId,
         niveau: v.niveau,
         prochain: v.prochain,

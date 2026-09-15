@@ -108,8 +108,15 @@ export interface MemorisedVerse {
   id?: number;
   userId: string;
   book: string;
+  /** Début de l'intervalle. Un verset seul a sa fin égale à son début. */
   chapter: number;
   verse: number;
+  /**
+   * Fin de l'intervalle, depuis le 15 septembre 2026 : un groupe de versets
+   * est un seul texte appris, donc une seule ligne — pas une par verset.
+   */
+  chapterEnd: number;
+  verseEnd: number;
   versionId: string;
   niveau: number;
   /** Jour civil de la prochaine révision, `AAAA-MM-JJ`. */

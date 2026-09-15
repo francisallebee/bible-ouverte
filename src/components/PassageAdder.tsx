@@ -7,7 +7,7 @@ import { useT, useBookName } from '@/contexts/I18nContext'
 import PassagePicker, { describeRange } from '@/components/PassagePicker'
 import BookPicker from '@/components/BookPicker'
 
-export interface PlanEntryDraft {
+export interface PassageDraft {
   book: string
   chapterStart: number
   chapterEnd: number
@@ -16,18 +16,28 @@ export interface PlanEntryDraft {
 }
 
 /**
- * Ajout d'un passage à un plan libre.
+ * Choix d'un passage à ajouter — à un plan libre, ou à l'apprentissage.
  *
  * Reprend le geste de Nouvelle lecture — choisir le livre ouvre la fenêtre de
- * sélection — pour que construire une liste et enregistrer une lecture se
- * fassent de la même façon.
+ * sélection — pour que construire une liste, enregistrer une lecture et mettre
+ * un passage en mémorisation se fassent de la même façon. Né pour les plans
+ * libres sous le nom de `PlanEntryAdder` ; renommé le 15 septembre 2026 quand
+ * Mémorisation en a eu besoin, parce qu'un nom qui dit « plan » aurait menti.
+ * Les libellés par défaut restent ceux des plans ; un autre écran passe les
+ * siens.
  */
-export default function PlanEntryAdder({
+export default function PassageAdder({
   versionId,
   onAdd,
+  title,
+  submitLabel,
 }: {
   versionId: string
-  onAdd: (entry: PlanEntryDraft) => Promise<void>
+  onAdd: (entry: PassageDraft) => Promise<void>
+  /** Titre du cadre ; par défaut « Ajouter un passage ». */
+  title?: string
+  /** Libellé du bouton ; par défaut « Ajouter à la liste ». */
+  submitLabel?: string
 }) {
   const t = useT()
   const getBookName = useBookName()
@@ -68,7 +78,7 @@ export default function PlanEntryAdder({
 
   return (
     <div className="bg-[--surface] rounded-xl border border-[--border] p-5 shadow-[--shadow]">
-      <p className="text-sm font-medium mb-3 text-[--text]">{t.components.addPassage}</p>
+      <p className="text-sm font-medium mb-3 text-[--text]">{title ?? t.components.addPassage}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <BookPicker value={book} onSelect={selectBook} ariaLabel={t.components.book} />
 
@@ -86,7 +96,7 @@ export default function PlanEntryAdder({
       <button type="button" onClick={handleAdd} disabled={!book || saving}
         className="mt-3 w-full sm:w-auto flex items-center justify-center gap-2 bg-[--primary] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[--primary-hover] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-        {t.components.addToList}
+        {submitLabel ?? t.components.addToList}
       </button>
 
       <PassagePicker

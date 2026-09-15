@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   INTERVALLES, NIVEAU_MAX, SEUIL_REUSSITE,
-  prochainEtat, estDu, partMasquee, masquerMots, reussiteDe,
+  prochainEtat, estDu, partMasquee, masquerMots, reussiteDe, memeIntervalle, texteDe,
 } from './revision'
 
 const JOUR = '2026-08-19'
@@ -130,5 +130,46 @@ describe('intervalles', () => {
     for (let i = 1; i < INTERVALLES.length; i++) {
       expect(INTERVALLES[i]).toBeGreaterThan(INTERVALLES[i - 1])
     }
+  })
+})
+
+describe('intervalle', () => {
+  const jean316 = { book: 'JHN', chapter: 3, verse: 16, chapterEnd: 3, verseEnd: 16 }
+
+  it('reconnaît le même verset seul', () => {
+    expect(memeIntervalle(jean316, { ...jean316 })).toBe(true)
+  })
+
+  it('distingue un verset de son groupe : Jean 3:16 n’est pas Jean 3:16-17', () => {
+    expect(memeIntervalle(jean316, { ...jean316, verseEnd: 17 })).toBe(false)
+  })
+
+  it('distingue deux groupes qui enjambent un chapitre différemment', () => {
+    const a = { book: 'ROM', chapter: 7, verse: 24, chapterEnd: 8, verseEnd: 2 }
+    expect(memeIntervalle(a, { ...a, chapterEnd: 8, verseEnd: 4 })).toBe(false)
+    expect(memeIntervalle(a, { ...a })).toBe(true)
+  })
+
+  it('ne confond pas deux livres au même endroit', () => {
+    expect(memeIntervalle(jean316, { ...jean316, book: '1JN' })).toBe(false)
+  })
+})
+
+describe('texte d’un groupe', () => {
+  it('joint les versets par une espace, sans numéro', () => {
+    expect(texteDe([{ text: 'Au commencement, ' }, { text: 'Dieu créa.' }]))
+      .toBe('Au commencement, Dieu créa.')
+  })
+
+  it('laisse un verset seul intact', () => {
+    expect(texteDe([{ text: 'Jésus pleura.' }])).toBe('Jésus pleura.')
+  })
+
+  it('saute un verset vide plutôt que de doubler l’espace', () => {
+    expect(texteDe([{ text: 'Un.' }, { text: '' }, { text: 'Trois.' }])).toBe('Un. Trois.')
+  })
+
+  it('rend une chaîne vide quand rien n’est en cache — l’appelant refuse la séance', () => {
+    expect(texteDe([])).toBe('')
   })
 })

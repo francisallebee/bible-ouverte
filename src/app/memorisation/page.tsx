@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Brain, Eye, Check, Plus, Trash2, Shuffle, CalendarClock } from 'lucide-react'
+import { Brain, Eye, Check, Plus, Trash2, Shuffle, CalendarClock, AlertCircle } from 'lucide-react'
 import {
   seedIfNeeded, getAllReadings, getEnabledVersions, getSettings,
   getMemorised, addMemorised, updateMemorised, removeMemorised, recordSession,
@@ -15,9 +15,11 @@ import { textDirection } from '@/lib/i18n/locales'
 import { rassemblerVersets } from '@/lib/quiz/matiere'
 import { jourLocal } from '@/lib/verset-du-jour/choix'
 import {
-  masquerMots, partMasquee, prochainEtat, reussiteDe, estDu, NIVEAU_MAX,
-  type MotMasque,
+  masquerMots, partMasquee, prochainEtat, reussiteDe, estDu, memeIntervalle, texteDe, NIVEAU_MAX,
+  type MotMasque, type Intervalle,
 } from '@/lib/memorisation/revision'
+import PassageAdder, { type PassageDraft } from '@/components/PassageAdder'
+import { describeRange } from '@/components/PassagePicker'
 
 type Etape = 'chargement' | 'liste' | 'seance' | 'bilan'
 
@@ -32,6 +34,8 @@ export default function MemorisationPage() {
   const [langue, setLangue] = useState('fr')
   const [candidats, setCandidats] = useState<BiblePassage[]>([])
   const [occupe, setOccupe] = useState(false)
+  /** Ce que l'écran a à dire sans l'interrompre — un texte absent du cache. */
+  const [avis, setAvis] = useState<string | null>(null)
 
   /* séance en cours */
   const [encours, setEncours] = useState<MemorisedVerse | null>(null)
@@ -42,6 +46,13 @@ export default function MemorisationPage() {
   const [entrainement, setEntrainement] = useState(false)
 
   const dus = suivis.filter((v) => estDu(v, jour))
+  /** « Jean 3:16 », ou « Jean 3:16-18 » : la même écriture que partout ailleurs. */
+  const reference = (v: Intervalle) => describeRange(getBookName(v.book), {
+    chapterStart: v.chapter, chapterEnd: v.chapterEnd, verseStart: v.verse, verseEnd: v.verseEnd,
+  })
+  const seul = (p: BiblePassage): Intervalle => ({
+    book: p.book, chapter: p.chapter, verse: p.verse, chapterEnd: p.chapter, verseEnd: p.verse,
+  })
   /** Zéro au niveau 0 : le module ne masque rien au premier passage. */
   const masques = mots.filter((m) => m.masque).length
 
@@ -62,14 +73,13 @@ export default function MemorisationPage() {
     })()
   }, [])
 
-  async function ajouter(p: BiblePassage) {
+  async function ajouter(i: Intervalle) {
     setOccupe(true)
+    setAvis(null)
     try {
-      // Échéance du jour : un verset qu'on vient d'ajouter se travaille tout de
-      // suite, il n'y a rien à attendre d'un premier rappel repoussé.
-      const ajoute = await addMemorised({
-        book: p.book, chapter: p.chapter, verse: p.verse, versionId, prochain: jour,
-      })
+      // Échéance du jour : un passage qu'on vient d'ajouter se travaille tout
+      // de suite, il n'y a rien à attendre d'un premier rappel repoussé.
+      const ajoute = await addMemorised({ ...i, versionId, prochain: jour })
       if (ajoute) setSuivis(await getMemorised())
     } finally {
       setOccupe(false)
@@ -77,11 +87,21 @@ export default function MemorisationPage() {
   }
 
   async function ajouterAuHasard() {
-    const libres = candidats.filter((p) => !suivis.some(
-      (v) => v.book === p.book && v.chapter === p.chapter && v.verse === p.verse,
-    ))
+    const libres = candidats.filter((p) => !suivis.some((v) => memeIntervalle(v, seul(p))))
     if (libres.length === 0) return
-    await ajouter(libres[Math.floor(Math.random() * libres.length)])
+    await ajouter(seul(libres[Math.floor(Math.random() * libres.length)]))
+  }
+
+  /**
+   * Le passage choisi avec le sélecteur commun — un verset ou un groupe.
+   * `PassageAdder` parle en `chapterStart`/`verseStart`, la table en
+   * `chapter`/`verse` : c'est ici que les deux vocabulaires se rejoignent.
+   */
+  async function ajouterChoisi(d: PassageDraft) {
+    await ajouter({
+      book: d.book, chapter: d.chapterStart, verse: d.verseStart,
+      chapterEnd: d.chapterEnd, verseEnd: d.verseEnd,
+    })
   }
 
   /**
@@ -98,14 +118,20 @@ export default function MemorisationPage() {
    */
   async function commencer(v: MemorisedVerse, libre = false) {
     const passages = await getPassagesForRange(v.versionId, v.book, {
-      chapterStart: v.chapter, chapterEnd: v.chapter, verseStart: v.verse, verseEnd: v.verse,
+      chapterStart: v.chapter, chapterEnd: v.chapterEnd, verseStart: v.verse, verseEnd: v.verseEnd,
     })
-    const texte = passages[0]?.text
-    if (!texte) return
+    // Un groupe de versets s'apprend comme un seul texte, numéros exclus.
+    const texte = texteDe(passages)
+    if (!texte) {
+      // Le texte n'est pas sur l'appareil — la traduction n'est plus active.
+      // Le dire plutôt que de ne rien faire : un bouton muet passe pour cassé.
+      setAvis(t.memorisation.texteIndisponible)
+      return
+    }
     const niveau = libre ? Math.max(1, v.niveau) : v.niveau
     // Le tirage est ensemencé par la référence et le niveau : recommencer une
     // séance repose les mêmes trous, ce qui permet de s'y reprendre.
-    let graine = `${v.book}${v.chapter}${v.verse}${niveau}`.length * 7919
+    let graine = `${v.book}${v.chapter}${v.verse}${v.chapterEnd}${v.verseEnd}${niveau}`.length * 7919
     const alea = () => {
       graine = (graine * 1103515245 + 12345) % 2147483648
       return graine / 2147483648
@@ -137,7 +163,12 @@ export default function MemorisationPage() {
       score: masques - reveles.size,
       total: masques,
       book: encours.book, chapter: encours.chapter, verse: encours.verse,
-      details: { niveau: suivant.niveau, indices: reveles.size },
+      // La fin de l'intervalle va dans `details` : `game_sessions` ne porte
+      // qu'un verset, et un groupe est ce qui lui est propre.
+      details: {
+        niveau: suivant.niveau, indices: reveles.size,
+        chapterEnd: encours.chapterEnd, verseEnd: encours.verseEnd,
+      },
     })
     setSuivis((liste) => liste.map((v) => (v.id === misAJour.id ? misAJour : v)))
     setBilan({ reussite, monte: suivant.niveau > encours.niveau, prochain: suivant.prochain })
@@ -181,6 +212,23 @@ export default function MemorisationPage() {
             </button>
           </div>
 
+          {/* Le sélecteur commun de l'application — livre, puis chapitres et
+              versets dans la même fenêtre que Nouvelle lecture, Recherche et
+              les plans. Un verset ou un groupe : la table porte l'intervalle
+              depuis le 15 septembre 2026. */}
+          <div className="mb-6">
+            <PassageAdder versionId={versionId} onAdd={ajouterChoisi}
+              title={t.memorisation.choisirPassage}
+              submitLabel={t.memorisation.mettreEnApprentissage} />
+          </div>
+
+          {avis && (
+            <p role="status" className="flex items-start gap-2 text-sm text-[--text-secondary] mb-4">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              {avis}
+            </p>
+          )}
+
           {suivis.length === 0 ? (
             <div className="rounded-2xl border border-[--border] bg-[--surface] p-8 text-center">
               <p className="text-[--text] font-medium mb-1">{t.memorisation.aucun}</p>
@@ -197,7 +245,7 @@ export default function MemorisationPage() {
                   <div key={v.id} className="flex items-center gap-3 rounded-xl border border-[--border] bg-[--surface] px-4 py-3">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-[--text] truncate">
-                        {getBookName(v.book)} {v.chapter}:{v.verse}
+                        {reference(v)}
                       </p>
                       <p className="text-xs text-[--text-secondary] flex items-center gap-1.5">
                         <CalendarClock className="w-3.5 h-3.5" />
@@ -236,7 +284,7 @@ export default function MemorisationPage() {
               </h2>
               <div className="space-y-2">
                 {candidats.slice(0, 6).map((p) => (
-                  <button key={`${p.book}-${p.chapter}-${p.verse}`} onClick={() => ajouter(p)} disabled={occupe}
+                  <button key={`${p.book}-${p.chapter}-${p.verse}`} onClick={() => ajouter(seul(p))} disabled={occupe}
                     className="w-full text-start rounded-xl border border-[--border] bg-[--surface] px-4 py-3 hover:border-[--primary] disabled:opacity-50 transition-colors">
                     <span className="flex items-center gap-2 text-xs font-medium text-[--primary] mb-1">
                       <Plus className="w-3.5 h-3.5" />
@@ -256,7 +304,7 @@ export default function MemorisationPage() {
       {etape === 'seance' && encours && (
         <div>
           <p className="text-sm text-[--text-secondary] mb-1">
-            {getBookName(encours.book)} {encours.chapter}:{encours.verse}
+            {reference(encours)}
           </p>
           <p className="text-xs text-[--text-secondary] mb-4">
             {t.memorisation.consigne(reveles.size, masques)}

@@ -5,6 +5,7 @@ import {
   fetchMemorised, insertMemorised, updateMemorisedRemote, deleteMemorisedRemote,
   type MemorisedRow,
 } from '@/lib/supabase/store';
+import { memeIntervalle } from '@/lib/memorisation/revision';
 
 /**
  * Les versets en cours d'apprentissage.
@@ -26,6 +27,8 @@ function ligneVersVerset(r: MemorisedRow): MemorisedVerse {
     book: r.book,
     chapter: r.chapter,
     verse: r.verse,
+    chapterEnd: r.chapterEnd,
+    verseEnd: r.verseEnd,
     versionId: r.versionId,
     niveau: r.niveau,
     prochain: r.prochain,
@@ -56,23 +59,31 @@ export async function getMemorised(): Promise<MemorisedVerse[]> {
 
   const db = await getDB();
   const tous = await db.getAll('memorised_verses');
-  return tous.sort((a, b) => a.prochain.localeCompare(b.prochain));
+  // Les lignes locales écrites avant le 15 septembre 2026 n'ont pas de fin
+  // d'intervalle : c'était un verset seul, sa fin est son début. La base a été
+  // migrée de la même façon ; le cache, lui, ne l'est qu'à la lecture.
+  return tous
+    .map((v) => ({ ...v, chapterEnd: v.chapterEnd ?? v.chapter, verseEnd: v.verseEnd ?? v.verse }))
+    .sort((a, b) => a.prochain.localeCompare(b.prochain));
 }
 
 /**
- * Met un verset en apprentissage.
+ * Met un passage en apprentissage — un verset, ou un groupe de versets.
  *
- * Rend le verset déjà suivi s'il l'était : la contrainte d'unicité de la base
+ * Rend le passage déjà suivi s'il l'était : la contrainte d'unicité de la base
  * l'interdit en double, et l'écran doit alors reprendre le suivi existant
- * plutôt que d'annoncer une erreur.
+ * plutôt que d'annoncer une erreur. L'unicité porte sur l'intervalle entier :
+ * Jean 3:16 et Jean 3:16-17 sont deux textes, et se suivent séparément.
  */
 export async function addMemorised(
-  verset: { book: string; chapter: number; verse: number; versionId: string; prochain: string },
+  verset: {
+    book: string; chapter: number; verse: number; chapterEnd: number; verseEnd: number
+    versionId: string; prochain: string
+  },
 ): Promise<MemorisedVerse | null> {
   const userId = await getCurrentUserId();
   const deja = (await getMemorised()).find(
-    (v) => v.book === verset.book && v.chapter === verset.chapter
-      && v.verse === verset.verse && v.versionId === verset.versionId,
+    (v) => memeIntervalle(v, verset) && v.versionId === verset.versionId,
   );
   if (deja) return deja;
 

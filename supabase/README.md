@@ -39,6 +39,7 @@ aucune donnée.
 | `20260821150000_courriel_seul.sql` | `kind = 'courriel'` masqué de la boîte du destinataire, **par la RLS** — l'administrateur continue de le voir |
 | `20260831120000_reading_session_title.sql` | `readings.sessionTitle` : le nom d'une séance d'enregistrement, répété sur ses lectures — **aucun `grant`**, `readings` ayant l'`update` au niveau table, contrairement à `profiles` |
 | `20260901120000_messages_archive_delete.sql` | `archived_at` et `deleted_at` sur `messages` : archiver, et retirer de sa boîte sans effacer la ligne — **avec le `grant update` colonne**, `messages` étant dans le cas de `profiles` |
+| `20260915120000_memorised_verse_ranges.sql` | `chapterEnd` et `verseEnd` sur `memorised_verses` : un groupe de versets est **un seul texte appris, donc une seule ligne** ; l'unicité passe du verset de départ à l'intervalle entier — aucun `grant`, la table ayant l'`update` au niveau table comme `readings` |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -80,6 +81,14 @@ aucune migration n'est en attente.
 `20260801190602` (`baseline`) à `20260821112941` (`courriel_seul`). La séance
 du 28 n'a ajouté aucune migration — le regroupement de l'historique est un fait
 d'affichage, et ne touche pas au schéma.
+
+**Relevé du 15 septembre 2026**, après application de `memorised_verse_ranges`
+par l'outil MCP : **30 fichiers, 28 enregistrées**, la dernière sous
+`20260915123038`. L'écart de deux reste celui des migrations du 9 août. Les
+7 lignes de `memorised_verses` ont toutes reçu leur propre verset pour fin
+d'intervalle, et l'ancienne contrainte d'unicité a bien disparu — son nom
+portait la majuscule de `versionId`, et le `drop` a dû le citer entre
+guillemets pour la trouver.
 
 Constat avant application des premières, sur la base réelle :
 

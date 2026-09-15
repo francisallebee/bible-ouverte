@@ -126,3 +126,40 @@ export function reussiteDe(masques: number, indices: number): number {
   if (masques === 0) return 1;
   return Math.max(0, (masques - indices) / masques);
 }
+
+/** Un passage appris : un verset seul, ou un groupe de versets. */
+export interface Intervalle {
+  book: string;
+  chapter: number;
+  verse: number;
+  chapterEnd: number;
+  verseEnd: number;
+}
+
+/**
+ * Deux intervalles désignent-ils le même texte ?
+ *
+ * L'égalité porte sur les quatre bornes, pas sur le seul verset de départ :
+ * Jean 3:16 et Jean 3:16-17 sont deux textes, et se suivent séparément — c'est
+ * aussi ce que dit la contrainte d'unicité de la base. La page et le store
+ * comparaient chacun à leur façon ; un seul endroit, pour qu'une borne ajoutée
+ * ne soit pas oubliée d'un côté.
+ */
+export function memeIntervalle(a: Intervalle, b: Intervalle): boolean {
+  return a.book === b.book
+    && a.chapter === b.chapter && a.verse === b.verse
+    && a.chapterEnd === b.chapterEnd && a.verseEnd === b.verseEnd;
+}
+
+/**
+ * Le texte d'un groupe de versets, prêt pour `masquerMots`.
+ *
+ * Les versets sont joints par une espace, sans leur numéro : un numéro n'est
+ * pas un mot à retrouver, et le masquer n'apprendrait rien. Un verset absent
+ * du cache — texte non téléchargé — laisse un trou plutôt qu'une chaîne vide,
+ * pour que le manque soit visible et non silencieux ; l'appelant refuse la
+ * séance si le premier manque.
+ */
+export function texteDe(versets: Array<{ text: string }>): string {
+  return versets.map((v) => v.text.trim()).filter(Boolean).join(' ');
+}

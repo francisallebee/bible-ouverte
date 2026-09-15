@@ -16,8 +16,8 @@ import {
 } from "@/lib/storage";
 import { useI18n, useBookName, useBooks } from "@/contexts/I18nContext";
 import { formatDate } from "@/lib/i18n/format";
-import PlanEntryAdder from "@/components/PlanEntryAdder";
-import type { PlanEntryDraft } from "@/components/PlanEntryAdder";
+import PassageAdder from "@/components/PassageAdder";
+import type { PassageDraft } from "@/components/PassageAdder";
 import { describeRange } from "@/components/PassagePicker";
 import { dayPassages, readingIdsOf } from "@/lib/storage/plan-passages";
 import PassagePreview from "@/components/PassagePreview";
@@ -286,7 +286,7 @@ export default function PlanDetailPage() {
     setChargementApercu(false);
   }
 
-  async function handleAddEntry(entry: PlanEntryDraft) {
+  async function handleAddEntry(entry: PassageDraft) {
     const userId = await getCurrentUserId();
     await addPlanEntry({ ...entry, planId, userId, date: "", isRead: false });
     setDays(await getPlanDays(planId));
@@ -485,7 +485,7 @@ export default function PlanDetailPage() {
 
       {isFree && (
         <div className="mb-6">
-          <PlanEntryAdder versionId={plan.versionId} onAdd={handleAddEntry} />
+          <PassageAdder versionId={plan.versionId} onAdd={handleAddEntry} />
         </div>
       )}
 
