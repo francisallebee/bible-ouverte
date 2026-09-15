@@ -367,7 +367,7 @@ export default function ProgressPage() {
           <div className="mt-3">
             {palierSuivant !== null ? (
               <>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-[--piste] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-orange-600 rounded-full transition-[width] duration-700"
                     style={{ width: `${Math.min(100, (series.courante / palierSuivant) * 100)}%` }}
@@ -476,7 +476,7 @@ export default function ProgressPage() {
             <ScrollText className="w-5 h-5 text-amber-700" />
             <h2 className="font-semibold">{t.progress.oldTestament}</h2>
           </div>
-          <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-4 bg-[--piste] rounded-full overflow-hidden">
             <div className="h-full bg-amber-600 rounded-full transition-[width]" style={{ width: `${otTotal > 0 ? (otChapters / otTotal) * 100 : 0}%` }} />
           </div>
           <p className="text-xs text-gray-500 mt-1">
@@ -488,7 +488,7 @@ export default function ProgressPage() {
             <BookMarked className="w-5 h-5 text-blue-600" />
             <h2 className="font-semibold">{t.progress.newTestament}</h2>
           </div>
-          <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-4 bg-[--piste] rounded-full overflow-hidden">
             <div className="h-full bg-blue-600 rounded-full transition-[width]" style={{ width: `${ntTotal > 0 ? (ntChapters / ntTotal) * 100 : 0}%` }} />
           </div>
           <p className="text-xs text-gray-500 mt-1">
@@ -520,7 +520,7 @@ export default function ProgressPage() {
                     {enPourcentage ? rapport(c.chapters, chapterCount) : t.progress.chapterCount(c.chapters)}
                   </span>
                 </div>
-                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-3 bg-[--piste] rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-[width] duration-500"
                     style={{ width: `${c.share}%`, backgroundColor: c.color }} />
                 </div>
@@ -543,7 +543,7 @@ export default function ProgressPage() {
                 <span className="font-medium">{t.bibleCategories[cat.id] ?? cat.name}</span>
                 <span className="text-gray-500">{rapport(cat.readChapters, cat.totalChapters)}</span>
               </div>
-              <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-3 bg-[--piste] rounded-full overflow-hidden">
                 <div className="h-full rounded-full transition-[width] duration-500" style={{
                   width: `${cat.totalChapters > 0 ? (cat.readChapters / cat.totalChapters) * 100 : 0}%`,
                   backgroundColor: cat.readChapters >= cat.totalChapters ? "#16a34a" : "#4a90d9",
@@ -594,7 +594,7 @@ export default function ProgressPage() {
           {booksReadList.map((b) => (
             <div key={b.book} className="flex items-center gap-3">
               <span className="text-sm w-32 shrink-0 truncate font-medium">{b.name}</span>
-              <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="flex-1 h-3 bg-[--piste] rounded-full overflow-hidden">
                 <div className={`h-full rounded-full transition-[width] ${b.readChapters >= b.totalChapters ? "bg-green-500" : "bg-blue-500"}`}
                   style={{ width: `${b.totalChapters > 0 ? (b.readChapters / b.totalChapters) * 100 : 0}%` }} />
               </div>

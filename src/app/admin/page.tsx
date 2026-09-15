@@ -229,7 +229,7 @@ export default function AdminPage() {
                       : t.authScreens.discoverySources[p.cle] ?? p.cle}</span>
                     <span className="text-xs text-gray-500 shrink-0">{t.admin.acqCount(p.nombre, p.pourcent)}</span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-[--piste] rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${p.cle === PROVENANCE_INCONNUE ? 'bg-gray-300' : 'bg-[--primary]'}`}
                       style={{ width: `${p.pourcent}%` }} />
                   </div>
