@@ -136,10 +136,20 @@ export default function QuizPage() {
 
       {etape === 'accueil' && (
         <>
+          {/* Le dégradé est mesuré sous le texte, pas choisi : `to bottom right`
+              donne une couleur par point, et le blanc tombait à 2,64 au pire coin
+              de l'aide à 343 px sur `via-fuchsia-500 to-orange-400`. Avec
+              `fuchsia-700` et `orange-700`, 5,71 au repos et 5,28 sous
+              `hover:brightness-105`, texte sur toute la largeur — le pire cas
+              des cinq langues. L'aide est opaque : à 80 %, aucun dégradé ne
+              passait. Même dégradé sur la carte de résultat, où le voile du
+              bouton est noir et non blanc : un voile blanc qui s'épaissit au
+              survol éclaircit le fond sous du texte blanc (3,84), un voile noir
+              le fonce. Relevé le 15 septembre 2026. */}
           <button onClick={commencer} disabled={prepare}
-            className="w-full rounded-2xl p-6 text-white text-start bg-gradient-to-br from-violet-600 via-fuchsia-500 to-orange-400 shadow-lg hover:brightness-105 disabled:opacity-70 transition-all active:scale-[0.99]">
+            className="w-full rounded-2xl p-6 text-white text-start bg-gradient-to-br from-violet-600 via-fuchsia-700 to-orange-700 shadow-lg hover:brightness-105 disabled:opacity-70 transition-all active:scale-[0.99]">
             <p className="text-lg font-semibold">{prepare ? t.quiz.preparation : t.quiz.commencer}</p>
-            <p className="text-white/80 text-sm mt-1">{t.quiz.commencerAide(NOMBRE_DE_QUESTIONS)}</p>
+            <p className="text-sm mt-1">{t.quiz.commencerAide(NOMBRE_DE_QUESTIONS)}</p>
           </button>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
@@ -213,12 +223,12 @@ export default function QuizPage() {
       )}
 
       {etape === 'resultat' && (
-        <div className="rounded-2xl p-8 text-center text-white bg-gradient-to-br from-violet-600 via-fuchsia-500 to-orange-400 shadow-lg">
+        <div className="rounded-2xl p-8 text-center text-white bg-gradient-to-br from-violet-600 via-fuchsia-700 to-orange-700 shadow-lg">
           <p className="text-5xl font-bold">{Math.round((bonnes / questions.length) * 100)} %</p>
           <p className="mt-1 text-white/90">{t.quiz.resultat(bonnes, questions.length)}</p>
           <p className="mt-4 text-lg font-medium">{encouragement(Math.round((bonnes / questions.length) * 100))}</p>
           <button onClick={commencer} disabled={prepare}
-            className="mt-6 inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+            className="mt-6 inline-flex items-center gap-2 bg-black/15 hover:bg-black/25 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">
             <RotateCcw className="w-4 h-4" />
             {t.quiz.rejouer}
           </button>
