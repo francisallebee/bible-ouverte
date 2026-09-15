@@ -355,10 +355,10 @@ export default function ProgressPage() {
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-2">
-            <Flame className="w-5 h-5 text-orange-500" />
+            <Flame className="w-5 h-5 text-orange-600" />
             <span className="text-xs uppercase tracking-wider text-gray-500">{t.progress.currentStreak}</span>
           </div>
-          <p className="text-3xl font-bold text-orange-500">{series.courante}<span className="text-lg font-normal text-gray-400 ms-1">{t.progress.days}</span></p>
+          <p className="text-3xl font-bold text-orange-600">{series.courante}<span className="text-lg font-normal text-gray-400 ms-1">{t.progress.days}</span></p>
           <p className="text-xs text-gray-400 mt-1">{t.progress.bestStreak(series.meilleure)}</p>
 
           {/* Paliers de série. La barre vise le prochain depuis la série
@@ -369,7 +369,7 @@ export default function ProgressPage() {
               <>
                 <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-orange-500 rounded-full transition-[width] duration-700"
+                    className="h-full bg-orange-600 rounded-full transition-[width] duration-700"
                     style={{ width: `${Math.min(100, (series.courante / palierSuivant) * 100)}%` }}
                   />
                 </div>
