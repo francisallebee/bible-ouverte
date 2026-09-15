@@ -3266,3 +3266,127 @@ Relevé en production, dans les deux modes : « Terminé » 4,79, « Projet » 5
 « en cours » 4,75, « Suggestion » 5,02. Identiques en clair et en sombre, ce qui
 est la propriété recherchée : une pastille est un îlot, une seule paire sert les
 deux thèmes.
+
+## La séance du 15 septembre 2026 : l'orange, puis la piste qu'il a fait voir
+
+Deux demandes du propriétaire, la seconde née de la première. La consigne
+était « paire par paire », et elle a décidé de la forme des deux correctifs.
+
+### L'orange de la série, et le cran qui tient des deux côtés
+
+Le chiffre de série de Progression — 30 px en gras, `text-orange-500` sur
+blanc — tenait **2,80** en mode clair, sous le seuil de 3,0 des grands
+caractères. Signalé le 9 septembre, hors du périmètre ce jour-là.
+
+L'inventaire d'abord : quatre paires sur la carte, et pas une seule couleur.
+La palette a été lue dans `node_modules/tailwindcss` plutôt que de mémoire,
+et la sonde contrôlée avant toute conclusion — 17,74 sur `gray-900` sur blanc,
+la valeur connue ; et 2,80 retrouvé sur le chiffre, celui qu'un autre
+instrument avait relevé le 9.
+
+| Paire | Seuil | `orange-500` clair / sombre | Décision |
+|---|---|---|---|
+| Chiffre, 30 px gras | 3,0 | **2,80** / 5,22 | `orange-600` : 3,56 / 4,11 |
+| Icône `Flame` | 3,0 | 2,80 / 5,22 | même ton que le chiffre |
+| Barre sur sa piste `gray-100` | 3,0 | **2,55** / 5,22 | `orange-600` : 3,23 / 4,11 |
+| Pastille `orange-700` sur `orange-50` | 4,5 | 4,88 / 4,88 | inchangée — mesurée le 19 août |
+
+**Le remède du 19 août a une borne dans l'autre thème.** « Foncer jusqu'à
+franchir le seuil » vaut pour une pastille, qui est un îlot : sa paire ne
+change pas de mode. Sur un texte posé sur `--surface`, chaque cran gagné en
+clair est perdu en sombre — `orange-700` aurait donné 5,18 en clair et
+**2,82** sur `--surface`. Un seul cran, `orange-600`, est le seul qui tienne
+des deux côtés, et il ne demande aucun remap. Cela ne se voit qu'en mesurant
+les deux modes *avant* de choisir ; la recette de `cancelled`, deux crans,
+aurait ici déplacé le défaut d'un mode à l'autre.
+
+Vu à l'écran sur le serveur de développement, session ouverte par le
+propriétaire, classe `dark` posée à la main : 3,56 / 4,11 sur le chiffre,
+sonde `h1` à 16,30, plus aucun `orange-500` dans le DOM. La feuille compilée
+portait `orange-600` à `#ea580c` et n'avait plus d'`orange-500` — le contrôle
+dans les deux sens.
+
+### La piste, que la capture sombre a montrée
+
+La capture en mode sombre prise pour l'orange montrait autre chose : la barre
+de palier flottait sans rail, et celle d'« Ancien Testament » plus bas aussi.
+`bg-gray-100` et la carte `bg-white` qui la porte sont tous deux remappés sur
+`--surface` — **1,00**. Antérieur à tout, et trouvé parce qu'on regardait
+l'écran pour une autre raison.
+
+L'inventaire a décidé du remède. Le dépôt compte huit pistes, qui partagent
+l'idiome `bg-gray-100 rounded-full overflow-hidden` et sont toutes posées
+sur une carte blanche ; les autres `bg-gray-100` sont des boutons de
+Recherche, une pastille de statut, un avatar, un `<pre>` d'erreur. **Un remap
+global les aurait atteints**, et aucun relevé de pistes ne l'aurait montré.
+
+La piste est donc devenue un rôle nommé, `--piste`, posé **dans les deux
+modes** — l'idiome de `--primary-clair` du 9 septembre, plutôt que celui de la
+règle 15 : un remap sous `html.dark` se juge après coup sur ce qu'il
+rencontre, une variable se juge à l'endroit où elle est définie. `gray-100`
+en clair, à l'identique ; `--border` en sombre.
+
+Mesuré avant de choisir : `--border` rend **1,41** sur `--surface`, plus
+visible que le repère clair — 1,10, `gray-100` sur blanc — et déjà la teinte
+des bordures de ces mêmes cartes. `slate-600` à 1,93 aurait fait un rail trop
+lourd pour un `h-1.5`.
+
+#### Six lignes, soixante-douze pistes
+
+Le `grep` comptait huit lignes. L'écran de Progression en rend **66** — une
+par contexte, par catégorie, par livre —, le détail d'un plan 1, Administration
+› Acquisition 5. Toutes à 1,10 en clair et 1,41 en sombre, par styles calculés,
+classe `dark` posée à la main. C'est le piège du 2 septembre retourné : là un
+`grep` sur-comptait, ici il sous-compte, et seul l'écran voit la structure.
+
+#### L'instrument, encore : une page masquée ne se repeint pas
+
+Deux captures identiques et claires après un `scrollTo(0, 0)` et une classe
+`dark` posée. La classe tenait — vérifiée toutes les 400 ms pendant 2,4 s,
+`body` à `rgb(15, 23, 42)` — et `scrollY` valait 0 quand la capture montrait
+1121. **`document.visibilityState` valait `hidden`** : le panneau se déclarait
+affiché, le document se savait masqué, et le navigateur ne peint pas ce qu'on
+ne voit pas. La capture rend alors le dernier cadre peint, indéfiniment.
+
+Les mesures par styles calculés, elles, ne dépendent pas du peint : les 72
+pistes ont été relevées dans cet état. **Les captures sombres de la piste
+n'ont pas été prises**, et le propriétaire a demandé de pousser sur la foi
+des mesures.
+
+### Le déploiement, vu passer l'un puis l'autre
+
+Sonde sans accent, discriminante dans les deux sens, sur la feuille servie par
+`bible-ouverte.vercel.app` :
+
+| Essai | Feuille | `--piste` | `.bg-[--piste]` | `orange-500` | `orange-600` |
+|---|---|---|---|---|---|
+| 1 | `f277f675…` | absente | absente | 0 | `#ea580c` |
+| 2, 45 s plus tard | `f75e1e22…` | `#f3f4f6` et `#334155` | compilée | 0 | `#ea580c` |
+
+Le premier essai est `adfd835` déjà en ligne, le second `344a9ca`. Le hachage
+neuf dit qu'il y a eu un déploiement ; le contenu dit lequel.
+
+### Ce qui n'a pas été vu
+
+L'écran de production lui-même, dans une session, après ces deux
+déploiements — seule la feuille servie l'a été. Les captures de la piste en
+sombre, pour la raison dite plus haut. Et rien en arabe.
+
+### Relevé en chemin, laissé en l'état
+
+Trois défauts de remplissage, mesurés paire par paire et non corrigés,
+antérieurs à cette séance :
+
+| Remplissage | Où | Mesure |
+|---|---|---|
+| `bg-[--primary]`, sans texte dessus | détail de plan, Acquisition | **1,27** sur la piste et 1,11 sur la carte en sombre |
+| `bg-gray-300`, provenance inconnue | Acquisition | **1,34** sur la piste en clair, 7,03 en sombre |
+| dégradés `to-orange-400` / `to-orange-500` sous du blanc | Quizz, Verset du jour | environ 2,2 au calcul, non mesurés à l'écran |
+
+Le premier mérite une phrase : le 9 septembre a séparé les rôles de
+`--primary` en texte et en fond-sous-du-blanc. **Un remplissage qui ne porte
+rien est un troisième rôle**, que ni `--primary` ni le remap de texte ne
+servent — sur la charte du propriétaire, `rgb(74, 26, 94)`, la barre est de la
+couleur de la carte. `--primary-clair` tient 6,60 sur `--surface` et serait la
+piste. Les catégories de Progression, en couleurs inline, portent la même
+famille : `rgb(109, 76, 65)` rend 1,36 sur la piste en sombre.
