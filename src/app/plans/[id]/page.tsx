@@ -492,7 +492,7 @@ export default function PlanDetailPage() {
       {days.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
           <div className="h-3 bg-[--piste] rounded-full overflow-hidden">
-            <div className="h-full bg-[--primary] rounded-full transition-[width] duration-500" style={{ width: `${progress}%` }} />
+            <div className="h-full bg-[--remplissage] rounded-full transition-[width] duration-500" style={{ width: `${progress}%` }} />
           </div>
           <p className="text-xs text-gray-400 mt-2">
             {t.planDetail.remaining(days.length - readDays, days.length, isFree)}

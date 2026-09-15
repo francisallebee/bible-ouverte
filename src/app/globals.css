@@ -33,6 +33,14 @@
      de `gray-100` qu'elle remplace ; en sombre, celle de `--border`, 1,41 sur
      `--surface` — plus visible que le repère clair, 1,10. */
   --piste: #f3f4f6;
+  /* Le remplissage d'une barre de progression : le troisième rôle de
+     `--primary`, après le texte et le fond-sous-du-blanc que le 9 septembre a
+     séparés. Un remplissage ne porte rien, et en sombre `--primary` est de la
+     couleur de la carte : 1,02 à 1,76 sur la piste, sur les dix chartes.
+     `--primary-clair` y tient 4,67 à 5,77 sur la piste et 6,60 à 8,15 sur la
+     carte. Elle est posée en ligne par `applyColorTheme`, comme les remaps
+     de `text-[--primary]` plus bas s'y fient déjà. */
+  --remplissage: var(--primary);
   --text: #1f2937;
   --text-secondary: #6b7280;
   --radius: 12px;
@@ -252,6 +260,7 @@ html.dark {
   --surface: #1e293b;
   --border: #334155;
   --piste: #334155;
+  --remplissage: var(--primary-clair);
   --text: #f1f5f9;
   --text-secondary: #94a3b8;
   --shadow: 0 1px 3px rgba(0,0,0,0.3);

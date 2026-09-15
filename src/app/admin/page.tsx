@@ -229,8 +229,12 @@ export default function AdminPage() {
                       : t.authScreens.discoverySources[p.cle] ?? p.cle}</span>
                     <span className="text-xs text-gray-500 shrink-0">{t.admin.acqCount(p.nombre, p.pourcent)}</span>
                   </div>
+                  {/* La provenance inconnue prend le gris neutre posé dans les
+                      deux modes : aucun gris Tailwind ne sert les deux —
+                      `gray-300` rendait 1,34 sur la piste en clair, `gray-500`
+                      2,14 en sombre. Celui-ci tient 4,39 et 4,04. */}
                   <div className="h-2 bg-[--piste] rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${p.cle === PROVENANCE_INCONNUE ? 'bg-gray-300' : 'bg-[--primary]'}`}
+                    <div className={`h-full rounded-full ${p.cle === PROVENANCE_INCONNUE ? 'bg-[--text-secondary]' : 'bg-[--remplissage]'}`}
                       style={{ width: `${p.pourcent}%` }} />
                   </div>
                 </li>
