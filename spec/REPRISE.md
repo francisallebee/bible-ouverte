@@ -3390,3 +3390,131 @@ servent — sur la charte du propriétaire, `rgb(74, 26, 94)`, la barre est de l
 couleur de la carte. `--primary-clair` tient 6,60 sur `--surface` et serait la
 piste. Les catégories de Progression, en couleurs inline, portent la même
 famille : `rgb(109, 76, 65)` rend 1,36 sur la piste en sombre.
+
+## Le 15 septembre, seconde partie : les remplissages, et le dégradé mesuré au coin du texte
+
+« Corrige », après la liste des trois remplissages relevés en chemin. Trois
+commits — `04c3e71`, `19bbc24`, `619ce72` — et le troisième répare une sonde
+que le deuxième avait désarmée.
+
+### Le remplissage d'une barre est un troisième rôle de `--primary`
+
+Le 9 septembre avait séparé deux rôles en sombre : le texte, remappé sur
+`--primary-clair`, et le fond sous du blanc, inchangé. Une barre de
+progression est un fond qui ne porte rien, et aucun des deux ne la servait.
+
+La mesure a été faite **sur les dix chartes plus la personnalisée**, et non
+sur la seule charte du propriétaire — c'est ce qui change une observation en
+règle : `--primary` en remplissage rend de **1,02 à 1,76** sur la piste en
+sombre, pour toutes ; `--primary-clair` y tient 4,67 à 5,77, et 6,60 à 8,15
+sur la carte. D'où `--remplissage`, posée dans les deux modes comme `--piste`
+et pour la même raison, `var(--primary)` en clair et `var(--primary-clair)`
+en sombre. Elle s'appuie sur la variable que `applyColorTheme` pose en ligne,
+comme les remaps de `text-[--primary]` s'y fient déjà.
+
+La provenance inconnue d'Acquisition, en `bg-gray-300`, rendait 1,34 en
+clair. **Aucun gris Tailwind ne sert les deux modes** — `gray-400` 2,31 /
+4,08, `gray-500` 4,39 / 2,14 — quand `--text-secondary`, déjà posée dans les
+deux, tient 4,39 et 4,04. Vu dans les deux modes sur les deux écrans,
+captures prises : le panneau était `visible` cette fois.
+
+### Un dégradé n'a pas une couleur, il en a une par point
+
+Le bouton « Commencer une partie » de Quizz posait du blanc sur
+`to bottom right`, du violet 600 à l'orange 400 en passant par le fuchsia
+500. Le blanc tient 5,70 sur le premier arrêt et 2,26 sur le dernier : la
+seule question est **où passe le texte**, et la ligne de dégradé de
+`to bottom right` dépend du rapport largeur/hauteur de la boîte — donc de
+l'écran, et de la langue qui décide de la longueur du texte.
+
+Le calcul, au pire coin du texte français : 3,89 sur le titre et 3,43 sur
+l'aide à 745 px ; **3,41 et 2,65 à 343 px**, l'aide étant en blanc à 80 %,
+qui laisse passer le fond.
+
+#### Deux instruments corrigés avant de conclure
+
+- Tailwind range le `via` dans `--tw-gradient-stops`, pas dans une variable
+  dédiée : la première lecture n'a vu que deux arrêts sur trois. Lire
+  `background-image` calculé, qui porte les trois résolus — et un `via` sans
+  position vaut 50 %.
+- C'est le rectangle du **texte** qu'il faut, par un `Range`, et non celui
+  du `<p>`, qui occupe toute la largeur du bouton.
+
+#### Le remède est cherché, pas choisi
+
+Parmi les dégradés violet / fuchsia / orange de Tailwind, le plus proche de
+l'actuel qui tienne 4,5 **au pire cas** — texte sur toute la largeur, aide
+sur deux lignes, ce que l'espagnol ou l'italien peuvent produire à 343 px —
+et sous `hover:brightness-105`, qui éclaircit le fond au survol :
+
+| Dégradé | Repos | Survol |
+|---|---|---|
+| actuel | 2,64 | 2,40 |
+| fuchsia 600, orange 700 | 4,88 | **4,49** |
+| fuchsia 700, orange 700 | 5,71 | 5,28 |
+
+Le premier candidat échoue au survol d'un centième. Et **aucun ne passait
+avec l'aide à 80 %** : l'opacité est le premier défaut, le dégradé le second.
+L'aide est opaque.
+
+La carte de résultat porte le même dégradé et suit. Son bouton « Rejouer »
+avait un voile `bg-white/15 hover:bg-white/25` : **un voile blanc qui
+s'épaissit au survol éclaircit le fond sous du texte blanc** — 3,84 au
+calcul, à l'endroit même où l'utilisateur regarde. Un voile noir fait
+l'inverse. Cet écran n'a pas été vu par l'agent : il ne s'affiche qu'après
+une partie, qui s'écrit en base.
+
+Vu aux deux largeurs sur le serveur de développement : 6,03 / 6,23 à 745 px,
+6,04 / 6,12 à 343 px, au pire coin du texte réel.
+
+Non touchés, décoratifs — un libellé porte le sens à côté : les carrés
+d'icône ambre-orange de Quizz et du Verset du jour, dont l'icône blanche
+tient 1,90 au pire coin.
+
+### Un commentaire n'est pas hors du scan de Tailwind
+
+La sonde de déploiement a trouvé les deux anciennes classes **encore
+compilées** en production, alors que plus aucun composant ne les portait.
+Elles survivaient dans le commentaire qui expliquait leur retrait : Tailwind
+lit les fichiers scannés comme du texte, et un nom de classe écrit dans un
+commentaire est généré comme un autre. C'est le corollaire inverse de la
+règle 14 — une classe construite à l'exécution n'existe pas, **une classe
+écrite dans un commentaire existe**. Sans dégât, sinon quelques octets ; mais
+cela désarme la sonde « clé retirée qui disparaît », la moitié la plus
+probante du contrôle.
+
+Le commentaire nomme désormais les teintes en prose. Vérifié **à froid** par
+le CLI de Tailwind sur `tailwind.config.ts` : le serveur de développement
+garde toute classe déjà générée dans la session et ne sait pas montrer une
+suppression. Les deux classes tombent à zéro, les nouvelles restent.
+
+### Trois instruments pris en défaut dans une seule sonde de déploiement
+
+Aucun n'accusait l'écran, et tous les trois ont d'abord dit « absent » ou
+« zéro » sur des clés dont la présence était acquise — ce qui est le signal.
+
+| Instrument | Défaut | Comment il s'est vu |
+|---|---|---|
+| `head -1` sur les feuilles de `/` | la page en charge désormais **deux**, et la sonde lisait la première, 10 Ko, propre à la présentation | `--piste`, connue présente la veille, « absente » |
+| `for f in $feuilles` sous **zsh** | zsh ne découpe pas une variable non citée sur les sauts de ligne — les deux chemins passés en un seul, `curl` rend vide sans erreur | tout à zéro, y compris `--remplissage` que la feuille précédente portait |
+| le serveur de développement | accumule les classes générées, ne montre jamais une suppression | `via-fuchsia-500` encore là après retrait du commentaire |
+
+Relu correctement, sur `c7499bb3…` : les clés retirées à 0, `via-fuchsia-700`
+à 1, `--remplissage` à 2, `bg-black/25` au survol à 1. Le hachage neuf dit
+qu'il y a eu un déploiement ; le contenu dit lequel.
+
+### Ce que le propriétaire a vu
+
+**Il a regardé la production après les trois déploiements et a dit « c'est
+bon »**, sans détailler les écrans. C'est une preuve d'écran qui ne vient pas
+de l'agent, et elle couvre potentiellement le seul chemin qu'il s'était
+interdit — l'écran de résultat de Quizz, après une partie.
+
+### Ce qui reste, mesuré et non corrigé
+
+| Élément | Mesure | Nature |
+|---|---|---|
+| Couleurs de catégorie de Progression, en style inline | `rgb(109, 76, 65)` à 1,36 sur la piste en sombre | palette de sept couleurs, une table |
+| Bouton `bg-white/15` de Mémorisation, sur son dégradé émeraude | non mesuré ; même famille que « Rejouer » | le faux positif du 9 septembre en cachait peut-être un vrai |
+| Graphique « Inscriptions par mois » d'Acquisition | barres presque effacées en sombre sur la capture | remplissage Recharts, à mesurer |
+| Carrés d'icône ambre-orange | 1,90 au pire coin | décoratifs, un libellé porte le sens |
