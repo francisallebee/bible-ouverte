@@ -30,11 +30,12 @@ interface Props {
 }
 
 /**
- * « Genèse 1:1-3:5 » — l'écriture usuelle, partagée avec l'historique par
- * `lib/lectures/reference.ts`. Le nom reste : neuf écrans l'importent.
+ * « Genèse 1:1-3:5 », « Genèse 1-3 » — l'écriture usuelle, partagée avec
+ * l'historique par `lib/lectures/reference.ts`. Le nom reste : neuf écrans
+ * l'importent. Le code du livre sert à reconnaître un chapitre entier.
  */
-export function describeRange(bookName: string, r: PassageRange): string {
-  return ecrireReference(bookName, r)
+export function describeRange(bookName: string, book: string, r: PassageRange): string {
+  return ecrireReference(bookName, book, r)
 }
 
 function NumberGrid({
@@ -195,7 +196,7 @@ export default function PassagePicker({
         <div className="sticky top-0 bg-[--surface] border-b border-[--border] px-5 py-4 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="font-semibold text-[--text] truncate">{bookName}</p>
-            <p className="text-sm text-[--text-secondary]">{describeRange(bookName, draft)}</p>
+            <p className="text-sm text-[--text-secondary]">{describeRange(bookName, book, draft)}</p>
           </div>
           <button type="button" onClick={onClose} aria-label={t.common.close}
             className="shrink-0 text-[--text-secondary] hover:text-[--text] transition-colors">

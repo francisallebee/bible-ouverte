@@ -207,12 +207,12 @@ export function referencesDe(
 }
 
 /**
- * « Jean 3:16 », « Jean 3:16-4:2 » — la référence telle qu'elle s'affiche.
+ * « Jean 3:16 », « Jean 3:16-4:2 », « Genèse 17-20 » — la référence telle qu'elle s'affiche.
  * L'écriture vit dans `reference.ts`, la même que celle des sélecteurs.
  */
 export function referenceDe(
   entree: Pick<ReadingEntry, "book" | "chapterStart" | "chapterEnd" | "verseStart" | "verseEnd">,
   nomDuLivre: (code: string) => string,
 ): string {
-  return ecrireReference(nomDuLivre(entree.book), entree);
+  return ecrireReference(nomDuLivre(entree.book), entree.book, entree);
 }

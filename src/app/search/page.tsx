@@ -282,7 +282,7 @@ export default function SearchPage() {
                 <button type="button" onClick={() => setRefPickerOpen(true)} disabled={!refBook}
                   className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
                   <span className={refBook ? "truncate" : "truncate text-[--text-secondary]"}>
-                    {refBook ? describeRange(getBookName(refBook), refRange) : t.search.select}
+                    {refBook ? describeRange(getBookName(refBook), refBook, refRange) : t.search.select}
                   </span>
                   <BookText className="w-4 h-4 text-[--text-secondary] shrink-0" />
                 </button>
@@ -306,7 +306,7 @@ export default function SearchPage() {
           ) : refResults.length > 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <p className="font-medium mb-3">
-                {describeRange(getBookName(refBook), refRange)} — {t.search.verseCount(refResults.length)}
+                {describeRange(getBookName(refBook), refBook, refRange)} — {t.search.verseCount(refResults.length)}
               </p>
               <div className="texte-biblique text-sm leading-relaxed mb-4" dir={sensDuTexte(refVersion)}>
                 {refResults.map((p) => (
@@ -503,7 +503,7 @@ export default function SearchPage() {
                 {/* Troisième écriture à la main de la même référence, trouvée le
                     16 septembre 2026 en unifiant les deux autres. */}
                 <p className="text-sm text-gray-500 mb-4">
-                  {describeRange(getBookName(addTarget.book), addTarget)}
+                  {describeRange(getBookName(addTarget.book), addTarget.book, addTarget)}
                 </p>
                 <div className="space-y-3">
                   <div>

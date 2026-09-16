@@ -245,7 +245,7 @@ export default function PlanDetailPage() {
       return `${getBookName(passage.book)} ${passage.chapterStart}${
         passage.chapterEnd !== passage.chapterStart ? `-${passage.chapterEnd}` : ""}`;
     }
-    return describeRange(getBookName(passage.book), {
+    return describeRange(getBookName(passage.book), passage.book, {
       chapterStart: passage.chapterStart,
       chapterEnd: passage.chapterEnd,
       ...bornesReelles(passage),

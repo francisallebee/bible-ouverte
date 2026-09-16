@@ -420,7 +420,7 @@ export default function NewReadingPage() {
                 className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-base bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
                 <span className="truncate">
                   {book
-                    ? describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })
+                    ? describeRange(getBookName(book), book, { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })
                     : t.newReading.selectBookFirst}
                 </span>
                 <SlidersHorizontal className="w-4 h-4 text-[--text-secondary] shrink-0" />
@@ -590,10 +590,10 @@ export default function NewReadingPage() {
                   <li key={`${p.book}-${p.chapterStart}-${p.verseStart}-${i}`}
                     className="flex items-center gap-2 bg-[--surface] rounded-lg border border-[--border] px-3 py-2">
                     <span className="flex-1 min-w-0 truncate text-[--text]">
-                      {describeRange(getBookName(p.book), p)}
+                      {describeRange(getBookName(p.book), p.book, p)}
                     </span>
                     <button type="button" onClick={() => retirerPassage(i)}
-                      aria-label={t.newReading.removePassage(describeRange(getBookName(p.book), p))}
+                      aria-label={t.newReading.removePassage(describeRange(getBookName(p.book), p.book, p))}
                       className="shrink-0 text-[--text-secondary] hover:text-[--text] transition-colors">
                       <X className="w-4 h-4" />
                     </button>
@@ -821,7 +821,7 @@ export default function NewReadingPage() {
 
       <PassagePreview
         open={previewOpen && !!book}
-        title={describeRange(getBookName(book), { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
+        title={describeRange(getBookName(book), book, { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
         versionName={versions.find((v) => v.id === versionId)?.name || versionId}
         dir={textDirection(versions.find((v) => v.id === versionId)?.language ?? "fr")}
         passages={passages}

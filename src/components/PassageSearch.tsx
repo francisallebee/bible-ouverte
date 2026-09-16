@@ -129,7 +129,7 @@ export default function PassageSearch({ open, versionId, versionLanguage, onPick
               <button type="button" onClick={() => setPickerOpen(true)} disabled={!book}
                 className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
                 <span className={book ? 'truncate' : 'truncate text-[--text-secondary]'}>
-                  {book ? describeRange(getBookName(book), range) : t.newReading.selectBookFirst}
+                  {book ? describeRange(getBookName(book), book, range) : t.newReading.selectBookFirst}
                 </span>
                 <Search className="w-4 h-4 text-[--text-secondary] shrink-0" />
               </button>

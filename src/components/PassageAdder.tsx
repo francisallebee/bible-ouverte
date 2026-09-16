@@ -86,7 +86,7 @@ export default function PassageAdder({
           className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">
           <span className="truncate">
             {book
-              ? describeRange(getBookName(book), { chapterStart, chapterEnd, verseStart, verseEnd })
+              ? describeRange(getBookName(book), book, { chapterStart, chapterEnd, verseStart, verseEnd })
               : t.components.selectBookFirst}
           </span>
           <SlidersHorizontal className="w-4 h-4 text-[--text-secondary] shrink-0" />

@@ -47,7 +47,7 @@ export default function MemorisationPage() {
 
   const dus = suivis.filter((v) => estDu(v, jour))
   /** « Jean 3:16 », ou « Jean 3:16-18 » : la même écriture que partout ailleurs. */
-  const reference = (v: Intervalle) => describeRange(getBookName(v.book), {
+  const reference = (v: Intervalle) => describeRange(getBookName(v.book), v.book, {
     chapterStart: v.chapter, chapterEnd: v.chapterEnd, verseStart: v.verse, verseEnd: v.verseEnd,
   })
   const seul = (p: BiblePassage): Intervalle => ({
