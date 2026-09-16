@@ -202,11 +202,22 @@ export default function MemorisationPage() {
 
       {etape === 'liste' && (
         <>
-          <div className="rounded-2xl p-6 text-white bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 shadow-lg mb-6">
+          {/* Même famille que le bouton de Quizz, et même remède, mesuré le
+              16 septembre 2026 : le blanc tenait 2,54 sur le premier arrêt de
+              l'ancien dégradé — celui qui passe par l'émeraude, le teal et le
+              cyan de rang 500 —, 2,21 pour l'aide à 85 %, et le voile blanc du
+              bouton l'abaissait encore (2,22 au repos, 2,03 au survol). Ici le
+              petit texte est au coin du premier arrêt, donc un cran de 600
+              (3,77) n'aurait pas suffi : les trois arrêts passent au rang 700,
+              5,36 à 5,48 pour du blanc opaque en tout point, et le voile est
+              noir — il fonce le fond sous du texte blanc au lieu de
+              l'éclaircir. L'aide est opaque, comme sur Quizz. Les anciennes
+              classes ne sont pas nommées : Tailwind lit un commentaire. */}
+          <div className="rounded-2xl p-6 text-white bg-gradient-to-br from-emerald-700 via-teal-700 to-cyan-700 shadow-lg mb-6">
             <p className="text-3xl font-bold">{dus.length}</p>
-            <p className="text-white/85 text-sm mt-1">{t.memorisation.aRevoir}</p>
+            <p className="text-sm mt-1">{t.memorisation.aRevoir}</p>
             <button onClick={ajouterAuHasard} disabled={occupe || candidats.length === 0}
-              className="mt-4 inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 disabled:opacity-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              className="mt-4 inline-flex items-center gap-2 bg-black/15 hover:bg-black/25 disabled:opacity-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
               <Shuffle className="w-4 h-4" />
               {t.memorisation.ajouterHasard}
             </button>
@@ -249,7 +260,12 @@ export default function MemorisationPage() {
                       </p>
                       <p className="text-xs text-[--text-secondary] flex items-center gap-1.5">
                         <CalendarClock className="w-3.5 h-3.5" />
-                        {du ? t.memorisation.duAujourdhui : t.memorisation.revoirLe(v.prochain)}
+                        {/* La date passe par `Intl`, comme celle du bilan : la ligne
+                            écrivait « 2026-09-17 » tel quel, ce qu'on ne voit qu'une fois
+                            un passage révisé — vu le 16 septembre 2026, à la première
+                            séance réelle sur un groupe. */}
+                        {du ? t.memorisation.duAujourdhui
+                          : t.memorisation.revoirLe(formatDate(locale, v.prochain, { day: 'numeric', month: 'long' }))}
                         {' · '}
                         {t.memorisation.niveau(v.niveau, NIVEAU_MAX)}
                       </p>
@@ -336,7 +352,7 @@ export default function MemorisationPage() {
       )}
 
       {etape === 'bilan' && bilan && (
-        <div className="rounded-2xl p-8 text-center text-white bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 shadow-lg">
+        <div className="rounded-2xl p-8 text-center text-white bg-gradient-to-br from-emerald-700 via-teal-700 to-cyan-700 shadow-lg">
           <Check className="w-10 h-10 mx-auto mb-3" />
           <p className="text-4xl font-bold">{Math.round(bilan.reussite * 100)} %</p>
           <p className="mt-3 text-lg font-medium">
@@ -344,13 +360,13 @@ export default function MemorisationPage() {
               ? t.memorisation.entrainementBilan
               : bilan.monte ? t.memorisation.monte : t.memorisation.reste}
           </p>
-          <p className="mt-1 text-white/85 text-sm">
+          <p className="mt-1 text-sm">
             {entrainement
               ? t.memorisation.entrainementSansEffet
               : t.memorisation.prochaine(formatDate(locale, bilan.prochain, { weekday: 'long', day: 'numeric', month: 'long' }))}
           </p>
           <button onClick={() => setEtape('liste')}
-            className="mt-6 inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+            className="mt-6 inline-flex items-center gap-2 bg-black/15 hover:bg-black/25 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">
             {t.memorisation.retour}
           </button>
         </div>
