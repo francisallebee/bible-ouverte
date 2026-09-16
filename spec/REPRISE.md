@@ -4006,4 +4006,12 @@ Les **traits** d'axe et de graduation restent au `#666` de Recharts, 2,55
 en sombre : décoratifs, l'information est dans les libellés. Non touchés,
 à dessein.
 
+`2271fb3` poussé à 19:12:58 UTC, sondé : départ à 19:13:08 avec `buildId`
+`n6Zx1C-t…` et la clé à 0 ; à **19:14:35**, `buildId` `BHohzycx…`, la
+seconde feuille renommée (`bf3895…` → `1c846d3a…`),
+`.recharts-cartesian-axis-tick-value{fill:var(--text-secondary)}` à **1**,
+les quatre contrôles à 1. La forme minifiée de la clé avait été lue sur la
+règle `.remplissage-teinte` déjà en production avant d'attendre — une clé
+mal écrite aurait fait attendre l'expiration de la sonde pour rien.
+
 Non vu : la production dans une session, en arabe, et les autres comptes.
