@@ -3625,3 +3625,136 @@ combinaison qui tient : `curl` télécharge, Python lit des fichiers.
 
 Résultat : `mettreEnApprentissage` cinq fois dans `5954-51fe5ec2…`, avec les
 cinq valeurs — français, anglais, espagnol, italien, arabe.
+
+## La séance du 16 septembre 2026 : un groupe qui enjambe, et les couleurs choisies pour aucun mode
+
+Deux points de la liste du 16 : voir une séance *réelle* sur un groupe et un
+groupe à cheval sur deux chapitres (point 2), puis les quatre restes de
+contraste (point 3). Trois commits — `6063c17`, `1fe6a19`, et celui-ci.
+
+### Le groupe qui enjambe, vu de bout en bout et effacé
+
+Sur le serveur de développement, session ouverte par le propriétaire.
+L'état relevé avant d'écrire : 7 lignes dans `memorised_verses`, dernier
+`id` 38 ; 111 lignes dans `game_sessions`, dernier `id` 113, dont 17 de
+mémorisation.
+
+**Psaumes 23:6 – 24:2** posé par la fenêtre — 6 versets proposés pour le
+Psaume 23, 10 pour le 24, la versification réelle. La ligne **43** écrite
+avec `23:6 → 24:2` : la contrainte d'ordre accepte `verse 6 > verseEnd 2`
+parce que les chapitres diffèrent, ce qu'elle promettait. Puis « Réviser »,
+pas « S'entraîner » : les trois versets assemblés en un texte à travers la
+jonction — « …Jusqu'à la fin de mes jours. Psaume de David. A l'Eternel la
+terre… » —, 55 mots, aucun masqué au niveau 0. « J'ai terminé » : 100 %,
+« acquis d'un cran de plus », prochaine révision le jeudi 17. En base, à
+133 ms d'écart : la ligne 43 au **niveau 1, échéance 2026-09-17**, et la
+séance **114** (`memorisation`, 0/0, `details` portant `chapterEnd 24,
+verseEnd 2`).
+
+L'effacement : la ligne par le bouton de la liste, la séance par un `delete`
+SQL relu avant et prouvé par `returning`. Base revenue à 7 / 111 / 113. Un
+second aller-retour, plus court — Genèse 9:23 au hasard, séance 115 —, pour
+voir la date formatée ; effacé de la même façon. **Aucune trace des deux.**
+
+#### Deux choses que seule une séance réelle montre
+
+- **La liste écrivait « À revoir le 2026-09-17 »**, la date ISO brute, là où
+  le bilan disait « jeudi 17 septembre » : `revoirLe` recevait `v.prochain`
+  sans `formatDate`. Invisible tant qu'aucun passage n'a été révisé — les
+  lignes neuves sont dues le jour même. Corrigé dans `1fe6a19`, vu à
+  l'écran : « Genèse 9:23 · À revoir le 17 septembre · Niveau 1/4 ».
+- **Le sélecteur écrit « Psaumes 23-24:6-2 »** pour un intervalle à cheval,
+  et la liste de mémorisation aussi. `describeRange` compose chapitres et
+  versets séparément — ce qui vaut sur un même chapitre et ne dit plus à quel
+  chapitre appartient quel verset dès qu'on en change. **Ce n'est pas un
+  accident du 15 septembre** : `referenceDe` dans `lib/lectures/saisies.ts`
+  fait exactement la même chose pour l'historique (« Jean 3-4:1-5 »), depuis
+  août, et un commentaire documente la forme. C'est donc la convention de
+  l'application, en double — le piège 5 —, et la changer pour l'écriture
+  usuelle « Psaumes 23:6-24:2 » touche Nouvelle lecture, Recherche, les
+  plans, l'historique et Mémorisation. **Non fait : décision de produit,
+  soumise au propriétaire.**
+
+### Les couleurs qui n'ont été choisies pour aucun mode
+
+Le reste du 15 disait « `rgb(109,76,65)` à 1,36 sur la piste en sombre » et
+parlait de catégories. La mesure a dit autre chose : ce sont les **contextes**
+— couleur choisie par l'utilisateur, douze par défaut, `#6d4c41` est
+« Bible » — et **les deux modes échouent, pas seulement le sombre**.
+
+| Couleur | Clair, sur `gray-100` | Sombre, sur `--border` |
+|---|---|---|
+| Méditation `#2ecc71` | **1,91** | 4,93 |
+| Radio `#f39c12` | **1,99** | 4,72 |
+| Autre `#95a5a6` | **2,32** | 4,05 |
+| Bible `#6d4c41` | 6,91 | **1,36** |
+| Podcast `#c0392b` | 4,94 | **1,90** |
+| Prédication `#9b59b6` | 4,24 | **2,22** |
+
+Huit sur douze sous 3,0 en clair, sept en sombre, et les deux constantes de
+catégorie (`#16a34a` 2,99 / 3,14, `#4a90d9` 3,04 / 3,10) au fil du rasoir.
+**Aucune part fixe ne remédie à une couleur arbitraire** : les 62 % vers le
+blanc de `--primary-clair` sauvent les douze en sombre, mais un jaune pâle
+éclairci reste pâle, et en clair il faudrait 44 % vers le noir pour
+garantir n'importe quelle couleur — ce qui rend le brun de « Bible » noir.
+
+Le remède retenu, `remplissageLisible` dans `lib/themes.ts` : pousser la
+couleur **du minimum nécessaire**, par pas de 5 %, vers le noir en clair et
+vers le blanc en sombre, jusqu'à 3,0 sur la piste — et la laisser telle
+quelle si elle tient déjà. Bible reste `#6d4c41` en clair et devient
+`#a08b84` en sombre (3,22) ; Méditation reste `#2ecc71` en sombre et devient
+`#239955` en clair (3,31). La piste est la contrainte qui lie : en clair la
+carte est plus claire qu'elle, en sombre plus sombre, si bien que se
+détacher de la piste suffit.
+
+**Le composant ne sait pas dans quel mode il est rendu, et n'a pas à le
+savoir** — c'est ce qui compte pour le mode « Système ». Il pose les deux
+teintes en variables inline (`--teinte-claire`, `--teinte-sombre`), et
+`.remplissage-teinte` de `globals.css` retient l'une ou l'autre sous
+`html.dark`. Une couleur posée directement en `background-color` inline
+aurait battu toute feuille — le défaut du 9 septembre, évité ici dès la
+conception.
+
+`contraste` sort de l'exécution ; le test garde sa propre sonde, comme
+avant — deux instruments ne se contrôlent que s'ils sont indépendants. 36
+tests : les douze contextes **lus dans `seed.ts`**, désormais exporté,
+plutôt que recopiés ; les deux catégories ; blanc, noir, jaune pâle.
+
+Vu sur Progression, par styles calculés, classe `dark` posée à la main :
+**22 barres, ≥ 3,04 en clair, ≥ 3,05 en sombre**, sonde `h1` à 16,30. Les
+quatre contextes personnels du propriétaire en `#6366f1` sont pris (3,26 en
+sombre). Captures des deux modes prises — le panneau était `visible`, et il
+se repeignait.
+
+### Les trois autres restes
+
+- **Acquisition** : pas du Recharts, des `div` en `bg-[--primary]` posées à
+  même la carte, sans piste. 1,11 en sombre ; `--remplissage`, le rôle du 15,
+  donne **13,12 / 6,60**. Vu dans les deux modes.
+- **Mémorisation** : la famille de « Rejouer », et le faux positif du 9
+  cachait bien un vrai. Le blanc tenait **2,54** sur le premier arrêt du
+  dégradé de rang 500, 2,21 pour l'aide à 85 %, et le voile blanc du bouton
+  l'abaissait encore (2,22 au repos, **2,03** au survol). Le petit texte est
+  au coin du premier arrêt : un cran de 600 (3,77) n'aurait pas suffi, les
+  trois arrêts passent au rang 700, l'aide est opaque, les voiles noirs.
+  Mesuré au pire coin du rectangle du texte réel, par `Range` : 5,48 / 5,48
+  à 793 px, 5,49 / 5,48 à 343 px sur la carte de tête ; **5,44 à 5,46 sur la
+  carte de bilan**, vue grâce à la séance réelle ; boutons 6,95 au repos,
+  8,21 au survol.
+- **Les carrés d'icône** ne sont pas touchés : décision acquise, un libellé
+  porte le sens à côté.
+
+### La compilation à froid, avant de pousser
+
+Le serveur de développement ne sait pas montrer une suppression (piège 25) ;
+la feuille compilée par le CLI de Tailwind sur `tailwind.config.ts` dit ce
+que la sonde de déploiement devra discriminer : `via-teal-700`,
+`to-cyan-700`, `from-emerald-700` à 1, `.remplissage-teinte` à 2 ; les
+classes retirées — le teal et le cyan de rang 500 en `via` et `to`, les deux
+voiles blancs, le blanc à 85 % — à **0**, et la sonde elle-même contrôlée sur
+`bg-black\/15`, présent, qui rend 1.
+
+### Ce qui n'a pas été vu
+
+La production : rien n'est poussé à l'heure où ceci est écrit. Rien en
+arabe. Et la convention « 23-24:6-2 » attend une décision.
