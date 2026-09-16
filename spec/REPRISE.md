@@ -4014,4 +4014,29 @@ les quatre contrôles à 1. La forme minifiée de la clé avait été lue sur la
 règle `.remplissage-teinte` déjà en production avant d'attendre — une clé
 mal écrite aurait fait attendre l'expiration de la sonde pour rien.
 
+### Les trois nombres de Statistiques — le point 6
+
+« Incohérence, pas défaut » : « Cette semaine » et « Ce mois » tenaient 3,34
+et 4,15 en clair, 4,38 et 3,52 en sombre — au-dessus du seuil de 3,0 des
+grands caractères —, mais figés sur `#4a90d9` et `#7b68ee`, l'accent de la
+seule charte Marine, quand « Total » suivait la charte du lecteur par
+`--primary`.
+
+Deux remèdes, et la mesure a fermé le second. **A** : les trois nombres en
+`--primary`, le rôle déjà remappé en sombre (`--primary-clair`) et mesuré
+sur les dix chartes — 5,90 à 13,12 en clair, 6,60 à 8,15 en sombre. **B** :
+« Ce mois » en `--accent`, pour garder une seconde couleur de charte. Mais
+l'accent en texte ne tient 3,0 des deux côtés que sur **cinq chartes sur
+dix** — Forêt 2,10 et Ocre 2,19 sur le blanc, Rubis 2,82, Indigo 2,57 et
+Café 2,97 sur `--surface` —, et un accent personnalisé serait n'importe
+quoi. Le rendre lisible aurait demandé un mécanisme neuf pour un rôle que
+l'accent ne joue nulle part ailleurs dans `src`. Retenu **A**.
+
+Vu, charte Pourpre du propriétaire : les trois nombres à **13,12 en clair,
+6,60 en sombre**, la ligne « pourpre » du tableau au centième. Compilation
+à froid (piège 25) : `text-\[\#4a90d9\]` passe à **0** — la clé que la
+sonde de déploiement verra disparaître, présente à 1 dans la feuille
+`1c846d3a…` d'aujourd'hui — ; `text-\[\#7b68ee\]` reste à 1, la page de
+présentation l'emploie deux fois, et ne dira donc rien.
+
 Non vu : la production dans une session, en arabe, et les autres comptes.

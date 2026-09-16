@@ -193,7 +193,14 @@ export default function StatsPage() {
             « Cette semaine » passent à la ligne quand « Ce mois » tient sur
             une — sans cela les trois nombres ne s'alignent plus entre eux.
             Les cartes ayant déjà la même hauteur par la grille, pousser le
-            nombre en bas suffit. */}
+            nombre en bas suffit.
+            Les trois nombres portent `--primary`, le rôle déjà remappé en
+            sombre. « Cette semaine » et « Ce mois » étaient figés sur
+            `#4a90d9` et `#7b68ee` — l'accent de la seule charte Marine —
+            quand « Total » suivait la charte du lecteur. L'accent aurait
+            gardé une seconde couleur, mais il ne tient 3,0 des deux côtés que
+            sur cinq chartes sur dix (Forêt 2,10 sur le blanc, Indigo 2,57 sur
+            `--surface`), mesuré le 16 septembre 2026. */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 flex flex-col justify-between">
           <p className="text-sm text-gray-500 mb-1">{t.stats.total}</p>
           <p className="text-3xl font-bold text-[--primary]">{total}</p>
@@ -205,7 +212,7 @@ export default function StatsPage() {
             nombre en bas suffit. */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 flex flex-col justify-between">
           <p className="text-sm text-gray-500 mb-1">{t.stats.thisWeek}</p>
-          <p className="text-3xl font-bold text-[#4a90d9]">{weekCount}</p>
+          <p className="text-3xl font-bold text-[--primary]">{weekCount}</p>
         </div>
         {/* `justify-between` : sur 106 px de large, « Total lectures » et
             « Cette semaine » passent à la ligne quand « Ce mois » tient sur
@@ -214,7 +221,7 @@ export default function StatsPage() {
             nombre en bas suffit. */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 flex flex-col justify-between">
           <p className="text-sm text-gray-500 mb-1">{t.stats.thisMonth}</p>
-          <p className="text-3xl font-bold text-[#7b68ee]">{monthCount}</p>
+          <p className="text-3xl font-bold text-[--primary]">{monthCount}</p>
         </div>
       </div>
 
