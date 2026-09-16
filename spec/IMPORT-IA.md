@@ -73,6 +73,50 @@ Chacune change ce qui se construit. Aucune n'a de bonne réponse par défaut.
 | 6 | **Quel modèle, et quel plafond de coût par lecteur et par jour ?** | À poser avec le skill `claude-api` : le plus petit modèle qui lit une image suffit probablement pour des références ; le coût par photo décide du quota. |
 | 7 | **Une trace de l'import sur la lecture ?** `sessionTitle` « Import photo du 16 septembre », ou rien qui la distingue d'une saisie ? | Une trace aide à retrouver et à corriger en bloc ; rien respecte la promesse « aucune donnée du fichier » au sens le plus strict. |
 
+## Les réponses du propriétaire — 17 septembre 2026
+
+| # | Décision | Conséquence dans le dépôt |
+|---|---|---|
+| 1 | **L'administrateur seul, pour le moment** | Pas de quota par lecteur, donc pas de table pour ça. La route vérifie `is_admin` **en base**, jamais par le `isAdmin` du navigateur. La fonction vit dans `/avance`. |
+| 2 | **OCR sur l'appareil** | `tesseract.js` entre au dépôt (règle 6, justifiée par la décision) : le moteur plus un dictionnaire par langue, chargés à la demande comme les bibles, jamais par `import()`. L'image ne quitte pas l'appareil ; seul le texte reconnu poursuit. |
+| 3 | **Les deux** pour les fichiers | Extraction dans le navigateur pour Word, Excel, csv, txt (deux dépendances) ; envoi du fichier pour le PDF sous 4,5 Mo, sinon extraction locale. |
+| 4 | **Transcription serveur** | Voir la tension ci-dessous : le modèle du dépôt ne prend pas d'audio. |
+| 5 | **Tout quand c'est possible** — références, date, titre, contexte | L'écran de validation porte toute la lecture proposée, chaque champ modifiable avant enregistrement. |
+| 6 | **Modèle gratuit, cinq par jour** | Voir la tension ci-dessous. Le compteur « cinq par jour » pour un seul compte tient dans les réglages `jsonb` (comme Verset du jour date sa visite), sans table. |
+| 7 | **Une trace** | `sessionTitle` porte la source et la date — « Import photo · 17 septembre 2026 » — et le contexte reste au choix du lecteur. |
+
+### Deux réponses que les faits contredisent en partie
+
+**« Transcription serveur » et « modèle gratuit » ne tiennent pas ensemble
+tels quels.** Les modèles Claude ne prennent pas d'audio en entrée : une
+transcription côté serveur suppose **un second fournisseur**, avec son
+compte et sa clé — et aucun n'est gratuit au sens d'une clé qu'on n'a pas à
+payer. Deux issues, à trancher :
+
+- la reconnaissance vocale **du navigateur** (Web Speech API) : gratuite,
+  cinq langues, rien ne passe par notre serveur — mais Chrome envoie l'audio
+  chez Google, et Firefox ne l'a pas ;
+- un fournisseur de transcription **choisi par le propriétaire**, dont il
+  dépose la clé lui-même ; le dépôt n'en désigne aucun.
+
+**Il n'existe pas de modèle Claude gratuit** : l'API est facturée à l'usage.
+« Gratuit, cinq par jour » peut vouloir dire deux choses, et elles ne
+construisent pas la même fonction :
+
+- **aucun modèle payant du tout** — alors les références s'extraient **sans
+  IA**, par un analyseur déterministe des cinq langues (`i18n/books.ts`
+  connaît les noms, la versification borne les chapitres), ce qui couvre
+  photo, fichiers et presse-papier une fois le texte obtenu, mais pas le
+  « tout » du point 5 (date, titre, contexte), qui demande de comprendre ;
+- **le plus petit modèle, plafonné à cinq appels par jour** — quelques
+  centimes par jour au plus, une clé déposée par le propriétaire, et le
+  point 5 devient possible.
+
+Tant que ces deux points ne sont pas tranchés, la séance suivante peut
+commencer par ce qui n'en dépend pas : l'OCR sur l'appareil, l'extraction
+des fichiers dans le navigateur, le presse-papier, l'analyseur déterministe
+de références, et l'écran de validation.
+
 ## Ce qui n'est pas demandé, et qu'il faudra dire
 
 - La confidentialité : une photo de notes personnelles part chez un tiers pour
@@ -88,3 +132,4 @@ Chacune change ce qui se construit. Aucune n'a de bonne réponse par défaut.
 | Date | Fait |
 |---|---|
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
+| 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
