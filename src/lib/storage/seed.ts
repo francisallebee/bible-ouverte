@@ -24,7 +24,7 @@ import { repairNahumAbbreviation, removeDuplicatePassages, repairDoubledApostrop
  */
 export const PLAN_CONTEXT_ID = 'plan-lecture';
 
-const DEFAULT_CONTEXTS: ReadingContext[] = [
+export const DEFAULT_CONTEXTS: ReadingContext[] = [
   { id: PLAN_CONTEXT_ID, name: 'Plan de lecture', slug: 'plan-lecture', color: '#3498db', icon: 'tag', emoji: '📅', isSystemDefault: true },
   { id: 'bible', name: 'Bible', slug: 'bible', color: '#6d4c41', icon: 'tag', emoji: '📖', isSystemDefault: true },
   { id: 'meditation', name: 'Méditation', slug: 'meditation', color: '#2ecc71', icon: 'tag', emoji: '🕊️', isSystemDefault: true },

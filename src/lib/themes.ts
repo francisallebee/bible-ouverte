@@ -166,6 +166,79 @@ function versLeFond(canaux: [number, number, number], part: number): [number, nu
   return canaux.map((v, i) => v + (FOND_SOMBRE[i] - v) * part) as [number, number, number]
 }
 
+function versLeNoir(canaux: [number, number, number], part: number): [number, number, number] {
+  return canaux.map((v) => v * (1 - part)) as [number, number, number]
+}
+
+function luminance([r, g, b]: [number, number, number]): number {
+  const lin = (v: number) => {
+    const x = v / 255
+    return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4)
+  }
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+}
+
+/** Le rapport de contraste du WCAG entre deux couleurs, de 1 à 21. */
+export function contraste(a: string, b: string): number | null {
+  const ca = versCanaux(a)
+  const cb = versCanaux(b)
+  if (!ca || !cb) return null
+  const [x, y] = [luminance(ca), luminance(cb)]
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
+}
+
+/**
+ * La piste d'une barre dans chaque mode — `--piste` de `globals.css`, recopiée
+ * ici parce que c'est contre elle qu'un remplissage se mesure. Elle est la
+ * contrainte qui lie : en clair la carte est plus claire qu'elle, en sombre la
+ * carte est plus sombre, si bien qu'un remplissage qui se détache de la piste
+ * se détache aussi de la carte.
+ */
+const PISTE_CLAIRE = '#f3f4f6'
+const PISTE_SOMBRE = '#334155'
+
+/** Le seuil du WCAG pour un composant non textuel — une barre, un rail. */
+export const SEUIL_COMPOSANT = 3
+
+/**
+ * Un remplissage lisible dans les deux modes, à partir d'une couleur qui n'a
+ * été choisie pour aucun des deux.
+ *
+ * Les barres de Progression portent la couleur du contexte, que l'utilisateur
+ * choisit librement. Mesuré le 16 septembre 2026 sur les douze contextes par
+ * défaut : **huit** rendent moins de 3,0 sur la piste en clair (Méditation
+ * 1,91, Radio 1,99) et **sept** en sombre (Bible 1,36, Podcast 1,90). Aucune
+ * part fixe ne peut y remédier : un jaune pâle éclairci de 62 % reste pâle,
+ * et une constante qui sauverait les douze en laisserait passer d'autres.
+ *
+ * La couleur est donc poussée **du minimum nécessaire**, par pas de 5 %, vers
+ * le noir en clair et vers le blanc en sombre, jusqu'à tenir le seuil sur la
+ * piste — et laissée telle quelle si elle le tient déjà. Le choix de
+ * l'utilisateur est respecté partout où il se voit.
+ *
+ * Les deux teintes sont posées en variables inline, et c'est `globals.css` qui
+ * retient l'une ou l'autre selon le mode : le composant n'a pas à savoir dans
+ * quel mode il est rendu, ce qui compte pour le mode « Système ».
+ */
+export function remplissageLisible(couleur: string): { claire: string; sombre: string } | null {
+  const c = versCanaux(couleur)
+  if (!c) return null
+  const pousser = (
+    vers: (canaux: [number, number, number], part: number) => [number, number, number],
+    piste: string,
+  ): string => {
+    for (let part = 0; part <= 1; part += 0.05) {
+      const teinte = versHex(vers(c, part))
+      if ((contraste(teinte, piste) ?? 0) >= SEUIL_COMPOSANT) return teinte
+    }
+    return versHex(vers(c, 1))
+  }
+  return {
+    claire: pousser(versLeNoir, PISTE_CLAIRE),
+    sombre: pousser(versLeBlanc, PISTE_SOMBRE),
+  }
+}
+
 /**
  * Les deux variantes que le mode sombre réclame, et pourquoi il en faut deux.
  *

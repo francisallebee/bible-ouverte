@@ -246,6 +246,10 @@ export default function AdminPage() {
             <h2 className="font-semibold mb-3">{t.admin.acqMonths}</h2>
             {/* Les mois vides sont affichés à zéro : une série qui les saute
                 dessine une courbe régulière là où il y a eu un trou. */}
+            {/* Les barres sont posées à même la carte, sans piste : en sombre,
+                `--primary` y est de la couleur de la carte — 1,11 sur la
+                charte du propriétaire, vu le 15 septembre 2026 sur la capture
+                d'Acquisition. `--remplissage` est le rôle fait pour cela. */}
             <div className="flex items-end gap-1.5 h-32">
               {(() => {
                 const serie = parMois(users, 12)
@@ -253,7 +257,7 @@ export default function AdminPage() {
                 return serie.map((m) => (
                   <div key={m.mois} className="flex-1 flex flex-col items-center justify-end gap-1">
                     <span className="text-[10px] text-gray-500">{m.nombre || ''}</span>
-                    <div className="w-full bg-[--primary] rounded-t"
+                    <div className="w-full bg-[--remplissage] rounded-t"
                       style={{ height: `${(m.nombre / maximum) * 100}%`, minHeight: m.nombre ? '2px' : '0' }} />
                     <span className="text-[9px] text-gray-400">{m.mois.slice(5)}</span>
                   </div>

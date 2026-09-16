@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { COLOR_THEMES, derivedColors, variantesSombres, DEFAULT_CUSTOM } from './themes'
+import { COLOR_THEMES, derivedColors, variantesSombres, remplissageLisible, DEFAULT_CUSTOM } from './themes'
+import { DEFAULT_CONTEXTS } from './storage/seed'
 
 /**
  * Le mode sombre doit rester lisible pour **toute** charte, y compris celles
@@ -99,5 +100,55 @@ describe('variantesSombres', () => {
     // `--primary` n'est pas touchée par le correctif, et ne doit pas l'être :
     // les 65 `bg-[--primary]` portent du texte blanc.
     expect(contraste(BLANC, primary)).toBeGreaterThanOrEqual(SEUIL)
+  })
+})
+
+describe('remplissageLisible', () => {
+  /** Les pistes des deux modes, telles que `globals.css` les pose. */
+  const PISTE_CLAIRE = '#f3f4f6'
+  const PISTE_SOMBRE = '#334155'
+  /** Le seuil du WCAG pour un composant non textuel. */
+  const SEUIL_COMPOSANT = 3
+
+  /**
+   * Les douze contextes par défaut, les deux couleurs de catégorie de
+   * Progression, et trois extrêmes qu'un utilisateur peut choisir : le blanc,
+   * le noir, un jaune pâle. La table des contextes est lue, non recopiée — une
+   * couleur changée dans `seed.ts` se mesure ici sans retouche.
+   */
+  const COULEURS = [
+    ...DEFAULT_CONTEXTS.map((c) => ({ id: c.id, couleur: c.color })),
+    { id: 'categorie lue', couleur: '#16a34a' },
+    { id: 'categorie en cours', couleur: '#4a90d9' },
+    { id: 'blanc', couleur: '#ffffff' },
+    { id: 'noir', couleur: '#000000' },
+    { id: 'jaune pale', couleur: '#ffff88' },
+  ]
+
+  it('refuse une couleur illisible plutôt que d’inventer', () => {
+    expect(remplissageLisible('pas une couleur')).toBeNull()
+  })
+
+  it.each(COULEURS)('$id : se détache de la piste dans les deux modes', ({ couleur }) => {
+    const r = remplissageLisible(couleur)!
+    // Mesuré le 16 septembre 2026 avant correctif : Méditation rendait 1,91
+    // en clair, Bible 1,36 en sombre — la barre était de la couleur du rail.
+    expect(contraste(r.claire, PISTE_CLAIRE)).toBeGreaterThanOrEqual(SEUIL_COMPOSANT)
+    expect(contraste(r.sombre, PISTE_SOMBRE)).toBeGreaterThanOrEqual(SEUIL_COMPOSANT)
+  })
+
+  it.each(COULEURS)('$id : reste la couleur choisie quand elle tient déjà', ({ couleur }) => {
+    // Le remède pousse du minimum nécessaire, jamais par principe : un contexte
+    // dont la couleur se voit garde exactement celle que l'utilisateur a choisie.
+    const r = remplissageLisible(couleur)!
+    if (contraste(couleur, PISTE_CLAIRE) >= SEUIL_COMPOSANT) expect(r.claire).toBe(couleur)
+    if (contraste(couleur, PISTE_SOMBRE) >= SEUIL_COMPOSANT) expect(r.sombre).toBe(couleur)
+  })
+
+  it('pousse dans le bon sens : vers le noir en clair, vers le blanc en sombre', () => {
+    const r = remplissageLisible('#2ecc71')!
+    expect(luminance(r.claire)).toBeLessThan(luminance('#2ecc71'))
+    const s = remplissageLisible('#6d4c41')!
+    expect(luminance(s.sombre)).toBeGreaterThan(luminance('#6d4c41'))
   })
 })

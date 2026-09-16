@@ -269,6 +269,15 @@ html.dark {
 }
 
 html.dark body { @apply bg-[--bg] text-[--text]; }
+
+/* Le remplissage d'une barre dont la couleur vient des données — celle d'un
+   contexte, choisie par l'utilisateur — ou d'une constante qui n'a été mesurée
+   pour aucun mode. Le composant pose les deux teintes en variables inline,
+   calculées par `remplissageLisible` (`lib/themes.ts`) pour tenir 3,0 sur la
+   piste de chaque mode ; cette règle retient l'une ou l'autre. Une couleur
+   posée directement en `background-color` inline aurait battu toute feuille. */
+.remplissage-teinte { background-color: var(--teinte-claire); }
+html.dark .remplissage-teinte { background-color: var(--teinte-sombre); }
 html.dark .bg-white { background-color: var(--surface) !important; }
 html.dark .bg-gray-50 { background-color: #0f172a !important; }
 html.dark .bg-gray-100 { background-color: var(--surface) !important; }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, type CSSProperties } from "react";
 import {
   Trophy, Flame, BookOpen, Target, BarChart3, Star, Award,
   ScrollText, BookMarked, Sparkles, Gem, Layers,
@@ -19,6 +19,7 @@ import {
 import { useI18n, useBookName, useContextName } from "@/contexts/I18nContext";
 import { formatPart } from "@/lib/progression/rapport";
 import { compterChapitres } from "@/lib/progression/chapitres";
+import { remplissageLisible } from "@/lib/themes";
 import { localeInfo } from "@/lib/i18n/locales";
 import type { Dictionary } from "@/lib/i18n/ui/fr";
 import {
@@ -72,6 +73,22 @@ function getLevel(totalChapters: number): { level: number; next: number } {
   if (totalChapters < 500) return { level: 5, next: 500 };
   if (totalChapters < 1000) return { level: 6, next: 1000 };
   return { level: 7, next: -1 };
+}
+
+/**
+ * Le remplissage d'une barre dont la couleur n'a été choisie pour aucun mode.
+ *
+ * La couleur d'un contexte est celle de l'utilisateur ; celle d'une catégorie,
+ * une constante. Ni l'une ni l'autre ne se voit à coup sûr sur la piste —
+ * mesuré le 16 septembre 2026 : Bible rendait 1,36 en sombre, Méditation 1,91
+ * en clair. `remplissageLisible` pousse chacune du minimum nécessaire, dans
+ * chaque mode ; ce composant pose les deux teintes, et c'est `globals.css` qui
+ * retient l'une ou l'autre selon `html.dark` — le style en ligne ne décide de
+ * rien, il n'est qu'un porteur de variables.
+ */
+function teintesDe(couleur: string): CSSProperties {
+  const r = remplissageLisible(couleur) ?? { claire: couleur, sombre: couleur };
+  return { "--teinte-claire": r.claire, "--teinte-sombre": r.sombre } as CSSProperties;
 }
 
 export default function ProgressPage() {
@@ -521,8 +538,8 @@ export default function ProgressPage() {
                   </span>
                 </div>
                 <div className="h-3 bg-[--piste] rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-[width] duration-500"
-                    style={{ width: `${c.share}%`, backgroundColor: c.color }} />
+                  <div className="h-full rounded-full transition-[width] duration-500 remplissage-teinte"
+                    style={{ width: `${c.share}%`, ...teintesDe(c.color) }} />
                 </div>
               </div>
             ))}
@@ -544,9 +561,9 @@ export default function ProgressPage() {
                 <span className="text-gray-500">{rapport(cat.readChapters, cat.totalChapters)}</span>
               </div>
               <div className="h-3 bg-[--piste] rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-[width] duration-500" style={{
+                <div className="h-full rounded-full transition-[width] duration-500 remplissage-teinte" style={{
                   width: `${cat.totalChapters > 0 ? (cat.readChapters / cat.totalChapters) * 100 : 0}%`,
-                  backgroundColor: cat.readChapters >= cat.totalChapters ? "#16a34a" : "#4a90d9",
+                  ...teintesDe(cat.readChapters >= cat.totalChapters ? "#16a34a" : "#4a90d9"),
                 }} />
               </div>
             </div>
