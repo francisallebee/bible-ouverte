@@ -3805,7 +3805,53 @@ serveur relancé, session intacte. La lecture des hachages locaux reste une
 piste pour sonder un chunk de route — dans un clone séparé, ou le serveur
 arrêté.
 
+### « Genèse 17-20 » : une règle d'écriture, une réparation, et un piège trouvé en chemin
+
+« Écris Genèse 17-20 pour les chapitres entiers. » La règle, dans
+`ecrireReference` : du premier verset au dernier du chapitre de fin **ou
+au-delà** — les anciens replis à 200, « Psaumes 65:1-20 » pour 13 versets,
+sont des chapitres entiers, pas des intervalles. « Tite 3 », « Tite 1-3 » ;
+« Psaumes 40:1-12 » reste en versets, à raison. La versification est celle de
+Louis Segond, repli assumé : une version qui compte moins verra sa lecture
+entière écrite en versets, défaut d'écriture et non de comptage.
+`describeRange` reçoit le code du livre, `tsc` a nommé les onze appels.
+
+**La règle ne suffisait pas**, et c'est la base qui l'a dit : « Genèse
+17:1-20:1 » n'est pas une écriture, c'est `verseEnd = 1` — le remplissage des
+plans datés d'avant le 9 septembre. Mesuré sur les 745 lectures : **111**
+portent `1:1`, dont **108** reconnaissables sans doute par le contexte « Plan
+de lecture » **et** la note « Plan : … » — 7 comptes, 33 livres, jusqu'à des
+dates d'octobre. La migration `20260916120000_plan_readings_last_verse`,
+première migration de **données** du dépôt, leur donne le dernier verset réel
+par la table que `bornesReelles` emploie pour les lignes neuves. Compte à
+blanc de la clause `where` avant, trois témoins relevés, puis appliquée sur
+accord : 108 modifiées, témoins justes (Genèse 8 → 22, 12 → 20, 16 → 16),
+43 lignes `1:1` restantes toutes hors critère, journal à 29. Effet double :
+l'écriture, et la progression, qui tenait ces derniers chapitres pour
+entamés.
+
+**Les trois lignes hors critère ont appris quelque chose.** `877`
+« Colossiens 3:1-4:1 » et `884` « Osée 14:1 », créées les **14 et 15
+septembre** par un lecteur, séance « Plan Roberts », à la main — donc après
+le correctif du 9. Le sélecteur posait `1:1` dès qu'on touchait un chapitre,
+et valider sans toucher aux versets enregistrait le premier verset seul. Les
+**39** lectures `1:1` hors plan — « Marc 16:1 » ×4, « Ésaïe 53:1 » — ont
+probablement la même origine, et ne se distinguent pas d'un vrai verset 1 :
+non touchées. Un « 1:1 » a trois sens, et un seul laisse une trace en base.
+
+Le correctif, `chapitreEntier` dans `features/bible/versets.ts` : un chapitre
+touché est posé **en entier**, par le cache ou par la table, l'intervalle qui
+se ferme va au bout de son dernier chapitre, un effet suit le cache quand il
+répond après coup, et les quatre écrans qui remettaient `1:1` au choix du
+livre partent du chapitre 1 entier. Vu sur Nouvelle lecture, le geste exact du
+14 septembre — Colossiens, 3, 4, valider : « Colossiens 3-4 », premier verset
+1 et dernier verset 18 déjà posés, l'aperçu titré de même. Rien enregistré :
+745 lectures avant, 745 après.
+
 ### Ce qui n'a pas été vu
 
-La production à l'écran, dans une session, après les deux déploiements —
-seules la feuille et le `buildId` l'ont été. Rien en arabe.
+La production à l'écran, dans une session, après les déploiements — seules la
+feuille et le `buildId` l'ont été. Rien en arabe. Et la progression des sept
+comptes réparés n'a pas été relue après la migration : elle compte désormais
+« lu en entier » là où elle comptait « entamé », ce que le code promet et que
+personne n'a regardé.
