@@ -4039,4 +4039,17 @@ sonde de déploiement verra disparaître, présente à 1 dans la feuille
 `1c846d3a…` d'aujourd'hui — ; `text-\[\#7b68ee\]` reste à 1, la page de
 présentation l'emploie deux fois, et ne dira donc rien.
 
+`26556a6` poussé à 19:21:39 UTC avec `0aae7c6`, un seul déploiement. Le
+premier relevé de départ a rendu **0** pour `text-\[\#4a90d9\]` sur la
+feuille `1c846d3a…` où `grep` l'avait trouvé à 1 dix minutes plus tôt :
+l'instrument, pas la feuille — un `sed` sur un `heredoc` avait doublé les
+barres obliques de la clé. Redressé et recontrôlé **avant** d'attendre :
+19:22:04, `buildId` `BHohzycx…`, la clé à 1, `text-\[\#7b68ee\]` à 1. À
+**19:23:04** : `buildId` `qhyuLBvB…`, feuille `3f8289be…`,
+`text-\[\#4a90d9\]` à **0**, `text-\[\#7b68ee\]` resté à **1**, les cinq
+autres contrôles à 1. Une clé disparue, une voisine restée : la sonde a
+discriminé dans les deux sens. Une mesure qui dit « absent » sur une clé
+connue présente est fausse avant d'être inquiétante — et le relevé de
+départ est là pour la prendre en défaut avant qu'elle ne fasse attendre.
+
 Non vu : la production dans une session, en arabe, et les autres comptes.
