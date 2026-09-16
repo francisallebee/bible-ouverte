@@ -4053,3 +4053,33 @@ connue présente est fausse avant d'être inquiétante — et le relevé de
 départ est là pour la prendre en défaut avant qu'elle ne fasse attendre.
 
 Non vu : la production dans une session, en arabe, et les autres comptes.
+
+## La séance du 17 septembre 2026 : l'import de lectures, premier étage
+
+La fonction avancée demandée la veille — `spec/IMPORT-IA.md` porte la
+demande, les sept décisions du propriétaire et les deux tensions ouvertes.
+Commencé par ce qui ne dépend d'aucun arbitrage : l'analyseur déterministe
+de références, puis l'écran de validation avec le presse-papier pour première
+entrée. Le détail est dans `IMPORT-IA.md`, section « Ce qui est construit ».
+
+Trois choses à retenir ici.
+
+**Deux règles posées plutôt que devinées** : un livre à tomes sans ordinal est
+rejeté ; un verset hors du chapitre est rejeté, non rogné. Les deux se lisent
+dans les rejets de l'écran, avec leur raison.
+
+**`BY_LOCALE` de `i18n/books.ts` est un `Partial` à deux langues** : l'espagnol,
+l'italien et l'arabe lisent les livres en français. Connu d'`AGENTS.md`
+(« fr et en »), mais c'est le piège 9 — et l'import, qui promet « plusieurs
+langues », bute dessus le premier. Non touché ce jour.
+
+**L'aller-retour d'essai a un chemin propre** : une lecture créée se retire
+par l'écran Détail de la lecture, qui efface aussi le cache IndexedDB ; un
+`delete` SQL laisserait la ligne locale jusqu'à la prochaine synchronisation.
+Le `confirm()` du navigateur a été intercepté depuis le panneau pour répondre
+oui — la boîte de dialogue native n'est pas cliquable par l'outil.
+
+Le serveur de développement avait été arrêté par l'application pendant la
+pause ; relancé, il a repris le 3000, l'autre conversation l'ayant libéré.
+
+Non vu : les quatre autres langues à l'écran, la production, l'arabe.

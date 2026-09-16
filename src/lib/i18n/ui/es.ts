@@ -867,6 +867,32 @@ export const es: Dictionary = {
     emptyHint:
       'Esta sección acoge las funciones en prueba, antes de ofrecerse a todos. '
       + 'Solo tu cuenta puede verla.',
+    import: {
+      title: 'Importar lecturas',
+      hint:
+        'Pega un texto — notas del culto, un plan, un mensaje — y las referencias '
+        + 'bíblicas que contiene se convierten en lecturas, tras revisarlas.',
+      textLabel: 'Texto a analizar',
+      textPlaceholder: 'Por ejemplo: Culto de la mañana, Romanos 8:28-30, Sal 23, 1 Juan 4:8',
+      analyse: 'Analizar',
+      found: (n: number) => `${n} referencia${n !== 1 ? 's' : ''} encontrada${n !== 1 ? 's' : ''}`,
+      none: 'Ninguna referencia reconocida.',
+      rejected: 'No reconocido',
+      reasons: {
+        'ordinal-manquant': '¿qué libro? (1, 2 o 3)',
+        'tome-inexistant': 'ese libro no existe',
+        'chapitre-inexistant': 'capítulo inexistente',
+        'verset-inexistant': 'versículo inexistente',
+      },
+      date: 'Fecha de lectura',
+      version: 'Versión',
+      context: 'Contexto',
+      session: 'Nombre de la sesión',
+      sessionDefault: (date: string) => `Importación del portapapeles · ${date}`,
+      save: (n: number) => `Guardar ${n} lectura${n !== 1 ? 's' : ''}`,
+      saving: 'Guardando…',
+      saved: (n: number) => `${n} lectura${n !== 1 ? 's' : ''} guardada${n !== 1 ? 's' : ''}.`,
+    },
   },
   admin: {
     tabOverview: 'Resumen',

@@ -42,6 +42,10 @@ const lectures = (n: number) => pluriel(n, {
   zero: 'قراءة', un: 'قراءة واحدة', deux: 'قراءتان',
   peu: 'قراءات', beaucoup: 'قراءة', autre: 'قراءة',
 })
+const maraji = (n: number) => pluriel(n, {
+  zero: 'مرجع', un: 'مرجع واحد', deux: 'مرجعان',
+  peu: 'مراجع', beaucoup: 'مرجعًا', autre: 'مرجع',
+})
 
 const isahat = (n: number) => pluriel(n, {
   zero: 'إصحاح', un: 'إصحاح واحد', deux: 'إصحاحان',
@@ -939,6 +943,32 @@ export const ar: Dictionary = {
     emptyHint:
       'يستضيف هذا القسم الوظائف قيد التجربة، قبل أن تُتاح للجميع. حسابك وحده '
       + 'يستطيع رؤيته.',
+    import: {
+      title: 'استيراد القراءات',
+      hint:
+        'الصق نصًا — ملاحظات العبادة، خطة، رسالة — فتتحول المراجع الكتابية '
+        + 'التي يحويها إلى قراءات، بعد المراجعة.',
+      textLabel: 'النص المراد تحليله',
+      textPlaceholder: 'مثلًا: عبادة الصباح، رومية 8:28-30، مز 23، 1 يوحنا 4:8',
+      analyse: 'تحليل',
+      found: (n: number) => `${n} ${maraji(n)}`,
+      none: 'لم يُعرف أي مرجع.',
+      rejected: 'غير معروف',
+      reasons: {
+        'ordinal-manquant': 'أي سفر؟ (1 أو 2 أو 3)',
+        'tome-inexistant': 'هذا السفر غير موجود',
+        'chapitre-inexistant': 'فصل غير موجود',
+        'verset-inexistant': 'آية غير موجودة',
+      },
+      date: 'تاريخ القراءة',
+      version: 'الترجمة',
+      context: 'السياق',
+      session: 'اسم الجلسة',
+      sessionDefault: (date: string) => `استيراد من الحافظة · ${date}`,
+      save: (n: number) => `حفظ ${n} ${lectures(n)}`,
+      saving: 'جارٍ الحفظ…',
+      saved: (n: number) => `تم حفظ ${n} ${lectures(n)}.`,
+    },
   },
   admin: {
     tabOverview: 'نظرة عامة',

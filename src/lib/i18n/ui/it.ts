@@ -867,6 +867,32 @@ export const it: Dictionary = {
     emptyHint:
       'Questa sezione ospita le funzioni in prova, prima che siano proposte a '
       + 'tutti. Solo il tuo account può vederla.',
+    import: {
+      title: 'Importa letture',
+      hint:
+        'Incolla un testo — appunti del culto, un piano, un messaggio — e i '
+        + 'riferimenti biblici che contiene diventano letture, dopo verifica.',
+      textLabel: 'Testo da analizzare',
+      textPlaceholder: 'Per esempio: Culto del mattino, Romani 8:28-30, Sal 23, 1 Giovanni 4:8',
+      analyse: 'Analizza',
+      found: (n: number) => `${n} ${n === 1 ? 'riferimento trovato' : 'riferimenti trovati'}`,
+      none: 'Nessun riferimento riconosciuto.',
+      rejected: 'Non riconosciuto',
+      reasons: {
+        'ordinal-manquant': 'quale libro? (1, 2 o 3)',
+        'tome-inexistant': 'questo libro non esiste',
+        'chapitre-inexistant': 'capitolo inesistente',
+        'verset-inexistant': 'versetto inesistente',
+      },
+      date: 'Data di lettura',
+      version: 'Versione',
+      context: 'Contesto',
+      session: 'Nome della sessione',
+      sessionDefault: (date: string) => `Importazione dagli appunti · ${date}`,
+      save: (n: number) => `Salva ${n} ${n === 1 ? 'lettura' : 'letture'}`,
+      saving: 'Salvataggio…',
+      saved: (n: number) => `${n} ${n === 1 ? 'lettura salvata' : 'letture salvate'}.`,
+    },
   },
   admin: {
     tabOverview: 'Panoramica',

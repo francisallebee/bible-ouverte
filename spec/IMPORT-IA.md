@@ -117,6 +117,54 @@ commencer par ce qui n'en dépend pas : l'OCR sur l'appareil, l'extraction
 des fichiers dans le navigateur, le presse-papier, l'analyseur déterministe
 de références, et l'écran de validation.
 
+## Ce qui est construit, et comment
+
+### L'analyseur, `lib/import/references.ts`
+
+Déterministe, sans dépendance. Il lit les noms de `i18n/books.ts` dans les
+langues qui en portent — **fr et en**, `BY_LOCALE` étant un `Partial` où
+l'espagnol, l'italien et l'arabe retombent sur le français, un reste du piège 9
+que l'import rend visible — plus une table d'abréviations usuelles mêlant les
+deux langues. Ordinaux sous toutes leurs formes (« 1 », « 1re », « 1ère »,
+« I », « 1st »), séparateurs `:` `.` et virgule collée, mots « verset » et
+« verse », listes, intervalles à cheval sur deux chapitres, points-virgules,
+livres à un chapitre (« Jude 3 » est un verset, « Philémon 1 » seul est le
+livre). Un chapitre sans versets est un chapitre entier par `dernierVerset`.
+
+Il rend **deux listes** : les références, et les rejets avec leur raison —
+`ordinal-manquant` (« Samuel 3 »), `tome-inexistant` (« 3 Samuel »),
+`chapitre-inexistant`, `verset-inexistant`. Rien ne disparaît en silence ;
+rien n'est rogné : « Jean 3:40 » est refusé, pas ramené à 36.
+
+La normalisation garde la **longueur** du texte — un caractère pour un — afin
+que chaque référence porte le fragment exact d'où elle vient, tel qu'écrit.
+C'est ce fragment que l'écran montre sous la référence lue : c'est là qu'une
+erreur d'OCR se verra.
+
+### L'écran, `components/import/ImportLectures.tsx` dans `/avance`
+
+Un champ de texte, « Analyser », les propositions cochées avec leur fragment,
+les rejets sur fond ambre, puis date, version, contexte (`ContextPicker`, le
+même que partout), nom de séance — par défaut « Import presse-papier · date »,
+la trace décidée le 17 — et « Enregistrer n lectures ». Chaque lecture passe
+par `addReading`, `passageText` pris dans le cache par `getPassagesForRange`,
+comme les six autres voies.
+
+Éprouvé par un aller-retour réel, session du propriétaire, serveur de
+développement : un texte de culte avec six références dont deux fausses →
+4 propositions, 2 rejets nommés ; trois décochées ; Psaumes 23 enregistré —
+ligne **897**, `PSA 23:1-6`, 626 caractères de Louis Segond, contexte
+`bible`, séance « Import presse-papier · 17/09/2026 » ; vu dans l'historique
+sous ce titre ; effacé par l'écran Détail de la lecture, qui vide aussi le
+cache local ; base revenue à **745**, ligne 897 absente.
+
+### Ce qui suit, dans l'ordre
+
+1. Les fichiers : txt et csv sans dépendance, Word et Excel par extraction
+   dans le navigateur (deux dépendances), PDF sous 4,5 Mo.
+2. L'OCR sur l'appareil (`tesseract.js`), galerie puis appareil.
+3. Les deux arbitrages ouverts : l'audio, le modèle.
+
 ## Ce qui n'est pas demandé, et qu'il faudra dire
 
 - La confidentialité : une photo de notes personnelles part chez un tiers pour
@@ -133,3 +181,4 @@ de références, et l'écran de validation.
 |---|---|
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
+| 17 sept. 2026 | **Premier étage livré** : `lib/import/references.ts`, l'analyseur déterministe (53 tests), et `components/import/ImportLectures.tsx` dans `/avance` — le presse-papier, l'écran de validation, la septième voie de création. Vu et éprouvé par un aller-retour réel : Psaumes 23 enregistré (ligne 897, texte du cache, séance « Import presse-papier · 17/09/2026 »), vu dans l'historique, effacé par l'écran, base revenue à 745. |

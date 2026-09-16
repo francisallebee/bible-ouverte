@@ -3,14 +3,16 @@
 import { FlaskConical, ShieldOff } from 'lucide-react'
 import { useI18n } from '@/contexts/I18nContext'
 import { useAuth } from '@/contexts/AuthContext'
+import ImportLectures from '@/components/import/ImportLectures'
 
 /**
  * Le banc d'essai des fonctions avancées.
  *
  * Une section réservée à l'administrateur, où les fonctions se montrent avant
- * d'être proposées à tout le monde. Elle est volontairement **vide** à sa
- * naissance : c'est un cadre, pas une fonctionnalité, et le remplir d'avance
- * de choses non demandées irait contre sa raison d'être.
+ * d'être proposées à tout le monde. Née **vide** le 1er septembre 2026 — un
+ * cadre, pas une fonctionnalité —, elle accueille depuis le 17 septembre son
+ * premier essai : l'import de lectures (`spec/IMPORT-IA.md`), par le
+ * presse-papier d'abord.
  *
  * **Le garde-fou est celui d'`/admin`, et il a la même portée.** `isAdmin`
  * vient d'`AuthContext`, donc du navigateur : il décide de ce qui s'affiche,
@@ -47,17 +49,7 @@ export default function AvancePage() {
         </p>
       </div>
 
-      {/*
-        L'emplacement des essais. Il dit ce qu'il attend plutôt que de rester
-        blanc : un cadre vide sans explication se lit comme un écran cassé.
-      */}
-      <div className="bg-[--surface] rounded-xl border border-dashed border-[--border] p-10 text-center">
-        <FlaskConical className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-        <p className="font-medium text-[--text]">{t.avance.empty}</p>
-        <p className="text-sm text-[--text-secondary] mt-1.5 max-w-md mx-auto">
-          {t.avance.emptyHint}
-        </p>
-      </div>
+      <ImportLectures />
     </div>
   )
 }

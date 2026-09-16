@@ -841,6 +841,32 @@ export const en: Dictionary = {
     emptyHint:
       'This section hosts features under trial, before they are offered to '
       + 'everyone. Only your account can see it.',
+    import: {
+      title: 'Import readings',
+      hint:
+        'Paste some text — sermon notes, a plan, a message — and the Bible '
+        + 'references it contains become readings, once you have checked them.',
+      textLabel: 'Text to analyse',
+      textPlaceholder: 'For example: Morning service, Romans 8:28-30, Ps 23, 1 John 4:8',
+      analyse: 'Analyse',
+      found: (n: number) => `${n} reference${n !== 1 ? 's' : ''} found`,
+      none: 'No reference recognised.',
+      rejected: 'Not recognised',
+      reasons: {
+        'ordinal-manquant': 'which book? (1, 2 or 3)',
+        'tome-inexistant': 'that book does not exist',
+        'chapitre-inexistant': 'no such chapter',
+        'verset-inexistant': 'no such verse',
+      },
+      date: 'Reading date',
+      version: 'Version',
+      context: 'Context',
+      session: 'Session name',
+      sessionDefault: (date: string) => `Clipboard import · ${date}`,
+      save: (n: number) => `Save ${n} reading${n !== 1 ? 's' : ''}`,
+      saving: 'Saving…',
+      saved: (n: number) => `${n} reading${n !== 1 ? 's' : ''} saved.`,
+    },
   },
   admin: {
     tabOverview: 'Overview',

@@ -884,6 +884,32 @@ export const fr = {
     emptyHint:
       'Cette section accueille les fonctions en cours d’essai, avant qu’elles '
       + 'soient proposées à tout le monde. Elle n’est visible que de ton compte.',
+    import: {
+      title: 'Import de lectures',
+      hint:
+        'Colle un texte — notes de culte, plan, message — et les références '
+        + 'bibliques qu’il contient deviennent des lectures, après relecture.',
+      textLabel: 'Texte à analyser',
+      textPlaceholder: 'Par exemple : Culte du matin, Romains 8:28-30, Ps 23, 1 Jean 4:8',
+      analyse: 'Analyser',
+      found: (n: number) => `${n} référence${n > 1 ? 's' : ''} trouvée${n > 1 ? 's' : ''}`,
+      none: 'Aucune référence reconnue.',
+      rejected: 'Non reconnu',
+      reasons: {
+        'ordinal-manquant': 'quel tome ? (1, 2 ou 3)',
+        'tome-inexistant': 'ce tome n’existe pas',
+        'chapitre-inexistant': 'chapitre inexistant',
+        'verset-inexistant': 'verset inexistant',
+      },
+      date: 'Date de lecture',
+      version: 'Version',
+      context: 'Contexte',
+      session: 'Nom de la séance',
+      sessionDefault: (date: string) => `Import presse-papier · ${date}`,
+      save: (n: number) => `Enregistrer ${n} lecture${n > 1 ? 's' : ''}`,
+      saving: 'Enregistrement…',
+      saved: (n: number) => `${n} lecture${n > 1 ? 's' : ''} enregistrée${n > 1 ? 's' : ''}.`,
+    },
   },
   admin: {
     tabOverview: 'Aperçu',
