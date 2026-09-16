@@ -3864,7 +3864,52 @@ matin.
 ### Ce qui n'a pas été vu
 
 La production à l'écran, dans une session, après les déploiements — seules la
-feuille et le `buildId` l'ont été. Rien en arabe. Et la progression des sept
-comptes réparés n'a pas été relue après la migration : elle compte désormais
-« lu en entier » là où elle comptait « entamé », ce que le code promet et que
-personne n'a regardé.
+feuille et le `buildId` l'ont été. Rien en arabe. La progression des sept
+comptes réparés, elle, a été relue le soir même — voir ci-dessous.
+
+## Le 16 septembre, au soir : la progression après la réparation
+
+La séance du 16 laissait une chose non regardée : l'effet de la migration
+`plan_readings_last_verse` sur l'écran Progression, que le code promettait
+— cinq chapitres passant d'« entamé » à « lu en entier » — et que personne
+n'avait vu. Relu sur le compte du propriétaire, le seul des sept dont la
+session était ouverte.
+
+**La prédiction d'abord, par le module de l'écran lui-même.** Les 294
+lectures du compte, lues en base, passées à `compterChapitres` de
+`lib/progression/chapitres.ts` — le fichier copié tel quel, une ligne
+changée pour l'alias `@/`, exécuté par Node 22 qui dépouille les types.
+Deux fois : sur la base d'aujourd'hui, et en remettant `verseEnd = 1` sur
+les cinq lignes « Plan : 2026 ».
+
+| | Entamés | Lus en entier |
+|---|---|---|
+| Avant la migration | 184 | 42 |
+| Après | **184** | **47** |
+
+**Puis l'écran**, serveur de développement, session du propriétaire,
+`visibilityState` relevé à `visible` : « 184 / 1189 », « Lus en entier :
+47 », Genèse « 20 / 50 », niveau 4 « Dévoué » à 184 / 250. Capture prise.
+
+Deux choses que la relecture établit au-delà du chiffre :
+
+- **Le gain est de +5 exactement**, un par ligne réparée : les chapitres 4,
+  8, 12, 16 et 20 de Genèse n'étaient couverts par aucune autre lecture
+  allant jusqu'au bout. Un compte où une lecture couvrait déjà l'un de ces
+  chapitres gagnerait moins que ses lignes réparées — c'est la fusion des
+  intervalles, pas un défaut.
+- **Le niveau et les badges n'ont bougé pour aucun des sept**, et cela se
+  démontre sans les relire : `couvertureDe` indexe par `livre:chapitre`, et
+  `verseEnd` n'entre jamais dans cette clé. Une migration qui ne touche que
+  `verseEnd` ne peut changer qu'`entiers`. Les six autres comptes (56, 16,
+  15, 13, 2 et 1 lignes réparées) n'ont pas été vus à l'écran ; leur
+  `entames` est intact par construction, leur `entiers` a grandi d'au plus
+  autant.
+
+Le port 3000 était tenu par une autre conversation : `autoPort` posé dans
+`.claude/launch.json` — ignoré par git —, le serveur a pris le 58465. Rien
+dans le dépôt n'exige le 3000 : la connexion se fait par mot de passe, sans
+redirection vers `localhost`.
+
+Sur qui l'a vu : l'agent, sur le serveur de développement. La production
+après les trois déploiements du 16 reste non vue dans une session.
