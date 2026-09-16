@@ -40,6 +40,7 @@ aucune donnée.
 | `20260831120000_reading_session_title.sql` | `readings.sessionTitle` : le nom d'une séance d'enregistrement, répété sur ses lectures — **aucun `grant`**, `readings` ayant l'`update` au niveau table, contrairement à `profiles` |
 | `20260901120000_messages_archive_delete.sql` | `archived_at` et `deleted_at` sur `messages` : archiver, et retirer de sa boîte sans effacer la ligne — **avec le `grant update` colonne**, `messages` étant dans le cas de `profiles` |
 | `20260915120000_memorised_verse_ranges.sql` | `chapterEnd` et `verseEnd` sur `memorised_verses` : un groupe de versets est **un seul texte appris, donc une seule ligne** ; l'unicité passe du verset de départ à l'intervalle entier — aucun `grant`, la table ayant l'`update` au niveau table comme `readings` |
+| `20260916120000_plan_readings_last_verse.sql` | **Réparation de données** : les 108 lectures de plan daté d'avant le 9 septembre 2026 portaient `1:1` pour bornes ; elles reçoivent le dernier verset réel de leur chapitre de fin, par la versification de Louis Segond — reconnues par le contexte « Plan de lecture » **et** la note « Plan : … », jamais par l'un seul |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -84,7 +85,16 @@ d'affichage, et ne touche pas au schéma.
 
 **Relevé du 15 septembre 2026**, après application de `memorised_verse_ranges`
 par l'outil MCP : **30 fichiers, 28 enregistrées**, la dernière sous
-`20260915123038`. L'écart de deux reste celui des migrations du 9 août. Les
+`20260915123038`.
+
+**Relevé du 16 septembre 2026**, après application de
+`plan_readings_last_verse` par l'outil MCP, sur accord du propriétaire :
+**31 fichiers, 29 enregistrées**, la dernière sous `20260916180229`. C'est
+la première migration de **données** du dépôt, et non de schéma : 108 lignes
+de `readings` modifiées, ni plus ni moins que le compte à blanc de sa clause
+`where` ; trois témoins relus (Genèse 8 → 22, 12 → 20, 16 → 16) ; 43 lignes
+`1:1` restantes, toutes hors critère — trois du même contexte sans la note,
+saisies à la main, et 39 hors plan qu'un vrai verset 1 ne se distingue pas. L'écart de deux reste celui des migrations du 9 août. Les
 7 lignes de `memorised_verses` ont toutes reçu leur propre verset pour fin
 d'intervalle, et l'ancienne contrainte d'unicité a bien disparu — son nom
 portait la majuscule de `versionId`, et le `drop` a dû le citer entre
