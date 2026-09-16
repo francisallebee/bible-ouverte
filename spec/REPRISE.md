@@ -3614,7 +3614,8 @@ Une clé de dictionnaire vit dans un chunk **partagé**, que `/auth/login` —
 page traduite et publique — charge sans session : c'est de là qu'on la sonde.
 Une classe de composant, non : elle vit dans le chunk de route. Et le App
 Router n'écrit pas de `buildId` dans le HTML ; le manifeste de build n'est
-pas atteignable par ce chemin.
+pas atteignable par ce chemin. **Faux, corrigé le 16 septembre** : il y est,
+dans le flux RSC de `/` — voir la séance du 16.
 
 Pour y arriver, quatre instruments se sont succédé, et trois ont cédé :
 **zsh** ne découpe pas `$var` sur les sauts de ligne et s'étrangle sur du
@@ -3778,6 +3779,33 @@ Les deux formatteurs restants n'écrivent que des chapitres, à raison : la
 liste des dernières lectures d'une fiche d'administration et les plans datés
 (« Genèse 1-3 »).
 
+### Deux déploiements, et l'instrument qui a menti le 15
+
+Le premier push (`c11a90d`) s'est sondé comme d'habitude, sur les deux
+feuilles de `/` : les trois arrêts du rang 700 et `.remplissage-teinte`
+présents, les cinq classes retirées à **0**, `--piste` (4) et `bg-black\/15`
+(1) en contrôle. Le second (`c5b3113`) ne change que du JavaScript, dans
+des chunks de route qu'aucune page publique ne charge, et le MCP Vercel
+répond **403** sur cette équipe.
+
+**Le `buildId` est dans le HTML de `/`** — `buildId\":\"h9NqeKTKtAtc…` dans
+le flux RSC —, ce que la note du 15 septembre niait : elle l'avait cherché
+ailleurs. Il ne dit pas *quel* commit est servi, mais il change à chaque
+déploiement : `h9NqeK…` à 17:28 UTC, quand la feuille était déjà celle du
+premier push, puis `ervnNE6…` à 17:39. Deux pushes, deux identifiants,
+dans l'ordre — le second est `c5b3113`. C'est une preuve par élimination,
+et elle vaut ce que vaut son inventaire : elle tiendrait moins avec un
+troisième push entre les deux relevés.
+
+**Ne pas lancer `npm run build` à côté du serveur de développement.** Les
+deux écrivent dans le même `.next` ; la compilation lancée pour lire le
+nom haché des chunks de route s'est figée après une minute, et le serveur
+de développement répondait 500 derrière elle. Arrêtée, `.next` retiré,
+serveur relancé, session intacte. La lecture des hachages locaux reste une
+piste pour sonder un chunk de route — dans un clone séparé, ou le serveur
+arrêté.
+
 ### Ce qui n'a pas été vu
 
-La production, au-delà de la sonde. Rien en arabe.
+La production à l'écran, dans une session, après les deux déploiements —
+seules la feuille et le `buildId` l'ont été. Rien en arabe.
