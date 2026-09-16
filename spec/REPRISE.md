@@ -3913,3 +3913,71 @@ redirection vers `localhost`.
 
 Sur qui l'a vu : l'agent, sur le serveur de développement. La production
 après les trois déploiements du 16 reste non vue dans une session.
+
+## Le 16 septembre, au soir : les couleurs de contexte hors Progression
+
+Le point 5 de la liste parlait de « pastilles, points dans l'historique et
+la barre latérale ». **L'inventaire les a démentis** : l'historique montre un
+contexte par son emoji et son nom, la barre latérale n'en porte aucune
+couleur, `ContextPicker` ne fait que poser `#6366f1` à la création. Une
+couleur de contexte n'est rendue inline qu'en deux endroits — les barres de
+Progression, corrigées la veille, et le graphique « Répartition par
+contexte » de Statistiques, un `<Cell fill={ctx.color}>` Recharts. Chercher
+la propriété (`.color`, `backgroundColor`, `style={{`) plutôt que les mots
+de la liste : le `grep` a trouvé ce que la liste n'avait pas vu, et n'a pas
+trouvé ce qu'elle annonçait.
+
+### La mesure, contre la carte et non contre une piste
+
+Les barres de Statistiques n'ont pas de piste : elles sont posées à même la
+carte, blanc en clair, `--surface` en sombre — un seuil *moins* sévère que
+celui du 16 au matin. Sonde contrôlée à 17,74 sur `gray-900`/blanc.
+
+| | Échecs sous 3,0 |
+|---|---|
+| Treize contextes du propriétaire, clair | **4** — Autre 2,56, Livre 2,85, Méditation 2,10, Radio 2,19 |
+| Idem, sombre | **2** — Bible 1,92, Podcast 2,69 |
+| Palette fixe des autres graphiques (7), clair | **3** — `#2ecc71` 2,10, `#f39c12` 2,19, `#95a5a6` 2,56 |
+| Idem, sombre | **1** — `#1e3a5f`, le bleu nuit de la charte par défaut, **1,27** |
+
+### Le même mécanisme, porté au SVG
+
+`Cell` transmet `className`, `style` et `fill` jusqu'au `<path>` (vérifié
+dans `filterProps` de Recharts 2.15.4). `.remplissage-teinte` pose donc
+aussi `fill`, dans les deux modes : la propriété CSS bat l'attribut `fill`
+de présentation, qui reste en repli si la feuille manquait. `teintesDe` est
+**sortie** de `progress/page.tsx` vers `lib/themes.ts` — la définition
+locale retirée, non doublée (piège 5) —, et les quatre graphiques passent
+par elle, la palette fixe comprise : la règle « respectée où elle se voit,
+poussée du minimum là où elle ne se voit pas » vaut pour une constante comme
+pour un choix. La palette a déménagé dans `lib/statistiques/palette.ts`,
+parce qu'un fichier de page ne peut rien exporter d'autre que sa page, et
+que le test la lit plutôt que de la recopier.
+
+Vu, serveur de développement, session du propriétaire, classe `dark` posée
+à la main, `visibilityState` à `visible` : **51 barres sur quatre
+graphiques, ≥ 3,34 en clair, ≥ 4,31 en sombre**, sonde `h1` 16,30 en
+sombre. Le `#1e3a5f` de « Répartition par version » rend 4,66. Captures
+des deux modes prises. Progression relue après le déplacement : 22 barres,
+3,04 / 3,05 — les valeurs de la veille au centième.
+
+**Un chiffre à comprendre** : en sombre, 9 contextes sur 12 changent de
+teinte quand 2 seulement échouaient contre la carte. `remplissageLisible`
+mesure contre la piste, plus sévère que `--surface` — et c'est ce qui donne
+à un contexte **la même teinte sur Progression et sur Statistiques**. Une
+couleur par contexte et par mode, quel que soit l'écran ; le surcroît est
+le prix de cette cohérence.
+
+811 tests : les sept couleurs de la palette rejoignent les douze contextes,
+les deux catégories et les trois extrêmes dans `themes-sombre.test.ts` ;
+deux tests pour `teintesDe`.
+
+### Relevé en chemin, laissé en l'état
+
+Les libellés d'axe Recharts — `#666`, 11 px, la valeur par défaut de la
+bibliothèque — tiennent 5,74 en clair et **2,55 en sombre** sur la carte :
+du texte sous 4,5, antérieur à tout, hors du point 5. Le correctif serait
+un `fill` sur `tick={{ }}` lisible dans les deux modes, à mesurer d'abord ;
+non fait, non demandé.
+
+Non vu : la production, en arabe, et les autres comptes.

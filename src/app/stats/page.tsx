@@ -10,8 +10,9 @@ import type { ReadingEntry, BibleVersion, ReadingContext } from "@/lib/storage";
 import { useI18n, useBookName, useContextName } from "@/contexts/I18nContext";
 import { formatDate } from "@/lib/i18n/format";
 import { localeInfo, type Locale } from "@/lib/i18n/locales";
+import { teintesDe } from "@/lib/themes";
+import { PALETTE as COLORS } from "@/lib/statistiques/palette";
 
-const COLORS = ["#1e3a5f", "#4a90d9", "#7b68ee", "#2ecc71", "#e74c3c", "#f39c12", "#95a5a6"];
 
 function getWeekRange() {
   const now = new Date();
@@ -225,7 +226,7 @@ export default function StatsPage() {
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="count" fill="#4a90d9" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="#4a90d9" className="remplissage-teinte" style={teintesDe("#4a90d9")} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -239,7 +240,7 @@ export default function StatsPage() {
               <Tooltip />
               <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                 {topBooks.map((entry, i) => (
-                  <Cell key={i} fill={entry.fill} />
+                  <Cell key={i} fill={entry.fill} className="remplissage-teinte" style={teintesDe(entry.fill)} />
                 ))}
               </Bar>
             </BarChart>
@@ -255,7 +256,7 @@ export default function StatsPage() {
               <Tooltip />
               <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                 {byContext.map((entry, i) => (
-                  <Cell key={i} fill={entry.fill} />
+                  <Cell key={i} fill={entry.fill} className="remplissage-teinte" style={teintesDe(entry.fill)} />
                 ))}
               </Bar>
             </BarChart>
@@ -271,7 +272,7 @@ export default function StatsPage() {
               <Tooltip />
               <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                 {byVersion.map((entry, i) => (
-                  <Cell key={i} fill={entry.fill} />
+                  <Cell key={i} fill={entry.fill} className="remplissage-teinte" style={teintesDe(entry.fill)} />
                 ))}
               </Bar>
             </BarChart>

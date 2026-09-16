@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+
 export interface ColorTheme {
   id: string
   /** Le nom vit dans les dictionnaires, sous `colorThemes`, par identifiant. */
@@ -237,6 +239,25 @@ export function remplissageLisible(couleur: string): { claire: string; sombre: s
     claire: pousser(versLeNoir, PISTE_CLAIRE),
     sombre: pousser(versLeBlanc, PISTE_SOMBRE),
   }
+}
+
+/**
+ * Les deux teintes d'un remplissage, posées en variables inline.
+ *
+ * Le composant ne sait pas dans quel mode il est rendu, et n'a pas à le
+ * savoir : il pose `--teinte-claire` et `--teinte-sombre`, et la classe
+ * `remplissage-teinte` de `globals.css` retient l'une ou l'autre sous
+ * `html.dark` — en `background-color` pour une `div`, en `fill` pour un
+ * `<path>` SVG. Le style en ligne ne décide de rien, il porte des variables.
+ *
+ * Née dans Progression le 16 septembre 2026, déplacée ici le soir même pour
+ * les barres Recharts de Statistiques : une couleur de contexte y est posée
+ * à même la carte, sans piste, et six des treize contextes du propriétaire
+ * n'y tenaient pas 3,0 — Méditation 2,10 en clair, Bible 1,92 en sombre.
+ */
+export function teintesDe(couleur: string): CSSProperties {
+  const r = remplissageLisible(couleur) ?? { claire: couleur, sombre: couleur }
+  return { '--teinte-claire': r.claire, '--teinte-sombre': r.sombre } as CSSProperties
 }
 
 /**

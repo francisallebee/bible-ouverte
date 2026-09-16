@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { COLOR_THEMES, derivedColors, variantesSombres, remplissageLisible, DEFAULT_CUSTOM } from './themes'
+import { COLOR_THEMES, derivedColors, variantesSombres, remplissageLisible, teintesDe, DEFAULT_CUSTOM } from './themes'
 import { DEFAULT_CONTEXTS } from './storage/seed'
+import { PALETTE } from './statistiques/palette'
 
 /**
  * Le mode sombre doit rester lisible pour **toute** charte, y compris celles
@@ -111,13 +112,15 @@ describe('remplissageLisible', () => {
   const SEUIL_COMPOSANT = 3
 
   /**
-   * Les douze contextes par défaut, les deux couleurs de catégorie de
-   * Progression, et trois extrêmes qu'un utilisateur peut choisir : le blanc,
+   * Les douze contextes par défaut, les sept couleurs de la palette de
+   * Statistiques, les deux couleurs de catégorie de Progression, et trois extrêmes qu'un utilisateur peut choisir : le blanc,
    * le noir, un jaune pâle. La table des contextes est lue, non recopiée — une
    * couleur changée dans `seed.ts` se mesure ici sans retouche.
    */
   const COULEURS = [
     ...DEFAULT_CONTEXTS.map((c) => ({ id: c.id, couleur: c.color })),
+    // La palette de Statistiques, dont le bleu nuit rendait 1,27 sur `--surface`.
+    ...PALETTE.map((couleur, i) => ({ id: `palette ${i + 1}`, couleur })),
     { id: 'categorie lue', couleur: '#16a34a' },
     { id: 'categorie en cours', couleur: '#4a90d9' },
     { id: 'blanc', couleur: '#ffffff' },
@@ -150,5 +153,18 @@ describe('remplissageLisible', () => {
     expect(luminance(r.claire)).toBeLessThan(luminance('#2ecc71'))
     const s = remplissageLisible('#6d4c41')!
     expect(luminance(s.sombre)).toBeGreaterThan(luminance('#6d4c41'))
+  })
+})
+
+describe('teintesDe', () => {
+  it('pose les deux teintes de remplissageLisible en variables inline', () => {
+    const r = remplissageLisible('#6d4c41')!
+    expect(teintesDe('#6d4c41')).toEqual({ '--teinte-claire': r.claire, '--teinte-sombre': r.sombre })
+  })
+
+  it('porte la couleur telle quelle quand elle est illisible, plutôt que rien', () => {
+    // Le composant ne doit pas perdre sa barre pour une valeur inattendue :
+    // l'attribut `fill` reste de toute façon en repli sous la classe.
+    expect(teintesDe('pas une couleur')).toEqual({ '--teinte-claire': 'pas une couleur', '--teinte-sombre': 'pas une couleur' })
   })
 })

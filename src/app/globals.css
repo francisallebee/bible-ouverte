@@ -276,8 +276,10 @@ html.dark body { @apply bg-[--bg] text-[--text]; }
    calculées par `remplissageLisible` (`lib/themes.ts`) pour tenir 3,0 sur la
    piste de chaque mode ; cette règle retient l'une ou l'autre. Une couleur
    posée directement en `background-color` inline aurait battu toute feuille. */
-.remplissage-teinte { background-color: var(--teinte-claire); }
-html.dark .remplissage-teinte { background-color: var(--teinte-sombre); }
+/* Une `div` lit background-color, un `<path>` Recharts lit fill : la
+   propriété CSS bat l'attribut `fill` de présentation, qui reste en repli. */
+.remplissage-teinte { background-color: var(--teinte-claire); fill: var(--teinte-claire); }
+html.dark .remplissage-teinte { background-color: var(--teinte-sombre); fill: var(--teinte-sombre); }
 html.dark .bg-white { background-color: var(--surface) !important; }
 html.dark .bg-gray-50 { background-color: #0f172a !important; }
 html.dark .bg-gray-100 { background-color: var(--surface) !important; }
