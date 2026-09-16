@@ -1,4 +1,5 @@
 import type { ReadingEntry } from "@/lib/storage";
+import { ecrireReference } from "./reference";
 
 /**
  * Regrouper les lectures qui viennent d'un même enregistrement.
@@ -205,16 +206,13 @@ export function referencesDe(
   return references;
 }
 
-/** « Jean 3:16 », « Jean 3-4:1-5 » — la référence telle qu'elle s'affiche. */
+/**
+ * « Jean 3:16 », « Jean 3:16-4:2 » — la référence telle qu'elle s'affiche.
+ * L'écriture vit dans `reference.ts`, la même que celle des sélecteurs.
+ */
 export function referenceDe(
   entree: Pick<ReadingEntry, "book" | "chapterStart" | "chapterEnd" | "verseStart" | "verseEnd">,
   nomDuLivre: (code: string) => string,
 ): string {
-  const chapitres = entree.chapterEnd !== entree.chapterStart
-    ? `${entree.chapterStart}-${entree.chapterEnd}`
-    : `${entree.chapterStart}`;
-  const versets = entree.verseEnd !== entree.verseStart
-    ? `${entree.verseStart}-${entree.verseEnd}`
-    : `${entree.verseStart}`;
-  return `${nomDuLivre(entree.book)} ${chapitres}:${versets}`;
+  return ecrireReference(nomDuLivre(entree.book), entree);
 }

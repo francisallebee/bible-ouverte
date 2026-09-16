@@ -500,10 +500,10 @@ export default function SearchPage() {
                 {/* `<h2>` : seul titre sous le `<h1>` de la page, il était
                     en `<h3>`. Son `id` sert aussi de nom à la fenêtre. */}
                 <h2 id="titre-ajout-lecture" className="font-semibold mb-1">{t.search.addTitle}</h2>
+                {/* Troisième écriture à la main de la même référence, trouvée le
+                    16 septembre 2026 en unifiant les deux autres. */}
                 <p className="text-sm text-gray-500 mb-4">
-                  {getBookName(addTarget.book)} {addTarget.chapterStart}
-                  {addTarget.chapterEnd !== addTarget.chapterStart ? `-${addTarget.chapterEnd}` : ""}
-                  :{addTarget.verseStart}{addTarget.verseEnd !== addTarget.verseStart ? `-${addTarget.verseEnd}` : ""}
+                  {describeRange(getBookName(addTarget.book), addTarget)}
                 </p>
                 <div className="space-y-3">
                   <div>

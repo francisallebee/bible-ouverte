@@ -178,7 +178,7 @@ describe("referenceDe", () => {
 
   it("écrit l'intervalle de chapitres quand il y en a un", () => {
     const entree = lecture(1, "2026-08-20", undefined, { chapterStart: 3, chapterEnd: 4 });
-    expect(referenceDe(entree, nom)).toBe("Jean 3-4:16");
+    expect(referenceDe(entree, nom)).toBe("Jean 3:16-4:16");
   });
 });
 

@@ -5,6 +5,7 @@ import { X, Check } from 'lucide-react'
 import { getPassages } from '@/lib/storage'
 import { dernierVerset, versetsAProposer } from '@/features/bible/versets'
 import { useT } from '@/contexts/I18nContext'
+import { ecrireReference } from '@/lib/lectures/reference'
 
 export interface PassageRange {
   chapterStart: number
@@ -28,15 +29,12 @@ interface Props {
   onClose: () => void
 }
 
-/** Décrit un intervalle sous la forme « Genèse 1-3:5 ». */
+/**
+ * « Genèse 1:1-3:5 » — l'écriture usuelle, partagée avec l'historique par
+ * `lib/lectures/reference.ts`. Le nom reste : neuf écrans l'importent.
+ */
 export function describeRange(bookName: string, r: PassageRange): string {
-  const chapters = r.chapterEnd !== r.chapterStart
-    ? `${r.chapterStart}-${r.chapterEnd}`
-    : `${r.chapterStart}`
-  const verses = r.verseEnd !== r.verseStart
-    ? `${r.verseStart}-${r.verseEnd}`
-    : `${r.verseStart}`
-  return `${bookName} ${chapters}:${verses}`
+  return ecrireReference(bookName, r)
 }
 
 function NumberGrid({
