@@ -280,6 +280,12 @@ html.dark body { @apply bg-[--bg] text-[--text]; }
    propriété CSS bat l'attribut `fill` de présentation, qui reste en repli. */
 .remplissage-teinte { background-color: var(--teinte-claire); fill: var(--teinte-claire); }
 html.dark .remplissage-teinte { background-color: var(--teinte-sombre); fill: var(--teinte-sombre); }
+/* Les libellés d'axe de Recharts portent `fill="#666"` par défaut : 5,74 sur
+   la carte en clair, 2,55 en sombre — mesuré le 16 septembre 2026 sur les 52
+   graduations de Statistiques. `--text-secondary`, la couleur de tout texte
+   secondaire, tient 4,83 et 5,71. La règle suit le mode par la variable, et
+   couvre tout graphique à venir sans un `tick={{ fill }}` par axe. */
+.recharts-cartesian-axis-tick-value { fill: var(--text-secondary); }
 html.dark .bg-white { background-color: var(--surface) !important; }
 html.dark .bg-gray-50 { background-color: #0f172a !important; }
 html.dark .bg-gray-100 { background-color: var(--surface) !important; }

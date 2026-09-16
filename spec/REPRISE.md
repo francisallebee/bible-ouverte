@@ -3972,12 +3972,38 @@ le prix de cette cohérence.
 les deux catégories et les trois extrêmes dans `themes-sombre.test.ts` ;
 deux tests pour `teintesDe`.
 
-### Relevé en chemin, laissé en l'état
+### Le déploiement, sondé
+
+`5a70e34` poussé à 18:47:24 UTC. Relevé de départ à 18:47:51 : `buildId`
+`wA1b7HjL…` — déjà différent du `2kfltc…` de la veille, le push des docs
+ayant déployé entre-temps —, clés `fill` à 0, contrôles à 1. À 18:49:04 :
+`buildId` **`n6Zx1C-t…`**, la seconde feuille renommée (`0b45c0…` →
+`bf3895…`) et portant `fill:var(--teinte-claire)` et
+`fill:var(--teinte-sombre)` à **1**, contrôles
+`background-color:var(--teinte-claire)` et `bg-black\/15` à 1. Un seul
+changement de `buildId` attendu, un seul vu. Ce commit ne retirait
+rien : la discrimination tient à la clé ajoutée et au nouveau hachage de
+feuille, pas à une clé disparue.
+
+### Les libellés d'axe, relevés en chemin puis corrigés
 
 Les libellés d'axe Recharts — `#666`, 11 px, la valeur par défaut de la
-bibliothèque — tiennent 5,74 en clair et **2,55 en sombre** sur la carte :
-du texte sous 4,5, antérieur à tout, hors du point 5. Le correctif serait
-un `fill` sur `tick={{ }}` lisible dans les deux modes, à mesurer d'abord ;
-non fait, non demandé.
+bibliothèque — tenaient 5,74 en clair et **2,55 en sombre** sur la carte :
+du texte sous 4,5, antérieur à tout. Mesuré sur les 52 graduations de
+Statistiques ; les traits d'axe et de graduation portent la même couleur,
+donc les mêmes chiffres.
 
-Non vu : la production, en arabe, et les autres comptes.
+Candidates mesurées contre la carte : `gray-600` 7,56 / **1,94**, `gray-500`
+4,83 / 3,03, `--text-secondary` **4,83 / 5,71**. Retenue la troisième — la
+couleur de tout texte secondaire de l'application, qui suit le mode par la
+variable. Une règle dans `globals.css` sur
+`.recharts-cartesian-axis-tick-value`, la classe que Recharts pose déjà :
+la propriété CSS bat l'attribut `fill="#666"`, aucun `tick={{ fill }}` par
+axe, et tout graphique à venir est couvert. Vu : 52 libellés à 4,83 en
+clair, 5,71 en sombre, capture en sombre prise.
+
+Les **traits** d'axe et de graduation restent au `#666` de Recharts, 2,55
+en sombre : décoratifs, l'information est dans les libellés. Non touchés,
+à dessein.
+
+Non vu : la production dans une session, en arabe, et les autres comptes.
