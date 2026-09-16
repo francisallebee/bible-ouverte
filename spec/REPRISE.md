@@ -3848,6 +3848,19 @@ livre partent du chapitre 1 entier. Vu sur Nouvelle lecture, le geste exact du
 1 et dernier verset 18 déjà posés, l'aperçu titré de même. Rien enregistré :
 745 lectures avant, 745 après.
 
+### Le troisième push, et le `buildId` qui a changé deux fois
+
+`e7771c4` poussé à 18:05 UTC. La sonde a vu le `buildId` passer de
+`ervnNE6…` à `NwSnFG…` à 18:07:29, **puis à `2kfltc…` à 18:08:31**. Deux
+changements pour les deux pushes faits depuis le relevé précédent — les docs
+de `c76e32e`, dont la construction avait attendu dix-huit minutes, puis
+celui-ci. C'est exactement la réserve écrite plus haut qui s'est produite :
+sans le second relevé, le premier changement aurait été pris pour le bon.
+**Attendre un second changement avant de conclure, quand un push s'est
+intercalé.** Vu sur l'historique du propriétaire, serveur de développement :
+« Genèse 17-20 — Plan : 2026 (jour 5) » à la place du « 17:1-20:1 » du
+matin.
+
 ### Ce qui n'a pas été vu
 
 La production à l'écran, dans une session, après les déploiements — seules la
