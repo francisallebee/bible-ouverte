@@ -53,3 +53,28 @@ export function versetsAProposer(
 ): number {
   return Math.max(dernierVerset(book, chapter, connus), dejaSaisi ?? 0, 1);
 }
+
+/**
+ * Un chapitre **entier**, tel qu'un sélecteur doit le poser par défaut.
+ *
+ * Jusqu'au 16 septembre 2026, choisir un chapitre posait `1:1` — le premier
+ * verset seul — et valider sans toucher aux versets enregistrait ce verset.
+ * Un lecteur qui voulait Colossiens 3-4 a ainsi enregistré « Colossiens
+ * 3:1-4:1 », et 39 lectures « X n:1 » de la base ont probablement la même
+ * origine. Le défaut de départ est le chapitre entier ; restreindre ensuite
+ * est un geste, s'arrêter au premier verset par inadvertance n'en est pas un.
+ *
+ * `connus` vient du cache quand il a répondu — voir `dernierVerset`.
+ */
+export function chapitreEntier(
+  book: string,
+  chapter: number,
+  connus?: number,
+): { chapterStart: number; chapterEnd: number; verseStart: number; verseEnd: number } {
+  return {
+    chapterStart: chapter,
+    chapterEnd: chapter,
+    verseStart: 1,
+    verseEnd: book ? dernierVerset(book, chapter, connus) : 1,
+  };
+}

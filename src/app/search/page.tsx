@@ -10,6 +10,7 @@ import { THEMES, themeParSlug, type ThemeSlug } from "@/features/bible/themes";
 import BookPicker from "@/components/BookPicker";
 import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange, type PassageRange } from "@/components/PassagePicker";
+import { chapitreEntier } from "@/features/bible/versets";
 import { useI18n, useBookName } from "@/contexts/I18nContext";
 import { textDirection } from "@/lib/i18n/locales";
 
@@ -273,7 +274,8 @@ export default function SearchPage() {
                 <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.book}</label>
                 <BookPicker value={refBook} onSelect={(b) => {
                   setRefBook(b);
-                  setRefRange({ chapterStart: 1, chapterEnd: 1, verseStart: 1, verseEnd: 1 });
+                  // Le chapitre 1 entier, jamais son seul premier verset.
+                  setRefRange(chapitreEntier(b, 1));
                   setRefResults([]);
                 }} />
               </div>

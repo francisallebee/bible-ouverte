@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { X, Check } from 'lucide-react'
 import { getPassages } from '@/lib/storage'
-import { dernierVerset, versetsAProposer } from '@/features/bible/versets'
+import { dernierVerset, versetsAProposer, chapitreEntier } from '@/features/bible/versets'
 import { useT } from '@/contexts/I18nContext'
 import { ecrireReference } from '@/lib/lectures/reference'
 
@@ -145,6 +145,20 @@ export default function PassagePicker({
     return () => document.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  // Un chapitre choisi avant que le cache ait répondu porte le dernier verset
+  // de la table ; quand le cache répond pour la version réellement lue, c'est
+  // lui qui fait foi (`dernierVerset`), et le chapitre entier suit. Un verset
+  // de fin choisi à la main ne coïncide avec la table que par hasard, et un
+  // tel hasard n'existe pas dans cette version-là.
+  useEffect(() => {
+    const connus = counts[draft.chapterEnd]
+    if (!open || connus === undefined || connus <= 0) return
+    const table = dernierVerset(book, draft.chapterEnd)
+    if (draft.verseEnd === table && connus !== table) {
+      setDraft((d) => ({ ...d, verseEnd: connus }))
+    }
+  }, [open, book, counts, draft.chapterEnd, draft.verseEnd])
+
   if (!open) return null
 
   // Deux questions, et une seule ne suffisait pas. La grille doit rester assez
@@ -157,17 +171,26 @@ export default function PassagePicker({
   const reels = (chapter: number) => dernierVerset(book, chapter, counts[chapter])
   const sameChapter = draft.chapterStart === draft.chapterEnd
 
+  /**
+   * Un chapitre touché est posé **en entier** — du premier verset au dernier
+   * que le cache ou la table connaît —, et l'intervalle qui se ferme sur un
+   * chapitre postérieur va jusqu'au bout de celui-ci. Jusqu'au 16 septembre
+   * 2026, c'était `1:1` : valider sans toucher aux versets enregistrait le
+   * premier verset seul, et « Colossiens 3:1-4:1 » est entré en base pour un
+   * lecteur qui voulait deux chapitres. Restreindre est un geste ; s'arrêter
+   * au premier verset par inadvertance n'en est pas un.
+   */
   function pickChapter(n: number) {
     setDraft((d) => {
       // Un intervalle ouvert se ferme sur un chapitre postérieur ; sinon on
       // repart de zéro sur celui qui vient d'être touché.
       if (chapterOpen && n > d.chapterStart) {
         setChapterOpen(false)
-        return { ...d, chapterEnd: n }
+        return { ...d, chapterEnd: n, verseEnd: reels(n) }
       }
       setChapterOpen(true)
       setVerseOpen(false)
-      return { chapterStart: n, chapterEnd: n, verseStart: 1, verseEnd: 1 }
+      return chapitreEntier(book, n, counts[n])
     })
   }
 

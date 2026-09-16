@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { dernierVerset, versetsAProposer } from './versets'
+import { dernierVerset, versetsAProposer, chapitreEntier } from './versets'
 import { VERSETS_PAR_CHAPITRE, VERSETS_MAXIMUM } from './versification'
 import { BOOKS } from './books'
 
@@ -106,5 +106,23 @@ describe('versetsAProposer', () => {
 
   it('propose au moins un verset', () => {
     expect(versetsAProposer('PRO', 18, 0, 0)).toBeGreaterThanOrEqual(1)
+  })
+})
+
+describe('chapitreEntier', () => {
+  it('pose le chapitre du premier au dernier verset, et non « 1:1 »', () => {
+    // Jusqu'au 16 septembre 2026, choisir un chapitre posait son seul premier
+    // verset : « Colossiens 3:1-4:1 » est entré en base pour un lecteur qui
+    // voulait deux chapitres.
+    expect(chapitreEntier('COL', 3)).toEqual({ chapterStart: 3, chapterEnd: 3, verseStart: 1, verseEnd: 25 })
+  })
+
+  it('laisse le cache décider quand il a répondu', () => {
+    expect(chapitreEntier('COL', 3, 26).verseEnd).toBe(26)
+  })
+
+  it('ne pose rien pour un livre absent', () => {
+    // Le sélecteur vidé remet le livre à la chaîne vide ; 176 n'y aurait pas de sens.
+    expect(chapitreEntier('', 1).verseEnd).toBe(1)
   })
 })

@@ -9,6 +9,7 @@ import { useT, useBookName } from '@/contexts/I18nContext'
 import { textDirection } from '@/lib/i18n/locales'
 import BookPicker from '@/components/BookPicker'
 import PassagePicker, { describeRange, type PassageRange } from '@/components/PassagePicker'
+import { chapitreEntier } from '@/features/bible/versets'
 
 export interface PickedPassage {
   book: string
@@ -124,7 +125,7 @@ export default function PassageSearch({ open, versionId, versionLanguage, onPick
 
           {mode === 'reference' ? (
             <div className="space-y-3">
-              <BookPicker value={book} onSelect={(b) => { setBook(b); setRange(VIDE) }} />
+              <BookPicker value={book} onSelect={(b) => { setBook(b); setRange(b ? chapitreEntier(b, 1) : VIDE) }} />
 
               <button type="button" onClick={() => setPickerOpen(true)} disabled={!book}
                 className="w-full flex items-center justify-between gap-3 border border-[--border] rounded-lg px-3 py-2.5 text-sm bg-[--surface] text-[--text] hover:border-[--primary] disabled:opacity-50 disabled:hover:border-[--border] disabled:cursor-not-allowed transition-colors">

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Plus, SlidersHorizontal, Loader2 } from 'lucide-react'
 import { getBook } from '@/features/bible'
+import { chapitreEntier } from '@/features/bible/versets'
 import { useT, useBookName } from '@/contexts/I18nContext'
 import PassagePicker, { describeRange } from '@/components/PassagePicker'
 import BookPicker from '@/components/BookPicker'
@@ -51,12 +52,18 @@ export default function PassageAdder({
 
   const maxChapters = getBook(book)?.chapters ?? 150
 
+  /** Le chapitre 1 entier, jamais son seul premier verset — voir `chapitreEntier`. */
+  function poserChapitreUn(abbreviation: string) {
+    const entier = chapitreEntier(abbreviation, 1)
+    setChapterStart(entier.chapterStart)
+    setChapterEnd(entier.chapterEnd)
+    setVerseStart(entier.verseStart)
+    setVerseEnd(entier.verseEnd)
+  }
+
   function selectBook(abbreviation: string) {
     setBook(abbreviation)
-    setChapterStart(1)
-    setChapterEnd(1)
-    setVerseStart(1)
-    setVerseEnd(1)
+    poserChapitreUn(abbreviation)
     if (abbreviation) setPickerOpen(true)
   }
 
@@ -67,10 +74,7 @@ export default function PassageAdder({
       await onAdd({ book, chapterStart, chapterEnd, verseStart, verseEnd })
       // Le livre est conservé : on ajoute rarement un seul passage d'un livre,
       // et le remettre à zéro obligerait à le rechercher dans la liste des 66.
-      setChapterStart(1)
-      setChapterEnd(1)
-      setVerseStart(1)
-      setVerseEnd(1)
+      poserChapitreUn(book)
     } finally {
       setSaving(false)
     }

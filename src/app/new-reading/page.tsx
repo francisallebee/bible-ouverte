@@ -18,6 +18,7 @@ import { textDirection } from "@/lib/i18n/locales";
 import AudioRecorder from "@/components/AudioRecorder";
 import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange } from "@/components/PassagePicker";
+import { chapitreEntier } from "@/features/bible/versets";
 import BookPicker from "@/components/BookPicker";
 import PassagePreview from "@/components/PassagePreview";
 import PassageSearch from "@/components/PassageSearch";
@@ -211,7 +212,9 @@ export default function NewReadingPage() {
     setChapterStart(1);
     setChapterEnd(undefined);
     setVerseStart(1);
-    setVerseEnd(undefined);
+    // Le chapitre 1 entier, et non son premier verset : valider la fenêtre
+    // sans y toucher enregistrait « Genèse 1:1 » — voir `chapitreEntier`.
+    setVerseEnd(abbreviation ? chapitreEntier(abbreviation, 1).verseEnd : undefined);
     if (abbreviation) setPickerOpen(true);
   }
 
