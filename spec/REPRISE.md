@@ -3754,7 +3754,30 @@ classes retirées — le teal et le cyan de rang 500 en `via` et `to`, les deux
 voiles blancs, le blanc à 85 % — à **0**, et la sonde elle-même contrôlée sur
 `bg-black\/15`, présent, qui rend 1.
 
+### L'écriture usuelle, décidée et faite
+
+« Pousse et passe à l'écriture usuelle partout. » Les trois commits sont
+partis (`c11a90d`), puis `ecrireReference` dans `lib/lectures/reference.ts`
+a remplacé les **trois** écritures à la main — la troisième, dans le
+dialogue d'ajout de Recherche, n'était apparue dans aucun `grep` sur les
+deux noms de fonction : c'est en cherchant l'idiome `chapterEnd !==
+chapterStart` qu'elle s'est vue. « Jean 3:16 », « Jean 3:16-18 »,
+« Jean 3:16-4:2 » ; `describeRange` garde son nom, neuf écrans l'importent.
+Le test de l'historique figeait « Jean 3-4:16 » — un seul verset sur deux
+chapitres, ce qui ne veut rien dire — et attend « Jean 3:16-4:16 ».
+
+Vu : « Psaumes 23:6-24:2 » en tête de la fenêtre du sélecteur, sans rien
+enregistrer ; « Tite 1:1-3:15 », « 2 Timothée 1:1-4:22 » sur l'historique.
+Les lectures d'un plan daté y rendent « Genèse 17:1-20:1 » : leur `verseEnd`
+à 1 est le remplissage connu, que l'ancienne écriture exposait de même
+(« Genèse 17-20:1 »). Écrire « Genèse 17-20 » pour des chapitres entiers
+demanderait de reconnaître ce remplissage comme `bornesReelles` le fait
+dans le détail de plan — non fait, non demandé.
+
+Les deux formatteurs restants n'écrivent que des chapitres, à raison : la
+liste des dernières lectures d'une fiche d'administration et les plans datés
+(« Genèse 1-3 »).
+
 ### Ce qui n'a pas été vu
 
-La production : rien n'est poussé à l'heure où ceci est écrit. Rien en
-arabe. Et la convention « 23-24:6-2 » attend une décision.
+La production, au-delà de la sonde. Rien en arabe.
