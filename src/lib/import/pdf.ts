@@ -88,13 +88,30 @@ export function lignesDepuisElements(elements: readonly ElementTexte[]): string 
   return sortie.join('\n').replace(/\n\n+(?=# )/g, '\n').replace(/^(# [^\n]*)\n\n+/gm, '$1\n').trim()
 }
 
-export async function texteDuPdf(
+/**
+ * `pdf.js`, chargé par `import()` au premier besoin, dans son propre chunk,
+ * son worker venant de jsDelivr à la version exacte installée. Partagé entre
+ * l'extraction du texte et le lecteur de pages (`LecteurDePdf`) : un seul
+ * chargement, une seule version.
+ */
+export async function chargerPdfjs() {
+  const pdfjs = await import('pdfjs-dist')
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+  return pdfjs
+}
+
+/**
+ * Le texte de chaque page, dans l'ordre — une entrée par page, vide quand la
+ * page n'a rien donné, pour que l'indice reste le numéro de page moins un.
+ * C'est cette forme que le plan « une page par jour » consomme : il lui faut
+ * savoir quelles références se trouvent sur quelle page.
+ */
+export async function pagesDuPdf(
   fichier: File,
   locale: Locale,
   onProgression?: (p: ProgressionPdf) => void,
-): Promise<string> {
-  const pdfjs = await import('pdfjs-dist')
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+): Promise<string[]> {
+  const pdfjs = await chargerPdfjs()
   // C'est la tâche de chargement qui se détruit, et elle emporte le document.
   const tache = pdfjs.getDocument({ data: new Uint8Array(await fichier.arrayBuffer()) })
   const document = await tache.promise
@@ -120,11 +137,19 @@ export async function texteDuPdf(
         const lu = await reconnaitreCanevas(canevas, locale, (part) => onProgression?.({ page: n, pages: document.numPages, ocr: part }))
         if (lu) texte = lu
       }
-      if (texte) pages.push(texte)
+      pages.push(texte)
       page.cleanup()
     }
   } finally {
     await tache.destroy()
   }
-  return pages.join('\n\n')
+  return pages
+}
+
+export async function texteDuPdf(
+  fichier: File,
+  locale: Locale,
+  onProgression?: (p: ProgressionPdf) => void,
+): Promise<string> {
+  return (await pagesDuPdf(fichier, locale, onProgression)).filter(Boolean).join('\n\n')
 }

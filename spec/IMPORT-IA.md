@@ -18,6 +18,10 @@ IA, et les enregistrer dans les lectures. Quatre entrées :
 Trois contraintes : **aucun fichier stocké**, traitement en temps réel avant
 enregistrement, **plusieurs langues**.
 
+(La contrainte du fichier vaut pour l'**import de lectures**. Le plan de lecture
+tiré d'un PDF, venu le 17 septembre, garde son document — décision du
+propriétaire, voir « Le document lui-même » plus bas.)
+
 ## Ce que le dépôt impose déjà
 
 - **Un secret ne vit que côté serveur.** Le navigateur parle à Supabase avec la
@@ -458,11 +462,68 @@ développement sur la machine du propriétaire — avant que le lecteur existe.
 Le propriétaire a essayé la fonction sur un vrai document ; c'est sa donnée,
 elle reste.
 
+### Le document lui-même — « un lecteur de PDF qui respecte l'original »
+
+Le propriétaire a relu un vrai cahier d'étude (plan 75, 203 jours, 152 avec
+page, 167 000 caractères) dans la fenêtre : « vraiment illisible, pas agréable
+du tout ». La base l'a montré, et c'étaient deux défauts, pas un :
+
+1. **Le découpage.** « Une ligne à référence = un jour » est la forme des plans
+   imprimés ; un cahier cite dans la prose, chaque phrase citante ouvrait un
+   jour — 11 000 caractères pour le premier (couverture, licence, avant-propos,
+   chapitre 1), 297 pour le second, coupé au milieu d'une phrase.
+2. **Le texte extrait du PDF.** Chaque ligne du PDF devenue paragraphe (196
+   pour une page), césures gardées (« mi- / nistère »), ligatures cassées
+   (« réf léchie », « réÁéchie »). Une extraction reconstruit ; aucun rendu ne
+   la sauve.
+
+**Décision du propriétaire** : stockage accordé, une page par jour par défaut.
+
+*Le PDF est gardé et dessiné.* Seau `documents` (migration
+`20260917210000_plan_documents`, appliquée sur accord, journal à 31) : privé,
+20 Mo, PDF seul, cloisonné par préfixe, **dépôt réservé à l'administrateur par
+la policy** (`private.is_admin()`) — la règle de DROITS.md, pas un bouton.
+`plans.document` porte le chemin, `plan_days.page_debut`/`page_fin` les pages
+du jour. `LecteurDePdf` fait dessiner les pages par `pdf.js` — qui extrayait
+déjà le texte — dans des canevas, à la largeur de la fenêtre fois le zoom, à
+la densité de l'écran : mise en page, colonnes, images, police de l'original.
+Le fichier est lu une fois puis gardé dans IndexedDB (magasin `documents`,
+version 10) : hors ligne ensuite. Il part avec le plan (`deletePlan`) et avec
+le compte. Ce que le lecteur ne fait pas : la police des réglages, la sélection,
+la recherche — le prix de la fidélité.
+
+*Le découpage devient un rythme.* `joursDepuisSections` : une section qui porte
+au moins une référence est un jour ; une section sans référence **rejoint la
+suivante** (les dernières, le dernier jour) — un jour de plan compte au moins
+un passage, `toDayColumns` le refuse sinon et le cochage repose dessus. Les
+pages d'un PDF passent par `joursDepuisPages` (N pages par section, N = 1 par
+défaut) ; les Word/EPUB/OpenDocument, qui n'ont pas de page, gagnent le
+découpage **par titre** (`sectionsParTitre`), et gardent `LecteurDeJour` —
+leur XML rend des paragraphes vrais, c'est le PDF qui était le mauvais élève.
+Les références d'un jour sont celles de ses pages, sans doublon. « Une ligne =
+un jour » et « un passage = un jour » restent pour les vrais plans imprimés.
+
+Vu : un PDF de six pages fabriqué (couverture, licence, deux chapitres qui
+citent, une page muette, une fin) → « Une page = un jour (le PDF est gardé) »
+proposé d'office à l'administrateur, 3 jours — p. 1-3, p. 4, p. 5-6 —, « 3
+pages sans référence, rattachées au jour voisin », Actes 8.30-31 cité deux fois
+ne fait qu'un passage. Créé : plan 76, l'objet dans le seau à 2 566 octets, le
+cache IndexedDB à 1. « Lire le document du jour · p. 1-3 » : les trois pages en
+Helvetica du fichier, zoom à 150 % → trois canevas de 2 184 px réels avec de
+l'encre. Supprimé par l'écran : plan, jours, objet, cache — tout à zéro. Et la
+policy éprouvée en base : un non-admin est refusé. 963 tests.
+
+Ce que le propriétaire doit savoir, dit le jour même : son propre document
+porte une licence « consultation sur un seul support électronique à la fois » ;
+un exemplaire privé dans son compte, lu par lui seul, me paraît être cet
+usage — c'est son appréciation.
+
 ### Ce qui suit
 
-1. Le propriétaire relit « Petit Manuel pratique du Moniteur » dans la
-   fenêtre : c'est le vrai document, avec la vraie mise en page à juger.
-2. Le modèle, plus tard — et avec lui le « tout » du point 5.
+1. Le propriétaire refait son cahier d'étude en « une page par jour » et juge
+   le lecteur sur le vrai document — et le pas (1, 2, 3 pages) qui lui convient.
+2. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
+3. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
 
@@ -478,6 +539,7 @@ elle reste.
 
 | Date | Fait |
 |---|---|
+| 17 sept. 2026 | **Le document lui-même** : « vraiment illisible » sur le vrai cahier (plan 75) ; deux défauts nommés par la base. Stockage accordé, une page par jour par défaut. Migration `plan_documents` (seau `documents`, dépôt admin par policy, `plans.document`, `plan_days.page_debut/page_fin`), `LecteurDePdf` (pdf.js dessine, zoom, cache IndexedDB v10), `joursDepuisSections`/`joursDepuisPages`/`sectionsParTitre`. Aller-retour réel : plan 76, objet 2 566 octets, lu, supprimé, tout à zéro ; non-admin refusé par la RLS. 963 tests. |
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
 | 17 sept. 2026 | **La mise en page** : l'extraction garde titres, listes et paragraphes (Word, OpenDocument, HTML/EPUB, PowerPoint ; le PDF par les positions), et `LecteurDeJour` lit la page dans une fenêtre flottante avec la police des réglages. 950 tests. |

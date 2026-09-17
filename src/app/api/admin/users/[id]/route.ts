@@ -116,6 +116,11 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     if (audio?.length) {
       await supabaseAdmin.storage.from('audio').remove(audio.map(a => `${targetId}/${a.name}`))
     }
+    // Les PDF des plans (seau `documents`, depuis le 17 septembre 2026).
+    const { data: documents } = await supabaseAdmin.storage.from('documents').list(targetId)
+    if (documents?.length) {
+      await supabaseAdmin.storage.from('documents').remove(documents.map(d => `${targetId}/${d.name}`))
+    }
 
     await supabaseAdmin.from('plan_days').delete().eq('user_id', targetId)
     await supabaseAdmin.from('plans').delete().eq('user_id', targetId)

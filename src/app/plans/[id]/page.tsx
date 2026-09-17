@@ -25,6 +25,7 @@ import { versetsDuChapitre } from "@/lib/progression/chapitres";
 import { textDirection } from "@/lib/i18n/locales";
 import type { ReadingPlan, PlanDay, BibleVersion, PlanDuration, BiblePassage } from "@/lib/storage";
 import LecteurDeJour from "@/components/plans/LecteurDeJour";
+import LecteurDePdf from "@/components/plans/LecteurDePdf";
 
 /** Les durées proposées. Leurs libellés vivent dans les dictionnaires. */
 const DURATIONS: { value: PlanDuration }[] = [
@@ -588,17 +589,20 @@ export default function PlanDetailPage() {
               )}
             </div>
 
-            {/* La page du jour, quand le plan est tiré d'un document en entier :
-                elle se lit dans une fenêtre, avec sa mise en page — dépliée ici
-                sous la ligne, elle était illisible. */}
-            {day.texte && (
+            {/* La page du jour, quand le plan est tiré d'un document : les
+                pages du PDF gardé, dessinées telles quelles, ou le texte d'un
+                document sans pages. Dans une fenêtre — dépliée ici sous la
+                ligne, elle était illisible. */}
+            {(day.texte || (plan?.document && day.pageDebut !== undefined)) && (
               <div className="border-t border-gray-200 px-4 py-2">
                 <button
                   type="button"
                   onClick={() => setPageOuverte(day)}
                   className="text-xs text-[--primary] hover:underline"
                 >
-                  {t.planDetail.showText}
+                  {plan?.document && day.pageDebut !== undefined
+                    ? `${t.planDetail.showDocument} · ${t.planDetail.pages(day.pageDebut, day.pageFin ?? day.pageDebut)}`
+                    : t.planDetail.showText}
                 </button>
               </div>
             )}
@@ -636,13 +640,25 @@ export default function PlanDetailPage() {
         téléchargé. En faire le seul chemin fermerait le plan à qui lit hors
         ligne — le piège exact du 31 août 2026.
       */}
-      <LecteurDeJour
-        open={pageOuverte !== null}
-        titre={pageOuverte ? `${t.planDetail.day(pageOuverte.day)} · ${referenceDuJour(pageOuverte)}` : ""}
-        sousTitre={pageOuverte?.date ? formatDate(locale, pageOuverte.date, { day: "numeric", month: "long" }) : undefined}
-        texte={pageOuverte?.texte ?? ""}
-        onClose={() => setPageOuverte(null)}
-      />
+      {plan?.document && pageOuverte?.pageDebut !== undefined ? (
+        <LecteurDePdf
+          open
+          titre={`${t.planDetail.day(pageOuverte.day)} · ${t.planDetail.pages(pageOuverte.pageDebut, pageOuverte.pageFin ?? pageOuverte.pageDebut)}`}
+          sousTitre={referenceDuJour(pageOuverte)}
+          chemin={plan.document}
+          pageDebut={pageOuverte.pageDebut}
+          pageFin={pageOuverte.pageFin ?? pageOuverte.pageDebut}
+          onClose={() => setPageOuverte(null)}
+        />
+      ) : (
+        <LecteurDeJour
+          open={pageOuverte !== null}
+          titre={pageOuverte ? `${t.planDetail.day(pageOuverte.day)} · ${referenceDuJour(pageOuverte)}` : ""}
+          sousTitre={pageOuverte?.date ? formatDate(locale, pageOuverte.date, { day: "numeric", month: "long" }) : undefined}
+          texte={pageOuverte?.texte ?? ""}
+          onClose={() => setPageOuverte(null)}
+        />
+      )}
       {apercu && plan && (
         <PassagePreview
           open

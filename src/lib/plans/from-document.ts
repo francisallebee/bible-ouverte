@@ -1,4 +1,4 @@
-import { extraireReferences, type RejetExtraction } from '@/lib/import/references'
+import { extraireReferences, type ReferenceExtraite, type RejetExtraction } from '@/lib/import/references'
 import { addDays } from '@/lib/storage/plan-generator'
 import { toDayColumns, type PlanPassage } from '@/lib/storage/plan-passages'
 
@@ -21,7 +21,14 @@ import { toDayColumns, type PlanPassage } from '@/lib/storage/plan-passages'
  * disparaît en silence, le formulaire les montre avant la création.
  */
 
-export type Decoupage = 'ligne' | 'passage'
+/**
+ * `ligne` et `passage` regardent les lignes à références ; `titre` regarde la
+ * structure : chaque titre (`# `) ouvre une section, et une section fait un
+ * jour — la forme d'un recueil de méditations ou d'un cahier d'étude sorti
+ * d'un Word ou d'un EPUB, où les références sont dans la prose. Les pages
+ * d'un PDF passent par `joursDepuisPages`, avec la même règle.
+ */
+export type Decoupage = 'ligne' | 'passage' | 'titre'
 
 /**
  * Ce que le plan retient du document : ses seules références, ou le document
@@ -39,6 +46,9 @@ export interface JourDocument {
   source: string
   /** La page du jour, en mode intégral : sa ligne et celles qui la suivent jusqu'au jour suivant. */
   texte?: string
+  /** Les pages du document à lire ce jour, quand le plan porte un PDF (à partir de 1, bornes incluses). */
+  pageDebut?: number
+  pageFin?: number
 }
 
 export interface PlanDepuisDocument {
@@ -46,6 +56,131 @@ export interface PlanDepuisDocument {
   rejets: RejetExtraction[]
   /** Les lignes non vides sans référence — titres, consignes, bruit d'OCR. */
   lignesIgnorees: number
+  /**
+   * Par titre ou par page : les sections sans aucune référence, qui n'ont pas
+   * pu faire un jour et ont rejoint le suivant. Zéro pour les autres découpages.
+   */
+  sectionsJointes: number
+}
+
+/** Un morceau de document candidat à faire un jour : une page, ou ce qui va d'un titre au suivant. */
+export interface Section {
+  texte: string
+  pageDebut?: number
+  pageFin?: number
+}
+
+/** Les passages d'un texte, sans doublon — un cahier cite volontiers deux fois le même verset. */
+function passagesDe(texte: string): { passages: PlanPassage[]; references: ReferenceExtraite[]; rejets: RejetExtraction[] } {
+  const references: ReferenceExtraite[] = []
+  const rejets: RejetExtraction[] = []
+  for (const ligne of texte.split(/\r?\n/)) {
+    const lu = extraireReferences(ligne)
+    references.push(...lu.references)
+    rejets.push(...lu.rejets)
+  }
+  const vus = new Set<string>()
+  const passages: PlanPassage[] = []
+  for (const r of references) {
+    const cle = [r.book, r.chapterStart, r.chapterEnd, r.verseStart, r.verseEnd].join(':')
+    if (vus.has(cle)) continue
+    vus.add(cle)
+    passages.push({ book: r.book, chapterStart: r.chapterStart, chapterEnd: r.chapterEnd, verseStart: r.verseStart, verseEnd: r.verseEnd })
+  }
+  return { passages, references, rejets }
+}
+
+/** La première ligne qui dit quelque chose, sans sa marque de titre ou de liste — pour l'aperçu. */
+function premiereLigne(texte: string): string {
+  for (const brute of texte.split(/\r?\n/)) {
+    const ligne = brute.replace(/^(?:#{1,3}|-)\s+/, '').trim()
+    if (ligne) return ligne
+  }
+  return ''
+}
+
+/**
+ * Les jours depuis des sections, dans l'ordre.
+ *
+ * **Une section qui porte au moins une référence est un jour.** Un jour de
+ * plan compte au moins un passage — `toDayColumns` le refuse sinon, et tout le
+ * cochage repose dessus —, donc une section sans référence (couverture,
+ * licence, avant-propos, table) ne peut pas faire un jour seule : elle
+ * **rejoint la section suivante**, et les dernières rejoignent le dernier
+ * jour. Rien ne disparaît ; « une page par jour » veut dire une page à
+ * références par jour, et l'aperçu montre les pages réelles de chaque jour.
+ *
+ * En contenu intégral, le jour porte le texte de ses sections — pour les
+ * documents sans page à dessiner ; un PDF gardé n'en a pas besoin.
+ */
+export function joursDepuisSections(sections: readonly Section[], contenu: Contenu = 'references'): PlanDepuisDocument {
+  const jours: JourDocument[] = []
+  const rejets: RejetExtraction[] = []
+  let sectionsJointes = 0
+  let enAttente: Section[] = []
+
+  const texteDe = (parts: Section[]) => parts.map((p) => p.texte).filter(Boolean).join('\n')
+  const bornes = (parts: Section[]) => {
+    const debut = parts.find((p) => p.pageDebut !== undefined)?.pageDebut
+    const fins = parts.map((p) => p.pageFin ?? p.pageDebut).filter((n): n is number => n !== undefined)
+    return debut === undefined ? {} : { pageDebut: debut, pageFin: fins.length ? Math.max(...fins) : debut }
+  }
+
+  for (const section of sections) {
+    const lu = passagesDe(section.texte)
+    rejets.push(...lu.rejets)
+    if (lu.passages.length === 0) {
+      if (section.texte.trim()) sectionsJointes++
+      enAttente.push(section)
+      continue
+    }
+    const parts = [...enAttente, section]
+    enAttente = []
+    jours.push({
+      day: jours.length + 1,
+      passages: lu.passages,
+      source: premiereLigne(section.texte),
+      ...(contenu === 'integral' ? { texte: texteDe(parts) } : {}),
+      ...bornes(parts),
+    })
+  }
+  if (enAttente.length > 0 && jours.length > 0) {
+    const dernier = jours[jours.length - 1]
+    const parts = [dernier, ...enAttente] as Section[]
+    if (dernier.texte !== undefined) dernier.texte = texteDe([{ texte: dernier.texte }, ...enAttente])
+    Object.assign(dernier, bornes(parts))
+  }
+  return { jours, rejets, lignesIgnorees: 0, sectionsJointes }
+}
+
+/**
+ * Les jours d'un PDF gardé : `pagesParJour` pages à la suite font une section,
+ * et `joursDepuisSections` fait le reste. Le texte n'est pas retenu — le
+ * lecteur dessine les pages elles-mêmes.
+ */
+export function joursDepuisPages(pages: readonly string[], pagesParJour = 1): PlanDepuisDocument {
+  const pas = Math.max(1, Math.floor(pagesParJour))
+  const sections: Section[] = []
+  for (let i = 0; i < pages.length; i += pas) {
+    const lot = pages.slice(i, i + pas)
+    sections.push({ texte: lot.join('\n'), pageDebut: i + 1, pageFin: i + lot.length })
+  }
+  return joursDepuisSections(sections, 'references')
+}
+
+/** Les sections d'un texte à marques : chaque titre `# ` en ouvre une ; ce qui précède le premier en est une aussi. */
+export function sectionsParTitre(texte: string): Section[] {
+  const sections: Section[] = []
+  let courante: string[] = []
+  for (const ligne of texte.split(/\r?\n/)) {
+    if (/^#{1,3}\s+/.test(ligne) && courante.some((l) => l.trim())) {
+      sections.push({ texte: courante.join('\n') })
+      courante = []
+    }
+    courante.push(ligne)
+  }
+  if (courante.some((l) => l.trim())) sections.push({ texte: courante.join('\n') })
+  return sections
 }
 
 export function joursDepuisTexte(
@@ -53,6 +188,7 @@ export function joursDepuisTexte(
   decoupage: Decoupage = 'ligne',
   contenu: Contenu = 'references',
 ): PlanDepuisDocument {
+  if (decoupage === 'titre') return joursDepuisSections(sectionsParTitre(texte), contenu)
   const jours: JourDocument[] = []
   const rejets: RejetExtraction[] = []
   let lignesIgnorees = 0
@@ -98,7 +234,7 @@ export function joursDepuisTexte(
   for (const [i, page] of Array.from(pages.entries())) {
     jours[i].texte = page.join('\n')
   }
-  return { jours, rejets, lignesIgnorees }
+  return { jours, rejets, lignesIgnorees, sectionsJointes: 0 }
 }
 
 /**
@@ -113,6 +249,7 @@ export function documentDayRows(jours: JourDocument[], startDate: string | null)
     isRead: false,
     ...toDayColumns(j.passages),
     ...(j.texte ? { texte: j.texte } : {}),
+    ...(j.pageDebut !== undefined ? { pageDebut: j.pageDebut, pageFin: j.pageFin ?? j.pageDebut } : {}),
   }))
 }
 

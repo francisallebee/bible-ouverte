@@ -23,6 +23,11 @@ export async function POST(request: NextRequest) {
     if (audio?.length) {
       await admin.storage.from('audio').remove(audio.map(a => `${userId}/${a.name}`))
     }
+    // Les PDF des plans (seau `documents`, depuis le 17 septembre 2026).
+    const { data: documents } = await admin.storage.from('documents').list(userId)
+    if (documents?.length) {
+      await admin.storage.from('documents').remove(documents.map(d => `${userId}/${d.name}`))
+    }
 
     // 2. Delete all user data
     await admin.from('plan_days').delete().eq('user_id', userId)

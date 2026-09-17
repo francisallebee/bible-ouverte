@@ -4317,3 +4317,45 @@ pour juger la fenêtre.
 les deux classes de la fenêtre de lecture. La production porte le plan depuis
 un document, ses deux contenus, et la fenêtre. La migration `plan_day_texte`
 l'y attendait déjà.
+
+### « Vraiment illisible » : quand il faut arrêter de reconstruire
+
+Le propriétaire a lu son vrai cahier d'étude dans la fenêtre — plan 75, 203
+jours — et l'a dit sans détour. Avant de proposer, j'ai lu la base : ce
+n'était pas un défaut, mais deux, et le lecteur de PDF qu'il suggérait n'en
+réglait qu'un. Le **découpage** « une ligne à référence = un jour » tranche un
+cahier qui cite dans la prose au hasard de ses citations (11 000 caractères
+pour le jour 1, 297 pour le jour 2, coupé au milieu d'une phrase). Et le
+**texte extrait d'un PDF** est une reconstruction — lignes devenues
+paragraphes, césures, ligatures cassées — qu'aucun rendu ne sauve. La règle du
+dépôt tient ici : mesurer avant d'affirmer, et nommer ce que la mesure dit.
+
+Deux réponses, tranchées par le propriétaire (« stockage, une page par jour
+par défaut »). **Le PDF est gardé et dessiné** : premier fichier stocké par
+l'application, seau `documents` créé **par la migration** — pas au dashboard,
+ce que le README regrettait pour `photos` et `audio` —, et le dépôt réservé à
+l'administrateur **dans la policy** (`private.is_admin()`), parce qu'un
+`isAdmin` du navigateur ne protège rien. `pdf.js`, qui extrayait déjà le
+texte, dessine maintenant les pages ; c'est la même bibliothèque, chargée une
+fois (`chargerPdfjs`). **Le découpage devient un rythme** : une section à
+références fait un jour, une section muette rejoint la suivante — parce qu'un
+jour de plan compte au moins un passage et que le cochage repose dessus. Un
+seul algorithme pour les pages d'un PDF et les titres d'un Word.
+
+Deux pièges de plus pour la liste. `pdf.js` **transfère** au worker le tampon
+qu'on lui donne, qui en ressort vide : ce que le cache rend est une copie
+(`slice(0)`), sans quoi la seconde lecture dessinerait une page blanche. Et
+la console du navigateur **accumule** : le « Module not found » qu'elle
+montrait après coup datait de l'instant où `plan-store.ts` importait un
+fichier que je n'avais pas encore écrit ; ce sont les journaux du serveur qui
+disent l'état présent, et ils disaient « Compiled ».
+
+La barrière a été éprouvée **en base**, pas supposée : un bloc `do` qui pose
+les `request.jwt.claims` d'un compte non-admin, tente l'insertion, et se
+termine par `raise` — donc s'annule quoi qu'il arrive — a rendu « new row
+violates row-level security policy ». Aller-retour réel : plan 76 depuis un
+PDF de six pages fabriqué, objet à 2 566 octets, trois jours avec leurs pages
+(p. 1-3, p. 4, p. 5-6 : les pages muettes rattachées), lu à 100 % et 150 %
+(trois canevas de 2 184 px réels, de l'encre sur chacun), supprimé par
+l'écran — plan, jours, objet, cache IndexedDB à zéro. Base : 27 plans, 4 302
+jours, 798 lectures, comme avant. 963 tests. Rien n'est poussé.

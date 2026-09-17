@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { joursDepuisTexte, documentDayRows, nomDePlanPour } from './from-document'
+import { joursDepuisTexte, joursDepuisPages, joursDepuisSections, sectionsParTitre, documentDayRows, nomDePlanPour } from './from-document'
 
 const PLAN = `Plan de lecture — automne
 Semaine 1
@@ -38,7 +38,7 @@ describe('joursDepuisTexte — une ligne est un jour', () => {
   })
 
   it('un texte sans référence ne fait aucun jour', () => {
-    expect(joursDepuisTexte('Bonjour\n\nÀ bientôt')).toEqual({ jours: [], rejets: [], lignesIgnorees: 2 })
+    expect(joursDepuisTexte('Bonjour\n\nÀ bientôt')).toEqual({ jours: [], rejets: [], lignesIgnorees: 2, sectionsJointes: 0 })
   })
 })
 
@@ -72,6 +72,76 @@ Le repos du septième jour.
     const rows = documentDayRows(joursDepuisTexte(DOC, 'ligne', 'integral').jours, null)
     expect(rows[0].texte).toContain('Au commencement')
     expect(documentDayRows(joursDepuisTexte(DOC).jours, null)[0]).not.toHaveProperty('texte')
+  })
+})
+
+/** Un cahier d'étude de six pages : couverture, licence, puis la prose qui cite. */
+const PAGES = [
+  'Pour une foi réfléchie\nCahier d’étude',
+  'Licence accordée pour un usage personnel.\nNe pas copier.',
+  '# 1. La Bible, une parole\nOn lit dans Actes 8.30-31 que Philippe… et encore Actes 8.30-31 plus loin.',
+  'La suite de la prose, qui cite 2 Timothée 3.16.',
+  '# 2. Un canon\nAucune référence sur cette page-ci.',
+  'Mais ici Jean 3.16 et Psaume 119.105.',
+]
+
+describe('joursDepuisPages — une page à références est un jour', () => {
+  it('une page par jour : les pages sans référence rejoignent la suivante, le premier jour porte la couverture', () => {
+    const { jours, sectionsJointes } = joursDepuisPages(PAGES)
+    expect(jours.map((j) => [j.pageDebut, j.pageFin])).toEqual([[1, 3], [4, 4], [5, 6]])
+    expect(sectionsJointes).toBe(3)
+    // La référence citée deux fois sur la page ne fait qu'un passage.
+    expect(jours[0].passages).toEqual([{ book: 'ACT', chapterStart: 8, chapterEnd: 8, verseStart: 30, verseEnd: 31 }])
+    expect(jours[2].passages.map((p) => p.book)).toEqual(['JHN', 'PSA'])
+  })
+  it('l’aperçu porte la première ligne de la page, sans sa marque de titre', () => {
+    expect(joursDepuisPages(PAGES).jours[0].source).toBe('1. La Bible, une parole')
+  })
+  it('deux pages par jour : le pas groupe, puis la règle s’applique aux groupes', () => {
+    const { jours } = joursDepuisPages(PAGES, 2)
+    expect(jours.map((j) => [j.pageDebut, j.pageFin])).toEqual([[1, 4], [5, 6]])
+  })
+  it('les dernières pages sans référence rejoignent le dernier jour', () => {
+    const { jours } = joursDepuisPages([...PAGES, 'Table des matières', 'Achevé d’imprimer'])
+    expect(jours[jours.length - 1]).toMatchObject({ pageDebut: 5, pageFin: 8 })
+  })
+  it('un PDF sans aucune référence ne fait aucun jour', () => {
+    expect(joursDepuisPages(['Rien', 'Toujours rien']).jours).toEqual([])
+  })
+  it('le texte n’est pas retenu : le lecteur dessine les pages', () => {
+    expect(joursDepuisPages(PAGES).jours.every((j) => j.texte === undefined)).toBe(true)
+  })
+  it('documentDayRows écrit les bornes de pages', () => {
+    const rows = documentDayRows(joursDepuisPages(PAGES).jours, '2026-10-01')
+    expect(rows[0]).toMatchObject({ day: 1, date: '2026-10-01', pageDebut: 1, pageFin: 3, book: 'ACT' })
+    expect(rows[0]).not.toHaveProperty('texte')
+  })
+})
+
+describe('sectionsParTitre et le découpage par titre', () => {
+  const TEXTE = PAGES.join('\n')
+  it('chaque titre ouvre une section ; ce qui précède le premier en est une', () => {
+    const sections = sectionsParTitre(TEXTE)
+    expect(sections).toHaveLength(3)
+    expect(sections[0].texte).toContain('Licence')
+    expect(sections[1].texte.startsWith('# 1. La Bible')).toBe(true)
+  })
+  it('par titre : la couverture rejoint le premier chapitre, chaque chapitre est un jour', () => {
+    const { jours, sectionsJointes } = joursDepuisTexte(TEXTE, 'titre')
+    expect(jours).toHaveLength(2)
+    expect(jours[0].source).toBe('1. La Bible, une parole')
+    expect(jours[0].passages.map((p) => p.book)).toEqual(['ACT', '2TI'])
+    expect(sectionsJointes).toBe(1)
+  })
+  it('par titre, en intégral, le jour porte le texte de ses sections, préambule compris', () => {
+    const { jours } = joursDepuisTexte(TEXTE, 'titre', 'integral')
+    expect(jours[0].texte).toContain('Cahier d’étude')
+    expect(jours[0].texte).toContain('# 1. La Bible, une parole')
+    expect(jours[1].texte).not.toContain('Philippe')
+  })
+  it('joursDepuisSections sans page ne met pas de bornes', () => {
+    const { jours } = joursDepuisSections([{ texte: 'Jean 3.16' }])
+    expect(jours[0]).not.toHaveProperty('pageDebut')
   })
 })
 

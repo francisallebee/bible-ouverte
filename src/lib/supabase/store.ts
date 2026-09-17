@@ -188,6 +188,8 @@ export interface PlanRow {
   books: any
   startDate: string
   totalDays: number
+  /** Le chemin du PDF dans le seau `documents` (migration `20260917210000`). Nul = pas de document. */
+  document?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -246,6 +248,9 @@ export interface PlanDayRow {
    * dont le plan est tiré (migration `20260917200000`). Nul = passages seuls.
    */
   texte?: string | null
+  /** Les pages du document du plan à lire ce jour (migration `20260917210000`). Nulles sans document. */
+  page_debut?: number | null
+  page_fin?: number | null
 }
 
 export async function fetchPlanDays(planId: number): Promise<PlanDayRow[] | null> {

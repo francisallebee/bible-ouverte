@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, type ReactNode } from 'react'
-import { X } from 'lucide-react'
-import { useI18n } from '@/contexts/I18nContext'
+import type { ReactNode } from 'react'
+import FenetreDeLecture from './FenetreDeLecture'
 
 /**
  * La page d'un jour de plan, lue dans une fenêtre flottante.
@@ -18,8 +17,14 @@ import { useI18n } from '@/contexts/I18nContext'
  * Le texte porte la notation légère que l'extraction garde — `# Titre`,
  * `- élément`, une ligne vide entre les blocs — et ce composant est le seul à
  * la rendre : titres sur trois niveaux, paragraphes, listes. Rien d'autre ;
- * ce n'est pas du Markdown, c'est ce qu'un document de bureau ou un PDF
- * laissent voir de leur structure.
+ * ce n'est pas du Markdown, c'est ce qu'un document de bureau laisse voir de
+ * sa structure.
+ *
+ * Depuis le 17 septembre 2026 au soir, ce lecteur n'est plus celui des PDF :
+ * leur texte extrait restait illisible (lignes devenues paragraphes, césures,
+ * ligatures cassées), et un PDF gardé se lit dans `LecteurDePdf`, page par
+ * page, tel qu'il est. Ici restent les documents sans page — Word, EPUB,
+ * OpenDocument, texte —, dont le XML rend des paragraphes vrais.
  */
 
 interface Props {
@@ -73,42 +78,15 @@ function rendre(blocs: Bloc[]): ReactNode[] {
 }
 
 export default function LecteurDeJour({ open, titre, sousTitre, texte, onClose }: Props) {
-  const { t } = useI18n()
-
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open, onClose])
-
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
-
-      <div role="dialog" aria-modal="true" aria-label={titre}
-        className="relative w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-[--surface] rounded-t-2xl sm:rounded-2xl border border-[--border] shadow-xl">
-        <div className="sticky top-0 bg-[--surface] border-b border-[--border] px-5 py-4 flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="font-semibold text-[--text] truncate">{titre}</p>
-            {sousTitre && <p className="text-sm text-[--text-secondary] truncate">{sousTitre}</p>}
-          </div>
-          <button type="button" onClick={onClose} aria-label={t.common.close}
-            className="shrink-0 text-[--text-secondary] hover:text-[--text] transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* La colonne de lecture : la police des réglages, un interligne large,
-            une largeur de mesure — ce qui manquait au bloc replié. */}
-        <div className="px-5 sm:px-8 py-6">
-          <div className="texte-biblique leading-7 text-[--text] space-y-4 max-w-prose mx-auto">
-            {rendre(blocsDe(texte))}
-          </div>
+    <FenetreDeLecture open={open} titre={titre} sousTitre={sousTitre} onClose={onClose}>
+      {/* La colonne de lecture : la police des réglages, un interligne large,
+          une largeur de mesure — ce qui manquait au bloc replié. */}
+      <div className="px-5 sm:px-8 py-6">
+        <div className="texte-biblique leading-7 text-[--text] space-y-4 max-w-prose mx-auto">
+          {rendre(blocsDe(texte))}
         </div>
       </div>
-    </div>
+    </FenetreDeLecture>
   )
 }

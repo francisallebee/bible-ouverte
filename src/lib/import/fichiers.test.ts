@@ -5,7 +5,7 @@ import { texteDuFichier, TAILLE_MAXIMALE } from './fichiers'
 // `pdf.js` a besoin d'un navigateur ; ici on vérifie seulement que le PDF lui
 // est confié, avec la langue et le rapporteur de progression.
 vi.mock('./pdf', () => ({
-  texteDuPdf: vi.fn(async (f: File, locale: string) => `pdf:${f.name}:${locale}`),
+  pagesDuPdf: vi.fn(async (f: File, locale: string) => [`pdf:${f.name}:${locale}`, '', 'page 3']),
 }))
 // Whisper aussi : ici, seulement l'aiguillage, la parole vide et la durée.
 vi.mock('./audio', () => ({
@@ -216,9 +216,11 @@ describe('texteDuFichier — les enregistrements', () => {
 })
 
 describe('texteDuFichier — les refus nommés', () => {
-  it('le PDF est confié à pdf.js, par extension ou par type, avec la langue', async () => {
-    expect(await texteDuFichier(fichier('culte.pdf', '%PDF-1.4'), { locale: 'en' })).toEqual({ texte: 'pdf:culte.pdf:en' })
-    expect(await texteDuFichier(fichier('sans-extension', '%PDF-1.4', 'application/pdf'))).toEqual({ texte: 'pdf:sans-extension:fr' })
+  it('le PDF est confié à pdf.js, par extension ou par type, avec la langue — et rend ses pages, vides comprises', async () => {
+    expect(await texteDuFichier(fichier('culte.pdf', '%PDF-1.4'), { locale: 'en' }))
+      .toEqual({ texte: 'pdf:culte.pdf:en\n\npage 3', pages: ['pdf:culte.pdf:en', '', 'page 3'] })
+    expect(await texteDuFichier(fichier('sans-extension', '%PDF-1.4', 'application/pdf')))
+      .toMatchObject({ texte: 'pdf:sans-extension:fr\n\npage 3' })
   })
 
   it('un format inconnu est dit tel', async () => {

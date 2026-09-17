@@ -45,7 +45,12 @@ export type RaisonRefus =
   /** Plus de trente minutes : le téléphone n'a plus la mémoire. */
   | 'audio-trop-long'
 
-export type LectureFichier = { texte: string } | { refus: RaisonRefus }
+/**
+ * Le texte lu — et, pour un PDF, **ses pages** une à une : le plan « une page
+ * par jour » a besoin de savoir ce que chaque page porte, là où l'import de
+ * lectures ne veut que le tout.
+ */
+export type LectureFichier = { texte: string; pages?: string[] } | { refus: RaisonRefus }
 
 export interface OptionsLecture {
   /** La langue de l'OCR des pages scannées et de la transcription ; celle de l'interface. */
@@ -74,8 +79,9 @@ export async function texteDuFichier(fichier: File, options: OptionsLecture = { 
   const ext = extensionDe(fichier.name)
   try {
     if (ext === 'pdf' || fichier.type === 'application/pdf') {
-      const { texteDuPdf } = await import('./pdf')
-      return { texte: await texteDuPdf(fichier, options.locale, options.onProgressionPdf) }
+      const { pagesDuPdf } = await import('./pdf')
+      const pages = await pagesDuPdf(fichier, options.locale, options.onProgressionPdf)
+      return { texte: pages.filter(Boolean).join('\n\n'), pages }
     }
     if (AUDIO.has(ext) || fichier.type.startsWith('audio/')) {
       // Un enregistrement se choisit comme un document — décision du

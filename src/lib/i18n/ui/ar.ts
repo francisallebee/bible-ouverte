@@ -45,6 +45,12 @@ const lectures = (n: number) => pluriel(n, {
 const sutur = (n: number) => pluriel(n, {
   zero: 'سطر', un: 'سطر واحد', deux: 'سطران', peu: 'أسطر', beaucoup: 'سطرًا', autre: 'سطر',
 })
+const safahat = (n: number) => pluriel(n, {
+  zero: 'صفحة', un: 'صفحة واحدة', deux: 'صفحتان', peu: 'صفحات', beaucoup: 'صفحة', autre: 'صفحة',
+})
+const aqsam = (n: number) => pluriel(n, {
+  zero: 'قسم', un: 'قسم واحد', deux: 'قسمان', peu: 'أقسام', beaucoup: 'قسمًا', autre: 'قسم',
+})
 const ukhra = (n: number) => pluriel(n, {
   zero: 'أخرى', un: 'آخر', deux: 'آخران', peu: 'أخرى', beaucoup: 'آخر', autre: 'أخرى',
 })
@@ -520,7 +526,7 @@ export const ar: Dictionary = {
     free: 'حرة',
     freeHint: 'قائمة مقاطع بلا تواريخ، تُعلَّم على وتيرتك.',
     document: 'من مستند',
-    documentHint: 'نص أو Word أو PowerPoint أو OpenDocument أو EPUB أو PDF: كل سطر يحمل مرجعًا يصبح يومًا.',
+    documentHint: 'نص أو Word أو PowerPoint أو OpenDocument أو EPUB أو PDF: كل صفحة أو عنوان أو سطر يحمل مرجعًا يصبح يومًا.',
     documentChoose: 'اختيار المستند',
     documentReading: 'جارٍ قراءة المستند…',
     documentPdf: (i: number, n: number) => `جارٍ قراءة PDF، الصفحة ${i} من ${n}…`,
@@ -529,6 +535,8 @@ export const ar: Dictionary = {
     documentEmpty: 'لم يُعثر على أي مرجع كتابي في هذا المستند.',
     documentMore: (n: number) => `… و${n} ${ukhra(n)}`,
     documentSplit: 'التقسيم',
+    documentSplitPage: 'صفحة واحدة = يوم واحد (يُحتفظ بملف PDF)',
+    documentSplitHeading: 'عنوان واحد = يوم واحد',
     documentSplitLine: 'سطر واحد = يوم واحد',
     documentSplitPassage: 'مقطع واحد = يوم واحد',
     documentRhythm: 'الوتيرة',
@@ -538,6 +546,11 @@ export const ar: Dictionary = {
     documentContent: 'المحتوى',
     documentContentRefs: 'المراجع فقط',
     documentContentFull: 'المستند كاملًا، يومًا بيوم',
+    documentPagesPerDay: 'صفحات في اليوم',
+    documentPageHint: 'يُحتفظ بملف PDF في مساحتك ويُقرأ كما هو، صفحة صفحة. الصفحة التي لا تحمل مرجعًا تنضم إلى اليوم التالي.',
+    documentPagesJoined: (n: number) => `${n} ${safahat(n)} بلا مرجع، أُلحقت باليوم المجاور`,
+    documentSectionsJoined: (n: number) => `${n} ${aqsam(n)} بلا مرجع، أُلحقت باليوم المجاور`,
+    documentUploadError: 'تعذّر رفع المستند. تحقّق من الاتصال ثم أعد المحاولة.',
     duration: 'المدة',
     durations: {
       '1-year': 'سنة واحدة',
@@ -1179,6 +1192,14 @@ export const ar: Dictionary = {
     readOn: 'قُرئ في ',
     notReadYet: 'لم يُقرأ بعد',
     showText: 'قراءة نص اليوم',
+    showDocument: 'قراءة مستند اليوم',
+    page: (n: number) => `ص ${n}`,
+    pages: (a: number, b: number) => (a === b ? `ص ${a}` : `ص ${a}-${b}`),
+    documentLoading: 'جارٍ تنزيل المستند…',
+    documentError: 'تعذّرت قراءة المستند.',
+    zoom: 'تكبير',
+    zoomIn: 'تكبير',
+    zoomOut: 'تصغير',
     remove: (reference: string) => `إزالة ${reference}`,
     readOnLabel: 'قُرئ في',
     readText: (ref: string) => `اقرأ النص: ${ref}`,

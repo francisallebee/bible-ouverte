@@ -42,6 +42,7 @@ aucune donnée.
 | `20260915120000_memorised_verse_ranges.sql` | `chapterEnd` et `verseEnd` sur `memorised_verses` : un groupe de versets est **un seul texte appris, donc une seule ligne** ; l'unicité passe du verset de départ à l'intervalle entier — aucun `grant`, la table ayant l'`update` au niveau table comme `readings` |
 | `20260916120000_plan_readings_last_verse.sql` | **Réparation de données** : les 108 lectures de plan daté d'avant le 9 septembre 2026 portaient `1:1` pour bornes ; elles reçoivent le dernier verset réel de leur chapitre de fin, par la versification de Louis Segond — reconnues par le contexte « Plan de lecture » **et** la note « Plan : … », jamais par l'un seul |
 | `20260917200000_plan_day_texte.sql` | `plan_days.texte` : la page d'un document dont le plan est tiré, quand le lecteur a choisi de lire le document en entier — nulle sinon. Additive, sans reprise, **aucun `grant`** : `plan_days` a l'`UPDATE` au niveau table, vérifié le 17 septembre |
+| `20260917210000_plan_documents.sql` | **Le premier fichier stocké** : seau `documents` (privé, 20 Mo, PDF seul) créé par la migration, trois policies — lecture et suppression au propriétaire du préfixe, **dépôt réservé à l'administrateur** par `private.is_admin()` —, `plans.document` et `plan_days.page_debut`/`page_fin`, nulles. Additive, aucun `grant` |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -92,6 +93,19 @@ par l'outil MCP : **30 fichiers, 28 enregistrées**, la dernière sous
 l'outil MCP, sur accord du propriétaire : **32 fichiers, 30 enregistrées**, la
 dernière sous `20260917102928`. Colonne `texte` de type `text`, nullable,
 relue par `information_schema.columns` ; 4 099 jours, aucun avec texte.
+
+**Second relevé du 17 septembre 2026**, après application de `plan_documents`
+par l'outil MCP, sur accord du propriétaire : **33 fichiers, 31 enregistrées**,
+la dernière sous `20260917131320`. Relu : seau `documents` `public=false`,
+limite 20 971 520, `application/pdf` ; trois policies sur `storage.objects`,
+l'`INSERT` portant `private.is_admin()` ; trois colonnes nullables ; 0 objet.
+Puis un aller-retour réel depuis le serveur de développement : plan 76 créé
+avec un PDF de six pages, l'objet dans le seau à 2 566 octets sous le préfixe
+du compte, trois jours avec leurs pages, le plan lu et supprimé par l'écran —
+objet et jours partis, 0 objet. Et la barrière éprouvée : dans un bloc `do`
+terminé par `raise` (donc annulé), un `insert` dans `storage.objects` sous les
+`request.jwt.claims` d'un compte non-admin → `new row violates row-level
+security policy`.
 
 **Relevé du 16 septembre 2026**, après application de
 `plan_readings_last_verse` par l'outil MCP, sur accord du propriétaire :
@@ -175,6 +189,17 @@ inutilisables (0 objet stocké).
 la convention déjà employée par la route de suppression de compte, et pose des
 limites de taille et de type qui n'existaient pas (10 Mo pour les images, 25 Mo
 pour l'audio).
+
+**Le seau `documents`** (17 septembre 2026, `20260917210000_plan_documents.sql`)
+est le premier à porter des fichiers : le PDF dont un plan de lecture est tiré,
+lu ensuite page par page dans l'application. Créé **par la migration** et non
+au dashboard, même cloisonnement par préfixe, 20 Mo, `application/pdf` seul ;
+le **dépôt est réservé à l'administrateur** (`private.is_admin()` dans le
+`with check`), la lecture et la suppression au propriétaire du préfixe, pas
+d'`update` — un document ne se remplace pas, on refait le plan. Le fichier
+part avec le plan (`deletePlan`) et avec le compte (les deux routes de
+suppression le purgent, comme `photos` et `audio`). L'ouvrir à tous sera une
+migration d'une ligne.
 
 ## Vérifier après application
 
@@ -806,7 +831,7 @@ réessayer sans fin. Trois tentatives, puis on renonce.
 ## Ce qui reste hors du dépôt
 
 Les buckets de stockage `photos` et `audio` sont créés depuis le dashboard et ne
-sont pas décrits ici. Leurs policies méritent le même audit que les tables : la
+sont pas décrits ici — `documents`, lui, l'est : sa migration le crée. Leurs policies méritent le même audit que les tables : la
 route `/api/admin/users/[id]` y range les fichiers sous un préfixe `{user_id}/`,
 et rien dans le dépôt ne garantit qu'un utilisateur ne peut pas lire le préfixe
 d'un autre.

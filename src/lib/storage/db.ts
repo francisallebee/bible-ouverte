@@ -68,13 +68,18 @@ interface BibleOuverteDB extends DBSchema {
       'by-prochain': string;
     };
   };
+  /** Les PDF des plans, par chemin dans le seau : lus une fois, relus hors ligne. */
+  documents: {
+    key: string;
+    value: { chemin: string; octets: ArrayBuffer; taille: number; lu: string };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<BibleOuverteDB>> | null = null;
 
 export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 9, {
+    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 10, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const readingsStore = db.createObjectStore('readings', {
@@ -146,6 +151,13 @@ export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
             autoIncrement: true,
           });
           memorises.createIndex('by-prochain', 'prochain');
+        }
+
+        if (oldVersion < 10) {
+          // Le PDF d'un plan, tel que le seau l'a rendu : le lecteur de pages
+          // le dessine depuis ici, et le plan se lit hors ligne comme les
+          // autres. Clé = chemin dans le seau, unique par document.
+          db.createObjectStore('documents', { keyPath: 'chemin' });
         }
       },
     });

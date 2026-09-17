@@ -13,6 +13,7 @@ import {
   deletePlanDay as supabaseDeletePlanDay,
 } from '@/lib/supabase/store';
 import type { PlanRow, PlanDayRow } from '@/lib/supabase/store';
+import { oublierDocument } from '@/lib/plans/document-store';
 
 function isOnline() {
   return typeof navigator !== 'undefined' && navigator.onLine;
@@ -39,6 +40,7 @@ function rowToPlan(r: PlanRow): ReadingPlan {
     books: safeParseArray(r.books),
     startDate: r.startDate,
     totalDays: r.totalDays,
+    document: r.document ?? undefined,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     synced: true,
@@ -56,6 +58,7 @@ function planToRow(p: ReadingPlan, userId: string): Omit<PlanRow, 'id' | 'create
     books: JSON.stringify(p.books ?? []),
     startDate: p.startDate,
     totalDays: p.totalDays,
+    document: p.document ?? null,
   } as Omit<PlanRow, 'id' | 'createdAt' | 'updatedAt'>;
 }
 
@@ -75,6 +78,8 @@ function rowToDay(r: PlanDayRow): PlanDay {
     readingId: r.readingId ?? undefined,
     passages: r.passages ?? undefined,
     texte: r.texte ?? undefined,
+    pageDebut: r.page_debut ?? undefined,
+    pageFin: r.page_fin ?? undefined,
     synced: true,
   };
 }
@@ -96,6 +101,8 @@ function dayToRow(d: PlanDay, userId: string): Omit<PlanDayRow, 'id'> {
     // clé absente la laisserait telle quelle sur une mise à jour partielle.
     passages: d.passages && d.passages.length > 0 ? d.passages : null,
     texte: d.texte || null,
+    page_debut: d.pageDebut ?? null,
+    page_fin: d.pageFin ?? null,
   };
 }
 
@@ -244,6 +251,12 @@ export async function deletePlan(id: number): Promise<void> {
   if (isOnline() && existing?.synced) {
     supabaseDeletePlan(id).catch(() => {});
     supabaseDeletePlanDays(id).catch(() => {});
+  }
+  // Le document du plan part avec lui — du seau et du cache. Un plan tiré
+  // d'un PDF est le seul à en porter ; supprimer le plan est la seule façon
+  // de retirer le fichier.
+  if (existing?.document) {
+    oublierDocument(existing.document).catch(() => {});
   }
 }
 

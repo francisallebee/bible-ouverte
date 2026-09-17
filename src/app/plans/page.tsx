@@ -6,7 +6,9 @@ import { BookOpen, Plus, Calendar, Trash2, ListChecks, FileText, AlertTriangle }
 import { seedIfNeeded, getEnabledVersions, getAllPlans, addPlan, deletePlan, generatePlanDays, addPlanDays, getCurrentUserId, getSettings } from "@/lib/storage";
 import { PLAN_TEMPLATES, templateDays, type PlanTemplate } from "@/lib/plans/catalog";
 import { templatePlanDays, templateDayRows, templateRealDays } from "@/lib/plans/from-template";
-import { joursDepuisTexte, documentDayRows, nomDePlanPour, type Decoupage, type Contenu, type PlanDepuisDocument } from "@/lib/plans/from-document";
+import { joursDepuisTexte, joursDepuisPages, documentDayRows, nomDePlanPour, type Decoupage, type Contenu, type PlanDepuisDocument } from "@/lib/plans/from-document";
+import { cheminDeDocument, deposerDocument } from "@/lib/plans/document-store";
+import { useAuth } from "@/contexts/AuthContext";
 import { texteDuFichier, type RaisonRefus } from "@/lib/import/fichiers";
 import type { ProgressionPdf } from "@/lib/import/pdf";
 import { ecrireReference } from "@/lib/lectures/reference";
@@ -21,6 +23,13 @@ import { formatDate } from "@/lib/i18n/format";
  */
 type FormeDePlan = PlanKind | "document";
 
+/**
+ * Le découpage offert au formulaire : ceux du texte, plus `page` — les pages
+ * d'un PDF **gardé**, qui se lit ensuite tel quel. Réservé à l'administrateur
+ * par la policy du seau ; le formulaire ne le propose donc qu'à lui.
+ */
+type DecoupageDuFormulaire = Decoupage | "page";
+
 /** Les durées proposées. Leurs libellés vivent dans les dictionnaires. */
 const DURATIONS: { value: PlanDuration; days?: number }[] = [
   { value: "1-year", days: 365 },
@@ -32,6 +41,7 @@ const DURATIONS: { value: PlanDuration; days?: number }[] = [
 
 export default function PlansPage() {
   const { t, locale } = useI18n();
+  const { isAdmin } = useAuth();
   const getBookName = useBookName();
   const [plans, setPlans] = useState<ReadingPlan[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
@@ -49,14 +59,23 @@ export default function PlansPage() {
    */
   const documentRef = useRef<HTMLInputElement>(null);
   const [documentTexte, setDocumentTexte] = useState<string | null>(null);
+  /** Le PDF lui-même, et son texte page par page : le découpage `page` garde le premier et lit le second. */
+  const [documentFichier, setDocumentFichier] = useState<File | null>(null);
+  const [documentPages, setDocumentPages] = useState<string[] | null>(null);
+  const [documentPagesParJour, setDocumentPagesParJour] = useState(1);
   const [documentNom, setDocumentNom] = useState("");
   const [documentLecture, setDocumentLecture] = useState(false);
   const [documentPdf, setDocumentPdf] = useState<ProgressionPdf | null>(null);
   const [documentRefus, setDocumentRefus] = useState<RaisonRefus | null>(null);
-  const [documentDecoupage, setDocumentDecoupage] = useState<Decoupage>("ligne");
+  const [documentErreur, setDocumentErreur] = useState(false);
+  const [documentDecoupage, setDocumentDecoupage] = useState<DecoupageDuFormulaire>("ligne");
   const [documentDate, setDocumentDate] = useState(true);
   const [documentContenu, setDocumentContenu] = useState<Contenu>("references");
-  const documentPlan: PlanDepuisDocument | null = documentTexte === null ? null : joursDepuisTexte(documentTexte, documentDecoupage, documentContenu);
+  const pageOfferte = documentPages !== null && isAdmin;
+  const documentPlan: PlanDepuisDocument | null =
+    documentTexte === null ? null
+    : documentDecoupage === "page" ? (documentPages ? joursDepuisPages(documentPages, documentPagesParJour) : null)
+    : joursDepuisTexte(documentTexte, documentDecoupage, documentContenu);
   const [formDuration, setFormDuration] = useState<PlanDuration>("1-year");
   const [formCustomDays, setFormCustomDays] = useState(30);
   const [formVersion, setFormVersion] = useState("");
@@ -86,12 +105,25 @@ export default function PlansPage() {
   async function lireDocument(fichier: File) {
     setDocumentLecture(true);
     setDocumentRefus(null);
+    setDocumentErreur(false);
     setDocumentTexte(null);
+    setDocumentPages(null);
+    setDocumentFichier(null);
     try {
       const lu = await texteDuFichier(fichier, { locale, onProgressionPdf: setDocumentPdf });
       if ("refus" in lu) { setDocumentRefus(lu.refus); return; }
       setDocumentTexte(lu.texte);
       setDocumentNom(fichier.name);
+      // Un PDF, pour l'administrateur : le découpage par page, une page par
+      // jour, est celui qu'on propose d'abord — c'est la demande du
+      // propriétaire du 17 septembre 2026. Les autres formats n'ont pas de page.
+      if (lu.pages && isAdmin) {
+        setDocumentPages(lu.pages);
+        setDocumentFichier(fichier);
+        setDocumentDecoupage("page");
+      } else if (documentDecoupage === "page") {
+        setDocumentDecoupage("ligne");
+      }
       if (!formName.trim()) setFormName(nomDePlanPour(fichier.name));
     } finally {
       setDocumentLecture(false);
@@ -109,6 +141,22 @@ export default function PlansPage() {
     const now = new Date().toISOString();
 
     if (formKind === "document" && documentPlan) {
+      // Le PDF d'un plan par pages est déposé **avant** que le plan existe :
+      // si le seau refuse, rien n'a été créé ; si le plan échoue ensuite, le
+      // fichier orphelin est retiré. Le chemin porte le préfixe du compte,
+      // seul que la policy admette.
+      let document: string | undefined;
+      if (documentDecoupage === "page" && documentFichier) {
+        document = cheminDeDocument(userId);
+        try {
+          await deposerDocument(document, documentFichier);
+        } catch (e) {
+          console.warn("dépôt du document :", e);
+          setDocumentErreur(true);
+          setFormSaving(false);
+          return;
+        }
+      }
       // Daté ou libre selon le rythme choisi : en base, c'est l'un des deux
       // `PlanKind` existants, et l'écran du plan n'a rien à apprendre.
       const jours = documentPlan.jours;
@@ -121,6 +169,7 @@ export default function PlansPage() {
         customDays: jours.length,
         startDate: formStartDate,
         totalDays: jours.length,
+        ...(document ? { document } : {}),
         createdAt: now,
         updatedAt: now,
       });
@@ -170,6 +219,8 @@ export default function PlansPage() {
     setShowForm(false);
     setFormName("");
     setDocumentTexte(null);
+    setDocumentPages(null);
+    setDocumentFichier(null);
     setDocumentNom("");
     await load();
   }
@@ -349,6 +400,12 @@ export default function PlansPage() {
                     {t.avance.import.fileRefus[documentRefus]}
                   </p>
                 )}
+                {documentErreur && (
+                  <p className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-lg px-3 py-2 inline-flex items-center gap-1.5" role="alert">
+                    <AlertTriangle className="w-4 h-4" />
+                    {t.plans.documentUploadError}
+                  </p>
+                )}
 
                 {documentPlan && (
                   <>
@@ -357,9 +414,11 @@ export default function PlansPage() {
                         <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.documentSplit}</label>
                         <select
                           value={documentDecoupage}
-                          onChange={(e) => setDocumentDecoupage(e.target.value as Decoupage)}
+                          onChange={(e) => setDocumentDecoupage(e.target.value as DecoupageDuFormulaire)}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                         >
+                          {pageOfferte && <option value="page">{t.plans.documentSplitPage}</option>}
+                          <option value="titre">{t.plans.documentSplitHeading}</option>
                           <option value="ligne">{t.plans.documentSplitLine}</option>
                           <option value="passage">{t.plans.documentSplitPassage}</option>
                         </select>
@@ -385,17 +444,35 @@ export default function PlansPage() {
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                       />
                     )}
-                    <div>
-                      <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.documentContent}</label>
-                      <select
-                        value={documentContenu}
-                        onChange={(e) => setDocumentContenu(e.target.value as Contenu)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      >
-                        <option value="references">{t.plans.documentContentRefs}</option>
-                        <option value="integral">{t.plans.documentContentFull}</option>
-                      </select>
-                    </div>
+                    {documentDecoupage === "page" ? (
+                      // Le PDF est gardé et se lit tel quel : pas de « contenu »
+                      // à choisir, seulement le pas — combien de pages par jour.
+                      <div>
+                        <label htmlFor="pages-par-jour" className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.documentPagesPerDay}</label>
+                        <input
+                          id="pages-par-jour"
+                          type="number"
+                          min={1}
+                          max={50}
+                          value={documentPagesParJour}
+                          onChange={(e) => setDocumentPagesParJour(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
+                          className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                        />
+                        <p className="text-xs text-[--text-secondary] mt-1">{t.plans.documentPageHint}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.documentContent}</label>
+                        <select
+                          value={documentContenu}
+                          onChange={(e) => setDocumentContenu(e.target.value as Contenu)}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                        >
+                          <option value="references">{t.plans.documentContentRefs}</option>
+                          <option value="integral">{t.plans.documentContentFull}</option>
+                        </select>
+                      </div>
+                    )}
 
                     {/* L'aperçu : ce que le plan aura pour jours, avant de le
                         créer. Les dix premiers, puis le compte du reste. */}
@@ -406,16 +483,27 @@ export default function PlansPage() {
                       {documentPlan.lignesIgnorees > 0 && (
                         <p className="text-xs text-[--text-secondary]">{t.plans.documentIgnored(documentPlan.lignesIgnorees)}</p>
                       )}
+                      {documentPlan.sectionsJointes > 0 && (
+                        <p className="text-xs text-[--text-secondary]">
+                          {documentDecoupage === "page" ? t.plans.documentPagesJoined(documentPlan.sectionsJointes) : t.plans.documentSectionsJoined(documentPlan.sectionsJointes)}
+                        </p>
+                      )}
                       {documentPlan.jours.length > 0 && (
                         <ol className="mt-2 text-sm space-y-1 max-h-56 overflow-y-auto">
                           {documentPlan.jours.slice(0, 10).map((j) => (
                             <li key={j.day} className="flex gap-2">
                               <span className="text-xs text-gray-400 font-mono shrink-0 pt-0.5">{t.planDetail.day(j.day)}</span>
                               <span className="min-w-0">
+                                {/* Par page : les pages réelles du jour d'abord — c'est ce qu'on lira. */}
+                                {j.pageDebut !== undefined && (
+                                  <span className="text-xs text-[--text-secondary] me-2">{t.planDetail.pages(j.pageDebut, j.pageFin ?? j.pageDebut)}</span>
+                                )}
                                 {j.passages.map((p) => ecrireReference(getBookName(p.book), p.book, p)).join(", ")}
-                                {/* En mode intégral, un aperçu de la page du jour : ses premiers mots. */}
-                                {j.texte && (
-                                  <span className="block text-xs text-[--text-secondary] truncate">{j.texte.replace(/^(?:#{1,3}|-)\s+/gm, "").replace(/\s+/g, " ").slice(0, 120)}</span>
+                                {/* En mode intégral, un aperçu de la page du jour : ses premiers mots ; par page, la première ligne de la page. */}
+                                {(j.texte || j.pageDebut !== undefined) && (
+                                  <span className="block text-xs text-[--text-secondary] truncate">
+                                    {(j.texte ?? j.source).replace(/^(?:#{1,3}|-)\s+/gm, "").replace(/\s+/g, " ").slice(0, 120)}
+                                  </span>
                                 )}
                               </span>
                             </li>

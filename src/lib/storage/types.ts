@@ -92,6 +92,12 @@ export interface ReadingPlan {
   books?: string[];
   startDate: string;
   totalDays: number;
+  /**
+   * Le chemin, dans le seau `documents`, du PDF dont le plan est tiré —
+   * `{user_id}/{uuid}.pdf`. Chaque jour porte alors ses pages (`pageDebut`,
+   * `pageFin`) et se lit dans le document lui-même. Absent sur tout autre plan.
+   */
+  document?: string;
   createdAt: string;
   updatedAt: string;
   /** true si la ligne existe dans Supabase (flag local uniquement) */
@@ -184,6 +190,9 @@ export interface PlanDay {
    * et non ses seules références. Absent sur tout autre plan.
    */
   texte?: string;
+  /** Les pages du document du plan à lire ce jour, à partir de 1, bornes incluses. Absentes sans document. */
+  pageDebut?: number;
+  pageFin?: number;
   isRead: boolean;
   readingId?: number;
   /** true si la ligne existe dans Supabase (flag local uniquement) */
