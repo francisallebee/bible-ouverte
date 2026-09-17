@@ -12,7 +12,7 @@ import { dernierVerset } from '@/features/bible/versets'
  * module est **déterministe** : il reconnaît ce qu'il sait lire et rend le
  * reste en rejets nommés, jamais en silence.
  *
- * Ce qu'il lit : « Jean 3:16 », « Jean 3.16 », « Jn 3,16 », « Jean 3:16-18 »,
+ * Ce qu'il lit : « Jean 3:16 », « Jean 3.16 », « Jean 3/16 », « Jn 3,16 », « Jean 3:16-18 »,
  * « Jean 3:16-4:2 », « Jean 3:16, 18 », « Jean 3:16 ; 4:2 », « Jean 3 »,
  * « Jean 3-4 », « Jean 3 verset 16 », « John 3 verse 16 », « 1 Jean 4:8 »,
  * « 1re Jean », « I Jean », « Jude 3 » (les livres à un chapitre lisent le
@@ -188,13 +188,15 @@ const MOTIF_LIVRE_APRES_NOMBRE = new RegExp(
 
 /**
  * Ce qui sépare un chapitre de son verset, **à condition qu'un nombre suive** :
- * « 3:16 », « 3.16 », « 3,16 » collé, « 3 v. 16 », « 3, verset 16 ». Sans
+ * « 3:16 », « 3.16 », « 3/16 », « 3,16 » collé, « 3 v. 16 », « 3, verset 16 ».
+ * La barre oblique vient du propriétaire, le 17 septembre 2026, sur une photo
+ * réelle : « Actes 3/8 » n'était pas lu, et il corrigeait à la main. Sans
  * nombre derrière, un point est la fin d'une phrase — « lire Jean 3. » est
  * un chapitre entier, pas un séparateur orphelin. La virgule ne sépare que
  * **collée** au nombre, à la française (« Jn 3,16 ») : suivie d'une espace,
  * elle énumère (« Jude 3, 5 »).
  */
-const SEPARATEUR_VERSET = /^\s*(?:(?::|\.)(?=\s*\d)|,(?=\d)|,?\s+(?:vv?s?|versets?|verses?)\.?(?=\s*\d))\s*/
+const SEPARATEUR_VERSET = /^\s*(?:(?::|\.|\/)(?=\s*\d)|,(?=\d)|,?\s+(?:vv?s?|versets?|verses?)\.?(?=\s*\d))\s*/
 const TIRET = /^\s*[-–—]\s*(?=\d)/
 const VIRGULE = /^\s*,\s*(?=\d)/
 const POINT_VIRGULE = /^\s*;\s*(?=\d)/
@@ -316,6 +318,11 @@ export function extraireReferences(texte: string): Extraction {
     const code = ordinal ? entree.famille[ordinal] : entree.seul
     const finLivre = debut + m[0].length
     if (!code) {
+      // Une abréviation d'une ou deux lettres sans ordinal — « p. 490 » (une
+      // page), « ch. 3 » (un chapitre), « P52 » (un papyrus) — n'est presque
+      // jamais un livre : la signaler noierait les vrais rejets. Vu sur la
+      // page Wikipédia « Jean 3:16 », le 17 septembre 2026, cinq fois.
+      if (!ordinal && m[2].length < 3) { dernierePos = finLivre; continue }
       // « Samuel 3 » sans ordinal, ou « 3 Samuel » : le nombre qui suit est
       // pris dans le fragment, pour que le rejet se lise tel qu'écrit.
       const nombreApres = /^\s*\d+/.exec(normalise.slice(finLivre))?.[0].length ?? 0

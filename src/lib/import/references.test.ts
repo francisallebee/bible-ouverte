@@ -14,6 +14,11 @@ describe('extraireReferences — les formes usuelles', () => {
     ['Jean 3:16', ref('JHN', 3, 16)],
     ['Jean 3.16', ref('JHN', 3, 16)],
     ['Jn 3,16', ref('JHN', 3, 16)],
+    // Vu par le propriétaire sur une photo réelle, le 17 septembre 2026.
+    ['Actes 3/8', ref('ACT', 3, 8)],
+    ['Actes 3 / 8', ref('ACT', 3, 8)],
+    ['Actes 3 : 8', ref('ACT', 3, 8)],
+    ['Actes 3/8-10', ref('ACT', 3, 8, 3, 10)],
     ['Jean 3:16-18', ref('JHN', 3, 16, 3, 18)],
     ['Jean 3:16-4:2', ref('JHN', 3, 16, 4, 2)],
     ['Jean 3 verset 16', ref('JHN', 3, 16)],
@@ -168,6 +173,12 @@ describe('extraireReferences — ce qui n’est pas une référence', () => {
     const { references, rejets } = extraireReferences(texte)
     expect(references).toEqual([])
     expect(rejets).toEqual([])
+  })
+
+  it.each(['p. 490', 'P66', 'ch. 3', 'voir s. 12'])('« %s » : une abréviation courte sans ordinal est ignorée, sans rejet', (texte) => {
+    // Vu sur une page réelle le 17 septembre 2026 : « p. 490 » et « P52 »
+    // signalés « quel tome ? » cinq fois, du bruit qui noyait les vrais rejets.
+    expect(extraireReferences(texte)).toEqual({ references: [], rejets: [] })
   })
 
   it('un nom de livre au milieu d’un mot ne compte pas', () => {

@@ -128,6 +128,37 @@ describe('texteDuFichier — les archives de bureau', () => {
   })
 })
 
+describe('texteDuFichier — les livres numériques', () => {
+  it('EPUB : les chapitres dans l’ordre de la spine, pas celui de l’archive', async () => {
+    const epub = zip({
+      'mimetype': 'application/epub+zip',
+      'OEBPS/ch2.xhtml': '<html><body><p>Puis Ps 23.</p></body></html>',
+      'OEBPS/ch1.xhtml': '<html><body><h1>Chapitre un</h1><p>Lire Jean&nbsp;3:16.</p></body></html>',
+      'OEBPS/content.opf':
+        '<package><manifest><item id="b" href="ch2.xhtml" media-type="application/xhtml+xml"/>'
+        + '<item id="a" href="ch1.xhtml" media-type="application/xhtml+xml"/>'
+        + '<item id="css" href="style.css" media-type="text/css"/></manifest>'
+        + '<spine><itemref idref="a"/><itemref idref="b"/></spine></package>',
+      'META-INF/container.xml': '<container><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>',
+    })
+    expect(await texteDuFichier(fichier('livre.epub', epub))).toEqual({ texte: 'Chapitre un\nLire Jean 3:16.\n\nPuis Ps 23.' })
+  })
+
+  it('EPUB sans container.xml : les XHTML triés par nom, plutôt que rien', async () => {
+    const epub = zip({ 'b.xhtml': '<p>deux</p>', 'a.xhtml': '<p>un</p>' })
+    expect(await texteDuFichier(fichier('brut.epub', epub))).toEqual({ texte: 'un\n\ndeux' })
+  })
+
+  it('FB2 : un XML nu, paragraphes et titres en lignes', async () => {
+    const fb2 = '<FictionBook><body><title><p>Culte</p></title><section><p>Jean <emphasis>3:16</emphasis></p><empty-line/><p>Ps 23</p></section></body></FictionBook>'
+    expect(await texteDuFichier(fichier('livre.fb2', fb2))).toEqual({ texte: 'Culte\nJean 3:16\n\nPs 23' })
+  })
+
+  it.each(['livre.mobi', 'livre.azw', 'livre.azw3', 'livre.kfx'])('%s : Kindle est refusé avec sa raison', async (nom) => {
+    expect(await texteDuFichier(fichier(nom, new Uint8Array([0, 1, 2])))).toEqual({ refus: 'kindle-chiffre' })
+  })
+})
+
 describe('texteDuFichier — les refus nommés', () => {
   it('le PDF attend le chemin serveur', async () => {
     expect(await texteDuFichier(fichier('culte.pdf', '%PDF-1.4'))).toEqual({ refus: 'pdf-a-venir' })

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ClipboardPaste, Check, AlertTriangle, Sparkles, FileUp, Camera } from 'lucide-react'
+import { ClipboardPaste, Check, AlertTriangle, Sparkles, FileUp, Camera, Link2 } from 'lucide-react'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
 import {
   seedIfNeeded, getEnabledVersions, getAllContexts, getSettings, getPassagesForRange, addReading,
@@ -16,12 +16,13 @@ import { formatDate } from '@/lib/i18n/format'
 import ContextPicker from '@/components/ContextPicker'
 
 /**
- * L'import de lectures — le presse-papier, les fichiers, la photo.
+ * L'import de lectures — le presse-papier, les fichiers, la photo, le lien.
  *
  * Un texte collé — ou extrait d'un fichier par `texteDuFichier`, ou reconnu
- * sur une photo par `reconnaitreTexte`, toujours dans le navigateur, et
- * déposé dans le même champ pour que le lecteur voie ce qui a été lu — passe
- * par `extraireReferences`, et chaque référence reconnue
+ * sur une photo par `reconnaitreTexte`, ou rapporté d'une adresse par la
+ * route `api/import/lien` puis extrait par ce même `texteDuFichier`, toujours
+ * dans le navigateur, et déposé dans le même champ pour que le lecteur voie ce
+ * qui a été lu — passe par `extraireReferences`, et chaque référence reconnue
  * devient une proposition cochée ; les fragments non reconnus sont montrés
  * avec leur raison, jamais avalés. **Rien ne s'enregistre sans relecture** :
  * c'est la seule protection contre une référence mal lue, et elle vaut pour
@@ -64,8 +65,13 @@ export default function ImportLectures() {
   const fichierRef = useRef<HTMLInputElement>(null)
   /** `null` au repos ; `-1` pendant le chargement du moteur ; 0 à 100 pendant la lecture. */
   const [ocr, setOcr] = useState<number | null>(null)
+  /** La page en cours et le nombre de pages, quand il y en a plusieurs. */
+  const [ocrPage, setOcrPage] = useState<{ i: number; n: number } | null>(null)
   const [ocrMessage, setOcrMessage] = useState<'vide' | 'erreur' | null>(null)
   const photoRef = useRef<HTMLInputElement>(null)
+  const [lien, setLien] = useState('')
+  const [lectureLien, setLectureLien] = useState(false)
+  const [refusLien, setRefusLien] = useState<keyof typeof t.avance.import.linkRefus | null>(null)
 
   useEffect(() => {
     ;(async () => {
@@ -95,17 +101,50 @@ export default function ImportLectures() {
    * l'analyse part aussitôt. Un refus est dit avec sa raison ; le champ reste
    * ce qu'il était.
    */
-  async function lireFichier(fichier: File) {
+  async function lireFichier(fichier: File, seance?: string) {
     setLectureFichier(true)
     setRefusFichier(null)
     try {
       const lu = await texteDuFichier(fichier)
       if ('refus' in lu) { setRefusFichier(lu.refus); return }
       setTexte(lu.texte)
-      analyser(lu.texte, t.avance.import.sessionDefaultFichier(fichier.name, formatDate(locale, date)))
+      analyser(lu.texte, seance ?? t.avance.import.sessionDefaultFichier(fichier.name, formatDate(locale, date)))
     } finally {
       setLectureFichier(false)
       if (fichierRef.current) fichierRef.current.value = ''
+    }
+  }
+
+  /**
+   * Le serveur va chercher le document et le rend tel quel ; il devient un
+   * `File` nommé par l'en-tête `X-Import-Nom`, et suit la voie d'un fichier
+   * choisi — une seule extraction. Un refus de la route porte son code, que
+   * le dictionnaire traduit.
+   */
+  async function lireLien() {
+    const adresse = lien.trim()
+    if (!adresse) return
+    setLectureLien(true)
+    setRefusLien(null)
+    setRefusFichier(null)
+    try {
+      const reponse = await fetch('/api/import/lien', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: adresse }),
+      })
+      if (!reponse.ok) {
+        const code = reponse.status === 403 ? 'acces' : ((await reponse.json().catch(() => ({})))?.error ?? 'inaccessible')
+        setRefusLien(code in t.avance.import.linkRefus ? (code as keyof typeof t.avance.import.linkRefus) : 'inaccessible')
+        return
+      }
+      const nom = decodeURIComponent(reponse.headers.get('X-Import-Nom') ?? 'page.html')
+      const fichier = new File([await reponse.blob()], nom, { type: reponse.headers.get('Content-Type') ?? '' })
+      await lireFichier(fichier, t.avance.import.sessionDefaultLien(nom, formatDate(locale, date)))
+    } catch {
+      setRefusLien('inaccessible')
+    } finally {
+      setLectureLien(false)
     }
   }
 
@@ -144,29 +183,40 @@ export default function ImportLectures() {
   }
 
   /**
-   * La photo est lue sur l'appareil ; le texte reconnu prend la place du
-   * champ et l'analyse part. Une photo sans texte le dit, une lecture qui
-   * échoue aussi — et le champ reste ce qu'il était dans les deux cas.
+   * Les photos sont lues sur l'appareil, l'une après l'autre — un document de
+   * plusieurs pages, demandé par le propriétaire le 17 septembre 2026 —, et
+   * leurs textes mis bout à bout prennent la place du champ ; l'analyse part.
+   * Des photos sans texte le disent, une lecture qui échoue aussi — et le
+   * champ reste ce qu'il était dans les deux cas.
    */
-  async function lirePhoto(fichier: File) {
+  async function lirePhotos(fichiers: File[]) {
     setOcr(-1)
+    setOcrPage(fichiers.length > 1 ? { i: 1, n: fichiers.length } : null)
     setOcrMessage(null)
     setRefusFichier(null)
     try {
-      const texteLu = await reconnaitreTexte(fichier, locale, (part) => setOcr(Math.round(part * 100)))
-      if (!texteLu) { setOcrMessage('vide'); return }
+      const pages: string[] = []
+      for (const [index, fichier] of Array.from(fichiers.entries())) {
+        if (fichiers.length > 1) setOcrPage({ i: index + 1, n: fichiers.length })
+        setOcr(-1)
+        const texteLu = await reconnaitreTexte(fichier, locale, (part) => setOcr(Math.round(part * 100)))
+        if (texteLu) pages.push(texteLu)
+      }
+      if (pages.length === 0) { setOcrMessage('vide'); return }
+      const texteLu = pages.join('\n\n')
       setTexte(texteLu)
       analyser(texteLu, t.avance.import.sessionDefaultPhoto(formatDate(locale, date)))
     } catch {
       setOcrMessage('erreur')
     } finally {
       setOcr(null)
+      setOcrPage(null)
       if (photoRef.current) photoRef.current.value = ''
     }
   }
 
   const champ = 'w-full border border-gray-300 rounded-lg px-3 py-2 bg-white'
-  const occupe = lectureFichier || ocr !== null
+  const occupe = lectureFichier || ocr !== null || lectureLien
 
   return (
     <section className="bg-[--surface] rounded-xl border border-[--border] p-5 sm:p-6">
@@ -199,7 +249,7 @@ export default function ImportLectures() {
           ref={fichierRef}
           type="file"
           className="sr-only"
-          accept=".txt,.md,.csv,.tsv,.log,.html,.htm,.docx,.xlsx,.pptx,.odt,.ods,.odp,.pdf,text/*"
+          accept=".txt,.md,.csv,.tsv,.log,.html,.htm,.docx,.xlsx,.pptx,.odt,.ods,.odp,.epub,.fb2,.pdf,.mobi,.azw,.azw3,text/*"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) void lireFichier(f) }}
         />
         <button
@@ -218,7 +268,8 @@ export default function ImportLectures() {
           type="file"
           className="sr-only"
           accept="image/*"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) void lirePhoto(f) }}
+          multiple
+          onChange={(e) => { const fs = Array.from(e.target.files ?? []); if (fs.length > 0) void lirePhotos(fs) }}
         />
         <button
           type="button"
@@ -231,7 +282,11 @@ export default function ImportLectures() {
         </button>
         {ocr !== null && (
           <p className="text-sm text-[--text-secondary]" role="status" aria-live="polite">
-            {ocr < 0 ? t.avance.import.ocrLoading : t.avance.import.ocrProgress(ocr)}
+            {ocr < 0
+              ? t.avance.import.ocrLoading
+              : ocrPage
+                ? t.avance.import.ocrPage(ocrPage.i, ocrPage.n, ocr)
+                : t.avance.import.ocrProgress(ocr)}
           </p>
         )}
         {enregistrees !== null && (
@@ -243,6 +298,36 @@ export default function ImportLectures() {
       </div>
       <p className="text-xs text-[--text-secondary] mt-2">{t.avance.import.fileHint}</p>
       <p className="text-xs text-[--text-secondary] mt-1">{t.avance.import.photoHint}</p>
+
+      <label htmlFor="import-lien" className="block text-sm font-medium mt-4 mb-1">{t.avance.import.linkLabel}</label>
+      <div className="flex flex-wrap gap-2">
+        <input
+          id="import-lien"
+          type="url"
+          inputMode="url"
+          value={lien}
+          onChange={(e) => setLien(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void lireLien() } }}
+          placeholder={t.avance.import.linkPlaceholder}
+          className={`${champ} flex-1 min-w-[12rem]`}
+        />
+        <button
+          type="button"
+          onClick={() => void lireLien()}
+          disabled={occupe || !lien.trim()}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white font-medium disabled:opacity-50"
+        >
+          <Link2 className="w-4 h-4" />
+          {lectureLien ? t.avance.import.linkLoading : t.avance.import.linkButton}
+        </button>
+      </div>
+      <p className="text-xs text-[--text-secondary] mt-1">{t.avance.import.linkHint}</p>
+      {refusLien && (
+        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 inline-flex items-center gap-1.5" role="alert">
+          <AlertTriangle className="w-4 h-4" />
+          {t.avance.import.linkRefus[refusLien]}
+        </p>
+      )}
       {ocrMessage && (
         <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 inline-flex items-center gap-1.5" role="alert">
           <AlertTriangle className="w-4 h-4" />

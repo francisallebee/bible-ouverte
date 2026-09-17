@@ -14,11 +14,16 @@
  * plus là. La règle 6 d'`AGENTS.md` tient.
  *
  * Ce qui est lu : `txt`, `md`, `csv`, `tsv`, `html` ; `docx`, `xlsx`, `pptx` ;
- * `odt`, `ods`, `odp`. Le `pdf` est **refusé avec sa raison** tant que le
- * chemin serveur n'existe pas : rien ne disparaît en silence.
+ * `odt`, `ods`, `odp` ; `epub` et `fb2` — les livres numériques, demandés par
+ * le propriétaire le 17 septembre 2026. Le `pdf` est **refusé avec sa raison**
+ * tant que le chemin serveur n'existe pas ; les formats **Kindle** (`mobi`,
+ * `azw`, `azw3`, `kfx`) aussi, et pour de bon : un format binaire
+ * propriétaire, et les livres achetés sont chiffrés par une clé que seul le
+ * compte Amazon détient — aucun lecteur ne les ouvre sans elle. Rien ne
+ * disparaît en silence.
  */
 
-export type RaisonRefus = 'pdf-a-venir' | 'format-inconnu' | 'trop-gros' | 'illisible'
+export type RaisonRefus = 'pdf-a-venir' | 'kindle-chiffre' | 'format-inconnu' | 'trop-gros' | 'illisible'
 
 export type LectureFichier = { texte: string } | { refus: RaisonRefus }
 
@@ -29,6 +34,7 @@ const TEXTE_BRUT = new Set(['txt', 'md', 'markdown', 'csv', 'tsv', 'text', 'log'
 const HTML = new Set(['html', 'htm'])
 const OFFICE = new Set(['docx', 'xlsx', 'pptx'])
 const OPEN_DOCUMENT = new Set(['odt', 'ods', 'odp'])
+const KINDLE = new Set(['mobi', 'azw', 'azw3', 'azw4', 'kfx', 'prc'])
 
 function extensionDe(nom: string): string {
   const point = nom.lastIndexOf('.')
@@ -50,6 +56,9 @@ export async function texteDuFichier(fichier: File): Promise<LectureFichier> {
       const contenu = await zip.texte('content.xml')
       return { texte: contenu === null ? '' : texteDuXml(contenu, /<\/text:(?:p|h)>|<text:line-break\/>/g) }
     }
+    if (ext === 'epub') return { texte: await texteEpub(await lireZip(new Uint8Array(await fichier.arrayBuffer()))) }
+    if (ext === 'fb2') return { texte: texteDuXml(await lireTexte(fichier), /<\/(?:p|v|subtitle|text-author)>|<empty-line\/>/g) }
+    if (KINDLE.has(ext)) return { refus: 'kindle-chiffre' }
     return { refus: 'format-inconnu' }
   } catch {
     return { refus: 'illisible' }
@@ -118,6 +127,40 @@ async function texteOffice(ext: string, octets: Uint8Array): Promise<string> {
     return diapos.join('\n\n')
   }
   return texteExcel(zip)
+}
+
+/**
+ * Un EPUB : `META-INF/container.xml` nomme le fichier OPF, dont la `spine`
+ * donne l'ordre de lecture des chapitres XHTML — c'est cet ordre qui compte,
+ * pas celui des entrées de l'archive. Un livre sans `container.xml` ou sans
+ * `spine` retombe sur ses fichiers XHTML triés par nom : mieux vaut un texte
+ * dans le désordre que rien.
+ */
+async function texteEpub(zip: Zip): Promise<string> {
+  const conteneur = await zip.texte('META-INF/container.xml')
+  const cheminOpf = conteneur ? /full-path="([^"]+)"/.exec(conteneur)?.[1] : undefined
+  const opf = cheminOpf ? await zip.texte(cheminOpf) : null
+  let chapitres: string[] = []
+  if (opf) {
+    const dossier = cheminOpf!.includes('/') ? cheminOpf!.slice(0, cheminOpf!.lastIndexOf('/') + 1) : ''
+    const items = new Map<string, string>()
+    for (const m of Array.from(opf.matchAll(/<item\b([^>]*)\/?>/g))) {
+      const id = /\bid="([^"]+)"/.exec(m[1])?.[1]
+      const href = /\bhref="([^"]+)"/.exec(m[1])?.[1]
+      const type = /\bmedia-type="([^"]+)"/.exec(m[1])?.[1] ?? ''
+      if (id && href && /html|xml/.test(type)) items.set(id, dossier + decodeURIComponent(href))
+    }
+    chapitres = Array.from(opf.matchAll(/<itemref\b[^>]*\bidref="([^"]+)"/g))
+      .map((m) => items.get(m[1]))
+      .filter((h): h is string => h !== undefined)
+  }
+  if (chapitres.length === 0) chapitres = zip.noms().filter((n) => /\.x?html?$/i.test(n)).sort()
+  const textes: string[] = []
+  for (const chemin of chapitres) {
+    const xhtml = await zip.texte(chemin)
+    if (xhtml !== null) textes.push(texteDuHtml(xhtml))
+  }
+  return textes.filter((t) => t !== '').join('\n\n')
 }
 
 /**

@@ -4160,3 +4160,33 @@ curl -sS -H "Authorization: Bearer $(gh auth token)" \
 Désormais : pousser, lire ce statut jusqu'à sa sortie de `pending`, puis
 sonder la feuille pour la preuve de contenu. La sonde garde son rôle — elle
 prouve ce qui est servi —, le statut dit si et quoi.
+
+### Les retours du propriétaire, et la première route de l'import
+
+Le propriétaire a vu la fonction **en production** : presse-papier et photo
+fonctionnent — deux preuves d'écran qui ne viennent pas de l'agent. Six
+retours ont suivi ; `spec/IMPORT-IA.md` les détaille. Ici, ce qui vaut
+au-delà de la fonction.
+
+**Une route qui va chercher ce qu'on lui dit est une porte vers le réseau du
+serveur.** `api/import/lien` existe pour le CORS, pas pour un droit de plus,
+et elle est bornée comme telle : `adresseAdmise` refuse `localhost`, les
+plages privées, `169.254.x` et les `.local`/`.internal` — et **rejuge
+l'adresse finale après redirection**, sans quoi une adresse publique pourrait
+renvoyer vers une interne. La lecture s'arrête net à quatre mégaoctets même si
+le serveur n'annonce pas sa taille. 23 tests sur la règle d'admission, le
+nom de fichier et les plages — `172.32` n'est pas privé, `172.31` l'est.
+
+**Kindle est refusé pour de bon, et le message le dit.** `mobi`, `azw`,
+`azw3`, `kfx` : format binaire propriétaire, et les livres achetés sont
+chiffrés par une clé que seul le compte Amazon détient. Promettre de les lire
+aurait été mentir ; le message propose de convertir en EPUB — que le lecteur
+zip lit — ou de copier le texte.
+
+**Troisième texte réel, troisième défaut.** La page Wikipédia « Jean 3:16 »
+a fait signaler « p. 490 » et « P52 » comme des tomes manquants de Pierre :
+`p` est une abréviation, et une abréviation d'une ou deux lettres sans
+ordinal n'est presque jamais un livre. Ignorée en silence désormais. Après
+le point-virgule devant un ordinal (le `.docx`) et la barre oblique (la
+photo du propriétaire), c'est la troisième règle que l'usage a écrite et
+que l'imagination n'avait pas.

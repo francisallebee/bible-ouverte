@@ -237,10 +237,60 @@ ensuite, et le piège 28 du 16 septembre avait la même cause. Vercel jugera au
 push, avec une sonde ; ce n'est pas la discipline voulue, c'est ce que le bac
 à sable laisse.
 
-### Ce qui suit, dans l'ordre
+### Vu par le propriétaire, en production — 17 septembre 2026
 
-1. Un aller-retour réel depuis une **vraie** photo de notes, sur l'iPhone du
-   propriétaire — le canevas de l'essai est un cas facile.
+« Avec presse-papier tout est ok. » « Avec photo, ça fonctionne aussi. » Ce
+sont les premières preuves d'écran de la fonction qui ne viennent pas de
+l'agent, et elles portent sur la production, pas sur le serveur de
+développement. La photo était une vraie photo, pas un canevas.
+
+Et une demande née de l'usage : **« Actes 3/8 » n'était pas lu**, il fallait
+corriger en « 3.8 » à la main. La barre oblique est désormais un séparateur
+(« Actes 3/8 », « Actes 3 / 8 », « Actes 3/8-10 »), et « 3 : 8 » avec espaces
+l'était déjà.
+
+### Les six retours du 17 septembre, et ce qu'ils ont donné
+
+| Demande | Fait |
+|---|---|
+| « / » comme séparateur | `SEPARATEUR_VERSET` l'accepte ; 4 tests |
+| Photo sur plusieurs pages | `multiple` sur le champ ; les pages lues l'une après l'autre, « page 2 sur 5… 40 % », textes joints par une ligne vide. Vu : deux canevas en 3 s, 4 références |
+| EPUB, Kindle, autres livres | **EPUB** lu par le lecteur zip — `container.xml` → OPF → `spine`, l'ordre de lecture et non celui de l'archive, repli sur les XHTML triés ; **FB2** (XML nu) lu. **Kindle refusé avec sa raison** : `mobi`/`azw`/`azw3`/`kfx` sont un format binaire propriétaire et les livres achetés sont chiffrés par une clé que seul le compte Amazon détient — aucun lecteur ne les ouvre. Le message dit : convertir en EPUB, ou copier le texte |
+| Un lien vers un document | La route `api/import/lien` — voir ci-dessous |
+
+### Le lien, `api/import/lien` — la première route de l'import
+
+Un navigateur ne peut pas lire une page d'un autre site (CORS). La route va la
+chercher et **rend les octets tels quels** ; le navigateur en fait un `File`
+nommé par l'en-tête `X-Import-Nom` (`nomDeFichierPour` : le nom de l'adresse
+s'il porte une extension que le type confirme, sinon `page.html`, `123.pdf`)
+et le passe au même `texteDuFichier` qu'un fichier choisi — **une seule voie
+d'extraction**. La route ne garde rien, ne lit rien du contenu, et c'est la
+première du dépôt qui ne sert pas la clé service_role : elle existe pour le
+CORS, pas pour un droit de plus.
+
+Garde-fous : `requireAdmin` — `is_admin` lu en base avec la session de
+l'appelant, comme les routes d'administration ; `adresseAdmise` — `http(s)`
+seuls, ni identifiants dans l'adresse, ni `localhost`, `.local`, `.internal`,
+ni les plages privées, le lien-local `169.254.x` (les métadonnées des
+hébergeurs) et les équivalents IPv6 ; l'adresse **finale** rejugée après
+redirection ; dix secondes ; quatre mégaoctets, la lecture arrêtée net au-delà
+même si le serveur n'annonce pas sa taille. 23 tests sur la part pure.
+
+Vu, session du propriétaire : `http://localhost:3000/admin` → « Cette adresse
+désigne un réseau interne » ; la page Wikipédia « Jean 3:16 » rapportée en
+9 s, 11 256 caractères, 5 références, séance « Import Jean_3:16.html · date ».
+
+**Cette page réelle a montré un troisième défaut de l'analyseur** : « p. 490 »,
+« P66 », « P52 » signalés « quel tome ? » — `p` est l'abréviation de Pierre.
+Une abréviation d'une ou deux lettres sans ordinal n'est presque jamais un
+livre (une page, un chapitre, un papyrus) ; elle est désormais ignorée en
+silence, et « Samuel 3 » reste signalé. Troisième fois qu'un texte réel bat
+la suite verte : 113 tests sur l'import après.
+
+### Ce qui suit
+
+1. Une vraie photo de plusieurs pages, sur l'iPhone du propriétaire.
 2. Les deux arbitrages ouverts : l'audio, le modèle — et le PDF avec lui.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
@@ -259,6 +309,7 @@ push, avec une sonde ; ce n'est pas la discipline voulue, c'est ce que le bac
 |---|---|
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
+| 17 sept. 2026 | **Vu en production par le propriétaire** : presse-papier et photo. Six retours : « / » séparateur, photo multi-pages, EPUB et FB2 lus, Kindle refusé (DRM), la route `api/import/lien`. Le bruit des abréviations courtes retiré. 924 tests. |
 | 17 sept. 2026 | **Troisième étage** : `lib/import/ocr.ts`, la photo lue sur l'appareil par `tesseract.js` (7.0.0, la seule dépendance, chargée à la demande). Vu sur une image fabriquée : texte exact, 3 références. `next build` figé deux fois dans un worktree — le bac à sable, hypothèse. |
 | 17 sept. 2026 | **Deuxième étage** : `lib/import/fichiers.ts`, Word, Excel, PowerPoint, OpenDocument, texte, csv, html sans dépendance (15 tests) ; PDF refusé avec sa raison. L'essai réel a trouvé le défaut du point-virgule devant un ordinal ; corrigé, 70 tests sur l'analyseur. |
 | 17 sept. 2026 | **Premier étage livré** : `lib/import/references.ts`, l'analyseur déterministe (53 tests), et `components/import/ImportLectures.tsx` dans `/avance` — le presse-papier, l'écran de validation, la septième voie de création. Vu et éprouvé par un aller-retour réel : Psaumes 23 enregistré (ligne 897, texte du cache, séance « Import presse-papier · 17/09/2026 »), vu dans l'historique, effacé par l'écran, base revenue à 745. |
