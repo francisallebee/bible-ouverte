@@ -153,3 +153,69 @@ export async function texteDuPdf(
 ): Promise<string> {
   return (await pagesDuPdf(fichier, locale, onProgression)).filter(Boolean).join('\n\n')
 }
+
+/** Un repère dans le document : un signet (« bookmark ») et la page où il mène. */
+export interface RepereDuPdf {
+  page: number
+  titre: string
+  /** 1 pour un signet de premier rang, 2 pour ses enfants. Au-delà, ignoré. */
+  niveau: 1 | 2
+}
+
+/**
+ * Ce qu'un plan de lecture a besoin de savoir d'un PDF pour se découper :
+ * son nombre de pages, ses signets — les chapitres, quand l'éditeur les a
+ * posés — et la première ligne de chaque page, pour nommer un jour qui
+ * commence sans signet. Pas d'OCR ici : une page scannée n'a pas de première
+ * ligne, elle aura son numéro.
+ */
+export interface StructureDuPdf {
+  pages: number
+  reperes: RepereDuPdf[]
+  premieresLignes: string[]
+}
+
+export async function structureDuPdf(
+  source: File | ArrayBuffer,
+  onProgression?: (p: ProgressionPdf) => void,
+): Promise<StructureDuPdf> {
+  const pdfjs = await chargerPdfjs()
+  const octets = source instanceof ArrayBuffer ? source : await source.arrayBuffer()
+  const tache = pdfjs.getDocument({ data: new Uint8Array(octets) })
+  const document = await tache.promise
+  try {
+    const reperes: RepereDuPdf[] = []
+    const plan = await document.getOutline().catch(() => null)
+    const resoudre = async (dest: unknown): Promise<number | null> => {
+      try {
+        const tableau = typeof dest === 'string' ? await document.getDestination(dest) : dest
+        if (!Array.isArray(tableau) || !tableau[0]) return null
+        return (await document.getPageIndex(tableau[0])) + 1
+      } catch {
+        return null
+      }
+    }
+    for (const item of plan ?? []) {
+      const page = await resoudre(item.dest)
+      if (page !== null && item.title?.trim()) reperes.push({ page, titre: item.title.trim(), niveau: 1 })
+      for (const enfant of item.items ?? []) {
+        const p = await resoudre(enfant.dest)
+        if (p !== null && enfant.title?.trim()) reperes.push({ page: p, titre: enfant.title.trim(), niveau: 2 })
+      }
+    }
+    reperes.sort((a, b) => a.page - b.page || a.niveau - b.niveau)
+
+    const premieresLignes: string[] = []
+    for (let n = 1; n <= document.numPages; n++) {
+      onProgression?.({ page: n, pages: document.numPages })
+      const page = await document.getPage(n)
+      const contenu = await page.getTextContent()
+      const texte = lignesDepuisElements(contenu.items as ElementTexte[])
+      premieresLignes.push(texte.split('\n')[0]?.replace(/^#\s+/, '') ?? '')
+      page.cleanup()
+    }
+    return { pages: document.numPages, reperes, premieresLignes }
+  } finally {
+    await tache.destroy()
+  }
+}

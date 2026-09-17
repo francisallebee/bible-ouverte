@@ -518,12 +518,63 @@ porte une licence « consultation sur un seul support électronique à la fois �
 un exemplaire privé dans son compte, lu par lui seul, me paraît être cet
 usage — c'est son appréciation.
 
+### « Pas concluant » — deux fonctions, et un éditeur de jours
+
+Le propriétaire n'a pas créé de plan par pages (la base : 26 plans, 0 objet)
+et a jugé l'ensemble « pas concluant » avec trois exigences : **aucune
+référence ajoutée** au document entier (« elles sont déjà dans le document »),
+**choisir ce que chaque jour lit**, pas seulement une page par jour, et une
+visualisation **autre que le texte seul**. Proposition acceptée le jour même,
+l'ordre et l'éditeur modifiable après compris.
+
+**Deux fonctions séparées dès le premier écran.** A, « Depuis un document » :
+les références deviennent les passages, rien n'est gardé — l'existant, moins
+le mode page et le contenu intégral, retirés du formulaire (`LecteurDeJour`
+reste pour les jours qui portent un `texte`). B, « Lire un document » : le PDF
+gardé, découpé par le lecteur, lu tel qu'il est, **sans passage** ; réservé à
+l'administrateur par la policy du seau, et le bouton ne se montre qu'à lui.
+
+**Un jour sans passage.** Migration `20260917220000_plan_lecture_document`
+(appliquée sur accord, journal à 32) : `book`, chapitres et versets nullables,
+`titre` ajoutée. Sentinelle côté code : le livre vide → `dayPassages` rend
+`[]`, `markRead` ne crée aucune lecture, `dayToRow` écrit nul, les exports
+écrivent le titre ou les pages dans la colonne « Livre ». `toDayColumns`
+garde son refus : il ne sert qu'aux jours bibliques.
+
+**L'éditeur de jours** (`lib/plans/portions.ts`, pur, 13 tests ;
+`components/plans/EditeurDeJours.tsx`). Des portions **contiguës** sur les
+pages : déplacer une borne déplace la même borne pour le voisin, aucun jour
+vide. Trois gestes rapides — répartir en N jours, N pages par jour, un
+chapitre par jour quand le PDF a des signets (`structureDuPdf` : pages,
+signets sur deux rangs, première ligne de chaque page) —, puis la main : « de
+… à … » par jour, scinder, fusionner, retirer, ajouter, et les deux marges
+« commencer à / finir à » qui **avalent** les jours tombés dehors (couverture,
+licence, table). Les champs valident à la sortie, pas à la frappe. Le titre
+d'un jour : son premier signet, sinon la première ligne de sa première page.
+**Modifiable après** : « Modifier → Modifier le découpage » relit la structure
+depuis le cache et `redecouper` remplace les jours en gardant le cochage des
+portions restées identiques (`replacePlanDays` attend la suppression distante
+avant d'insérer — sans quoi le `delete` tardif emporterait les nouveaux).
+
+**Le lecteur** : plein écran sur téléphone, « jour précédent / suivant » sans
+fermer, « marquer comme lu » au pied, retour en haut au changement de jour.
+
+Vu : PDF de six pages → « Lire un document » → répartir en 3 → commencer à la
+page 3 → deux jours « 1. La Bible, une parole » (p. 3-4) et « 2. Un canon »
+(p. 5-6) ; plan 80 créé, livre nul ; lu jour 1 → jour suivant → marqué lu
+depuis le lecteur, **798 lectures avant et après** ; redécoupé (jour 1 scindé)
+→ trois jours, le coché resté coché ; supprimé, tout à zéro. Pendant l'essai,
+le propriétaire a lui-même créé et supprimé un plan 81 depuis le serveur de
+développement — les journaux PostgREST l'ont montré. 981 tests.
+
 ### Ce qui suit
 
-1. Le propriétaire refait son cahier d'étude en « une page par jour » et juge
-   le lecteur sur le vrai document — et le pas (1, 2, 3 pages) qui lui convient.
-2. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
-3. Le modèle, plus tard — et avec lui le « tout » du point 5.
+1. **Session 2** : EPUB et Word rendus en HTML riche — leurs chapitres et
+   sections comme unités de l'éditeur, le seau ouvert à leurs types.
+2. Le propriétaire refait son cahier en « Lire un document » et juge sur le
+   vrai PDF : le découpage par signets s'il en a, le lecteur sur l'iPhone.
+3. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
+4. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
 
@@ -539,6 +590,7 @@ usage — c'est son appréciation.
 
 | Date | Fait |
 |---|---|
+| 17 sept. 2026 | **« Lire un document »** : deux fonctions séparées ; migration `plan_lecture_document` (jour sans passage, `titre`) ; `portions.ts` + `EditeurDeJours` (répartir, N pages, chapitres par signets, bornes, scinder/fusionner, marges) ; redécoupage après création ; lecteur plein écran avec précédent/suivant. Aller-retour : plan 80, aucune lecture née, redécoupé, supprimé. 981 tests. |
 | 17 sept. 2026 | **Le document lui-même** : « vraiment illisible » sur le vrai cahier (plan 75) ; deux défauts nommés par la base. Stockage accordé, une page par jour par défaut. Migration `plan_documents` (seau `documents`, dépôt admin par policy, `plans.document`, `plan_days.page_debut/page_fin`), `LecteurDePdf` (pdf.js dessine, zoom, cache IndexedDB v10), `joursDepuisSections`/`joursDepuisPages`/`sectionsParTitre`. Aller-retour réel : plan 76, objet 2 566 octets, lu, supprimé, tout à zéro ; non-admin refusé par la RLS. 963 tests. |
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |

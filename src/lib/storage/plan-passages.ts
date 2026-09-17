@@ -36,6 +36,9 @@ export function dayPassages(day: Pick<PlanDay,
   'book' | 'chapterStart' | 'chapterEnd' | 'verseStart' | 'verseEnd' | 'passages'
 >): PlanPassage[] {
   if (day.passages && day.passages.length > 0) return day.passages;
+  // Un jour sans livre lit une portion du document du plan, pas la Bible :
+  // aucun passage, et cocher le jour n'enregistre aucune lecture.
+  if (!day.book) return [];
   return [{
     book: day.book,
     chapterStart: day.chapterStart,

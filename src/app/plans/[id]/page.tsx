@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import {
   seedIfNeeded, getPlan, getPlanDays, updatePlanDay, updatePlan,
-  addReading, deleteReading, getAllVersions, generatePlanDays, deletePlanDaysByPlan, addPlanDays,
+  addReading, deleteReading, getAllVersions, generatePlanDays, deletePlanDaysByPlan, addPlanDays, replacePlanDays,
   addPlanEntry, deletePlanDay, getPassagesForRange,
   getCurrentUserId, PLAN_CONTEXT_ID,
   exportPlanCSV, exportPlanMarkdown, exportPlanJSON, exportPlanHTML, exportPlanPDF,
@@ -26,6 +26,11 @@ import { textDirection } from "@/lib/i18n/locales";
 import type { ReadingPlan, PlanDay, BibleVersion, PlanDuration, BiblePassage } from "@/lib/storage";
 import LecteurDeJour from "@/components/plans/LecteurDeJour";
 import LecteurDePdf from "@/components/plans/LecteurDePdf";
+import EditeurDeJours from "@/components/plans/EditeurDeJours";
+import { structureDuPdf, type StructureDuPdf } from "@/lib/import/pdf";
+import { octetsDuDocument } from "@/lib/plans/document-store";
+import { portionsDesJours, redecouper } from "@/lib/plans/lecture-document";
+import { reperesUtiles, type Portion } from "@/lib/plans/portions";
 
 /** Les durées proposées. Leurs libellés vivent dans les dictionnaires. */
 const DURATIONS: { value: PlanDuration }[] = [
@@ -75,6 +80,34 @@ export default function PlanDetailPage() {
 
   const DAYS_PER_PAGE = 14;
   const isFree = plan?.kind === "free";
+  /**
+   * Un document lu jour après jour : le plan porte son PDF, ses jours des
+   * pages et aucun passage. L'œil ouvre le lecteur de pages, cocher
+   * n'enregistre aucune lecture, et l'édition redécoupe au lieu de régénérer.
+   */
+  const estLecture = !!plan?.document;
+
+  /** Le redécoupage d'un document lu : sa structure, chargée à la demande, et les portions en cours d'édition. */
+  const [structure, setStructure] = useState<StructureDuPdf | null>(null);
+  const [chargementStructure, setChargementStructure] = useState(false);
+  const [portions, setPortions] = useState<Portion[]>([]);
+  const [structureErreur, setStructureErreur] = useState(false);
+
+  async function ouvrirRedecoupage() {
+    if (!plan?.document || structure) return;
+    setChargementStructure(true);
+    setStructureErreur(false);
+    try {
+      const s = await structureDuPdf(await octetsDuDocument(plan.document));
+      setStructure(s);
+      setPortions(portionsDesJours(days));
+    } catch (e) {
+      console.warn("structure du document :", e);
+      setStructureErreur(true);
+    } finally {
+      setChargementStructure(false);
+    }
+  }
 
   // edit form state
   const [formName, setFormName] = useState("");
@@ -177,8 +210,9 @@ export default function PlanDetailPage() {
         date,
         isRead: true,
         // La colonne garde la première : c'est ce que lit un appareil resté
-        // sur l'ancienne version.
-        readingId: ecrits[0].readingId,
+        // sur l'ancienne version. Un jour sans passage — une portion de
+        // document — n'a rien à garder : coché, c'est tout.
+        ...(ecrits.length > 0 ? { readingId: ecrits[0].readingId } : {}),
         ...(ecrits.length > 1 ? { passages: ecrits } : {}),
       };
       await updatePlanDay(updatedDay);
@@ -259,10 +293,16 @@ export default function PlanDetailPage() {
     });
   }, [isFree, getBookName, bornesReelles]);
 
-  /** La référence d'un jour, tous passages confondus. */
-  const referenceDuJour = useCallback((day: PlanDay) =>
-    dayPassages(day).map(referenceDuPassage).join(" · "),
-  [referenceDuPassage]);
+  /** La référence d'un jour, tous passages confondus — ou, pour une portion de document, son titre ou ses pages. */
+  const referenceDuJour = useCallback((day: PlanDay) => {
+    const passages = dayPassages(day);
+    if (passages.length > 0) return passages.map(referenceDuPassage).join(" · ");
+    if (day.pageDebut !== undefined) return day.titre || t.planDetail.pages(day.pageDebut, day.pageFin ?? day.pageDebut);
+    return "";
+  }, [referenceDuPassage, t]);
+
+  /** Les jours qui ont des pages, dans l'ordre : le fil de « précédent / suivant » du lecteur. */
+  const joursAvecPages = useMemo(() => days.filter((d) => d.pageDebut !== undefined).sort((a, b) => a.day - b.day), [days]);
 
   /**
    * Ouvre le texte du jour.
@@ -311,6 +351,35 @@ export default function PlanDetailPage() {
     if (!plan || !formName.trim() || !formVersion) return;
     setSaving(true);
     try {
+      // Un document lu jour après jour ne se régénère pas : ses jours sont ses
+      // portions. Le nom, la version, la date de début se modifient ; le
+      // découpage, s'il a été ouvert, remplace les jours en gardant le cochage
+      // des portions restées identiques (`redecouper`).
+      if (estLecture) {
+        const nouveauxJours = structure && portions.length > 0
+          ? redecouper(days, portions, reperesUtiles(structure.reperes), structure.premieresLignes, plan.kind === "free" ? null : formStartDate)
+          : null;
+        const updated: ReadingPlan = {
+          ...plan,
+          name: formName.trim(),
+          versionId: formVersion,
+          ...(plan.kind === "free" ? {} : { startDate: formStartDate }),
+          ...(nouveauxJours ? { totalDays: nouveauxJours.length, customDays: nouveauxJours.length } : {}),
+          updatedAt: new Date().toISOString(),
+        };
+        await updatePlan(updated);
+        if (nouveauxJours) {
+          const userId = await getCurrentUserId();
+          await replacePlanDays(planId, nouveauxJours.map((d) => ({ ...d, planId, userId })));
+          setDays(await getPlanDays(planId));
+        }
+        setPlan(updated);
+        setStructure(null);
+        setEditing(false);
+        setSaving(false);
+        return;
+      }
+
       // Un plan libre n'a ni durée ni date de début : seuls son nom et sa
       // version se modifient. Passer par le générateur effacerait sa liste.
       if (plan.kind === "free") {
@@ -357,7 +426,7 @@ export default function PlanDetailPage() {
       console.error(e);
     }
     setSaving(false);
-  }, [plan, formName, formDuration, formCustomDays, formVersion, formStartDate, formBooks, planId]);
+  }, [plan, formName, formDuration, formCustomDays, formVersion, formStartDate, formBooks, planId, estLecture, structure, portions, days]);
 
   function toggleBook(abbrev: string) {
     setFormBooks((prev) =>
@@ -434,7 +503,7 @@ export default function PlanDetailPage() {
               <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {!isFree && (
+              {!isFree && !estLecture && (
                 <div>
                   <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.planDetail.duration}</label>
                   <select value={formDuration} onChange={(e) => setFormDuration(e.target.value as PlanDuration)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -442,7 +511,7 @@ export default function PlanDetailPage() {
                   </select>
                 </div>
               )}
-              {!isFree && formDuration === "custom" && (
+              {!isFree && !estLecture && formDuration === "custom" && (
                 <div>
                   <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.planDetail.customDays}</label>
                   <input type="number" min={1} value={formCustomDays} onChange={(e) => setFormCustomDays(Math.max(1, Number(e.target.value)))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
@@ -461,9 +530,33 @@ export default function PlanDetailPage() {
                 </div>
               )}
             </div>
+            {/* Le redécoupage d'un document lu : la structure du PDF est relue
+                depuis le cache, et l'éditeur repart des portions actuelles. */}
+            {estLecture && (
+              <div>
+                <label className="block text-xs font-medium text-[--text-secondary] mb-2">{t.plans.lecture.days}</label>
+                {!structure && (
+                  <button type="button" onClick={ouvrirRedecoupage} disabled={chargementStructure}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-sm hover:bg-gray-50 disabled:opacity-50">
+                    {chargementStructure && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {chargementStructure ? t.planDetail.documentLoading : t.planDetail.editSplit}
+                  </button>
+                )}
+                {structureErreur && <p className="text-sm text-red-700 mt-2" role="alert">{t.planDetail.documentError}</p>}
+                {structure && (
+                  <EditeurDeJours
+                    total={structure.pages}
+                    reperes={structure.reperes}
+                    premieresLignes={structure.premieresLignes}
+                    portions={portions}
+                    onChange={setPortions}
+                  />
+                )}
+              </div>
+            )}
             {/* Un plan libre n'a pas de jours à régénérer : sa liste se construit
                 passage par passage, et rejouer le générateur l'effacerait. */}
-            <div className={isFree ? "hidden" : undefined}>
+            <div className={isFree || estLecture ? "hidden" : undefined}>
               <label className="block text-xs font-medium text-[--text-secondary] mb-2">{t.planDetail.booksLabel}</label>
               <details className="text-sm">
                 <summary className="cursor-pointer text-[--primary] hover:underline">
@@ -485,12 +578,12 @@ export default function PlanDetailPage() {
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               {saving ? t.planDetail.saving : t.common.save}
             </button>
-            <button onClick={() => setEditing(false)} className="text-gray-600 px-4 py-1.5 rounded-lg text-sm hover:bg-gray-200">{t.common.cancel}</button>
+            <button onClick={() => { setEditing(false); setStructure(null); }} className="text-gray-600 px-4 py-1.5 rounded-lg text-sm hover:bg-gray-200">{t.common.cancel}</button>
           </div>
         </div>
       )}
 
-      {isFree && (
+      {isFree && !estLecture && (
         <div className="mb-6">
           <PassageAdder versionId={plan.versionId} onAdd={handleAddEntry} />
         </div>
@@ -546,7 +639,7 @@ export default function PlanDetailPage() {
                   : <Circle className="w-5 h-5 text-gray-300 shrink-0" />}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    {!isFree && <span className="text-xs text-gray-400 font-mono shrink-0">{t.planDetail.day(day.day)}</span>}
+                    {(!isFree || estLecture) && <span className="text-xs text-gray-400 font-mono shrink-0">{t.planDetail.day(day.day)}</span>}
                     {/* Un plan libre n'annonce une date que lorsqu'elle existe :
                         `new Date("")` produirait « Invalid Date » à l'écran. */}
                     {day.date ? (
@@ -567,6 +660,13 @@ export default function PlanDetailPage() {
                         {referenceDuPassage(passage)}
                       </p>
                     ))}
+                    {/* Une portion de document : son titre, et ses pages en dessous. */}
+                    {dayPassages(day).length === 0 && day.pageDebut !== undefined && (
+                      <>
+                        <p>{day.titre || t.planDetail.pages(day.pageDebut, day.pageFin ?? day.pageDebut)}</p>
+                        {day.titre && <p className="text-xs font-normal text-gray-500">{t.planDetail.pages(day.pageDebut, day.pageFin ?? day.pageDebut)}</p>}
+                      </>
+                    )}
                   </div>
                 </div>
               </button>
@@ -575,12 +675,12 @@ export default function PlanDetailPage() {
                 bouton n'est pas du HTML valide, et le clic n'irait pas au bon
                 endroit. Même disposition que la corbeille des plans libres.
               */}
-              <button onClick={() => ouvrirApercu(day)}
-                aria-label={t.planDetail.readText(referenceDuJour(day))}
+              <button onClick={() => (estLecture && day.pageDebut !== undefined ? setPageOuverte(day) : ouvrirApercu(day))}
+                aria-label={estLecture ? t.planDetail.readDocument(referenceDuJour(day)) : t.planDetail.readText(referenceDuJour(day))}
                 className="px-3 py-3 min-h-12 min-w-12 flex items-center justify-center text-gray-400 hover:text-[--primary] transition-colors shrink-0">
                 <BookOpenText className="w-4 h-4" />
               </button>
-              {isFree && (
+              {isFree && !estLecture && (
                 <button onClick={() => handleRemoveEntry(day)}
                   aria-label={t.planDetail.remove(`${getBookName(day.book)} ${day.chapterStart}`)}
                   className="px-4 py-3 text-gray-400 hover:text-red-600 transition-colors shrink-0">
@@ -593,16 +693,14 @@ export default function PlanDetailPage() {
                 pages du PDF gardé, dessinées telles quelles, ou le texte d'un
                 document sans pages. Dans une fenêtre — dépliée ici sous la
                 ligne, elle était illisible. */}
-            {(day.texte || (plan?.document && day.pageDebut !== undefined)) && (
+            {day.texte && (
               <div className="border-t border-gray-200 px-4 py-2">
                 <button
                   type="button"
                   onClick={() => setPageOuverte(day)}
                   className="text-xs text-[--primary] hover:underline"
                 >
-                  {plan?.document && day.pageDebut !== undefined
-                    ? `${t.planDetail.showDocument} · ${t.planDetail.pages(day.pageDebut, day.pageFin ?? day.pageDebut)}`
-                    : t.planDetail.showText}
+                  {t.planDetail.showText}
                 </button>
               </div>
             )}
@@ -640,17 +738,26 @@ export default function PlanDetailPage() {
         téléchargé. En faire le seul chemin fermerait le plan à qui lit hors
         ligne — le piège exact du 31 août 2026.
       */}
-      {plan?.document && pageOuverte?.pageDebut !== undefined ? (
-        <LecteurDePdf
-          open
-          titre={`${t.planDetail.day(pageOuverte.day)} · ${t.planDetail.pages(pageOuverte.pageDebut, pageOuverte.pageFin ?? pageOuverte.pageDebut)}`}
-          sousTitre={referenceDuJour(pageOuverte)}
-          chemin={plan.document}
-          pageDebut={pageOuverte.pageDebut}
-          pageFin={pageOuverte.pageFin ?? pageOuverte.pageDebut}
-          onClose={() => setPageOuverte(null)}
-        />
-      ) : (
+      {plan?.document && pageOuverte?.pageDebut !== undefined ? (() => {
+        const i = joursAvecPages.findIndex((d) => d.day === pageOuverte.day);
+        const precedent = i > 0 ? joursAvecPages[i - 1] : null;
+        const suivant = i >= 0 && i + 1 < joursAvecPages.length ? joursAvecPages[i + 1] : null;
+        return (
+          <LecteurDePdf
+            open
+            titre={`${t.planDetail.day(pageOuverte.day)} · ${pageOuverte.titre || t.planDetail.pages(pageOuverte.pageDebut, pageOuverte.pageFin ?? pageOuverte.pageDebut)}`}
+            sousTitre={`${t.planDetail.pages(pageOuverte.pageDebut, pageOuverte.pageFin ?? pageOuverte.pageDebut)}${pageOuverte.date ? ` · ${formatDate(locale, pageOuverte.date, { day: "numeric", month: "long" })}` : ""}`}
+            chemin={plan.document}
+            pageDebut={pageOuverte.pageDebut}
+            pageFin={pageOuverte.pageFin ?? pageOuverte.pageDebut}
+            onPrecedent={precedent ? () => setPageOuverte(precedent) : undefined}
+            onSuivant={suivant ? () => setPageOuverte(suivant) : undefined}
+            lu={pageOuverte.isRead}
+            onMarquerLu={pageOuverte.isRead ? undefined : () => { const jour = pageOuverte; setPageOuverte(null); handleToggleDay(jour); }}
+            onClose={() => setPageOuverte(null)}
+          />
+        );
+      })() : (
         <LecteurDeJour
           open={pageOuverte !== null}
           titre={pageOuverte ? `${t.planDetail.day(pageOuverte.day)} · ${referenceDuJour(pageOuverte)}` : ""}

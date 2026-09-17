@@ -230,11 +230,12 @@ export interface PlanDayRow {
   user_id: string
   day: number
   date: string
-  book: string
-  chapterStart: number
-  chapterEnd: number
-  verseStart: number
-  verseEnd: number
+  /** Nuls (migration `20260917220000`) quand le jour lit une portion du document du plan et non la Bible. */
+  book: string | null
+  chapterStart: number | null
+  chapterEnd: number | null
+  verseStart: number | null
+  verseEnd: number | null
   isRead: boolean
   readingId: number | null
   /**
@@ -251,6 +252,8 @@ export interface PlanDayRow {
   /** Les pages du document du plan à lire ce jour (migration `20260917210000`). Nulles sans document. */
   page_debut?: number | null
   page_fin?: number | null
+  /** Le nom de la portion lue ce jour (migration `20260917220000`). */
+  titre?: string | null
 }
 
 export async function fetchPlanDays(planId: number): Promise<PlanDayRow[] | null> {

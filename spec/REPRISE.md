@@ -4367,3 +4367,48 @@ clés candidates (`tabular-nums`, `w-11`) se sont révélées **déjà présente
 à la validation préalable : gardées en contrôles, pas en preuves — c'est à ça
 que sert de lire la feuille avant d'attendre. La migration `plan_documents`
 attendait en base ; la production sait créer, déposer, lire et supprimer.
+
+### « Pas concluant » : lire ce que la base dit avant de défendre
+
+Le propriétaire a jugé la fonction « pas concluante » ; la base disait qu'il
+n'avait pas créé de plan par pages (26 plans, 0 objet). Je l'ai dit une fois,
+sans en faire un argument : ce qu'il décrivait — références ajoutées là où il
+n'en veut pas, un mode page caché dans une liste de découpages, « une page par
+jour » sans autre choix — était vrai de la fonction telle qu'elle était. Sa
+réponse a été trois exigences nettes, et la proposition les a prises une à
+une : **deux fonctions séparées** (les références d'un document / le document
+lui-même), **aucune référence** sur le document entier, **un éditeur de
+jours** — et le rendu autre que texte, déjà là mais invisible.
+
+Le pivot technique tient en une phrase : **un jour de plan peut ne porter
+aucun passage.** Jusqu'ici tout reposait sur « au moins un » (`toDayColumns`
+le refuse, `dayPassages` fabrique depuis les colonnes). Plutôt que de rendre
+`book` optionnel dans tout le code, une sentinelle — le livre vide — et une
+migration qui rend les colonnes nullables ; `dayPassages` rend `[]`, et
+`markRead` avec zéro passage ne crée rien. Le reste du produit n'a pas eu à
+apprendre : statistiques et progression comptent des lectures, pas des jours.
+
+L'éditeur est **pur d'abord** (`portions.ts`, 13 tests), l'écran ensuite : des
+portions contiguës, aucune vide, et chaque geste rend la suite inchangée
+plutôt que de la casser. Deux choses vues en l'essayant, pas en le pensant :
+un champ numérique qui borne à la frappe empêche de taper « 12 » quand le
+minimum est 5 — validation à la sortie ; et « commencer à la page 3 » quand
+le jour 1 lit 1-2 doit **avaler** le jour 1, pas le réduire à une page —
+`commencerA`/`finirA`, distinctes de `deplacerDebut`.
+
+Trois enseignements de l'aller-retour. **La création n'est pas atomique** : un
+plan créé une minute avant la migration a eu son fichier et sa ligne, puis ses
+jours refusés — refus avalé par le magasin local-d'abord, plan vide en base
+avec un PDF de 5,2 Mo orphelin. **Le cache de schéma de PostgREST** ne voit
+pas une colonne neuve tout de suite (« Could not find the 'titre' column …
+in the schema cache ») : après une migration qui ajoute une colonne, attendre
+avant d'écrire. Et **les journaux PostgREST disent qui fait quoi** : des
+`PATCH` et un `POST` avec la colonne `titre` que je n'avais pas faits — le
+propriétaire essayait la fonction depuis sa machine, sur le serveur de
+développement, pendant mon essai ; c'est ce qui a expliqué un jour « décoché »
+que je croyais perdu. Le serveur de développement écrit dans la base de
+production, et le propriétaire y a la main en même temps que moi : lire les
+journaux avant de conclure à un défaut.
+
+Base revenue à 26 plans, 4 099 jours, 798 lectures, 0 objet, 0 jour sans
+livre. 981 tests. Rien n'est poussé.

@@ -42,6 +42,7 @@ aucune donnée.
 | `20260915120000_memorised_verse_ranges.sql` | `chapterEnd` et `verseEnd` sur `memorised_verses` : un groupe de versets est **un seul texte appris, donc une seule ligne** ; l'unicité passe du verset de départ à l'intervalle entier — aucun `grant`, la table ayant l'`update` au niveau table comme `readings` |
 | `20260916120000_plan_readings_last_verse.sql` | **Réparation de données** : les 108 lectures de plan daté d'avant le 9 septembre 2026 portaient `1:1` pour bornes ; elles reçoivent le dernier verset réel de leur chapitre de fin, par la versification de Louis Segond — reconnues par le contexte « Plan de lecture » **et** la note « Plan : … », jamais par l'un seul |
 | `20260917200000_plan_day_texte.sql` | `plan_days.texte` : la page d'un document dont le plan est tiré, quand le lecteur a choisi de lire le document en entier — nulle sinon. Additive, sans reprise, **aucun `grant`** : `plan_days` a l'`UPDATE` au niveau table, vérifié le 17 septembre |
+| `20260917220000_plan_lecture_document.sql` | **Un jour sans passage** : `plan_days.book`, `chapterStart/End`, `verseStart/End` deviennent nullables (défauts gardés), `plan_days.titre` ajoutée — le jour lit une portion du document du plan, pas la Bible. Aucune ligne touchée, aucun `grant` |
 | `20260917210000_plan_documents.sql` | **Le premier fichier stocké** : seau `documents` (privé, 20 Mo, PDF seul) créé par la migration, trois policies — lecture et suppression au propriétaire du préfixe, **dépôt réservé à l'administrateur** par `private.is_admin()` —, `plans.document` et `plan_days.page_debut`/`page_fin`, nulles. Additive, aucun `grant` |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
@@ -93,6 +94,26 @@ par l'outil MCP : **30 fichiers, 28 enregistrées**, la dernière sous
 l'outil MCP, sur accord du propriétaire : **32 fichiers, 30 enregistrées**, la
 dernière sous `20260917102928`. Colonne `texte` de type `text`, nullable,
 relue par `information_schema.columns` ; 4 099 jours, aucun avec texte.
+
+**Troisième relevé du 17 septembre 2026**, après application de
+`plan_lecture_document` par l'outil MCP, sur accord du propriétaire : **34
+fichiers, 32 enregistrées**. Relu par `information_schema.columns` : cinq
+colonnes `is_nullable = YES`, défauts `1` conservés, `titre` présente. Puis
+l'aller-retour : plan 80 avec deux jours à `book` nul, coché sans qu'aucune
+lecture naisse (798 avant, 798 après), redécoupé en trois jours dont le coché
+est resté coché, supprimé — 0 jour sans livre, 0 objet.
+
+Deux choses apprises ce jour-là. **La création n'est pas atomique** : un plan
+79 créé une minute *avant* la migration a eu son fichier déposé et sa ligne
+`plans` écrite, puis ses jours refusés (`book` nul interdit à cet instant) —
+refus avalé par la synchronisation locale-d'abord de `plan-store`, qui garde
+les jours en local et réessaie plus tard. Le plan est resté vide en base, avec
+un PDF de 5,2 Mo orphelin, jusqu'à sa suppression par l'écran. Et **le cache
+de schéma de PostgREST met un moment à voir une colonne neuve** : juste après
+la migration, `insertPlanDays` a rendu « Could not find the 'titre' column of
+'plan_days' in the schema cache » ; une minute plus tard, tout passait. Après
+une migration qui ajoute une colonne, attendre — ou `notify pgrst, 'reload
+schema'` — avant d'écrire dedans.
 
 **Second relevé du 17 septembre 2026**, après application de `plan_documents`
 par l'outil MCP, sur accord du propriétaire : **33 fichiers, 31 enregistrées**,

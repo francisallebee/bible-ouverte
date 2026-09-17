@@ -69,9 +69,11 @@ function rowToDay(r: PlanDayRow): PlanDay {
     userId: r.user_id,
     day: r.day,
     date: r.date,
-    book: r.book,
-    chapterStart: r.chapterStart,
-    chapterEnd: r.chapterEnd,
+    // Nuls sur un jour qui lit le document du plan : la chaîne vide est la
+    // sentinelle que `dayPassages` reconnaît.
+    book: r.book ?? '',
+    chapterStart: r.chapterStart ?? 0,
+    chapterEnd: r.chapterEnd ?? 0,
     verseStart: r.verseStart ?? 1,
     verseEnd: r.verseEnd ?? 1,
     isRead: r.isRead,
@@ -80,6 +82,7 @@ function rowToDay(r: PlanDayRow): PlanDay {
     texte: r.texte ?? undefined,
     pageDebut: r.page_debut ?? undefined,
     pageFin: r.page_fin ?? undefined,
+    titre: r.titre ?? undefined,
     synced: true,
   };
 }
@@ -90,11 +93,13 @@ function dayToRow(d: PlanDay, userId: string): Omit<PlanDayRow, 'id'> {
     user_id: userId,
     day: d.day,
     date: d.date,
-    book: d.book,
-    chapterStart: d.chapterStart,
-    chapterEnd: d.chapterEnd,
-    verseStart: d.verseStart ?? 1,
-    verseEnd: d.verseEnd ?? 1,
+    // Un jour sans livre — une portion de document — s'écrit nul, colonnes de
+    // chapitre et de verset comprises : rien ne doit y ressembler à Genèse 0.
+    book: d.book || null,
+    chapterStart: d.book ? d.chapterStart : null,
+    chapterEnd: d.book ? d.chapterEnd : null,
+    verseStart: d.book ? d.verseStart ?? 1 : null,
+    verseEnd: d.book ? d.verseEnd ?? 1 : null,
     isRead: d.isRead,
     readingId: d.readingId ?? null,
     // `null` et non `undefined` : PostgREST écrit la colonne à nul, là où une
@@ -103,6 +108,7 @@ function dayToRow(d: PlanDay, userId: string): Omit<PlanDayRow, 'id'> {
     texte: d.texte || null,
     page_debut: d.pageDebut ?? null,
     page_fin: d.pageFin ?? null,
+    titre: d.titre || null,
   };
 }
 
@@ -344,6 +350,20 @@ export async function deletePlanDaysByPlan(planId: number): Promise<void> {
   if (isOnline()) {
     supabaseDeletePlanDays(planId).catch(() => {});
   }
+}
+
+/**
+ * Remplace tous les jours d'un plan — le redécoupage d'un document lu jour
+ * après jour. La suppression distante est **attendue** avant l'insertion :
+ * `deletePlanDaysByPlan` la lance sans l'attendre, et un `delete … where
+ * plan_id` qui arriverait après l'insertion emporterait les nouveaux jours.
+ */
+export async function replacePlanDays(planId: number, days: Omit<PlanDay, 'id'>[]): Promise<void> {
+  await deleteLocalDays(planId);
+  if (isOnline()) {
+    try { await supabaseDeletePlanDays(planId); } catch { /* l'insertion suivra, le cache local fait foi */ }
+  }
+  await addPlanDays(days);
 }
 
 /**

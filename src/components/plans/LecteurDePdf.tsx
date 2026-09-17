@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Minus, Plus } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
 import { useI18n } from '@/contexts/I18nContext'
 import { chargerPdfjs } from '@/lib/import/pdf'
@@ -35,6 +35,11 @@ interface Props {
   chemin: string
   pageDebut: number
   pageFin: number
+  /** Le jour d'avant et celui d'après, pour lire à la suite sans fermer la fenêtre. */
+  onPrecedent?: () => void
+  onSuivant?: () => void
+  lu?: boolean
+  onMarquerLu?: () => void
   onClose: () => void
 }
 
@@ -87,7 +92,7 @@ function PageDuPdf({ doc, numero, largeur, zoom }: { doc: PDFDocumentProxy; nume
   )
 }
 
-export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut, pageFin, onClose }: Props) {
+export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut, pageFin, onPrecedent, onSuivant, lu, onMarquerLu, onClose }: Props) {
   const { t } = useI18n()
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null)
   const [erreur, setErreur] = useState(false)
@@ -143,6 +148,32 @@ export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut
     for (let n = Math.max(1, pageDebut); n <= Math.min(doc.numPages, pageFin); n++) pages.push(n)
   }
 
+  // Un autre jour dans la même fenêtre : on repart du haut.
+  useEffect(() => {
+    colonneRef.current?.closest('[role="dialog"]')?.scrollTo({ top: 0 })
+  }, [pageDebut, pageFin])
+
+  const pied = (onPrecedent || onSuivant || onMarquerLu || lu) ? (
+    <div className="flex items-center justify-between gap-3">
+      <button type="button" onClick={onPrecedent} disabled={!onPrecedent}
+        className="inline-flex items-center gap-1 text-sm text-[--text-secondary] hover:text-[--text] disabled:opacity-30">
+        <ChevronLeft className="w-4 h-4" /> {t.planDetail.previousDay}
+      </button>
+      {onMarquerLu ? (
+        <button type="button" onClick={onMarquerLu}
+          className="inline-flex items-center gap-1.5 bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover]">
+          <CheckCircle2 className="w-4 h-4" /> {t.planDetail.markAsRead}
+        </button>
+      ) : lu ? (
+        <span className="inline-flex items-center gap-1.5 text-sm text-green-700"><CheckCircle2 className="w-4 h-4" /> {t.planDetail.alreadyRead}</span>
+      ) : <span />}
+      <button type="button" onClick={onSuivant} disabled={!onSuivant}
+        className="inline-flex items-center gap-1 text-sm text-[--text-secondary] hover:text-[--text] disabled:opacity-30">
+        {t.planDetail.nextDay} <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  ) : undefined
+
   const outils = (
     <div className="flex items-center gap-1 text-sm text-[--text-secondary]" role="group" aria-label={t.planDetail.zoom}>
       <button type="button" onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_PAS))} disabled={zoom <= ZOOM_MIN}
@@ -158,7 +189,7 @@ export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut
   )
 
   return (
-    <FenetreDeLecture open={open} titre={titre} sousTitre={sousTitre} outils={doc ? outils : undefined} large onClose={onClose}>
+    <FenetreDeLecture open={open} titre={titre} sousTitre={sousTitre} outils={doc ? outils : undefined} large pleinEcran pied={pied} onClose={onClose}>
       <div ref={colonneRef} className="px-3 sm:px-6 py-4 overflow-x-auto">
         {erreur && <p className="text-sm text-red-700 text-center py-8" role="alert">{t.planDetail.documentError}</p>}
         {!erreur && !doc && <p className="text-sm text-[--text-secondary] text-center py-8" role="status">{t.planDetail.documentLoading}</p>}

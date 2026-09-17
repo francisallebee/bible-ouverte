@@ -23,11 +23,15 @@ interface Props {
   outils?: ReactNode
   /** Plus large que la colonne de lecture : une page de PDF a besoin de place. */
   large?: boolean
+  /** Toute la hauteur sur téléphone — pour lire un document, pas un passage. */
+  pleinEcran?: boolean
+  /** Une barre sous le contenu — précédent / suivant, marquer lu. */
+  pied?: ReactNode
   onClose: () => void
   children: ReactNode
 }
 
-export default function FenetreDeLecture({ open, titre, sousTitre, outils, large, onClose, children }: Props) {
+export default function FenetreDeLecture({ open, titre, sousTitre, outils, large, pleinEcran, pied, onClose, children }: Props) {
   const { t } = useI18n()
 
   useEffect(() => {
@@ -44,7 +48,7 @@ export default function FenetreDeLecture({ open, titre, sousTitre, outils, large
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
 
       <div role="dialog" aria-modal="true" aria-label={titre}
-        className={`relative w-full ${large ? 'sm:max-w-4xl' : 'sm:max-w-2xl'} max-h-[90vh] overflow-y-auto bg-[--surface] rounded-t-2xl sm:rounded-2xl border border-[--border] shadow-xl`}>
+        className={`relative w-full ${large ? 'sm:max-w-4xl' : 'sm:max-w-2xl'} ${pleinEcran ? 'h-[100dvh] sm:h-auto rounded-none' : 'rounded-t-2xl'} sm:max-h-[90vh] max-h-[100dvh] overflow-y-auto bg-[--surface] sm:rounded-2xl border border-[--border] shadow-xl flex flex-col`}>
         <div className="sticky top-0 z-10 bg-[--surface] border-b border-[--border] px-5 py-4 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="font-semibold text-[--text] truncate">{titre}</p>
@@ -59,7 +63,12 @@ export default function FenetreDeLecture({ open, titre, sousTitre, outils, large
           </div>
         </div>
 
-        {children}
+        <div className="flex-1">{children}</div>
+        {pied && (
+          <div className="sticky bottom-0 bg-[--surface] border-t border-[--border] px-4 py-3">
+            {pied}
+          </div>
+        )}
       </div>
     </div>
   )

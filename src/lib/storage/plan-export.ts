@@ -25,6 +25,21 @@ function getHeaderLine(plan: ReadingPlan): string {
     : `Durée : ${getDurationLabel(plan)} — Début : ${plan.startDate}`;
 }
 
+/**
+ * Ce qu'un export écrit dans la colonne « Livre » et dans celle du chapitre.
+ * Un jour qui lit une portion du document du plan n'a pas de livre : son
+ * titre, ou ses pages, tiennent la première colonne, et la seconde reste vide.
+ */
+function livreDe(d: PlanDay): string {
+  if (d.book) return getBookName(d.book);
+  if (d.titre) return d.titre;
+  return d.pageDebut !== undefined ? `p. ${d.pageDebut}${d.pageFin && d.pageFin !== d.pageDebut ? `-${d.pageFin}` : ''}` : '';
+}
+function chapitresDe(d: PlanDay): string {
+  if (!d.book) return '';
+  return d.chapterEnd !== d.chapterStart ? `${d.chapterStart}-${d.chapterEnd}` : `${d.chapterStart}`;
+}
+
 function downloadBlob(content: string, filename: string, mime: string) {
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -43,7 +58,7 @@ export function exportPlanCSV(plan: ReadingPlan, days: PlanDay[]) {
   ];
   for (const d of days) {
     lines.push(
-      `${d.day};${d.date};${getBookName(d.book)};${d.chapterStart};${d.chapterEnd};${d.isRead ? "Oui" : "Non"}`,
+      `${d.day};${d.date};${livreDe(d)};${d.book ? d.chapterStart : ''};${d.book ? d.chapterEnd : ''};${d.isRead ? "Oui" : "Non"}`,
     );
   }
   downloadBlob(lines.join("\n"), `plan-${plan.name.toLowerCase().replace(/\s+/g, "-")}.csv`, "text/csv;charset=utf-8");
@@ -62,10 +77,7 @@ export function exportPlanMarkdown(plan: ReadingPlan, days: PlanDay[]) {
     "|------|------|-------|-----------|-----|",
   ];
   for (const d of days) {
-    const ref = d.chapterEnd !== d.chapterStart
-      ? `${d.chapterStart}-${d.chapterEnd}`
-      : `${d.chapterStart}`;
-    lines.push(`| ${d.day} | ${d.date} | ${getBookName(d.book)} | ${ref} | ${d.isRead ? "✅" : "⬜"} |`);
+    lines.push(`| ${d.day} | ${d.date} | ${livreDe(d)} | ${chapitresDe(d)} | ${d.isRead ? "✅" : "⬜"} |`);
   }
   downloadBlob(lines.join("\n"), `plan-${plan.name.toLowerCase().replace(/\s+/g, "-")}.md`, "text/markdown;charset=utf-8");
 }
@@ -77,11 +89,8 @@ export function exportPlanJSON(plan: ReadingPlan, days: PlanDay[]) {
 
 export function exportPlanHTML(plan: ReadingPlan, days: PlanDay[]) {
   const rows = days.map((d) => {
-    const ref = d.chapterEnd !== d.chapterStart
-      ? `${d.chapterStart}-${d.chapterEnd}`
-      : `${d.chapterStart}`;
     const checked = d.isRead ? "✅" : "⬜";
-    return `<tr><td>${d.day}</td><td>${d.date}</td><td>${getBookName(d.book)}</td><td>${ref}</td><td>${checked}</td></tr>`;
+    return `<tr><td>${d.day}</td><td>${d.date}</td><td>${livreDe(d)}</td><td>${chapitresDe(d)}</td><td>${checked}</td></tr>`;
   }).join("\n");
 
   const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${plan.name}</title>
@@ -122,8 +131,7 @@ export function exportPlanPDF(plan: ReadingPlan, days: PlanDay[]) {
   }
 
   const tableData = days.map((d) => {
-    const ref = d.chapterEnd !== d.chapterStart ? `${d.chapterStart}-${d.chapterEnd}` : `${d.chapterStart}`;
-    return [String(d.day), d.date, getBookName(d.book), ref, d.isRead ? "Oui" : "Non"];
+    return [String(d.day), d.date, livreDe(d), chapitresDe(d), d.isRead ? "Oui" : "Non"];
   });
 
   (doc as any).autoTable({

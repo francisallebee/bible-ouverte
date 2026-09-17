@@ -169,6 +169,12 @@ export interface PlanDay {
    * pas cochée, puis la date de lecture choisie.
    */
   date: string;
+  /**
+   * Le livre du premier passage — ou **la chaîne vide** quand le jour ne lit
+   * pas la Bible mais une portion du document du plan (`pageDebut`/`pageFin`,
+   * `titre`) : `dayPassages` rend alors une liste vide, et cocher le jour ne
+   * crée aucune lecture. En base, c'est `null` (migration `20260917220000`).
+   */
   book: string;
   chapterStart: number;
   chapterEnd: number;
@@ -193,6 +199,8 @@ export interface PlanDay {
   /** Les pages du document du plan à lire ce jour, à partir de 1, bornes incluses. Absentes sans document. */
   pageDebut?: number;
   pageFin?: number;
+  /** Le nom de la portion lue ce jour — signet du PDF ou première ligne de la page. */
+  titre?: string;
   isRead: boolean;
   readingId?: number;
   /** true si la ligne existe dans Supabase (flag local uniquement) */
