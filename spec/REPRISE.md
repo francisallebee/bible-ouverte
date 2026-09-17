@@ -4132,3 +4132,31 @@ n'est pas `next/font`. Le piège 28 du 16 septembre — « ne pas lancer
 celle qu'on lui a donnée. Non prouvé : `ps` est interdit, on ne voit pas ce
 que fait le processus. Conséquence pratique : la compilation de production
 se juge au push, par Vercel et la sonde.
+
+### Le déploiement de `d00dc14`, et l'instrument qui manquait depuis le 15
+
+Six commits poussés à 05:55:50 UTC, dont la première dépendance de l'import.
+Départ à 05:56:00 : `buildId` `qhyuLBvB…`, `.resize-y{` — la classe du
+champ de texte, absente de la feuille de production — à 0. **Vercel :
+`success` à 05:57:13**, « Deployment has completed » ; sonde à 05:57:17 :
+`buildId` `M9zsGR91…`, feuille `24c6a693…`, `resize-y` à **1**, les six
+contrôles inchangés. `tesseract.js` compile en production — ce que le bac à
+sable n'avait pas pu dire.
+
+**Le statut de commit GitHub est l'instrument qui manquait.** Vercel pose sur
+chaque commit un statut `Vercel` — `pending` « is deploying », puis `success`
+ou `failure`, avec l'URL du déploiement en `target_url`. Il dit *quel* commit
+est déployé et *si* la compilation a échoué, deux choses que le `buildId` ne
+dit jamais, et il rend inutile la règle « attendre un second changement ». Le
+MCP Vercel répond 403 sur cette équipe, `gh api` bute sur le certificat du
+bac à sable (`x509: OSStatus -26276`), mais **`curl` avec le jeton de
+`gh auth token`** passe :
+
+```bash
+curl -sS -H "Authorization: Bearer $(gh auth token)" \
+  https://api.github.com/repos/francisallebee/bible-ouverte/commits/<sha>/status
+```
+
+Désormais : pousser, lire ce statut jusqu'à sa sortie de `pending`, puis
+sonder la feuille pour la preuve de contenu. La sonde garde son rôle — elle
+prouve ce qui est servi —, le statut dit si et quoi.
