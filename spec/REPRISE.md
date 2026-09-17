@@ -4310,3 +4310,10 @@ depuis sa propre machine**, entre deux de mes essais : le plan 72 porte six
 pages d'un vrai manuel. Le serveur de développement écrit dans la base de
 production — piège 7 —, et c'est ici une chance : sa donnée réelle est là
 pour juger la fenêtre.
+
+`10f6b4d` poussé à 11:01:05 UTC avec `3ba053c` et `9de57f6` ; Vercel
+`success` à 11:02:40, `buildId` `Dj7y2S9o…` → `cAspNO-a…`, feuille
+`e45ed0d8…` → `d9b115a2…`, `.max-w-prose{` et `.list-disc{` de 0 à **1** —
+les deux classes de la fenêtre de lecture. La production porte le plan depuis
+un document, ses deux contenus, et la fenêtre. La migration `plan_day_texte`
+l'y attendait déjà.
