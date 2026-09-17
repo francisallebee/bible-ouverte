@@ -4412,3 +4412,11 @@ journaux avant de conclure à un défaut.
 
 Base revenue à 26 plans, 4 099 jours, 798 lectures, 0 objet, 0 jour sans
 livre. 981 tests. Rien n'est poussé.
+
+`dd66e52` poussé à 15:11:38 UTC ; Vercel `success` à 15:12:49, `buildId`
+`rzHCuXFq…` → `Mm32Rb4q…`, feuille `789d0b74…` → `cc48f0bf…`,
+`h-\[100dvh\]{` de 0 à **2** (le plein écran, et son `max-h-`) et
+`max-h-\[50vh\]{` de 0 à **1** (la liste de l'éditeur), les deux validées à 0
+avant d'attendre. Les migrations `plan_documents` et `plan_lecture_document`
+attendaient en base : « Lire un document » est en production, pour
+l'administrateur. Session 2 à suivre : EPUB et Word en HTML riche.
