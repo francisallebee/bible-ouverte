@@ -657,12 +657,14 @@ défilement recalé (61 px pour un point à 60 : la formule) ; à la réouvertur
 200 % retrouvé ; `dark` ajouté → page inversée, bouton lune. Plan d'essai 86
 supprimé, 0 objet d'essai. 1 003 tests.
 
+**Vu par le propriétaire sur l'iPhone, le 17 septembre au soir** : « le
+pincement suit bien les doigts, c'est bon ». Le seul geste que le panneau ne
+pouvait pas simuler est validé sur l'appareil.
+
 ### Ce qui suit
 
-1. Le propriétaire rejuge le PDF sur l'iPhone — marges, pincement, sombre —
-   sur son cahier.
-2. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
-3. Le modèle, plus tard — et avec lui le « tout » du point 5.
+1. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
+2. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
 

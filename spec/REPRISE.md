@@ -4491,3 +4491,6 @@ d'essai. 1 003 tests. Rien n'est poussé.
 `.will-change-transform` de 0 à **1** (le conteneur des pages pendant le
 pincement), validée à 0 avant d'attendre. Le lecteur PDF rogné, pinçable et
 sombre est en production.
+
+Le propriétaire, sur l'iPhone : « le pincement suit bien les doigts, c'est
+bon ». Le geste que le panneau ne simule pas est validé là où il compte.
