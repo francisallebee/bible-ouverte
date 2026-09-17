@@ -4107,3 +4107,28 @@ Le panneau ne sait pas ouvrir le sélecteur de fichiers natif ; un `File`
 fabriqué en JavaScript et posé sur `input.files` avec un événement `change`
 traverse React comme un vrai choix. Le serveur de développement a été arrêté
 par l'application à chaque pause entre nos échanges ; relancé deux fois.
+
+### La photo, et trois choses sur l'outillage
+
+Troisième étage — `spec/IMPORT-IA.md`, « La photo ». Ici, ce qui concerne le
+poste plutôt que la fonction.
+
+**Le cache npm n'est pas inscriptible depuis le bac à sable.** `npm view` et
+`npm install` échouent en `EPERM` sur `~/.npm/_cacache` — le message parle de
+fichiers « root-owned », c'est la liste d'écriture du bac à sable, qui ne
+laisse que `~/.npm/_logs`. `npm --cache "$TMPDIR/npm-cache" …` contourne.
+
+**`npm audit` compte 31 vulnérabilités, pas 7.** Mesuré avant et après
+l'installation de `tesseract.js` : 31 et 31 — toutes antérieures (`next`,
+`postcss`, `eslint`, `vitest`, `dompurify`…). La note d'`AGENTS.md` datait ;
+rafraîchie.
+
+**`next build` ne passe pas dans le bac à sable — hypothèse.** Deux essais
+dans un `worktree` de `$TMPDIR`, `node_modules` en lien, aucun serveur voisin :
+tous deux figés après le côté serveur, la trace arrêtée dans les modules
+client, dix minutes sans un octet. Google Fonts répond 200 par `curl`, ce
+n'est pas `next/font`. Le piège 28 du 16 septembre — « ne pas lancer
+`npm run build` à côté du serveur » — avait peut-être la même cause et pas
+celle qu'on lui a donnée. Non prouvé : `ps` est interdit, on ne voit pas ce
+que fait le processus. Conséquence pratique : la compilation de production
+se juge au push, par Vercel et la sonde.

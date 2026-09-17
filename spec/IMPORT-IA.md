@@ -194,9 +194,53 @@ Vu, session du propriétaire : le `.docx` → 4 références justes, dont
 Relevé d'écriture, hors de l'import : « Jude 1:3 » — `ecrireReference`
 écrit le chapitre des livres qui n'en ont qu'un, où l'usage écrit « Jude 3 ».
 
+### La photo, `lib/import/ocr.ts`
+
+**La seule dépendance de la fonction** : `tesseract.js` 7.0.0, la décision 2
+du propriétaire. Bornée trois fois — chargée par `import()` au premier usage,
+donc dans son propre chunk (`_app-pages-browser_node_modules_tesseract_js…`,
+vu au journal réseau, chargé au clic et pas avant) ; le moteur WASM et le
+script du worker viennent de jsDelivr, le dictionnaire de la langue de
+tessdata, une fois, gardés en IndexedDB par la bibliothèque ; **la photo ne
+quitte pas l'appareil** — dessinée dans un canevas réduit à 2 000 px et
+redressée selon son EXIF, c'est le canevas que le moteur lit. `npm audit`
+compte **31** vulnérabilités avant comme après l'installation (`AGENTS.md`
+en annonçait 7 : la note était périmée, pas la dépendance coupable).
+
+La langue de l'interface décide du dictionnaire (`fra`, `eng`, `spa`, `ita`,
+`ara` — un `Record<Locale, string>` que le test lit depuis `LOCALES`). Le
+worker est gardé d'une photo à l'autre pour une même langue : son
+initialisation coûte des secondes, la lecture une ou deux. Le rapporteur de
+progression est une variable de module lue par le `logger`, pas la fonction
+de la première photo figée dans le worker.
+
+À l'écran, « Photo » à côté des deux autres boutons ; `accept="image/*"`
+**sans** `capture`, pour qu'iOS propose l'appareil *et* la photothèque. Une
+ligne d'état : « Préparation de la lecture… » pendant le chargement, puis le
+pourcentage. Une photo sans texte le dit, une lecture qui échoue aussi.
+
+Vu, session du propriétaire : un canevas de 1 400 × 500 où trois lignes
+étaient écrites en Georgia 64 px, exporté en PNG et posé sur le champ —
+**texte reconnu exact au caractère en moins de 18 secondes**, téléchargements
+compris ; 3 références, dont « Romains 8, verset 28 » lu 8:28. Le journal
+réseau de la page ne porte que les chunks de Next et un `blob:` (le worker) ;
+les téléchargements du moteur se font dans le worker, hors du journal de la
+page, vers les hôtes que le code de la bibliothèque nomme.
+
+**La compilation de production n'a pas pu être vérifiée ici.** Deux `next
+build` dans un `worktree` séparé — donc sans le `.next` partagé du piège 28 —
+se sont figés au même point, le côté serveur compilé, la trace arrêtée au
+milieu des modules client, pas un octet en dix minutes. Google Fonts répond
+200 depuis le bac à sable ; ce n'est pas `next/font`. **Hypothèse** : le bac à
+sable laisse partir les processus de travail de webpack et les bloque
+ensuite, et le piège 28 du 16 septembre avait la même cause. Vercel jugera au
+push, avec une sonde ; ce n'est pas la discipline voulue, c'est ce que le bac
+à sable laisse.
+
 ### Ce qui suit, dans l'ordre
 
-1. L'OCR sur l'appareil (`tesseract.js`), galerie puis appareil.
+1. Un aller-retour réel depuis une **vraie** photo de notes, sur l'iPhone du
+   propriétaire — le canevas de l'essai est un cas facile.
 2. Les deux arbitrages ouverts : l'audio, le modèle — et le PDF avec lui.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
@@ -215,5 +259,6 @@ Relevé d'écriture, hors de l'import : « Jude 1:3 » — `ecrireReference`
 |---|---|
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
+| 17 sept. 2026 | **Troisième étage** : `lib/import/ocr.ts`, la photo lue sur l'appareil par `tesseract.js` (7.0.0, la seule dépendance, chargée à la demande). Vu sur une image fabriquée : texte exact, 3 références. `next build` figé deux fois dans un worktree — le bac à sable, hypothèse. |
 | 17 sept. 2026 | **Deuxième étage** : `lib/import/fichiers.ts`, Word, Excel, PowerPoint, OpenDocument, texte, csv, html sans dépendance (15 tests) ; PDF refusé avec sa raison. L'essai réel a trouvé le défaut du point-virgule devant un ordinal ; corrigé, 70 tests sur l'analyseur. |
 | 17 sept. 2026 | **Premier étage livré** : `lib/import/references.ts`, l'analyseur déterministe (53 tests), et `components/import/ImportLectures.tsx` dans `/avance` — le presse-papier, l'écran de validation, la septième voie de création. Vu et éprouvé par un aller-retour réel : Psaumes 23 enregistré (ligne 897, texte du cache, séance « Import presse-papier · 17/09/2026 »), vu dans l'historique, effacé par l'écran, base revenue à 745. |

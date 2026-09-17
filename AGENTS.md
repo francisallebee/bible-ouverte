@@ -258,9 +258,12 @@ npm test           # vitest
 - La couverture de tests se limite aux modules les plus critiques (génération de
   plans, classification des livres, robustesse des mots de passe, amorçage). Les
   agrégations de statistiques ne sont pas couvertes.
-- `npm audit` signale **7 vulnérabilités** (1 modérée, 6 hautes) : `dompurify`
-  et `nanoid` se corrigent par un simple `npm audit fix` ; `glob`, `postcss` et
-  `next` lui-même demandent un `--force`, donc une montée en version majeure.
+- `npm audit` signale **31 vulnérabilités** (3 modérées, 27 hautes, 1 critique)
+  au 17 septembre 2026 — `next`, `postcss`, la chaîne `eslint`, `vitest`,
+  `dompurify` par `jspdf`. La plupart demandent un `--force`, donc une montée
+  en version majeure. `tesseract.js`, installé ce jour, n'en apporte aucune :
+  31 avant, 31 après. Depuis le bac à sable, `npm` réclame
+  `--cache "$TMPDIR/npm-cache"`.
 - **Le temps de chargement tient désormais aux appels Supabase**, plus à
   l'import des traductions. L'identité du compte est mémorisée pour la session
   (`getUserId` dans `lib/supabase/store.ts`, sur lequel s'appuie

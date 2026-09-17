@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ClipboardPaste, Check, AlertTriangle, Sparkles, FileUp } from 'lucide-react'
+import { ClipboardPaste, Check, AlertTriangle, Sparkles, FileUp, Camera } from 'lucide-react'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
 import {
   seedIfNeeded, getEnabledVersions, getAllContexts, getSettings, getPassagesForRange, addReading,
@@ -9,17 +9,19 @@ import {
 import type { BibleVersion, ReadingContext } from '@/lib/storage'
 import { extraireReferences, type ReferenceExtraite, type RejetExtraction } from '@/lib/import/references'
 import { texteDuFichier, type RaisonRefus } from '@/lib/import/fichiers'
+import { reconnaitreTexte } from '@/lib/import/ocr'
 import { ecrireReference } from '@/lib/lectures/reference'
 import { aujourdhui } from '@/lib/objectifs/objectifs'
 import { formatDate } from '@/lib/i18n/format'
 import ContextPicker from '@/components/ContextPicker'
 
 /**
- * L'import de lectures — le presse-papier, puis les fichiers.
+ * L'import de lectures — le presse-papier, les fichiers, la photo.
  *
- * Un texte collé — ou extrait d'un fichier par `texteDuFichier`, dans le
- * navigateur, et déposé dans le même champ pour que le lecteur voie ce qui a
- * été lu — passe par `extraireReferences`, et chaque référence reconnue
+ * Un texte collé — ou extrait d'un fichier par `texteDuFichier`, ou reconnu
+ * sur une photo par `reconnaitreTexte`, toujours dans le navigateur, et
+ * déposé dans le même champ pour que le lecteur voie ce qui a été lu — passe
+ * par `extraireReferences`, et chaque référence reconnue
  * devient une proposition cochée ; les fragments non reconnus sont montrés
  * avec leur raison, jamais avalés. **Rien ne s'enregistre sans relecture** :
  * c'est la seule protection contre une référence mal lue, et elle vaut pour
@@ -60,6 +62,10 @@ export default function ImportLectures() {
   const [refusFichier, setRefusFichier] = useState<RaisonRefus | null>(null)
   const [lectureFichier, setLectureFichier] = useState(false)
   const fichierRef = useRef<HTMLInputElement>(null)
+  /** `null` au repos ; `-1` pendant le chargement du moteur ; 0 à 100 pendant la lecture. */
+  const [ocr, setOcr] = useState<number | null>(null)
+  const [ocrMessage, setOcrMessage] = useState<'vide' | 'erreur' | null>(null)
+  const photoRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     ;(async () => {
@@ -137,7 +143,30 @@ export default function ImportLectures() {
     }
   }
 
+  /**
+   * La photo est lue sur l'appareil ; le texte reconnu prend la place du
+   * champ et l'analyse part. Une photo sans texte le dit, une lecture qui
+   * échoue aussi — et le champ reste ce qu'il était dans les deux cas.
+   */
+  async function lirePhoto(fichier: File) {
+    setOcr(-1)
+    setOcrMessage(null)
+    setRefusFichier(null)
+    try {
+      const texteLu = await reconnaitreTexte(fichier, locale, (part) => setOcr(Math.round(part * 100)))
+      if (!texteLu) { setOcrMessage('vide'); return }
+      setTexte(texteLu)
+      analyser(texteLu, t.avance.import.sessionDefaultPhoto(formatDate(locale, date)))
+    } catch {
+      setOcrMessage('erreur')
+    } finally {
+      setOcr(null)
+      if (photoRef.current) photoRef.current.value = ''
+    }
+  }
+
   const champ = 'w-full border border-gray-300 rounded-lg px-3 py-2 bg-white'
+  const occupe = lectureFichier || ocr !== null
 
   return (
     <section className="bg-[--surface] rounded-xl border border-[--border] p-5 sm:p-6">
@@ -176,12 +205,35 @@ export default function ImportLectures() {
         <button
           type="button"
           onClick={() => fichierRef.current?.click()}
-          disabled={lectureFichier}
+          disabled={occupe}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white font-medium disabled:opacity-50"
         >
           <FileUp className="w-4 h-4" />
           {t.avance.import.fileButton}
         </button>
+        {/* Sans `capture` : iOS propose alors l'appareil **et** la photothèque,
+            ce que demande « galerie ou appareil ». */}
+        <input
+          ref={photoRef}
+          type="file"
+          className="sr-only"
+          accept="image/*"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void lirePhoto(f) }}
+        />
+        <button
+          type="button"
+          onClick={() => photoRef.current?.click()}
+          disabled={occupe}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white font-medium disabled:opacity-50"
+        >
+          <Camera className="w-4 h-4" />
+          {t.avance.import.photoButton}
+        </button>
+        {ocr !== null && (
+          <p className="text-sm text-[--text-secondary]" role="status" aria-live="polite">
+            {ocr < 0 ? t.avance.import.ocrLoading : t.avance.import.ocrProgress(ocr)}
+          </p>
+        )}
         {enregistrees !== null && (
           <p className="text-sm text-green-700 inline-flex items-center gap-1.5" role="status">
             <Check className="w-4 h-4" />
@@ -190,6 +242,13 @@ export default function ImportLectures() {
         )}
       </div>
       <p className="text-xs text-[--text-secondary] mt-2">{t.avance.import.fileHint}</p>
+      <p className="text-xs text-[--text-secondary] mt-1">{t.avance.import.photoHint}</p>
+      {ocrMessage && (
+        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 inline-flex items-center gap-1.5" role="alert">
+          <AlertTriangle className="w-4 h-4" />
+          {ocrMessage === 'vide' ? t.avance.import.ocrEmpty : t.avance.import.ocrError}
+        </p>
+      )}
       {refusFichier && (
         <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 inline-flex items-center gap-1.5" role="alert">
           <AlertTriangle className="w-4 h-4" />
