@@ -15,17 +15,27 @@
  *
  * Ce qui est lu : `txt`, `md`, `csv`, `tsv`, `html` ; `docx`, `xlsx`, `pptx` ;
  * `odt`, `ods`, `odp` ; `epub` et `fb2` — les livres numériques, demandés par
- * le propriétaire le 17 septembre 2026. Le `pdf` est **refusé avec sa raison**
- * tant que le chemin serveur n'existe pas ; les formats **Kindle** (`mobi`,
+ * le propriétaire le 17 septembre 2026 ; `pdf`, par `pdf.js` dans `./pdf.ts`,
+ * la seule extraction qui charge une bibliothèque — et l'OCR pour ses pages
+ * scannées. Les formats **Kindle** (`mobi`,
  * `azw`, `azw3`, `kfx`) aussi, et pour de bon : un format binaire
  * propriétaire, et les livres achetés sont chiffrés par une clé que seul le
  * compte Amazon détient — aucun lecteur ne les ouvre sans elle. Rien ne
  * disparaît en silence.
  */
 
-export type RaisonRefus = 'pdf-a-venir' | 'kindle-chiffre' | 'format-inconnu' | 'trop-gros' | 'illisible'
+import type { Locale } from '@/lib/i18n/locales'
+import type { ProgressionPdf } from './pdf'
+
+export type RaisonRefus = 'kindle-chiffre' | 'format-inconnu' | 'trop-gros' | 'illisible'
 
 export type LectureFichier = { texte: string } | { refus: RaisonRefus }
+
+export interface OptionsLecture {
+  /** La langue de l'OCR pour les pages de PDF scannées ; celle de l'interface. */
+  locale: Locale
+  onProgressionPdf?: (p: ProgressionPdf) => void
+}
 
 /** Rien ne quitte l'appareil, la borne ne sert qu'à ne pas figer l'onglet. */
 export const TAILLE_MAXIMALE = 20 * 1024 * 1024
@@ -41,11 +51,14 @@ function extensionDe(nom: string): string {
   return point === -1 ? '' : nom.slice(point + 1).toLowerCase()
 }
 
-export async function texteDuFichier(fichier: File): Promise<LectureFichier> {
+export async function texteDuFichier(fichier: File, options: OptionsLecture = { locale: 'fr' }): Promise<LectureFichier> {
   if (fichier.size > TAILLE_MAXIMALE) return { refus: 'trop-gros' }
   const ext = extensionDe(fichier.name)
   try {
-    if (ext === 'pdf' || fichier.type === 'application/pdf') return { refus: 'pdf-a-venir' }
+    if (ext === 'pdf' || fichier.type === 'application/pdf') {
+      const { texteDuPdf } = await import('./pdf')
+      return { texte: await texteDuPdf(fichier, options.locale, options.onProgressionPdf) }
+    }
     if (TEXTE_BRUT.has(ext) || fichier.type.startsWith('text/')) {
       return { texte: HTML.has(ext) ? texteDuHtml(await lireTexte(fichier)) : await lireTexte(fichier) }
     }

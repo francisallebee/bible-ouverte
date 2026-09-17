@@ -288,10 +288,63 @@ livre (une page, un chapitre, un papyrus) ; elle est désormais ignorée en
 silence, et « Samuel 3 » reste signalé. Troisième fois qu'un texte réel bat
 la suite verte : 113 tests sur l'import après.
 
+### Les arbitrages, tranchés le 17 septembre au soir
+
+- **La dictée vocale est abandonnée** : l'utilisateur se sert de celle de son
+  appareil, qui écrit dans le champ. La tension « transcription serveur »
+  tombe avec elle.
+- **L'audio est un fichier**, importé par une fonction distincte.
+- **Le modèle est remis à plus tard.** Le « tout » du point 5 attend avec lui.
+- **Le PDF entre dans l'import de fichiers**, sans modèle.
+
+### Le PDF, `lib/import/pdf.ts`
+
+`pdfjs-dist` 6.3 — le lecteur de Firefox —, deuxième dépendance de l'import,
+chargée par `import()` au premier PDF, son worker depuis jsDelivr à la version
+exacte installée. `npm audit` : 31 avant, 31 après. Le texte est extrait
+**page par page**, et une page qui n'en porte pas — un scan — est dessinée
+dans un canevas à la taille que l'OCR lit le mieux et passe par
+`reconnaitreCanevas`, le moteur de la photo (extrait d'`ocr.ts` pour cela).
+Un document peut mêler les deux ; la décision se prend à chaque page, sous un
+seuil de vingt caractères. La progression dit la page, et l'OCR quand il y en a.
+
+Vu : un PDF fabriqué dans la page — trois lignes en Helvetica — lu en 1 s,
+texte exact, 4 références (« Actes 3/8 » → 3:8), séance « Import culte.pdf ·
+date » ; un PDF sans texte → le chunk de Tesseract demandé, la page blanche
+lue, « Aucune référence reconnue », pas d'erreur. Le test unitaire vérifie que
+`fichiers.ts` confie le PDF à `pdf.ts` avec la langue — `pdf.js` a besoin d'un
+navigateur.
+
+### L'audio, `lib/import/audio.ts`
+
+**Sans modèle payant, il reste un modèle de parole sur l'appareil** — Whisper
+« tiny » (`onnx-community/whisper-tiny`, ~40 Mo une fois, gardés par le
+navigateur), cinq langues, par `transformers.js`. **Aucune dépendance npm** :
+`@huggingface/transformers` tire `sharp` et `onnxruntime-node`, deux binaires
+natifs que le navigateur n'emploie pas ; la bibliothèque vient de jsDelivr à
+la demande, version épinglée, par un `import()` que `webpackIgnore` laisse au
+navigateur. Mono-fil et sans worker (`numThreads = 1`, `proxy = false`) : une
+origine tierce ne crée pas de workers sans détours. Plus lent, mais sûr.
+
+Le fichier est décodé par l'API Web Audio — tout format que le navigateur
+lit —, rééchantillonné à 16 kHz en mono par un `OfflineAudioContext`, borné à
+30 minutes. Les étapes sont dites parce qu'elles durent : décodage,
+téléchargement du modèle en pourcentage, transcription. Une sortie sans
+lettre ni chiffre — le « ... » d'un silence — vaut « aucune parole ».
+
+Vu : un WAV de trois secondes de sinusoïde — décodé, bibliothèque et modèle
+téléchargés, transcrit en « ... » en 21 s tout compris, sans erreur. **Ce
+n'est pas une preuve de qualité**, seulement que la chaîne tient ; ce que
+Whisper tiny vaut sur une vraie voix, le propriétaire le verra. À dire au
+lecteur, et c'est écrit sous le bouton : honnête sur une voix claire et
+proche, médiocre sur un culte enregistré de loin, plus lent que le réel sur un
+téléphone.
+
 ### Ce qui suit
 
-1. Une vraie photo de plusieurs pages, sur l'iPhone du propriétaire.
-2. Les deux arbitrages ouverts : l'audio, le modèle — et le PDF avec lui.
+1. Sur l'iPhone du propriétaire : une vraie photo de plusieurs pages, un vrai
+   PDF (né numérique, puis scanné), un vrai enregistrement.
+2. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
 
@@ -309,6 +362,7 @@ la suite verte : 113 tests sur l'import après.
 |---|---|
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
+| 17 sept. 2026 | **Arbitrages** : dictée abandonnée, audio en fichier, modèle plus tard, PDF maintenant. `pdf.ts` (pdf.js + OCR des pages scannées), `audio.ts` (Whisper tiny sur l'appareil, transformers.js depuis jsDelivr, sans dépendance npm). 929 tests. |
 | 17 sept. 2026 | **Vu en production par le propriétaire** : presse-papier et photo. Six retours : « / » séparateur, photo multi-pages, EPUB et FB2 lus, Kindle refusé (DRM), la route `api/import/lien`. Le bruit des abréviations courtes retiré. 924 tests. |
 | 17 sept. 2026 | **Troisième étage** : `lib/import/ocr.ts`, la photo lue sur l'appareil par `tesseract.js` (7.0.0, la seule dépendance, chargée à la demande). Vu sur une image fabriquée : texte exact, 3 références. `next build` figé deux fois dans un worktree — le bac à sable, hypothèse. |
 | 17 sept. 2026 | **Deuxième étage** : `lib/import/fichiers.ts`, Word, Excel, PowerPoint, OpenDocument, texte, csv, html sans dépendance (15 tests) ; PDF refusé avec sa raison. L'essai réel a trouvé le défaut du point-virgule devant un ordinal ; corrigé, 70 tests sur l'analyseur. |

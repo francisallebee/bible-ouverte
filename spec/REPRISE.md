@@ -4198,3 +4198,26 @@ une sonde de plus, propre aux routes : `POST /api/import/lien` **sans
 session** rend `307 → /auth/login` en production — le middleware intercepte
 avant la route, `requireAdmin` est la seconde barrière derrière lui. Deux
 verrous, l'un devant l'autre ; c'est le premier que la sonde a vu.
+
+### Le PDF et l'audio, et deux façons de ne pas ajouter une dépendance
+
+Les arbitrages du propriétaire ont tranché le soir même — `spec/IMPORT-IA.md`.
+Deux choses pour ce document.
+
+**Une bibliothèque de navigateur peut venir du CDN plutôt que de npm.**
+`@huggingface/transformers` tire `sharp` et `onnxruntime-node`, des binaires
+natifs pour Node dont le navigateur n'a que faire, et dont l'installation
+dans le bac à sable aurait été un combat. `import(/* webpackIgnore: true */
+url)` laisse le navigateur charger la bibliothèque depuis jsDelivr, version
+épinglée — ce que `tesseract.js` fait déjà pour son moteur et `pdf.js` pour
+son worker. Le prix : une origine tierce à laquelle on fait confiance à
+chaque chargement, et pas de workers sans détours (`numThreads = 1`).
+
+**Un repli qui réemploie ce qui existe.** Une page de PDF scannée passe par
+l'OCR de la photo : `reconnaitreCanevas` a été extrait d'`ocr.ts` pour ça,
+et le moteur en cache sert aux deux. Le chunk de Tesseract demandé pendant
+un PDF sans texte l'a prouvé.
+
+Le WAV de sinusoïde transcrit en « ... » n'est pas une preuve de qualité :
+seulement que décodage, CDN, modèle et WASM tiennent ensemble. La qualité de
+Whisper tiny sur une vraie voix est au propriétaire de la voir.

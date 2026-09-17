@@ -92,16 +92,16 @@ async function canevasDe(fichier: File): Promise<HTMLCanvasElement> {
 }
 
 /**
- * Le texte reconnu, ou une chaîne vide si la photo n'en porte pas. La
- * progression va de 0 à 1 pendant la lecture seule — le chargement du moteur
- * et du dictionnaire, qui la précède, n'a pas de mesure.
+ * Le texte d'un canevas déjà dessiné — une photo réduite, ou une page de PDF
+ * scannée rendue par `pdf.js`. La progression va de 0 à 1 pendant la lecture
+ * seule ; le chargement du moteur et du dictionnaire, qui la précède, n'a pas
+ * de mesure.
  */
-export async function reconnaitreTexte(
-  fichier: File,
+export async function reconnaitreCanevas(
+  canevas: HTMLCanvasElement,
   locale: Locale,
   onProgression?: (part: number) => void,
 ): Promise<string> {
-  const canevas = await canevasDe(fichier)
   const worker = await workerPour(langueOcr(locale))
   progression = onProgression
   try {
@@ -110,4 +110,13 @@ export async function reconnaitreTexte(
   } finally {
     progression = undefined
   }
+}
+
+/** Le texte reconnu sur une photo, ou une chaîne vide si elle n'en porte pas. */
+export async function reconnaitreTexte(
+  fichier: File,
+  locale: Locale,
+  onProgression?: (part: number) => void,
+): Promise<string> {
+  return reconnaitreCanevas(await canevasDe(fichier), locale, onProgression)
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ClipboardPaste, Check, AlertTriangle, Sparkles, FileUp, Camera, Link2 } from 'lucide-react'
+import { ClipboardPaste, Check, AlertTriangle, Sparkles, FileUp, Camera, Link2, Mic } from 'lucide-react'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
 import {
   seedIfNeeded, getEnabledVersions, getAllContexts, getSettings, getPassagesForRange, addReading,
@@ -10,13 +10,16 @@ import type { BibleVersion, ReadingContext } from '@/lib/storage'
 import { extraireReferences, type ReferenceExtraite, type RejetExtraction } from '@/lib/import/references'
 import { texteDuFichier, type RaisonRefus } from '@/lib/import/fichiers'
 import { reconnaitreTexte } from '@/lib/import/ocr'
+import { transcrire, type ProgressionAudio } from '@/lib/import/audio'
+import type { ProgressionPdf } from '@/lib/import/pdf'
 import { ecrireReference } from '@/lib/lectures/reference'
 import { aujourdhui } from '@/lib/objectifs/objectifs'
 import { formatDate } from '@/lib/i18n/format'
 import ContextPicker from '@/components/ContextPicker'
 
 /**
- * L'import de lectures — le presse-papier, les fichiers, la photo, le lien.
+ * L'import de lectures — le presse-papier, les fichiers (PDF compris), la
+ * photo, le lien, l'audio.
  *
  * Un texte collé — ou extrait d'un fichier par `texteDuFichier`, ou reconnu
  * sur une photo par `reconnaitreTexte`, ou rapporté d'une adresse par la
@@ -62,7 +65,11 @@ export default function ImportLectures() {
   const [enregistrees, setEnregistrees] = useState<number | null>(null)
   const [refusFichier, setRefusFichier] = useState<RaisonRefus | null>(null)
   const [lectureFichier, setLectureFichier] = useState(false)
+  const [pdf, setPdf] = useState<ProgressionPdf | null>(null)
   const fichierRef = useRef<HTMLInputElement>(null)
+  const audioRef = useRef<HTMLInputElement>(null)
+  const [audio, setAudio] = useState<ProgressionAudio | null>(null)
+  const [audioMessage, setAudioMessage] = useState<'vide' | 'erreur' | 'trop-long' | null>(null)
   /** `null` au repos ; `-1` pendant le chargement du moteur ; 0 à 100 pendant la lecture. */
   const [ocr, setOcr] = useState<number | null>(null)
   /** La page en cours et le nombre de pages, quand il y en a plusieurs. */
@@ -105,13 +112,35 @@ export default function ImportLectures() {
     setLectureFichier(true)
     setRefusFichier(null)
     try {
-      const lu = await texteDuFichier(fichier)
+      const lu = await texteDuFichier(fichier, { locale, onProgressionPdf: setPdf })
       if ('refus' in lu) { setRefusFichier(lu.refus); return }
       setTexte(lu.texte)
       analyser(lu.texte, seance ?? t.avance.import.sessionDefaultFichier(fichier.name, formatDate(locale, date)))
     } finally {
       setLectureFichier(false)
+      setPdf(null)
       if (fichierRef.current) fichierRef.current.value = ''
+    }
+  }
+
+  /**
+   * L'enregistrement est transcrit sur l'appareil ; le texte prend la place du
+   * champ et l'analyse part. Les étapes sont dites — décoder, télécharger le
+   * modèle la première fois, transcrire — parce qu'elles durent.
+   */
+  async function lireAudio(fichier: File) {
+    setAudio({ etape: 'decodage' })
+    setAudioMessage(null)
+    try {
+      const texteLu = await transcrire(fichier, locale, setAudio)
+      if (!texteLu) { setAudioMessage('vide'); return }
+      setTexte(texteLu)
+      analyser(texteLu, t.avance.import.sessionDefaultAudio(fichier.name, formatDate(locale, date)))
+    } catch (e) {
+      setAudioMessage(e instanceof Error && e.message === 'trop-long' ? 'trop-long' : 'erreur')
+    } finally {
+      setAudio(null)
+      if (audioRef.current) audioRef.current.value = ''
     }
   }
 
@@ -216,7 +245,7 @@ export default function ImportLectures() {
   }
 
   const champ = 'w-full border border-gray-300 rounded-lg px-3 py-2 bg-white'
-  const occupe = lectureFichier || ocr !== null || lectureLien
+  const occupe = lectureFichier || ocr !== null || lectureLien || audio !== null
 
   return (
     <section className="bg-[--surface] rounded-xl border border-[--border] p-5 sm:p-6">
@@ -280,6 +309,38 @@ export default function ImportLectures() {
           <Camera className="w-4 h-4" />
           {t.avance.import.photoButton}
         </button>
+        <input
+          ref={audioRef}
+          type="file"
+          className="sr-only"
+          accept="audio/*,.m4a,.mp3,.wav,.ogg,.aac,.flac"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void lireAudio(f) }}
+        />
+        <button
+          type="button"
+          onClick={() => audioRef.current?.click()}
+          disabled={occupe}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white font-medium disabled:opacity-50"
+        >
+          <Mic className="w-4 h-4" />
+          {t.avance.import.audioButton}
+        </button>
+        {pdf && (
+          <p className="text-sm text-[--text-secondary]" role="status" aria-live="polite">
+            {pdf.ocr === undefined
+              ? t.avance.import.pdfProgress(pdf.page, pdf.pages)
+              : t.avance.import.pdfOcr(pdf.page, pdf.pages, Math.round(pdf.ocr * 100))}
+          </p>
+        )}
+        {audio && (
+          <p className="text-sm text-[--text-secondary]" role="status" aria-live="polite">
+            {audio.etape === 'decodage'
+              ? t.avance.import.audioDecoding
+              : audio.etape === 'modele'
+                ? t.avance.import.audioModel(Math.round(audio.part * 100))
+                : t.avance.import.audioTranscribing}
+          </p>
+        )}
         {ocr !== null && (
           <p className="text-sm text-[--text-secondary]" role="status" aria-live="polite">
             {ocr < 0
@@ -298,6 +359,13 @@ export default function ImportLectures() {
       </div>
       <p className="text-xs text-[--text-secondary] mt-2">{t.avance.import.fileHint}</p>
       <p className="text-xs text-[--text-secondary] mt-1">{t.avance.import.photoHint}</p>
+      <p className="text-xs text-[--text-secondary] mt-1">{t.avance.import.audioHint}</p>
+      {audioMessage && (
+        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 inline-flex items-center gap-1.5" role="alert">
+          <AlertTriangle className="w-4 h-4" />
+          {audioMessage === 'vide' ? t.avance.import.audioEmpty : audioMessage === 'trop-long' ? t.avance.import.audioTooLong : t.avance.import.audioError}
+        </p>
+      )}
 
       <label htmlFor="import-lien" className="block text-sm font-medium mt-4 mb-1">{t.avance.import.linkLabel}</label>
       <div className="flex flex-wrap gap-2">
