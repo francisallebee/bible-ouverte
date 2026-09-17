@@ -4247,3 +4247,24 @@ même chemin.
 `buildId` du push de docs de 07:39 (`QqcVluvz…`) ; Vercel `success` à
 09:13:42, `buildId` `hAqhc_56…`. La production porte la forme revue : appareil
 direct et prises cumulées, audio par le sélecteur de fichiers.
+
+### Un plan depuis un document : la sortie qui manquait
+
+Demande du propriétaire le 17 au soir — `spec/IMPORT-IA.md`. Tout existait
+sauf la sortie : l'import produisait des lectures, il fallait des jours de
+plan. Trois choses pour ce document.
+
+**La règle a été choisie sur la forme des plans qu'on imprime** — une ligne
+par jour, tous ses passages —, et le second découpage (un passage par jour)
+offert plutôt qu'imposé. L'aperçu avant création est ce qui rend le choix
+sans risque : on voit les jours, on change le découpage, le document n'est
+pas relu.
+
+**« Depuis un document » n'est pas un `PlanKind`.** Il produit un plan daté
+ou libre selon le rythme choisi ; en base et dans l'écran du plan, rien de
+neuf. Une troisième forme de formulaire, pas une troisième sorte de plan.
+
+**Le compte à blanc vaut pour les plans comme pour les lectures** : 26 plans
+et 4 099 jours avant, plan 70 créé et relu en base — deux passages dans
+`passages`, un seul dans les colonnes, la règle de `toDayColumns` vérifiée
+sur du réel —, supprimé par le bouton, 26 et 4 099 après.

@@ -362,10 +362,38 @@ téléphone.
 Une porte pour tous les fichiers, une pour l'appareil, une pour le lien, et
 le champ pour le reste.
 
+### Un plan de lecture depuis un document — 17 septembre au soir
+
+« Créer un plan de lecture à partir d'un document Texte, Word, PowerPoint,
+OpenDocument, EPUB, PDF avec autant de facilité que les autres plans. » Tout
+existait sauf la sortie : le texte sort par `texteDuFichier`, les références
+par `extraireReferences`, et `lib/plans/from-document.ts` en fait des jours.
+
+**La règle : une ligne qui porte au moins une référence est un jour**, avec
+tous ses passages — la forme des plans qu'on imprime, « Jour 12 : Genèse
+25-26, Psaume 9 ». Les lignes sans référence (titres, « Semaine 3 »,
+consignes) sont passées et comptées. Second découpage offert : un passage par
+jour. Les rejets remontent avec leur fragment. `documentDayRows` écrit les
+jours par `toDayColumns`, datés à partir d'un début ou libres (date vide) ;
+en base c'est l'un des deux `PlanKind` existants — l'écran du plan n'a rien à
+apprendre. 7 tests.
+
+Dans le formulaire des plans, une troisième forme à côté de « Daté » et
+« Libre » : choisir le document, le nom se propose (le fichier sans son
+extension), découpage, rythme, date, et **l'aperçu des jours avant de créer**
+— les dix premiers, le compte du reste, les lignes passées, les rejets.
+
+Vu, en aller-retour réel : un `.txt` de six lignes → 3 jours, 3 lignes
+passées, nom « plan automne » ; créé — plan **70**, `scheduled`/`custom`,
+3 jours du 17 au 19, jour 1 à deux passages dans `passages`, jour 3 à un
+seul dans les colonnes ; ouvert — « Jour 1 · 17 sept. · Genèse 1-3 ·
+Psaumes 1 », comme tout plan daté ; supprimé par le bouton — base revenue à
+26 plans, 4 099 jours.
+
 ### Ce qui suit
 
 1. Sur l'iPhone du propriétaire : plusieurs prises de suite, un vrai
-   enregistrement par « Choisir un fichier ».
+   enregistrement par « Choisir un fichier », un vrai plan depuis un PDF.
 2. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
@@ -384,6 +412,7 @@ le champ pour le reste.
 |---|---|
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
+| 17 sept. 2026 | **Un plan depuis un document** : `lib/plans/from-document.ts`, une ligne = un jour, troisième forme du formulaire des plans avec aperçu. Aller-retour réel : plan 70 créé, vu, supprimé. 938 tests. |
 | 17 sept. 2026 | **Seconde revue du propriétaire** : PDF et fichiers ok. Photo → appareil direct, une prise à la fois, texte cumulé. Bouton Audio retiré, l'audio passe par « Choisir un fichier ». |
 | 17 sept. 2026 | **Arbitrages** : dictée abandonnée, audio en fichier, modèle plus tard, PDF maintenant. `pdf.ts` (pdf.js + OCR des pages scannées), `audio.ts` (Whisper tiny sur l'appareil, transformers.js depuis jsDelivr, sans dépendance npm). 929 tests. |
 | 17 sept. 2026 | **Vu en production par le propriétaire** : presse-papier et photo. Six retours : « / » séparateur, photo multi-pages, EPUB et FB2 lus, Kindle refusé (DRM), la route `api/import/lien`. Le bruit des abréviations courtes retiré. 924 tests. |

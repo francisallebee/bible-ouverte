@@ -42,6 +42,12 @@ const lectures = (n: number) => pluriel(n, {
   zero: 'قراءة', un: 'قراءة واحدة', deux: 'قراءتان',
   peu: 'قراءات', beaucoup: 'قراءة', autre: 'قراءة',
 })
+const sutur = (n: number) => pluriel(n, {
+  zero: 'سطر', un: 'سطر واحد', deux: 'سطران', peu: 'أسطر', beaucoup: 'سطرًا', autre: 'سطر',
+})
+const ukhra = (n: number) => pluriel(n, {
+  zero: 'أخرى', un: 'آخر', deux: 'آخران', peu: 'أخرى', beaucoup: 'آخر', autre: 'أخرى',
+})
 const maraji = (n: number) => pluriel(n, {
   zero: 'مرجع', un: 'مرجع واحد', deux: 'مرجعان',
   peu: 'مراجع', beaucoup: 'مرجعًا', autre: 'مرجع',
@@ -513,6 +519,22 @@ export const ar: Dictionary = {
     scheduledHint: 'مقطع كل يوم، موزّع على مدة.',
     free: 'حرة',
     freeHint: 'قائمة مقاطع بلا تواريخ، تُعلَّم على وتيرتك.',
+    document: 'من مستند',
+    documentHint: 'نص أو Word أو PowerPoint أو OpenDocument أو EPUB أو PDF: كل سطر يحمل مرجعًا يصبح يومًا.',
+    documentChoose: 'اختيار المستند',
+    documentReading: 'جارٍ قراءة المستند…',
+    documentPdf: (i: number, n: number) => `جارٍ قراءة PDF، الصفحة ${i} من ${n}…`,
+    documentDays: (n: number) => `${n} ${ayyam(n)} قراءة`,
+    documentIgnored: (n: number) => `${n} ${sutur(n)} بلا مرجع، تم تجاوزها`,
+    documentEmpty: 'لم يُعثر على أي مرجع كتابي في هذا المستند.',
+    documentMore: (n: number) => `… و${n} ${ukhra(n)}`,
+    documentSplit: 'التقسيم',
+    documentSplitLine: 'سطر واحد = يوم واحد',
+    documentSplitPassage: 'مقطع واحد = يوم واحد',
+    documentRhythm: 'الوتيرة',
+    documentDated: 'مؤرَّخ، ابتداءً من',
+    documentFreeRhythm: 'حر، أعلّمه على وتيرتي',
+    documentRejected: 'غير معروف',
     duration: 'المدة',
     durations: {
       '1-year': 'سنة واحدة',
