@@ -66,6 +66,23 @@ describe('extraireReferences — les listes', () => {
     ])
   })
 
+  it('un ordinal après un point-virgule ouvre un livre, pas un chapitre', () => {
+    // Trouvé sur des notes de culte réelles, le 17 septembre 2026 : « Romains 1 »
+    // et « 1 Jean 4:8 » perdu.
+    expect(extraireReferences('Romains 8:28-30 ; 1 Jean 4:8').references.map(bornes)).toEqual([
+      ref('ROM', 8, 28, 8, 30), ref('1JN', 4, 8),
+    ])
+  })
+
+  it('un ordinal après une virgule ouvre un livre, pas un verset', () => {
+    expect(extraireReferences('Jean 3:16, 1 Pierre 2:9').references.map(bornes)).toEqual([
+      ref('JHN', 3, 16), ref('1PE', 2, 9),
+    ])
+    expect(extraireReferences('Jude 3, 2 Pierre 1:3').references.map(bornes)).toEqual([
+      ref('JUD', 1, 3), ref('2PE', 1, 3),
+    ])
+  })
+
   it('la même référence écrite deux fois n’est rendue qu’une fois', () => {
     expect(extraireReferences('Jean 3:16 et encore Jn 3,16').references).toHaveLength(1)
   })

@@ -1,22 +1,25 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { ClipboardPaste, Check, AlertTriangle, Sparkles } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ClipboardPaste, Check, AlertTriangle, Sparkles, FileUp } from 'lucide-react'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
 import {
   seedIfNeeded, getEnabledVersions, getAllContexts, getSettings, getPassagesForRange, addReading,
 } from '@/lib/storage'
 import type { BibleVersion, ReadingContext } from '@/lib/storage'
 import { extraireReferences, type ReferenceExtraite, type RejetExtraction } from '@/lib/import/references'
+import { texteDuFichier, type RaisonRefus } from '@/lib/import/fichiers'
 import { ecrireReference } from '@/lib/lectures/reference'
 import { aujourdhui } from '@/lib/objectifs/objectifs'
 import { formatDate } from '@/lib/i18n/format'
 import ContextPicker from '@/components/ContextPicker'
 
 /**
- * L'import de lectures — premier étage, le presse-papier.
+ * L'import de lectures — le presse-papier, puis les fichiers.
  *
- * Un texte collé passe par `extraireReferences`, et chaque référence reconnue
+ * Un texte collé — ou extrait d'un fichier par `texteDuFichier`, dans le
+ * navigateur, et déposé dans le même champ pour que le lecteur voie ce qui a
+ * été lu — passe par `extraireReferences`, et chaque référence reconnue
  * devient une proposition cochée ; les fragments non reconnus sont montrés
  * avec leur raison, jamais avalés. **Rien ne s'enregistre sans relecture** :
  * c'est la seule protection contre une référence mal lue, et elle vaut pour
@@ -54,6 +57,9 @@ export default function ImportLectures() {
   const [rejets, setRejets] = useState<RejetExtraction[]>([])
   const [saving, setSaving] = useState(false)
   const [enregistrees, setEnregistrees] = useState<number | null>(null)
+  const [refusFichier, setRefusFichier] = useState<RaisonRefus | null>(null)
+  const [lectureFichier, setLectureFichier] = useState(false)
+  const fichierRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     ;(async () => {
@@ -67,14 +73,34 @@ export default function ImportLectures() {
 
   const retenues = useMemo(() => (propositions ?? []).filter((p) => p.retenue), [propositions])
 
-  function analyser() {
-    const { references, rejets: refuses } = extraireReferences(texte)
+  function analyser(contenu: string = texte, seance?: string) {
+    const { references, rejets: refuses } = extraireReferences(contenu)
     setPropositions(references.map((r) => ({ ...r, retenue: true })))
     setRejets(refuses)
     setEnregistrees(null)
     // Le nom de séance par défaut porte la source et la date : c'est la trace
     // de l'import. Il reste modifiable, et vide s'il est effacé.
-    if (!sessionTitle) setSessionTitle(t.avance.import.sessionDefault(formatDate(locale, date)))
+    if (seance) setSessionTitle(seance)
+    else if (!sessionTitle) setSessionTitle(t.avance.import.sessionDefault(formatDate(locale, date)))
+  }
+
+  /**
+   * Le fichier est lu sur l'appareil, son texte déposé dans le champ, et
+   * l'analyse part aussitôt. Un refus est dit avec sa raison ; le champ reste
+   * ce qu'il était.
+   */
+  async function lireFichier(fichier: File) {
+    setLectureFichier(true)
+    setRefusFichier(null)
+    try {
+      const lu = await texteDuFichier(fichier)
+      if ('refus' in lu) { setRefusFichier(lu.refus); return }
+      setTexte(lu.texte)
+      analyser(lu.texte, t.avance.import.sessionDefaultFichier(fichier.name, formatDate(locale, date)))
+    } finally {
+      setLectureFichier(false)
+      if (fichierRef.current) fichierRef.current.value = ''
+    }
   }
 
   function basculer(index: number) {
@@ -133,12 +159,28 @@ export default function ImportLectures() {
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
           type="button"
-          onClick={analyser}
+          onClick={() => analyser()}
           disabled={!texte.trim()}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[--primary] text-white font-medium disabled:opacity-50"
         >
           <Sparkles className="w-4 h-4" />
           {t.avance.import.analyse}
+        </button>
+        <input
+          ref={fichierRef}
+          type="file"
+          className="sr-only"
+          accept=".txt,.md,.csv,.tsv,.log,.html,.htm,.docx,.xlsx,.pptx,.odt,.ods,.odp,.pdf,text/*"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void lireFichier(f) }}
+        />
+        <button
+          type="button"
+          onClick={() => fichierRef.current?.click()}
+          disabled={lectureFichier}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white font-medium disabled:opacity-50"
+        >
+          <FileUp className="w-4 h-4" />
+          {t.avance.import.fileButton}
         </button>
         {enregistrees !== null && (
           <p className="text-sm text-green-700 inline-flex items-center gap-1.5" role="status">
@@ -147,6 +189,13 @@ export default function ImportLectures() {
           </p>
         )}
       </div>
+      <p className="text-xs text-[--text-secondary] mt-2">{t.avance.import.fileHint}</p>
+      {refusFichier && (
+        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 inline-flex items-center gap-1.5" role="alert">
+          <AlertTriangle className="w-4 h-4" />
+          {t.avance.import.fileRefus[refusFichier]}
+        </p>
+      )}
 
       {propositions !== null && (
         <div className="mt-6 space-y-5">

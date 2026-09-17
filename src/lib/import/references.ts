@@ -176,6 +176,17 @@ const MOTIF_LIVRE = new RegExp(
 const ORDINAUX: Record<string, 1 | 2 | 3> = { '1': 1, '2': 2, '3': 3, i: 1, ii: 2, iii: 3 }
 
 /**
+ * Un nombre qui est en fait l'ordinal du livre suivant — « ; 1 Jean 4:8 »,
+ * « , 2 Pierre 1:3 ». Une liste ou un point-virgule ne doit pas le lire comme
+ * un chapitre ou un verset : c'est l'essai réel du 17 septembre 2026 qui l'a
+ * montré, sur des notes de culte, là où cinquante-trois tests l'ignoraient.
+ */
+const MOTIF_LIVRE_APRES_NOMBRE = new RegExp(
+  `^\\d+\\s*(?:ere|re|er|e|st|nd|rd)?\\.?\\s*(?:${MOTIF_ALIAS})(?![\\p{L}])`,
+  'iu',
+)
+
+/**
  * Ce qui sépare un chapitre de son verset, **à condition qu'un nombre suive** :
  * « 3:16 », « 3.16 », « 3,16 » collé, « 3 v. 16 », « 3, verset 16 ». Sans
  * nombre derrière, un point est la fin d'une phrase — « lire Jean 3. » est
@@ -216,6 +227,13 @@ function lireQueue(code: BookCode, queue: string): { refs: Bornes[]; rejets: Rai
     pos += m[0].length
     return true
   }
+  /** Consomme un séparateur de liste, sauf si un livre suit le nombre qu'il introduit. */
+  const enchainer = (separateur: RegExp): boolean => {
+    const avant = pos
+    if (!prendre(separateur)) return false
+    if (MOTIF_LIVRE_APRES_NOMBRE.test(queue.slice(pos))) { pos = avant; return false }
+    return true
+  }
   const nombre = (): number => {
     const m = NOMBRE.exec(queue.slice(pos))!
     pos += m[0].length
@@ -251,7 +269,7 @@ function lireQueue(code: BookCode, queue: string): { refs: Bornes[]; rejets: Rai
       // nouveau chapitre. Un livre à un chapitre passe aussi par ici quand il
       // est écrit « Philémon 1:4 » : « Jude 2:1 » y est rejeté comme il se doit.
       lireIntervalle(chapitre, nombre())
-      while (prendre(VIRGULE)) {
+      while (enchainer(VIRGULE)) {
         const n = nombre()
         if (prendre(DEUX_POINTS)) { chapitre = n; lireIntervalle(chapitre, nombre()) }
         else lireIntervalle(chapitre, n)
@@ -263,7 +281,7 @@ function lireQueue(code: BookCode, queue: string): { refs: Bornes[]; rejets: Rai
         poser(1, 1, 1, dernierVerset(code, 1))
       } else {
         lireIntervalle(1, chapitre)
-        while (prendre(VIRGULE)) lireIntervalle(1, nombre())
+        while (enchainer(VIRGULE)) lireIntervalle(1, nombre())
       }
     } else {
       // « Jean 3 » ou « Jean 3-4 » : des chapitres entiers.
@@ -272,7 +290,7 @@ function lireQueue(code: BookCode, queue: string): { refs: Bornes[]; rejets: Rai
       else rejets.push('chapitre-inexistant')
     }
 
-    if (!prendre(POINT_VIRGULE)) break
+    if (!enchainer(POINT_VIRGULE)) break
   }
   return { refs, rejets, lu: pos }
 }

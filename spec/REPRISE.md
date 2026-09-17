@@ -4083,3 +4083,27 @@ Le serveur de développement avait été arrêté par l'application pendant la
 pause ; relancé, il a repris le 3000, l'autre conversation l'ayant libéré.
 
 Non vu : les quatre autres langues à l'écran, la production, l'arabe.
+
+### Les fichiers, et le défaut que seul un texte réel a montré
+
+Deuxième étage le même jour — `spec/IMPORT-IA.md`, « Les fichiers ». Deux
+choses pour ce document.
+
+**Une dépendance évitée par un fait du navigateur.** Word, Excel, PowerPoint
+et OpenDocument sont des zip de XML, et `DecompressionStream('deflate-raw')`
+dégonfle sans bibliothèque : cinquante lignes de lecteur zip plutôt que
+`mammoth` et `xlsx`. La règle 6 tient, et `npm audit` n'a rien gagné de neuf.
+Le PDF reste refusé avec sa raison — `pdfjs-dist` ou le modèle, ni l'un ni
+l'autre n'est décidé.
+
+**Cinquante-trois tests écrits d'avance n'avaient pas le cas que des notes de
+culte ont eu du premier coup** : « Romains 8:28-30 ; 1 Jean 4:8 » lisait
+l'ordinal comme un chapitre. Les tests encodaient ce que j'imaginais qu'on
+écrit ; le texte réel a écrit autre chose. La leçon est celle du dépôt sur
+les preuves d'écran, transposée : **un test dit ce qu'on a pensé, un essai
+réel dit ce qui arrive.** Faire l'essai réel avant de croire la suite verte.
+
+Le panneau ne sait pas ouvrir le sélecteur de fichiers natif ; un `File`
+fabriqué en JavaScript et posé sur `input.files` avec un événement `change`
+traverse React comme un vrai choix. Le serveur de développement a été arrêté
+par l'application à chaque pause entre nos échanges ; relancé deux fois.

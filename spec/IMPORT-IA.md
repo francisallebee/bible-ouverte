@@ -158,12 +158,46 @@ ligne **897**, `PSA 23:1-6`, 626 caractères de Louis Segond, contexte
 sous ce titre ; effacé par l'écran Détail de la lecture, qui vide aussi le
 cache local ; base revenue à **745**, ligne 897 absente.
 
+### Les fichiers, `lib/import/fichiers.ts`
+
+**Sans dépendance**, et c'est une décision : Word, Excel, PowerPoint et
+OpenDocument sont des archives zip de XML, et le navigateur dégonfle le
+deflate lui-même (`DecompressionStream('deflate-raw')` — Safari ≥ 16.4,
+Chrome ≥ 80, Firefox ≥ 113). Un lecteur zip de cinquante lignes — fin de
+répertoire, répertoire central, en-têtes locaux, méthodes 0 et 8 — remplace
+`mammoth` et `xlsx`, dont la version npm traîne des vulnérabilités que son
+auteur ne corrige plus là. Le texte brut (`txt`, `md`, `csv`, `tsv`, `log`,
+tout `text/*`) se lit en UTF-8 strict avec repli en windows-1252 ; le HTML
+perd scripts, styles et balises, ses blocs deviennent des lignes. Excel rend
+une ligne par ligne, tabulations entre les cellules, chaînes partagées
+résolues. Le `pdf` est **refusé avec sa raison** : l'extraire dans le
+navigateur demanderait `pdfjs-dist`, l'envoyer au serveur suppose le modèle
+— l'arbitrage ouvert. 15 tests, les fixtures zip fabriquées par le test.
+
+À l'écran, « Choisir un fichier » à côté d'« Analyser » : le texte extrait
+**atterrit dans le champ** — le lecteur voit ce qui a été lu —, l'analyse
+part aussitôt, la séance se nomme « Import culte.docx · date ». Un refus
+s'affiche avec sa phrase et laisse le champ intact.
+
+**L'essai réel a trouvé un défaut que 53 tests ignoraient.** Un `.docx`
+fabriqué dans le panneau — « Romains 8:28-30 ; 1 Jean 4:8 » — rendait
+« Romains 1 » et perdait « 1 Jean 4:8 » : le point-virgule enchaîne les
+chapitres du même livre, et l'ordinal du livre suivant avait été pris pour
+un chapitre ; le nom, déjà dépassé, n'était plus vu. La virgule avait le même
+angle mort (« Jean 3:16, 1 Pierre 2:9 »). Un nombre suivi d'un nom de livre
+n'est jamais un chapitre ni un verset : `enchainer` regarde avant de
+consommer le séparateur. Deux tests de plus ; 70 sur l'analyseur.
+
+Vu, session du propriétaire : le `.docx` → 4 références justes, dont
+« 1 Jean 4:8 » ; un `.pdf` → le refus, le champ intact.
+
+Relevé d'écriture, hors de l'import : « Jude 1:3 » — `ecrireReference`
+écrit le chapitre des livres qui n'en ont qu'un, où l'usage écrit « Jude 3 ».
+
 ### Ce qui suit, dans l'ordre
 
-1. Les fichiers : txt et csv sans dépendance, Word et Excel par extraction
-   dans le navigateur (deux dépendances), PDF sous 4,5 Mo.
-2. L'OCR sur l'appareil (`tesseract.js`), galerie puis appareil.
-3. Les deux arbitrages ouverts : l'audio, le modèle.
+1. L'OCR sur l'appareil (`tesseract.js`), galerie puis appareil.
+2. Les deux arbitrages ouverts : l'audio, le modèle — et le PDF avec lui.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
 
@@ -181,4 +215,5 @@ cache local ; base revenue à **745**, ligne 897 absente.
 |---|---|
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
+| 17 sept. 2026 | **Deuxième étage** : `lib/import/fichiers.ts`, Word, Excel, PowerPoint, OpenDocument, texte, csv, html sans dépendance (15 tests) ; PDF refusé avec sa raison. L'essai réel a trouvé le défaut du point-virgule devant un ordinal ; corrigé, 70 tests sur l'analyseur. |
 | 17 sept. 2026 | **Premier étage livré** : `lib/import/references.ts`, l'analyseur déterministe (53 tests), et `components/import/ImportLectures.tsx` dans `/avance` — le presse-papier, l'écran de validation, la septième voie de création. Vu et éprouvé par un aller-retour réel : Psaumes 23 enregistré (ligne 897, texte du cache, séance « Import presse-papier · 17/09/2026 »), vu dans l'historique, effacé par l'écran, base revenue à 745. |
