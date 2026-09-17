@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ClipboardPaste, Check, AlertTriangle, Sparkles, FileUp, Camera, Link2, Mic } from 'lucide-react'
+import { ClipboardPaste, Check, AlertTriangle, Sparkles, FileUp, Camera, Link2 } from 'lucide-react'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
 import {
   seedIfNeeded, getEnabledVersions, getAllContexts, getSettings, getPassagesForRange, addReading,
@@ -10,7 +10,7 @@ import type { BibleVersion, ReadingContext } from '@/lib/storage'
 import { extraireReferences, type ReferenceExtraite, type RejetExtraction } from '@/lib/import/references'
 import { texteDuFichier, type RaisonRefus } from '@/lib/import/fichiers'
 import { reconnaitreTexte } from '@/lib/import/ocr'
-import { transcrire, type ProgressionAudio } from '@/lib/import/audio'
+import type { ProgressionAudio } from '@/lib/import/audio'
 import type { ProgressionPdf } from '@/lib/import/pdf'
 import { ecrireReference } from '@/lib/lectures/reference'
 import { aujourdhui } from '@/lib/objectifs/objectifs'
@@ -18,8 +18,8 @@ import { formatDate } from '@/lib/i18n/format'
 import ContextPicker from '@/components/ContextPicker'
 
 /**
- * L'import de lectures — le presse-papier, les fichiers (PDF compris), la
- * photo, le lien, l'audio.
+ * L'import de lectures — le presse-papier, les fichiers (PDF et
+ * enregistrements audio compris), la photo, le lien.
  *
  * Un texte collé — ou extrait d'un fichier par `texteDuFichier`, ou reconnu
  * sur une photo par `reconnaitreTexte`, ou rapporté d'une adresse par la
@@ -66,14 +66,10 @@ export default function ImportLectures() {
   const [refusFichier, setRefusFichier] = useState<RaisonRefus | null>(null)
   const [lectureFichier, setLectureFichier] = useState(false)
   const [pdf, setPdf] = useState<ProgressionPdf | null>(null)
-  const fichierRef = useRef<HTMLInputElement>(null)
-  const audioRef = useRef<HTMLInputElement>(null)
   const [audio, setAudio] = useState<ProgressionAudio | null>(null)
-  const [audioMessage, setAudioMessage] = useState<'vide' | 'erreur' | 'trop-long' | null>(null)
+  const fichierRef = useRef<HTMLInputElement>(null)
   /** `null` au repos ; `-1` pendant le chargement du moteur ; 0 à 100 pendant la lecture. */
   const [ocr, setOcr] = useState<number | null>(null)
-  /** La page en cours et le nombre de pages, quand il y en a plusieurs. */
-  const [ocrPage, setOcrPage] = useState<{ i: number; n: number } | null>(null)
   const [ocrMessage, setOcrMessage] = useState<'vide' | 'erreur' | null>(null)
   const photoRef = useRef<HTMLInputElement>(null)
   const [lien, setLien] = useState('')
@@ -112,35 +108,15 @@ export default function ImportLectures() {
     setLectureFichier(true)
     setRefusFichier(null)
     try {
-      const lu = await texteDuFichier(fichier, { locale, onProgressionPdf: setPdf })
+      const lu = await texteDuFichier(fichier, { locale, onProgressionPdf: setPdf, onProgressionAudio: setAudio })
       if ('refus' in lu) { setRefusFichier(lu.refus); return }
       setTexte(lu.texte)
       analyser(lu.texte, seance ?? t.avance.import.sessionDefaultFichier(fichier.name, formatDate(locale, date)))
     } finally {
       setLectureFichier(false)
       setPdf(null)
-      if (fichierRef.current) fichierRef.current.value = ''
-    }
-  }
-
-  /**
-   * L'enregistrement est transcrit sur l'appareil ; le texte prend la place du
-   * champ et l'analyse part. Les étapes sont dites — décoder, télécharger le
-   * modèle la première fois, transcrire — parce qu'elles durent.
-   */
-  async function lireAudio(fichier: File) {
-    setAudio({ etape: 'decodage' })
-    setAudioMessage(null)
-    try {
-      const texteLu = await transcrire(fichier, locale, setAudio)
-      if (!texteLu) { setAudioMessage('vide'); return }
-      setTexte(texteLu)
-      analyser(texteLu, t.avance.import.sessionDefaultAudio(fichier.name, formatDate(locale, date)))
-    } catch (e) {
-      setAudioMessage(e instanceof Error && e.message === 'trop-long' ? 'trop-long' : 'erreur')
-    } finally {
       setAudio(null)
-      if (audioRef.current) audioRef.current.value = ''
+      if (fichierRef.current) fichierRef.current.value = ''
     }
   }
 
@@ -212,40 +188,34 @@ export default function ImportLectures() {
   }
 
   /**
-   * Les photos sont lues sur l'appareil, l'une après l'autre — un document de
-   * plusieurs pages, demandé par le propriétaire le 17 septembre 2026 —, et
-   * leurs textes mis bout à bout prennent la place du champ ; l'analyse part.
-   * Des photos sans texte le disent, une lecture qui échoue aussi — et le
-   * champ reste ce qu'il était dans les deux cas.
+   * L'appareil s'ouvre directement (`capture`), une photo à la fois : sur iOS
+   * l'appareil ne prend qu'une image par ouverture, et le `multiple` ne
+   * valait que pour la galerie — le propriétaire l'a vu le 17 septembre 2026.
+   * Le texte reconnu **s'ajoute** au champ, à la suite de ce qui s'y trouve ;
+   * une page de plus est une photo de plus, et l'analyse suit à chaque ajout.
+   * Une photo sans texte le dit, une lecture qui échoue aussi — le champ
+   * reste ce qu'il était dans les deux cas.
    */
-  async function lirePhotos(fichiers: File[]) {
+  async function lirePhoto(fichier: File) {
     setOcr(-1)
-    setOcrPage(fichiers.length > 1 ? { i: 1, n: fichiers.length } : null)
     setOcrMessage(null)
     setRefusFichier(null)
     try {
-      const pages: string[] = []
-      for (const [index, fichier] of Array.from(fichiers.entries())) {
-        if (fichiers.length > 1) setOcrPage({ i: index + 1, n: fichiers.length })
-        setOcr(-1)
-        const texteLu = await reconnaitreTexte(fichier, locale, (part) => setOcr(Math.round(part * 100)))
-        if (texteLu) pages.push(texteLu)
-      }
-      if (pages.length === 0) { setOcrMessage('vide'); return }
-      const texteLu = pages.join('\n\n')
-      setTexte(texteLu)
-      analyser(texteLu, t.avance.import.sessionDefaultPhoto(formatDate(locale, date)))
+      const texteLu = await reconnaitreTexte(fichier, locale, (part) => setOcr(Math.round(part * 100)))
+      if (!texteLu) { setOcrMessage('vide'); return }
+      const cumul = texte.trim() ? `${texte.trim()}\n\n${texteLu}` : texteLu
+      setTexte(cumul)
+      analyser(cumul, sessionTitle || t.avance.import.sessionDefaultPhoto(formatDate(locale, date)))
     } catch {
       setOcrMessage('erreur')
     } finally {
       setOcr(null)
-      setOcrPage(null)
       if (photoRef.current) photoRef.current.value = ''
     }
   }
 
   const champ = 'w-full border border-gray-300 rounded-lg px-3 py-2 bg-white'
-  const occupe = lectureFichier || ocr !== null || lectureLien || audio !== null
+  const occupe = lectureFichier || ocr !== null || lectureLien
 
   return (
     <section className="bg-[--surface] rounded-xl border border-[--border] p-5 sm:p-6">
@@ -278,7 +248,7 @@ export default function ImportLectures() {
           ref={fichierRef}
           type="file"
           className="sr-only"
-          accept=".txt,.md,.csv,.tsv,.log,.html,.htm,.docx,.xlsx,.pptx,.odt,.ods,.odp,.epub,.fb2,.pdf,.mobi,.azw,.azw3,text/*"
+          accept=".txt,.md,.csv,.tsv,.log,.html,.htm,.docx,.xlsx,.pptx,.odt,.ods,.odp,.epub,.fb2,.pdf,.mobi,.azw,.azw3,.mp3,.m4a,.wav,.ogg,.aac,.flac,text/*,audio/*"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) void lireFichier(f) }}
         />
         <button
@@ -290,15 +260,15 @@ export default function ImportLectures() {
           <FileUp className="w-4 h-4" />
           {t.avance.import.fileButton}
         </button>
-        {/* Sans `capture` : iOS propose alors l'appareil **et** la photothèque,
-            ce que demande « galerie ou appareil ». */}
+        {/* `capture` : l'appareil s'ouvre directement, sans passer par la
+            photothèque — demande du propriétaire du 17 septembre 2026. */}
         <input
           ref={photoRef}
           type="file"
           className="sr-only"
           accept="image/*"
-          multiple
-          onChange={(e) => { const fs = Array.from(e.target.files ?? []); if (fs.length > 0) void lirePhotos(fs) }}
+          capture="environment"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void lirePhoto(f) }}
         />
         <button
           type="button"
@@ -308,22 +278,6 @@ export default function ImportLectures() {
         >
           <Camera className="w-4 h-4" />
           {t.avance.import.photoButton}
-        </button>
-        <input
-          ref={audioRef}
-          type="file"
-          className="sr-only"
-          accept="audio/*,.m4a,.mp3,.wav,.ogg,.aac,.flac"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) void lireAudio(f) }}
-        />
-        <button
-          type="button"
-          onClick={() => audioRef.current?.click()}
-          disabled={occupe}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white font-medium disabled:opacity-50"
-        >
-          <Mic className="w-4 h-4" />
-          {t.avance.import.audioButton}
         </button>
         {pdf && (
           <p className="text-sm text-[--text-secondary]" role="status" aria-live="polite">
@@ -343,11 +297,7 @@ export default function ImportLectures() {
         )}
         {ocr !== null && (
           <p className="text-sm text-[--text-secondary]" role="status" aria-live="polite">
-            {ocr < 0
-              ? t.avance.import.ocrLoading
-              : ocrPage
-                ? t.avance.import.ocrPage(ocrPage.i, ocrPage.n, ocr)
-                : t.avance.import.ocrProgress(ocr)}
+            {ocr < 0 ? t.avance.import.ocrLoading : t.avance.import.ocrProgress(ocr)}
           </p>
         )}
         {enregistrees !== null && (
@@ -359,13 +309,6 @@ export default function ImportLectures() {
       </div>
       <p className="text-xs text-[--text-secondary] mt-2">{t.avance.import.fileHint}</p>
       <p className="text-xs text-[--text-secondary] mt-1">{t.avance.import.photoHint}</p>
-      <p className="text-xs text-[--text-secondary] mt-1">{t.avance.import.audioHint}</p>
-      {audioMessage && (
-        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 inline-flex items-center gap-1.5" role="alert">
-          <AlertTriangle className="w-4 h-4" />
-          {audioMessage === 'vide' ? t.avance.import.audioEmpty : audioMessage === 'trop-long' ? t.avance.import.audioTooLong : t.avance.import.audioError}
-        </p>
-      )}
 
       <label htmlFor="import-lien" className="block text-sm font-medium mt-4 mb-1">{t.avance.import.linkLabel}</label>
       <div className="flex flex-wrap gap-2">

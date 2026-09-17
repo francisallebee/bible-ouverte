@@ -340,10 +340,32 @@ lecteur, et c'est écrit sous le bouton : honnête sur une voix claire et
 proche, médiocre sur un culte enregistré de loin, plus lent que le réel sur un
 téléphone.
 
+### Vu par le propriétaire en production, seconde fois — 17 septembre au soir
+
+« PDF ok. » « Choisir un fichier ok. » Et deux retours qui ont changé la forme :
+
+- **La photo multi-pages « ne semble pas fonctionner »** — et pour cause : sur
+  iOS, l'appareil ne prend qu'une image par ouverture ; le `multiple` ne
+  valait que pour la galerie, où le propriétaire ne voulait pas aller. Le
+  bouton ouvre désormais **directement l'appareil** (`capture="environment"`),
+  une photo à la fois, et le texte reconnu **s'ajoute** au champ à la suite du
+  précédent ; une page de plus est une photo de plus, l'analyse suit chaque
+  ajout. Le multi-pages est devenu une suite de prises. Vu : deux prises →
+  « Actes 3:8 » puis « Actes 3:8, Luc 15:11-32 », un seul champ.
+- **« Audio ne sert à rien » comme bouton** : retiré. Un enregistrement se
+  choisit par « Choisir un fichier », comme un document — `fichiers.ts`
+  reconnaît `mp3`, `m4a`, `wav`, `ogg`, `aac`, `flac`… et tout `audio/*`, et
+  confie le fichier à `audio.ts`. « Aucune parole » et « trop long » sont des
+  refus de fichier nommés, comme Kindle. Vu : un WAV par le sélecteur →
+  modèle repris du cache, transcription, « Aucune parole reconnue ».
+
+Une porte pour tous les fichiers, une pour l'appareil, une pour le lien, et
+le champ pour le reste.
+
 ### Ce qui suit
 
-1. Sur l'iPhone du propriétaire : une vraie photo de plusieurs pages, un vrai
-   PDF (né numérique, puis scanné), un vrai enregistrement.
+1. Sur l'iPhone du propriétaire : plusieurs prises de suite, un vrai
+   enregistrement par « Choisir un fichier ».
 2. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
@@ -362,6 +384,7 @@ téléphone.
 |---|---|
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
+| 17 sept. 2026 | **Seconde revue du propriétaire** : PDF et fichiers ok. Photo → appareil direct, une prise à la fois, texte cumulé. Bouton Audio retiré, l'audio passe par « Choisir un fichier ». |
 | 17 sept. 2026 | **Arbitrages** : dictée abandonnée, audio en fichier, modèle plus tard, PDF maintenant. `pdf.ts` (pdf.js + OCR des pages scannées), `audio.ts` (Whisper tiny sur l'appareil, transformers.js depuis jsDelivr, sans dépendance npm). 929 tests. |
 | 17 sept. 2026 | **Vu en production par le propriétaire** : presse-papier et photo. Six retours : « / » séparateur, photo multi-pages, EPUB et FB2 lus, Kindle refusé (DRM), la route `api/import/lien`. Le bruit des abréviations courtes retiré. 924 tests. |
 | 17 sept. 2026 | **Troisième étage** : `lib/import/ocr.ts`, la photo lue sur l'appareil par `tesseract.js` (7.0.0, la seule dépendance, chargée à la demande). Vu sur une image fabriquée : texte exact, 3 références. `next build` figé deux fois dans un worktree — le bac à sable, hypothèse. |

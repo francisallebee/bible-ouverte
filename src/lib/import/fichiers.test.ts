@@ -7,6 +7,14 @@ import { texteDuFichier, TAILLE_MAXIMALE } from './fichiers'
 vi.mock('./pdf', () => ({
   texteDuPdf: vi.fn(async (f: File, locale: string) => `pdf:${f.name}:${locale}`),
 }))
+// Whisper aussi : ici, seulement l'aiguillage, la parole vide et la durée.
+vi.mock('./audio', () => ({
+  transcrire: vi.fn(async (f: File, locale: string) => {
+    if (f.name.startsWith('silence')) return ''
+    if (f.name.startsWith('long')) throw new Error('trop-long')
+    return `audio:${f.name}:${locale}`
+  }),
+}))
 
 /**
  * Un écrivain zip minimal, pour fabriquer des fixtures Word, Excel et
@@ -162,6 +170,17 @@ describe('texteDuFichier — les livres numériques', () => {
 
   it.each(['livre.mobi', 'livre.azw', 'livre.azw3', 'livre.kfx'])('%s : Kindle est refusé avec sa raison', async (nom) => {
     expect(await texteDuFichier(fichier(nom, new Uint8Array([0, 1, 2])))).toEqual({ refus: 'kindle-chiffre' })
+  })
+})
+
+describe('texteDuFichier — les enregistrements', () => {
+  it('un fichier audio est transcrit, par extension ou par type, dans la langue de l’interface', async () => {
+    expect(await texteDuFichier(fichier('culte.m4a', 'x'), { locale: 'it' })).toEqual({ texte: 'audio:culte.m4a:it' })
+    expect(await texteDuFichier(fichier('enregistrement', 'x', 'audio/mpeg'))).toEqual({ texte: 'audio:enregistrement:fr' })
+  })
+  it('un enregistrement sans parole, ou trop long, est refusé avec sa raison', async () => {
+    expect(await texteDuFichier(fichier('silence.mp3', 'x'))).toEqual({ refus: 'audio-vide' })
+    expect(await texteDuFichier(fichier('long.wav', 'x'))).toEqual({ refus: 'audio-trop-long' })
   })
 })
 

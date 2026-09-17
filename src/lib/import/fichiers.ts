@@ -16,8 +16,9 @@
  * Ce qui est lu : `txt`, `md`, `csv`, `tsv`, `html` ; `docx`, `xlsx`, `pptx` ;
  * `odt`, `ods`, `odp` ; `epub` et `fb2` — les livres numériques, demandés par
  * le propriétaire le 17 septembre 2026 ; `pdf`, par `pdf.js` dans `./pdf.ts`,
- * la seule extraction qui charge une bibliothèque — et l'OCR pour ses pages
- * scannées. Les formats **Kindle** (`mobi`,
+ * une extraction qui charge une bibliothèque — et l'OCR pour ses pages
+ * scannées ; un **enregistrement audio** (`mp3`, `m4a`, `wav`…), transcrit
+ * sur l'appareil par `./audio.ts`. Les formats **Kindle** (`mobi`,
  * `azw`, `azw3`, `kfx`) aussi, et pour de bon : un format binaire
  * propriétaire, et les livres achetés sont chiffrés par une clé que seul le
  * compte Amazon détient — aucun lecteur ne les ouvre sans elle. Rien ne
@@ -26,15 +27,22 @@
 
 import type { Locale } from '@/lib/i18n/locales'
 import type { ProgressionPdf } from './pdf'
+import type { ProgressionAudio } from './audio'
 
-export type RaisonRefus = 'kindle-chiffre' | 'format-inconnu' | 'trop-gros' | 'illisible'
+export type RaisonRefus =
+  | 'kindle-chiffre' | 'format-inconnu' | 'trop-gros' | 'illisible'
+  /** Un enregistrement où Whisper n'a entendu aucune parole. */
+  | 'audio-vide'
+  /** Plus de trente minutes : le téléphone n'a plus la mémoire. */
+  | 'audio-trop-long'
 
 export type LectureFichier = { texte: string } | { refus: RaisonRefus }
 
 export interface OptionsLecture {
-  /** La langue de l'OCR pour les pages de PDF scannées ; celle de l'interface. */
+  /** La langue de l'OCR des pages scannées et de la transcription ; celle de l'interface. */
   locale: Locale
   onProgressionPdf?: (p: ProgressionPdf) => void
+  onProgressionAudio?: (p: ProgressionAudio) => void
 }
 
 /** Rien ne quitte l'appareil, la borne ne sert qu'à ne pas figer l'onglet. */
@@ -45,6 +53,7 @@ const HTML = new Set(['html', 'htm'])
 const OFFICE = new Set(['docx', 'xlsx', 'pptx'])
 const OPEN_DOCUMENT = new Set(['odt', 'ods', 'odp'])
 const KINDLE = new Set(['mobi', 'azw', 'azw3', 'azw4', 'kfx', 'prc'])
+const AUDIO = new Set(['mp3', 'm4a', 'wav', 'ogg', 'oga', 'opus', 'aac', 'flac', 'webm', 'mp4', 'caf', 'aiff', 'aif'])
 
 function extensionDe(nom: string): string {
   const point = nom.lastIndexOf('.')
@@ -58,6 +67,18 @@ export async function texteDuFichier(fichier: File, options: OptionsLecture = { 
     if (ext === 'pdf' || fichier.type === 'application/pdf') {
       const { texteDuPdf } = await import('./pdf')
       return { texte: await texteDuPdf(fichier, options.locale, options.onProgressionPdf) }
+    }
+    if (AUDIO.has(ext) || fichier.type.startsWith('audio/')) {
+      // Un enregistrement se choisit comme un document — décision du
+      // propriétaire du 17 septembre 2026 au soir, après l'essai d'un bouton
+      // à part : « une seule porte, ce sera plus simple ».
+      const { transcrire } = await import('./audio')
+      try {
+        const texte = await transcrire(fichier, options.locale, options.onProgressionAudio)
+        return texte ? { texte } : { refus: 'audio-vide' }
+      } catch (e) {
+        return { refus: e instanceof Error && e.message === 'trop-long' ? 'audio-trop-long' : 'illisible' }
+      }
     }
     if (TEXTE_BRUT.has(ext) || fichier.type.startsWith('text/')) {
       return { texte: HTML.has(ext) ? texteDuHtml(await lireTexte(fichier)) : await lireTexte(fichier) }

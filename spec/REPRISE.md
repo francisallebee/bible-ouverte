@@ -4226,3 +4226,19 @@ Whisper tiny sur une vraie voix est au propriétaire de la voir.
 `VRpnX1ID…` → `ZLB9T74V…`. Le déploiement le plus exposé de la journée —
 `pdfjs-dist` à compiler, un `import()` d'URL sous `webpackIgnore` — est
 passé du premier coup. Les cinq entrées demandées le 16 sont en production.
+
+### `multiple` et `capture` ne vont pas ensemble sur iOS — vu par le propriétaire
+
+Le multi-pages par photo « ne semblait pas fonctionner » en production. Sur
+iOS, `<input type="file" accept="image/*" multiple>` propose l'appareil et la
+photothèque ; l'appareil ne prend **qu'une** image par ouverture, et
+`multiple` ne vaut que pour la photothèque. Le panneau de séance, qui dépose
+des `File` par script, ne pouvait pas le montrer : c'est l'iPhone qui l'a
+dit. La forme a changé plutôt que le réglage : `capture="environment"`, une
+prise à la fois, le texte **ajouté** au champ. Une fonctionnalité pensée
+comme « plusieurs fichiers » était en fait « plusieurs fois une photo ».
+
+Et un bouton retiré le jour même de sa naissance : l'audio à part « ne sert à
+rien » quand « Choisir un fichier » peut le prendre. Le code de la
+transcription n'a pas bougé ; seule la porte a changé. Moins de boutons,
+même chemin.
