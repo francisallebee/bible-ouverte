@@ -4242,3 +4242,8 @@ Et un bouton retiré le jour même de sa naissance : l'audio à part « ne sert 
 rien » quand « Choisir un fichier » peut le prendre. Le code de la
 transcription n'a pas bougé ; seule la porte a changé. Moins de boutons,
 même chemin.
+
+`bfbc517` poussé à 09:12:04 UTC ; le relevé de départ portait déjà le
+`buildId` du push de docs de 07:39 (`QqcVluvz…`) ; Vercel `success` à
+09:13:42, `buildId` `hAqhc_56…`. La production porte la forme revue : appareil
+direct et prises cumulées, audio par le sélecteur de fichiers.
