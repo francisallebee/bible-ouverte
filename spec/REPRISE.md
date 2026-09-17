@@ -4190,3 +4190,11 @@ ordinal n'est presque jamais un livre. Ignorée en silence désormais. Après
 le point-virgule devant un ordinal (le `.docx`) et la barre oblique (la
 photo du propriétaire), c'est la troisième règle que l'usage a écrite et
 que l'imagination n'avait pas.
+
+`a1dc711` poussé à 07:08:45 UTC ; Vercel `success` à 07:10:15, `buildId`
+`M9zsGR91…` → `VRpnX1ID…`. Aucune classe CSS neuve à discriminer — un
+changement de JavaScript et d'une route —, le statut de commit a suffi. Et
+une sonde de plus, propre aux routes : `POST /api/import/lien` **sans
+session** rend `307 → /auth/login` en production — le middleware intercepte
+avant la route, `requireAdmin` est la seconde barrière derrière lui. Deux
+verrous, l'un devant l'autre ; c'est le premier que la sonde a vu.
