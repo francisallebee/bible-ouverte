@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { joursDeLecture, portionsDesJours, redecouper } from './lecture-document'
+import { joursDeLecture, portionsDesJours, redecouper, nomDePlanPour } from './lecture-document'
 import { dayPassages } from '@/lib/storage/plan-passages'
 import type { PlanDay } from '@/lib/storage/types'
 
@@ -20,6 +20,13 @@ describe('joursDeLecture', () => {
     const jours = joursDeLecture([{ debut: 2, fin: 2 }], [], ['', ''], null)
     expect(jours[0].date).toBe('')
     expect(jours[0]).not.toHaveProperty('titre')
+  })
+})
+
+describe('nomDePlanPour', () => {
+  it('retire l’extension et aère le nom', () => {
+    expect(nomDePlanPour('pour_une-foi.reflechie.epub')).toBe('pour une foi.reflechie')
+    expect(nomDePlanPour('Cahier.PDF')).toBe('Cahier')
   })
 })
 

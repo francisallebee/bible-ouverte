@@ -24,7 +24,6 @@ import PassagePreview from "@/components/PassagePreview";
 import { versetsDuChapitre } from "@/lib/progression/chapitres";
 import { textDirection } from "@/lib/i18n/locales";
 import type { ReadingPlan, PlanDay, BibleVersion, PlanDuration, BiblePassage } from "@/lib/storage";
-import LecteurDeJour from "@/components/plans/LecteurDeJour";
 import LecteurDePdf from "@/components/plans/LecteurDePdf";
 import LecteurDeDocument from "@/components/plans/LecteurDeDocument";
 import EditeurDeJours from "@/components/plans/EditeurDeJours";
@@ -202,12 +201,7 @@ export default function PlanDetailPage() {
           // plan ferait un titre tentant, mais ce serait décider à la place
           // de l'utilisateur : laissé vide, comme toute lecture non nommée.
           sessionTitle: "",
-          // Un plan tiré d'un document en entier porte la page du jour : elle
-          // suit la lecture dans ses notes, pour que l'historique la garde.
-          notes: [
-            plan!.kind === "free" ? `Plan : ${plan!.name}` : `Plan : ${plan!.name} (jour ${day.day})`,
-            ...(day.texte ? [day.texte] : []),
-          ].join("\n\n"),
+          notes: plan!.kind === "free" ? `Plan : ${plan!.name}` : `Plan : ${plan!.name} (jour ${day.day})`,
         });
         ecrits.push({ ...passage, readingId: readingId as number });
       }
@@ -696,21 +690,6 @@ export default function PlanDetailPage() {
               )}
             </div>
 
-            {/* La page du jour, quand le plan est tiré d'un document : les
-                pages du PDF gardé, dessinées telles quelles, ou le texte d'un
-                document sans pages. Dans une fenêtre — dépliée ici sous la
-                ligne, elle était illisible. */}
-            {day.texte && (
-              <div className="border-t border-gray-200 px-4 py-2">
-                <button
-                  type="button"
-                  onClick={() => setPageOuverte(day)}
-                  className="text-xs text-[--primary] hover:underline"
-                >
-                  {t.planDetail.showText}
-                </button>
-              </div>
-            )}
             {dating?.day === day.day && (
               <div className="border-t border-gray-200 px-4 py-3 flex flex-wrap items-center gap-2">
                 <label htmlFor={`date-${day.day}`} className="text-xs text-gray-500">
@@ -757,6 +736,9 @@ export default function PlanDetailPage() {
           onSuivant: suivant ? () => setPageOuverte(suivant) : undefined,
           lu: pageOuverte.isRead,
           onMarquerLu: pageOuverte.isRead ? undefined : () => { const jour = pageOuverte; setPageOuverte(null); handleToggleDay(jour); },
+          // Une référence ajoutée depuis le document : la version du plan, le nom du document pour séance.
+          versionId: plan.versionId,
+          sessionTitle: plan.name,
           onClose: () => setPageOuverte(null),
         };
         return documentEstPdf ? (
@@ -764,15 +746,7 @@ export default function PlanDetailPage() {
         ) : (
           <LecteurDeDocument open {...communs} debut={pageOuverte.pageDebut} fin={pageOuverte.pageFin ?? pageOuverte.pageDebut} />
         );
-      })() : (
-        <LecteurDeJour
-          open={pageOuverte !== null}
-          titre={pageOuverte ? `${t.planDetail.day(pageOuverte.day)} · ${referenceDuJour(pageOuverte)}` : ""}
-          sousTitre={pageOuverte?.date ? formatDate(locale, pageOuverte.date, { day: "numeric", month: "long" }) : undefined}
-          texte={pageOuverte?.texte ?? ""}
-          onClose={() => setPageOuverte(null)}
-        />
-      )}
+      })() : null}
       {apercu && plan && (
         <PassagePreview
           open

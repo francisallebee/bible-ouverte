@@ -4494,3 +4494,26 @@ sombre est en production.
 
 Le propriétaire, sur l'iPhone : « le pincement suit bien les doigts, c'est
 bon ». Le geste que le panneau ne simule pas est validé là où il compte.
+
+### Quatre demandes, et un cran de trop
+
+Retirer « Depuis un document » a été l'occasion de retirer **ce qui n'existait
+que pour elle** — la bibliothèque, ses vingt-trois tests, le lecteur texte —
+plutôt que de laisser un bouton disparaître devant du code mort. La colonne
+`texte` reste en base : additive, vide, sans coût ; la retirer serait une
+migration pour rien.
+
+Le surlignage des références dans un PDF a donné la leçon du soir. La
+première version plaçait la zone **un caractère trop à droite** : elle
+interpolait la position dans un fragment par le nombre de caractères, et une
+police proportionnelle n'a pas cette obligeance — « On lit dans » est fait de
+lettres étroites, l'estimation dérive. La règle pure a reçu une fonction de
+poids, et le navigateur fournit la mesure (`measureText` dans la famille que
+pdf.js donne au fragment). Vu à l'écran avant d'être compris, compris avant
+d'être corrigé, revu ensuite : c'est l'ordre que le dépôt demande.
+
+L'analyseur de l'import **dédoublonne** — juste pour un plan, faux pour un
+surlignage ; le repérage recherche donc chaque fragment sur tout le texte.
+Et le propriétaire, entre deux de mes essais, a créé son plan 87 depuis son
+vrai cahier PDF : ses deux documents sont les seuls objets du seau, et c'est
+sur eux qu'il touchera une référence. 988 tests. Rien n'est poussé.

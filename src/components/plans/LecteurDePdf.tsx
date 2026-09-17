@@ -3,9 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Crop, Minus, Moon, Plus, Sun } from 'lucide-react'
 import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
-import { useI18n } from '@/contexts/I18nContext'
-import { chargerPdfjs } from '@/lib/import/pdf'
+import { useI18n, useBookName } from '@/contexts/I18nContext'
+import { etendueDe, referencesSituees, texteDeLigne, type Fragment } from '@/lib/documents/reperage'
+import { chargerPdfjs, type ElementTexte } from '@/lib/import/pdf'
+import type { ReferenceExtraite } from '@/lib/import/references'
+import { ecrireReference } from '@/lib/lectures/reference'
 import { octetsDuDocument } from '@/lib/plans/document-store'
+import AjoutDeReference from './AjoutDeReference'
 import {
   boiteDEncre, boiteUtile, defilementApresZoom, ecart, milieu, zoomBorne, zoomDoubleToucher, zoomPince,
   ZOOM_MAX, ZOOM_MIN, ZOOM_PAS, type Boite,
@@ -37,6 +41,12 @@ import FenetreDeLecture, { PiedDeLecture } from './FenetreDeLecture'
  * le document `pdf.js` vit le temps de la fenêtre et se détruit avec elle.
  * Ce que ce lecteur ne fait pas : la police des réglages (un canevas n'a pas
  * de police), la sélection de texte, la recherche. Le prix de la fidélité.
+ *
+ * Les **références bibliques** de la page sont surlignées par-dessus le
+ * canevas : la couche texte de pdf.js dit où chaque fragment est écrit,
+ * `referencesSituees` ce qu'il contient, `etendueDe` l'étendue de la référence
+ * entre les fragments d'une ligne ; les toucher ouvre `AjoutDeReference` à la
+ * place du pied. Demandé par le propriétaire le 17 septembre au soir.
  */
 
 interface Props {
@@ -50,7 +60,83 @@ interface Props {
   onSuivant?: () => void
   lu?: boolean
   onMarquerLu?: () => void
+  /** La version du plan et son nom : ce qu'une référence ajoutée aux lectures emporte. */
+  versionId: string
+  sessionTitle: string
   onClose: () => void
+}
+
+/** Une référence trouvée sur la page, et sa zone en pixels CSS du canevas rogné. */
+interface Surlignage {
+  reference: ReferenceExtraite
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
+/** La couche texte de chaque page, gardée pour la session : pdf.js ne la relit pas à chaque zoom. */
+const contenus = new Map<string, { items: ElementTexte[]; familles: Map<string, string> }>()
+
+/**
+ * La largeur d'un texte dans une famille de police, mesurée par un canevas hors
+ * écran : c'est ce qui place une référence **à l'intérieur** d'un fragment que
+ * pdf.js rend d'un bloc. La famille est celle que pdf.js déduit du fragment
+ * (serif, sans-serif, monospace) — pas la police exacte du PDF, mais ses
+ * proportions en sont proches ; le compte de caractères, lui, dérivait d'un
+ * cran après « On lit dans ».
+ */
+const mesureur = (() => {
+  let ctx: CanvasRenderingContext2D | null = null
+  return (famille: string) => {
+    if (!ctx) ctx = document.createElement('canvas').getContext('2d')
+    return (texte: string) => {
+      if (!ctx) return texte.length
+      ctx.font = `100px ${famille || 'sans-serif'}`
+      return ctx.measureText(texte).width
+    }
+  }
+})()
+
+/**
+ * Les références d'une page et leurs zones. Les fragments d'une même ordonnée
+ * font une ligne (la règle de `lignesDepuisElements`) ; le texte de la ligne
+ * est analysé, et chaque référence trouvée se place entre les fragments qui
+ * la portent, puis passe dans les coordonnées du canevas rogné par le viewport
+ * CSS — celui qui a le même décalage que le rendu, sans la densité d'écran.
+ */
+function surlignagesDe(elements: readonly ElementTexte[], familles: Map<string, string>, viewport: { convertToViewportPoint(x: number, y: number): number[] }, echelle: number): Surlignage[] {
+  type Item = ElementTexte & { width?: number; fontName?: string }
+  const lignes: { items: Item[]; y: number; hauteur: number }[] = []
+  let courante: { items: Item[]; y: number; hauteur: number } | null = null
+  let finDeLigne = false
+  for (const e of elements as Item[]) {
+    if (typeof e.str !== 'string' || !e.transform) continue
+    const y = e.transform[5]
+    const hauteur = Math.abs(e.height ?? e.transform[3] ?? 0)
+    if (courante === null || finDeLigne || Math.abs(y - courante.y) > Math.max(hauteur, courante.hauteur, 1) * 0.5) {
+      courante = { items: [], y, hauteur }
+      lignes.push(courante)
+    }
+    courante.items.push(e)
+    courante.hauteur = Math.max(courante.hauteur, hauteur)
+    finDeLigne = e.hasEOL === true
+  }
+  const sortie: Surlignage[] = []
+  for (const ligne of lignes) {
+    const fragments: Fragment[] = ligne.items.map((it) => ({ str: it.str, x: it.transform![4], largeur: it.width ?? 0 }))
+    const texte = texteDeLigne(fragments)
+    const poids = mesureur(familles.get(ligne.items[0]?.fontName ?? '') ?? 'sans-serif')
+    for (const s of referencesSituees(texte)) {
+      const etendue = etendueDe(fragments, s.debut, s.fin, poids)
+      if (!etendue) continue
+      const [x0, yBas] = viewport.convertToViewportPoint(etendue.x0, ligne.y)
+      const [x1] = viewport.convertToViewportPoint(etendue.x1, ligne.y)
+      const h = ligne.hauteur * echelle
+      sortie.push({ reference: s.reference, left: x0, top: yBas - h, width: x1 - x0, height: h * 1.25 })
+    }
+  }
+  return sortie
 }
 
 /** Le rendu à basse résolution qui sert à trouver l'encre : assez large pour ne pas rater une ligne, assez petit pour être instantané. */
@@ -99,12 +185,15 @@ async function boiteDeLaPage(cle: string, page: PDFPageProxy): Promise<Boite | n
   return boite
 }
 
-/** Une page, dessinée quand elle a son document, sa largeur et son zoom ; redessinée si l'un change. */
-function PageDuPdf({ doc, chemin, numero, largeur, zoom, rogner, sombre }: {
+/** Une page, dessinée quand elle a son document, sa largeur et son zoom ; redessinée si l'un change. Ses références surlignées par-dessus. */
+function PageDuPdf({ doc, chemin, numero, largeur, zoom, rogner, sombre, onReference, libelle }: {
   doc: PDFDocumentProxy; chemin: string; numero: number; largeur: number; zoom: number; rogner: boolean; sombre: boolean
+  onReference: (r: ReferenceExtraite) => void; libelle: (r: ReferenceExtraite) => string
 }) {
   const { t } = useI18n()
   const canevasRef = useRef<HTMLCanvasElement>(null)
+  const [surlignages, setSurlignages] = useState<Surlignage[]>([])
+  const [taille, setTaille] = useState<{ w: number; h: number } | null>(null)
 
   useEffect(() => {
     const canevas = canevasRef.current
@@ -128,6 +217,7 @@ function PageDuPdf({ doc, chemin, numero, largeur, zoom, rogner, sombre }: {
       canevas.height = Math.round(zone.h * s)
       canevas.style.width = `${Math.round(zone.w * echelle)}px`
       canevas.style.height = `${Math.round(zone.h * echelle)}px`
+      setTaille({ w: Math.round(zone.w * echelle), h: Math.round(zone.h * echelle) })
       const ctx = canevas.getContext('2d')
       if (!ctx) return
       const rendu = page.render({ canvasContext: ctx, viewport, canvas: canevas })
@@ -136,7 +226,25 @@ function PageDuPdf({ doc, chemin, numero, largeur, zoom, rogner, sombre }: {
         await rendu.promise
       } catch {
         // Annulé par un zoom ou une fermeture : le prochain rendu prend la suite.
+        return
       }
+      if (annule) return
+      // Les références, une fois la page dessinée : la couche texte est lue
+      // une fois par page, les zones recalculées à chaque échelle.
+      const cle = `${chemin}#${numero}`
+      let contenu = contenus.get(cle)
+      if (!contenu) {
+        const texteDeLaPage = await page.getTextContent()
+        const familles = new Map<string, string>()
+        for (const [nom, style] of Object.entries(texteDeLaPage.styles as Record<string, { fontFamily?: string }>)) {
+          if (style.fontFamily) familles.set(nom, style.fontFamily)
+        }
+        contenu = { items: texteDeLaPage.items as ElementTexte[], familles }
+        contenus.set(cle, contenu)
+      }
+      if (annule) return
+      const viewportCss = page.getViewport({ scale: echelle, offsetX: -zone.x * echelle, offsetY: -zone.y * echelle })
+      setSurlignages(surlignagesDe(contenu.items, contenu.familles, viewportCss, echelle))
     })()
     return () => {
       annule = true
@@ -146,18 +254,31 @@ function PageDuPdf({ doc, chemin, numero, largeur, zoom, rogner, sombre }: {
 
   return (
     <figure className="m-0">
-      <canvas ref={canevasRef} aria-label={t.planDetail.page(numero)}
-        className="block mx-auto shadow-md bg-white"
-        // L'inversion douce du mode sombre : le papier devient sombre, l'encre
-        // claire ; les images passent en négatif aussi — c'est débrayable.
-        style={sombre ? { filter: 'invert(0.9) hue-rotate(180deg)' } : undefined} />
+      {/* Le canevas et, par-dessus, les zones des références : le cadre a la
+          taille du canevas rogné, les zones s'y placent en pixels CSS. */}
+      <div className="relative mx-auto" style={taille ? { width: taille.w, height: taille.h } : undefined}>
+        <canvas ref={canevasRef} aria-label={t.planDetail.page(numero)}
+          className="block shadow-md bg-white"
+          // L'inversion douce du mode sombre : le papier devient sombre, l'encre
+          // claire ; les images passent en négatif aussi — c'est débrayable.
+          style={sombre ? { filter: 'invert(0.9) hue-rotate(180deg)' } : undefined} />
+        {surlignages.map((z, i) => (
+          <button key={i} type="button" onClick={() => onReference(z.reference)}
+            aria-label={t.planDetail.reference(libelle(z.reference))} title={libelle(z.reference)}
+            className="absolute rounded-sm bg-yellow-300/40 hover:bg-yellow-300/70 focus:bg-yellow-300/70 border-b border-dotted border-yellow-700/60 outline-none"
+            style={{ left: z.left, top: z.top, width: z.width, height: z.height }} />
+        ))}
+      </div>
       <figcaption className="text-center text-xs text-[--text-secondary] mt-1">{t.planDetail.page(numero)}</figcaption>
     </figure>
   )
 }
 
-export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut, pageFin, onPrecedent, onSuivant, lu, onMarquerLu, onClose }: Props) {
+export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut, pageFin, onPrecedent, onSuivant, lu, onMarquerLu, versionId, sessionTitle, onClose }: Props) {
   const { t } = useI18n()
+  const getBookName = useBookName()
+  const libelle = useCallback((r: ReferenceExtraite) => ecrireReference(getBookName(r.book), r.book, r), [getBookName])
+  const [referenceChoisie, setReferenceChoisie] = useState<ReferenceExtraite | null>(null)
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null)
   const [erreur, setErreur] = useState(false)
   const [zoom, setZoomBrut] = useState(1)
@@ -321,6 +442,7 @@ export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut
   // Un autre jour dans la même fenêtre : on repart du haut.
   useEffect(() => {
     colonneRef.current?.closest('[role="dialog"]')?.scrollTo({ top: 0 })
+    setReferenceChoisie(null)
   }, [pageDebut, pageFin])
 
   const basculerMarges = () => { setRogner((r) => { ecrireReglage(CLE_MARGES, r ? '0' : '1'); return !r }) }
@@ -355,7 +477,9 @@ export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut
     </div>
   )
 
-  const pied = <PiedDeLecture onPrecedent={onPrecedent} onSuivant={onSuivant} lu={lu} onMarquerLu={onMarquerLu} />
+  const pied = referenceChoisie
+    ? <AjoutDeReference reference={referenceChoisie} versionId={versionId} sessionTitle={sessionTitle} onClose={() => setReferenceChoisie(null)} />
+    : <PiedDeLecture onPrecedent={onPrecedent} onSuivant={onSuivant} lu={lu} onMarquerLu={onMarquerLu} />
 
   return (
     <FenetreDeLecture open={open} titre={titre} sousTitre={sousTitre} outils={doc ? outils : undefined} large pleinEcran pied={pied} onClose={onClose}>
@@ -366,7 +490,8 @@ export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut
         {doc && (
           <div ref={pagesRef} className="space-y-4 will-change-transform">
             {pages.map((n) => (
-              <PageDuPdf key={n} doc={doc} chemin={chemin} numero={n} largeur={largeur} zoom={zoom} rogner={rogner} sombre={modeSombre && sombre} />
+              <PageDuPdf key={n} doc={doc} chemin={chemin} numero={n} largeur={largeur} zoom={zoom} rogner={rogner} sombre={modeSombre && sombre}
+                onReference={setReferenceChoisie} libelle={libelle} />
             ))}
           </div>
         )}

@@ -661,10 +661,47 @@ supprimé, 0 objet d'essai. 1 003 tests.
 pincement suit bien les doigts, c'est bon ». Le seul geste que le panneau ne
 pouvait pas simuler est validé sur l'appareil.
 
+### Quatre demandes du 17 septembre au soir
+
+1. **« Depuis un document » retirée** (« elle ne sert plus à rien ») : le
+   bouton, `lib/plans/from-document.ts` et ses 23 tests, `LecteurDeJour`, les
+   libellés. La colonne `plan_days.texte` reste en base (additive, vide) ; le
+   code ne la lit plus. `nomDePlanPour` a déménagé dans `lecture-document.ts`.
+2. **Les références du document, surlignées et ajoutables.**
+   `lib/documents/reperage.ts` (pur, 7 tests) situe chaque référence dans un
+   texte — **toutes les occurrences**, là où l'analyseur dédoublonne — et, sur
+   une ligne de PDF, l'étendue qu'elle occupe entre les fragments de pdf.js,
+   par une fonction de poids : la **largeur mesurée** dans la famille de police
+   du fragment (`measureText`), parce que le compte de caractères dérivait
+   d'un cran vers la droite après des lettres étroites — vu à l'écran, corrigé,
+   revu au caractère près. HTML : les nœuds texte du Shadow DOM, chaque
+   occurrence dans un `<mark>` touchable (une référence coupée par une balise,
+   « <em>Actes</em> 8.30 », n'est pas vue : rare, et un faux surlignage serait
+   pire). PDF : des zones absolues par-dessus le canevas rogné, par le viewport
+   CSS. Toucher ouvre `AjoutDeReference` à la place du pied : la référence
+   telle que l'application l'écrit, « Ajouter à mes lectures » → lecture à la
+   date du jour, version du plan, séance = nom du document, sans contexte,
+   texte du cache.
+3. **« Lire un document » → « Importer un document »**, cinq langues.
+4. **La confirmation des droits** avant tout dépôt : une boîte « Les droits
+   sur ce document » — conservé dans ton espace, lu par toi seul, confirme
+   que tu en as le droit —, « Je confirme, j'ai les droits » ou Annuler ; le
+   fichier n'est déposé qu'après.
+
+Vu : le formulaire à trois types ; la boîte s'interpose ; EPUB → « Psaume
+119.105 » surligné, touché, ajouté → lecture 968 (Psaumes 119:105, LS1910,
+séance « cahier test », 68 caractères du cache) ; PDF → trois zones sur
+« Actes 8.30-31 », « Actes 8.30-31 », « 2 Timothee 3.16 », exactes après la
+mesure de police ; panneau ouvert au toucher. Lecture 968 supprimée par
+l'écran, plans 88-89 supprimés ; restent les deux documents du propriétaire
+(85 « La réconciliation », 87 « Pour une foi réfléchie 2 »). 988 tests.
+
 ### Ce qui suit
 
-1. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
-2. Le modèle, plus tard — et avec lui le « tout » du point 5.
+1. Le propriétaire touche une référence dans son cahier et dans son EPUB, sur
+   l'iPhone.
+2. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
+3. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
 
@@ -680,6 +717,7 @@ pouvait pas simuler est validé sur l'appareil.
 
 | Date | Fait |
 |---|---|
+| 17 sept. 2026 | **Quatre demandes** : « Depuis un document » retirée (lib, lecteur, tests) ; références **surlignées dans le document lu** (HTML par les nœuds texte, PDF par la couche texte mesurée) et ajoutables aux lectures ; « Importer un document » ; confirmation des droits avant dépôt. `lib/documents/reperage.ts`, 7 tests. 988 tests. |
 | 17 sept. 2026 | **Lecteur PDF « en fonction du document »** : marges rognées (boîte d'encre par page, débrayable), pincer pour zoomer et double-toucher (zoom mémorisé par document), page sombre en mode sombre. `lib/plans/lecteur-pdf.ts`, 10 tests. Vu en 375 px. 1 003 tests. |
 | 17 sept. 2026 | **Session 2** : EPUB, Word, OpenDocument, HTML rendus dans leur mise en forme (`lib/documents/unites.ts`, Shadow DOM assaini, feuille de l'éditeur filtrée, police des réglages) ; leurs chapitres/sections comme unités de l'éditeur ; migration `documents_formats`. Aller-retour : plan 83 depuis un EPUB, lu, coché, redécoupé, supprimé. 993 tests. |
 | 17 sept. 2026 | **« Lire un document »** : deux fonctions séparées ; migration `plan_lecture_document` (jour sans passage, `titre`) ; `portions.ts` + `EditeurDeJours` (répartir, N pages, chapitres par signets, bornes, scinder/fusionner, marges) ; redécoupage après création ; lecteur plein écran avec précédent/suivant. Aller-retour : plan 80, aucune lecture née, redécoupé, supprimé. 981 tests. |

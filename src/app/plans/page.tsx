@@ -2,37 +2,37 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { BookOpen, Plus, Calendar, Trash2, ListChecks, FileText, AlertTriangle, BookOpenText } from "lucide-react";
+import { BookOpen, Plus, Calendar, Trash2, ListChecks, FileText, AlertTriangle, BookOpenText, ShieldCheck } from "lucide-react";
 import { seedIfNeeded, getEnabledVersions, getAllPlans, addPlan, deletePlan, generatePlanDays, addPlanDays, getCurrentUserId, getSettings } from "@/lib/storage";
 import { PLAN_TEMPLATES, templateDays, type PlanTemplate } from "@/lib/plans/catalog";
 import { templatePlanDays, templateDayRows, templateRealDays } from "@/lib/plans/from-template";
-import { joursDepuisTexte, documentDayRows, nomDePlanPour, type Decoupage, type PlanDepuisDocument } from "@/lib/plans/from-document";
+import { nomDePlanPour } from "@/lib/plans/lecture-document";
 import { cheminDeDocument, deposerDocument } from "@/lib/plans/document-store";
 import { joursDeLecture } from "@/lib/plans/lecture-document";
 import { parPas, parReperes, reperesUtiles, type Portion } from "@/lib/plans/portions";
 import EditeurDeJours from "@/components/plans/EditeurDeJours";
 import { useAuth } from "@/contexts/AuthContext";
-import { texteDuFichier, TAILLE_MAXIMALE, type RaisonRefus } from "@/lib/import/fichiers";
+import { TAILLE_MAXIMALE } from "@/lib/import/fichiers";
 import type { ProgressionPdf } from "@/lib/import/pdf";
 import { structureDuDocument } from "@/lib/documents/structure";
 import { estPdf, EXTENSIONS_HTML_RICHE, type StructureDuDocument } from "@/lib/documents/unites";
-import { ecrireReference } from "@/lib/lectures/reference";
 import type { BibleVersion, ReadingPlan, PlanDuration, PlanKind } from "@/lib/storage";
 import { useI18n, useBookName } from "@/contexts/I18nContext";
 import { formatDate } from "@/lib/i18n/format";
 
 /**
- * La forme du formulaire : les deux sortes de plan, plus deux fonctions qui
- * partent d'un fichier et produisent l'une ou l'autre selon le rythme choisi
- * — donc pas de `PlanKind` de plus en base :
- * - `document` : **les références** d'un document deviennent les passages du
- *   plan ; rien du fichier n'est gardé ;
- * - `lecture` : **le document lui-même**, gardé, découpé par le lecteur, lu
- *   tel qu'il est, sans aucune référence ajoutée (décision du propriétaire du
- *   17 septembre 2026 : « elles sont déjà dans le document »). PDF seul pour
- *   l'instant ; réservé à l'administrateur par la policy du seau.
+ * La forme du formulaire : les deux sortes de plan, plus « Importer un
+ * document » — le document lui-même, gardé, découpé par le lecteur, lu tel
+ * qu'il est, sans aucune référence ajoutée (décision du propriétaire du
+ * 17 septembre 2026). Daté ou libre selon le rythme choisi : pas de `PlanKind`
+ * de plus en base. Réservé à l'administrateur par la policy du seau.
+ *
+ * « Depuis un document » — les références d'un fichier devenant les passages
+ * d'un plan — a vécu du 17 septembre au matin au 17 au soir : le propriétaire
+ * l'a retirée (« elle ne sert plus à rien »), les références se lisent dans
+ * le document lui-même et s'ajoutent aux lectures d'un toucher.
  */
-type FormeDePlan = PlanKind | "document" | "lecture";
+type FormeDePlan = PlanKind | "lecture";
 
 /** Les durées proposées. Leurs libellés vivent dans les dictionnaires. */
 const DURATIONS: { value: PlanDuration; days?: number }[] = [
@@ -56,25 +56,11 @@ export default function PlansPage() {
   const [formKind, setFormKind] = useState<FormeDePlan>("scheduled");
 
   /**
-   * Le plan depuis un document : le texte sort du fichier par la voie de
-   * l'import (`texteDuFichier`), et `joursDepuisTexte` en fait les jours —
-   * une ligne qui porte une référence est un jour. Le document est relu à
-   * chaque changement de découpage, sans le rouvrir : son texte est gardé.
-   */
-  const documentRef = useRef<HTMLInputElement>(null);
-  const [documentTexte, setDocumentTexte] = useState<string | null>(null);
-  const [documentNom, setDocumentNom] = useState("");
-  const [documentLecture, setDocumentLecture] = useState(false);
-  const [documentPdf, setDocumentPdf] = useState<ProgressionPdf | null>(null);
-  const [documentRefus, setDocumentRefus] = useState<RaisonRefus | null>(null);
-  const [documentDecoupage, setDocumentDecoupage] = useState<Decoupage>("ligne");
-  const [documentDate, setDocumentDate] = useState(true);
-  const documentPlan: PlanDepuisDocument | null = documentTexte === null ? null : joursDepuisTexte(documentTexte, documentDecoupage);
-
-  /**
-   * Lire un document jour après jour : le PDF est gardé, sa structure (pages,
-   * signets, première ligne de chaque page) nourrit l'éditeur de jours, et
-   * les portions choisies deviennent les jours — sans passage.
+   * Importer un document : le fichier est gardé, sa structure (pages et
+   * signets d'un PDF, chapitres ou sections des autres formats) nourrit
+   * l'éditeur de jours, et les portions choisies deviennent les jours — sans
+   * passage. La création demande d'abord de confirmer qu'on a les droits sur
+   * le document (`lectureDroits`).
    */
   const lectureRef = useRef<HTMLInputElement>(null);
   const [lectureFichier, setLectureFichier] = useState<File | null>(null);
@@ -84,6 +70,7 @@ export default function PlansPage() {
   const [lecturePortions, setLecturePortions] = useState<Portion[]>([]);
   const [lectureDate, setLectureDate] = useState(true);
   const [lectureErreur, setLectureErreur] = useState<"format" | "taille" | "illisible" | "depot" | null>(null);
+  const [lectureDroits, setLectureDroits] = useState(false);
   const [formDuration, setFormDuration] = useState<PlanDuration>("1-year");
   const [formCustomDays, setFormCustomDays] = useState(30);
   const [formVersion, setFormVersion] = useState("");
@@ -109,23 +96,6 @@ export default function PlansPage() {
   // chargement à chaque changement de version dans le formulaire.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, []);
-
-  async function lireDocument(fichier: File) {
-    setDocumentLecture(true);
-    setDocumentRefus(null);
-    setDocumentTexte(null);
-    try {
-      const lu = await texteDuFichier(fichier, { locale, onProgressionPdf: setDocumentPdf });
-      if ("refus" in lu) { setDocumentRefus(lu.refus); return; }
-      setDocumentTexte(lu.texte);
-      setDocumentNom(fichier.name);
-      if (!formName.trim()) setFormName(nomDePlanPour(fichier.name));
-    } finally {
-      setDocumentLecture(false);
-      setDocumentPdf(null);
-      if (documentRef.current) documentRef.current.value = "";
-    }
-  }
 
   /**
    * Le document à lire : sa structure, puis un premier découpage — un PDF : un
@@ -162,7 +132,6 @@ export default function PlansPage() {
 
   async function handleCreate() {
     if (!formName.trim() || !formVersion) return;
-    if (formKind === "document" && (!documentPlan || documentPlan.jours.length === 0)) return;
     if (formKind === "lecture" && (!lectureFichier || !lectureStructure || lecturePortions.length === 0)) return;
     setFormSaving(true);
 
@@ -197,23 +166,6 @@ export default function PlansPage() {
       });
       const jours = joursDeLecture(lecturePortions, reperesUtiles(lectureStructure.reperes), lectureStructure.premieresLignes, lectureDate ? formStartDate : null);
       await addPlanDays(jours.map((d) => ({ ...d, planId, userId })));
-    } else if (formKind === "document" && documentPlan) {
-      // Daté ou libre selon le rythme choisi : en base, c'est l'un des deux
-      // `PlanKind` existants, et l'écran du plan n'a rien à apprendre.
-      const jours = documentPlan.jours;
-      const planId = await addPlan({
-        userId,
-        name: formName.trim(),
-        versionId: formVersion,
-        kind: documentDate ? "scheduled" : "free",
-        duration: "custom",
-        customDays: jours.length,
-        startDate: formStartDate,
-        totalDays: jours.length,
-        createdAt: now,
-        updatedAt: now,
-      });
-      await addPlanDays(documentDayRows(jours, documentDate ? formStartDate : null).map((d) => ({ ...d, planId, userId })));
     } else if (formKind === "free") {
       // Un plan libre naît vide : ses passages s'ajoutent un à un depuis son
       // écran. `duration` et `startDate` sont sans objet ici, mais leurs
@@ -258,11 +210,10 @@ export default function PlansPage() {
     setFormSaving(false);
     setShowForm(false);
     setFormName("");
-    setDocumentTexte(null);
-    setDocumentNom("");
     setLectureFichier(null);
     setLectureStructure(null);
     setLecturePortions([]);
+    setLectureDroits(false);
     await load();
   }
 
@@ -389,23 +340,6 @@ export default function PlansPage() {
                     {t.plans.freeHint}
                   </span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setFormKind("document")}
-                  aria-pressed={formKind === "document"}
-                  className={`text-left rounded-lg border px-3 py-2.5 text-sm transition-colors sm:col-span-2 ${
-                    formKind === "document"
-                      ? "border-[--primary] bg-white ring-1 ring-[--primary]"
-                      : "border-gray-300 bg-white hover:border-gray-400"
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <FileText className="w-4 h-4" /> {t.plans.document}
-                  </span>
-                  <span className="block text-xs text-gray-500 mt-0.5">
-                    {t.plans.documentHint}
-                  </span>
-                </button>
                 {/* Réservé à l'administrateur : c'est la policy du seau qui le
                     dit, le bouton ne fait que ne pas promettre ce qu'elle refuse. */}
                 {isAdmin && (
@@ -507,123 +441,6 @@ export default function PlansPage() {
               </div>
             )}
 
-            {formKind === "document" && (
-              <div className="space-y-3">
-                <input
-                  ref={documentRef}
-                  type="file"
-                  className="sr-only"
-                  accept=".txt,.md,.csv,.tsv,.html,.htm,.docx,.xlsx,.pptx,.odt,.ods,.odp,.epub,.fb2,.pdf,text/*,application/pdf"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) void lireDocument(f); }}
-                />
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => documentRef.current?.click()}
-                    disabled={documentLecture}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium disabled:opacity-50"
-                  >
-                    <FileText className="w-4 h-4" />
-                    {t.plans.documentChoose}
-                  </button>
-                  {documentLecture && (
-                    <span className="text-sm text-[--text-secondary]" role="status">
-                      {documentPdf ? t.plans.documentPdf(documentPdf.page, documentPdf.pages) : t.plans.documentReading}
-                    </span>
-                  )}
-                  {!documentLecture && documentNom && <span className="text-sm text-[--text-secondary]">{documentNom}</span>}
-                </div>
-                {documentRefus && (
-                  <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 inline-flex items-center gap-1.5" role="alert">
-                    <AlertTriangle className="w-4 h-4" />
-                    {t.avance.import.fileRefus[documentRefus]}
-                  </p>
-                )}
-
-                {documentPlan && (
-                  <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.documentSplit}</label>
-                        <select
-                          value={documentDecoupage}
-                          onChange={(e) => setDocumentDecoupage(e.target.value as Decoupage)}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                        >
-                          <option value="ligne">{t.plans.documentSplitLine}</option>
-                          <option value="titre">{t.plans.documentSplitHeading}</option>
-                          <option value="passage">{t.plans.documentSplitPassage}</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.documentRhythm}</label>
-                        <select
-                          value={documentDate ? "date" : "libre"}
-                          onChange={(e) => setDocumentDate(e.target.value === "date")}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                        >
-                          <option value="date">{t.plans.documentDated}</option>
-                          <option value="libre">{t.plans.documentFreeRhythm}</option>
-                        </select>
-                      </div>
-                    </div>
-                    {documentDate && (
-                      <input
-                        type="date"
-                        value={formStartDate}
-                        onChange={(e) => setFormStartDate(e.target.value)}
-                        aria-label={t.plans.startDate}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      />
-                    )}
-
-                    {/* L'aperçu : ce que le plan aura pour jours, avant de le
-                        créer. Les dix premiers, puis le compte du reste. */}
-                    <div className="rounded-lg border border-gray-200 bg-white p-3">
-                      <p className="text-sm font-medium">
-                        {documentPlan.jours.length > 0 ? t.plans.documentDays(documentPlan.jours.length) : t.plans.documentEmpty}
-                      </p>
-                      {documentPlan.lignesIgnorees > 0 && (
-                        <p className="text-xs text-[--text-secondary]">{t.plans.documentIgnored(documentPlan.lignesIgnorees)}</p>
-                      )}
-                      {documentPlan.sectionsJointes > 0 && (
-                        <p className="text-xs text-[--text-secondary]">{t.plans.documentSectionsJoined(documentPlan.sectionsJointes)}</p>
-                      )}
-                      {documentPlan.jours.length > 0 && (
-                        <ol className="mt-2 text-sm space-y-1 max-h-56 overflow-y-auto">
-                          {documentPlan.jours.slice(0, 10).map((j) => (
-                            <li key={j.day} className="flex gap-2">
-                              <span className="text-xs text-gray-400 font-mono shrink-0 pt-0.5">{t.planDetail.day(j.day)}</span>
-                              <span className="min-w-0">
-                                {j.passages.map((p) => ecrireReference(getBookName(p.book), p.book, p)).join(", ")}
-                                {/* Par titre : la ligne d'où le jour vient, pour se repérer. */}
-                                {documentDecoupage === "titre" && j.source && (
-                                  <span className="block text-xs text-[--text-secondary] truncate">{j.source.replace(/^(?:#{1,3}|-)\s+/, "")}</span>
-                                )}
-                              </span>
-                            </li>
-                          ))}
-                          {documentPlan.jours.length > 10 && (
-                            <li className="text-xs text-[--text-secondary]">{t.plans.documentMore(documentPlan.jours.length - 10)}</li>
-                          )}
-                        </ol>
-                      )}
-                      {documentPlan.rejets.length > 0 && (
-                        <div className="mt-2 text-xs text-amber-900">
-                          <p className="font-medium">{t.plans.documentRejected}</p>
-                          <ul>
-                            {documentPlan.rejets.slice(0, 5).map((r, i) => (
-                              <li key={i}>« {r.source} » — {t.avance.import.reasons[r.raison]}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
             {formKind === "scheduled" && (
               <div>
                 <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.duration}</label>
@@ -674,9 +491,8 @@ export default function PlansPage() {
           </div>
           <div className="flex gap-2 mt-4">
             <button
-              onClick={handleCreate}
+              onClick={() => (formKind === "lecture" ? setLectureDroits(true) : handleCreate())}
               disabled={!formName.trim() || formSaving
-                || (formKind === "document" && !(documentPlan && documentPlan.jours.length > 0))
                 || (formKind === "lecture" && !(lectureFichier && lecturePortions.length > 0))}
               className="bg-[--primary] text-white px-4 py-1.5 rounded-lg text-sm hover:bg-[--primary-hover] disabled:opacity-50"
             >
@@ -820,6 +636,32 @@ export default function PlansPage() {
       </div>
       </div>
 
+      {/* La confirmation des droits, avant qu'un document ne soit gardé :
+          demandée par le propriétaire le 17 septembre 2026 au soir. Le
+          fichier n'est déposé qu'après « Je confirme ». */}
+      {lectureDroits && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="droits-titre">
+          <div className="bg-white rounded-xl p-6 max-w-md shadow-xl mx-4">
+            <h3 id="droits-titre" className="font-semibold mb-2 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-[--primary]" /> {t.plans.lecture.rightsTitle}</h3>
+            <p className="text-sm text-gray-600 mb-4">{t.plans.lecture.rightsText}</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setLectureDroits(false)}
+                className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                {t.common.cancel}
+              </button>
+              <button
+                onClick={() => { setLectureDroits(false); void handleCreate(); }}
+                disabled={formSaving}
+                className="px-4 py-2 text-sm bg-[--primary] text-white rounded-lg hover:bg-[--primary-hover] disabled:opacity-50"
+              >
+                {t.plans.lecture.rightsConfirm}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-sm shadow-xl mx-4">

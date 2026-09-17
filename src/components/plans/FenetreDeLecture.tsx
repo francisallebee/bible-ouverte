@@ -10,7 +10,7 @@ import { useI18n } from '@/contexts/I18nContext'
  * bas sur téléphone et se centre ailleurs, un en-tête collant avec le titre et
  * la croix, Échap pour fermer.
  *
- * Deux lecteurs la partagent : `LecteurDeJour` (le texte d'un document sans
+ * Deux lecteurs la partagent : `LecteurDeDocument` (les unités HTML d'un document sans
  * pages) et `LecteurDePdf` (les pages d'un PDF gardé). La sortir ici plutôt
  * que la copier : le piège 5 du dépôt.
  */

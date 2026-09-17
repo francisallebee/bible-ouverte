@@ -30,6 +30,11 @@ export function joursDeLecture(
   }))
 }
 
+/** Le nom de plan proposé : celui du fichier, sans son extension. */
+export function nomDePlanPour(nomDeFichier: string): string {
+  return nomDeFichier.replace(/\.[a-z0-9]{2,5}$/i, '').replace(/[_-]+/g, ' ').trim()
+}
+
 /** Les portions d'un plan existant, pour rouvrir l'éditeur : les jours qui ont des pages, dans l'ordre. */
 export function portionsDesJours(days: readonly PlanDay[]): Portion[] {
   return [...days]
