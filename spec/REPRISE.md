@@ -4359,3 +4359,11 @@ PDF de six pages fabriqué, objet à 2 566 octets, trois jours avec leurs pages
 (trois canevas de 2 184 px réels, de l'encre sur chacun), supprimé par
 l'écran — plan, jours, objet, cache IndexedDB à zéro. Base : 27 plans, 4 302
 jours, 798 lectures, comme avant. 963 tests. Rien n'est poussé.
+
+`2839bdf` poussé à 13:38:09 UTC ; Vercel `success` à 13:39:23, `buildId`
+`2tJN9afw…` → `rzHCuXFq…`, feuille `d9b115a2…` → `789d0b74…`,
+`sm\:max-w-4xl{` de 0 à **1** — la fenêtre large du lecteur de pages. Deux
+clés candidates (`tabular-nums`, `w-11`) se sont révélées **déjà présentes**
+à la validation préalable : gardées en contrôles, pas en preuves — c'est à ça
+que sert de lire la feuille avant d'attendre. La migration `plan_documents`
+attendait en base ; la production sait créer, déposer, lire et supprimer.
