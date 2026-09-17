@@ -4485,3 +4485,9 @@ Le plan 85, « La réconciliation », 77 sections d'un vrai EPUB sur 30 jours,
 est celui du propriétaire — créé pendant que je travaillais, encore lui —, et
 c'est lui qu'il a jugé impeccable. Il reste. Plan d'essai 86 supprimé, 0 objet
 d'essai. 1 003 tests. Rien n'est poussé.
+
+`fe5dd3b` poussé à 18:18:23 UTC ; Vercel `success` à 18:19:24, `buildId`
+`3-buytYs…` → `OmT11N-6…`, feuille `db057d4f…` → `10c1e8f0…`,
+`.will-change-transform` de 0 à **1** (le conteneur des pages pendant le
+pincement), validée à 0 avant d'attendre. Le lecteur PDF rogné, pinçable et
+sombre est en production.
