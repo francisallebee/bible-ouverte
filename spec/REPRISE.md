@@ -4221,3 +4221,8 @@ un PDF sans texte l'a prouvé.
 Le WAV de sinusoïde transcrit en « ... » n'est pas une preuve de qualité :
 seulement que décodage, CDN, modèle et WASM tiennent ensemble. La qualité de
 Whisper tiny sur une vraie voix est au propriétaire de la voir.
+
+`aaf045a` poussé à 07:24:57 UTC ; Vercel `success` à 07:26:29, `buildId`
+`VRpnX1ID…` → `ZLB9T74V…`. Le déploiement le plus exposé de la journée —
+`pdfjs-dist` à compiler, un `import()` d'URL sous `webpackIgnore` — est
+passé du premier coup. Les cinq entrées demandées le 16 sont en production.
