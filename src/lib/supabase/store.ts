@@ -241,6 +241,11 @@ export interface PlanDayRow {
    * alors le passage unique depuis les colonnes.
    */
   passages: PlanPassage[] | null
+  /**
+   * Le texte à lire ce jour, en plus des passages — la page d'un document
+   * dont le plan est tiré (migration `20260917200000`). Nul = passages seuls.
+   */
+  texte?: string | null
 }
 
 export async function fetchPlanDays(planId: number): Promise<PlanDayRow[] | null> {

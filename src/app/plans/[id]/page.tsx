@@ -60,6 +60,8 @@ export default function PlanDetailPage() {
    * c'est elle qui a servi à composer les passages.
    */
   const [apercu, setApercu] = useState<PlanDay | null>(null);
+  /** Les jours dont le texte du document est déplié. */
+  const [textesOuverts, setTextesOuverts] = useState<Set<number>>(new Set());
   const [passagesApercu, setPassagesApercu] = useState<BiblePassage[]>([]);
   const [chargementApercu, setChargementApercu] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -159,9 +161,12 @@ export default function PlanDetailPage() {
           // plan ferait un titre tentant, mais ce serait décider à la place
           // de l'utilisateur : laissé vide, comme toute lecture non nommée.
           sessionTitle: "",
-          notes: plan!.kind === "free"
-            ? `Plan : ${plan!.name}`
-            : `Plan : ${plan!.name} (jour ${day.day})`,
+          // Un plan tiré d'un document en entier porte la page du jour : elle
+          // suit la lecture dans ses notes, pour que l'historique la garde.
+          notes: [
+            plan!.kind === "free" ? `Plan : ${plan!.name}` : `Plan : ${plan!.name} (jour ${day.day})`,
+            ...(day.texte ? [day.texte] : []),
+          ].join("\n\n"),
         });
         ecrits.push({ ...passage, readingId: readingId as number });
       }
@@ -582,6 +587,23 @@ export default function PlanDetailPage() {
               )}
             </div>
 
+            {/* La page du jour, quand le plan est tiré d'un document en entier :
+                repliée par défaut, un jour de plan reste une ligne. */}
+            {day.texte && (
+              <div className="border-t border-gray-200 px-4 py-2">
+                <button
+                  type="button"
+                  onClick={() => setTextesOuverts((prev) => { const s = new Set(prev); if (s.has(day.day)) s.delete(day.day); else s.add(day.day); return s; })}
+                  aria-expanded={textesOuverts.has(day.day)}
+                  className="text-xs text-[--primary] hover:underline"
+                >
+                  {textesOuverts.has(day.day) ? t.planDetail.hideText : t.planDetail.showText}
+                </button>
+                {textesOuverts.has(day.day) && (
+                  <p className="mt-2 text-sm text-gray-800 whitespace-pre-line">{day.texte}</p>
+                )}
+              </div>
+            )}
             {dating?.day === day.day && (
               <div className="border-t border-gray-200 px-4 py-3 flex flex-wrap items-center gap-2">
                 <label htmlFor={`date-${day.day}`} className="text-xs text-gray-500">

@@ -390,10 +390,40 @@ seul dans les colonnes ; ouvert — « Jour 1 · 17 sept. · Genèse 1-3 ·
 Psaumes 1 », comme tout plan daté ; supprimé par le bouton — base revenue à
 26 plans, 4 099 jours.
 
+### Le document en entier — la première migration de la fonction
+
+« Garde les références seules, mais donne le choix de lire le document dans
+son intégralité. » Compris ainsi : le plan porte la **page** de chaque jour —
+la méditation, le commentaire — et pas seulement les passages qu'elle cite.
+Un jour de plan n'avait aucune colonne pour un texte : migration
+`20260917200000_plan_day_texte`, une colonne `texte` nullable sur
+`plan_days`, additive, sans reprise, sans `grant` (l'`UPDATE` est au niveau
+table, vérifié). Appliquée par l'outil MCP sur accord du propriétaire ;
+journal à 30, colonne relue.
+
+La règle de découpage suit celle des jours : la page d'un jour va de sa ligne
+à références jusqu'à la suivante ; ce qui précède le premier jour — un titre,
+un avant-propos — lui revient. En découpage par passage, la page va au
+premier jour de la ligne. Le formulaire offre « Contenu : les références
+seules / le document en entier, jour par jour », et l'aperçu montre les
+premiers mots de chaque page. Dans l'écran du plan, « Lire le texte du jour »
+déplie la page sous la ligne — un jour de plan reste une ligne tant qu'on ne
+demande pas. **Cocher le jour** met la page dans les notes des lectures :
+l'historique la garde. 12 tests sur le module.
+
+Vu, en aller-retour réel : un recueil de deux méditations → plan **71**, deux
+jours avec leur page dans `texte`, sauts de ligne gardés ; la page dépliée à
+l'écran ; jour 1 coché → lecture **962**, Genèse 1:1-31, notes « Plan :
+meditations (jour 1) » puis la page ; décoché → lecture retirée ; plan
+supprimé → 26 plans, 4 099 jours, aucun avec texte.
+
+En chemin, la base a montré que le propriétaire s'est servi de l'import en
+production sur de vraies notes de prédication — séances « Approchez-vous de
+Dieu » (20 lectures) et « L'hérédité, que dit la bible ? ».
+
 ### Ce qui suit
 
-1. Sur l'iPhone du propriétaire : plusieurs prises de suite, un vrai
-   enregistrement par « Choisir un fichier », un vrai plan depuis un PDF.
+1. Sur l'iPhone du propriétaire : un vrai plan depuis un PDF, en entier.
 2. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
@@ -412,6 +442,7 @@ Psaumes 1 », comme tout plan daté ; supprimé par le bouton — base revenue �
 |---|---|
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
+| 17 sept. 2026 | **Le document en entier** : migration `plan_day_texte` appliquée (journal à 30), la page de chaque jour dans `plan_days.texte`, dépliable à l'écran, copiée dans les notes au cochage. Aller-retour réel : plan 71, lecture 962, tout retiré. 943 tests. |
 | 17 sept. 2026 | **Un plan depuis un document** : `lib/plans/from-document.ts`, une ligne = un jour, troisième forme du formulaire des plans avec aperçu. Aller-retour réel : plan 70 créé, vu, supprimé. 938 tests. |
 | 17 sept. 2026 | **Seconde revue du propriétaire** : PDF et fichiers ok. Photo → appareil direct, une prise à la fois, texte cumulé. Bouton Audio retiré, l'audio passe par « Choisir un fichier ». |
 | 17 sept. 2026 | **Arbitrages** : dictée abandonnée, audio en fichier, modèle plus tard, PDF maintenant. `pdf.ts` (pdf.js + OCR des pages scannées), `audio.ts` (Whisper tiny sur l'appareil, transformers.js depuis jsDelivr, sans dépendance npm). 929 tests. |

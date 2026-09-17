@@ -178,6 +178,12 @@ export interface PlanDay {
    * doit connaître cette distinction.
    */
   passages?: PlanPassage[];
+  /**
+   * Le texte à lire ce jour, en plus des passages : la page d'un document dont
+   * le plan est tiré, quand le lecteur a choisi de lire le document en entier
+   * et non ses seules références. Absent sur tout autre plan.
+   */
+  texte?: string;
   isRead: boolean;
   readingId?: number;
   /** true si la ligne existe dans Supabase (flag local uniquement) */

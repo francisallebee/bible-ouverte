@@ -453,6 +453,9 @@ export const fr = {
     documentDated: 'Daté, à partir du',
     documentFreeRhythm: 'Libre, coché à mon rythme',
     documentRejected: 'Non reconnu',
+    documentContent: 'Contenu',
+    documentContentRefs: 'Les références seules',
+    documentContentFull: 'Le document en entier, jour par jour',
     duration: 'Durée',
     durations: {
       '1-year': '1 an',
@@ -1110,6 +1113,8 @@ export const fr = {
     day: (n: number) => `Jour ${n}`,
     readOn: 'Lu le ',
     notReadYet: 'Pas encore lu',
+    showText: 'Lire le texte du jour',
+    hideText: 'Replier le texte',
     remove: (reference: string) => `Retirer ${reference}`,
     readOnLabel: 'Lu le',
     readText: (ref: string) => `Lire le texte : ${ref}`,

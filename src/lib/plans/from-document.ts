@@ -23,11 +23,22 @@ import { toDayColumns, type PlanPassage } from '@/lib/storage/plan-passages'
 
 export type Decoupage = 'ligne' | 'passage'
 
+/**
+ * Ce que le plan retient du document : ses seules références, ou le document
+ * en entier — chaque jour porte alors sa page, du texte qui va de sa ligne à
+ * références jusqu'à la suivante. Demandé par le propriétaire le 17 septembre
+ * 2026 : « choisir entre juste les références ou lire le document dans son
+ * intégralité ».
+ */
+export type Contenu = 'references' | 'integral'
+
 export interface JourDocument {
   day: number
   passages: PlanPassage[]
   /** La ligne d'où le jour vient, telle qu'écrite — pour l'aperçu. */
   source: string
+  /** La page du jour, en mode intégral : sa ligne et celles qui la suivent jusqu'au jour suivant. */
+  texte?: string
 }
 
 export interface PlanDepuisDocument {
@@ -37,17 +48,31 @@ export interface PlanDepuisDocument {
   lignesIgnorees: number
 }
 
-export function joursDepuisTexte(texte: string, decoupage: Decoupage = 'ligne'): PlanDepuisDocument {
+export function joursDepuisTexte(
+  texte: string,
+  decoupage: Decoupage = 'ligne',
+  contenu: Contenu = 'references',
+): PlanDepuisDocument {
   const jours: JourDocument[] = []
   const rejets: RejetExtraction[] = []
   let lignesIgnorees = 0
+  // En mode intégral, les lignes s'accumulent sur la page du jour ouvert — le
+  // premier jour né de la dernière ligne à références ; ce qui précède le
+  // premier jour — un titre, un avant-propos — lui revient.
+  const pages = new Map<number, string[]>()
+  let pageCourante: number | null = null
+  const preambule: string[] = []
 
   for (const brute of texte.split(/\r?\n/)) {
     const ligne = brute.trim()
     if (!ligne) continue
     const { references, rejets: refuses } = extraireReferences(ligne)
     rejets.push(...refuses)
-    if (references.length === 0) { lignesIgnorees++; continue }
+    if (references.length === 0) {
+      lignesIgnorees++
+      if (contenu === 'integral') (pageCourante === null ? preambule : pages.get(pageCourante)!).push(ligne)
+      continue
+    }
     const passages: PlanPassage[] = references.map((r) => ({
       book: r.book,
       chapterStart: r.chapterStart,
@@ -55,6 +80,7 @@ export function joursDepuisTexte(texte: string, decoupage: Decoupage = 'ligne'):
       verseStart: r.verseStart,
       verseEnd: r.verseEnd,
     }))
+    const premierJour = jours.length
     if (decoupage === 'ligne') {
       jours.push({ day: jours.length + 1, passages, source: ligne })
     } else {
@@ -62,6 +88,15 @@ export function joursDepuisTexte(texte: string, decoupage: Decoupage = 'ligne'):
         jours.push({ day: jours.length + 1, passages: [p], source: references[i].source })
       }
     }
+    if (contenu === 'integral') {
+      // La page appartient au premier jour né de la ligne — en découpage par
+      // passage, les autres jours de la même ligne n'ont pas de texte.
+      pageCourante = premierJour
+      pages.set(premierJour, [...preambule.splice(0), ligne])
+    }
+  }
+  for (const [i, page] of Array.from(pages.entries())) {
+    jours[i].texte = page.join('\n')
   }
   return { jours, rejets, lignesIgnorees }
 }
@@ -77,6 +112,7 @@ export function documentDayRows(jours: JourDocument[], startDate: string | null)
     date: startDate ? addDays(startDate, i) : '',
     isRead: false,
     ...toDayColumns(j.passages),
+    ...(j.texte ? { texte: j.texte } : {}),
   }))
 }
 

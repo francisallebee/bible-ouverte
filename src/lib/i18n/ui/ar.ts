@@ -535,6 +535,9 @@ export const ar: Dictionary = {
     documentDated: 'مؤرَّخ، ابتداءً من',
     documentFreeRhythm: 'حر، أعلّمه على وتيرتي',
     documentRejected: 'غير معروف',
+    documentContent: 'المحتوى',
+    documentContentRefs: 'المراجع فقط',
+    documentContentFull: 'المستند كاملًا، يومًا بيوم',
     duration: 'المدة',
     durations: {
       '1-year': 'سنة واحدة',
@@ -1175,6 +1178,8 @@ export const ar: Dictionary = {
     day: (n: number) => `اليوم ${n}`,
     readOn: 'قُرئ في ',
     notReadYet: 'لم يُقرأ بعد',
+    showText: 'قراءة نص اليوم',
+    hideText: 'طيّ النص',
     remove: (reference: string) => `إزالة ${reference}`,
     readOnLabel: 'قُرئ في',
     readText: (ref: string) => `اقرأ النص: ${ref}`,

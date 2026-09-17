@@ -6,7 +6,7 @@ import { BookOpen, Plus, Calendar, Trash2, ListChecks, FileText, AlertTriangle }
 import { seedIfNeeded, getEnabledVersions, getAllPlans, addPlan, deletePlan, generatePlanDays, addPlanDays, getCurrentUserId, getSettings } from "@/lib/storage";
 import { PLAN_TEMPLATES, templateDays, type PlanTemplate } from "@/lib/plans/catalog";
 import { templatePlanDays, templateDayRows, templateRealDays } from "@/lib/plans/from-template";
-import { joursDepuisTexte, documentDayRows, nomDePlanPour, type Decoupage, type PlanDepuisDocument } from "@/lib/plans/from-document";
+import { joursDepuisTexte, documentDayRows, nomDePlanPour, type Decoupage, type Contenu, type PlanDepuisDocument } from "@/lib/plans/from-document";
 import { texteDuFichier, type RaisonRefus } from "@/lib/import/fichiers";
 import type { ProgressionPdf } from "@/lib/import/pdf";
 import { ecrireReference } from "@/lib/lectures/reference";
@@ -55,7 +55,8 @@ export default function PlansPage() {
   const [documentRefus, setDocumentRefus] = useState<RaisonRefus | null>(null);
   const [documentDecoupage, setDocumentDecoupage] = useState<Decoupage>("ligne");
   const [documentDate, setDocumentDate] = useState(true);
-  const documentPlan: PlanDepuisDocument | null = documentTexte === null ? null : joursDepuisTexte(documentTexte, documentDecoupage);
+  const [documentContenu, setDocumentContenu] = useState<Contenu>("references");
+  const documentPlan: PlanDepuisDocument | null = documentTexte === null ? null : joursDepuisTexte(documentTexte, documentDecoupage, documentContenu);
   const [formDuration, setFormDuration] = useState<PlanDuration>("1-year");
   const [formCustomDays, setFormCustomDays] = useState(30);
   const [formVersion, setFormVersion] = useState("");
@@ -384,6 +385,17 @@ export default function PlansPage() {
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                       />
                     )}
+                    <div>
+                      <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.plans.documentContent}</label>
+                      <select
+                        value={documentContenu}
+                        onChange={(e) => setDocumentContenu(e.target.value as Contenu)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                      >
+                        <option value="references">{t.plans.documentContentRefs}</option>
+                        <option value="integral">{t.plans.documentContentFull}</option>
+                      </select>
+                    </div>
 
                     {/* L'aperçu : ce que le plan aura pour jours, avant de le
                         créer. Les dix premiers, puis le compte du reste. */}
@@ -399,7 +411,13 @@ export default function PlansPage() {
                           {documentPlan.jours.slice(0, 10).map((j) => (
                             <li key={j.day} className="flex gap-2">
                               <span className="text-xs text-gray-400 font-mono shrink-0 pt-0.5">{t.planDetail.day(j.day)}</span>
-                              <span>{j.passages.map((p) => ecrireReference(getBookName(p.book), p.book, p)).join(", ")}</span>
+                              <span className="min-w-0">
+                                {j.passages.map((p) => ecrireReference(getBookName(p.book), p.book, p)).join(", ")}
+                                {/* En mode intégral, un aperçu de la page du jour : ses premiers mots. */}
+                                {j.texte && (
+                                  <span className="block text-xs text-[--text-secondary] truncate">{j.texte.replace(/\s+/g, " ").slice(0, 120)}</span>
+                                )}
+                              </span>
                             </li>
                           ))}
                           {documentPlan.jours.length > 10 && (

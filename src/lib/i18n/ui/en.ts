@@ -423,6 +423,9 @@ export const en: Dictionary = {
     documentDated: 'Dated, starting on',
     documentFreeRhythm: 'Free, ticked at my own pace',
     documentRejected: 'Not recognised',
+    documentContent: 'Content',
+    documentContentRefs: 'References only',
+    documentContentFull: 'The whole document, day by day',
     duration: 'Duration',
     durations: {
       '1-year': '1 year',
@@ -1067,6 +1070,8 @@ export const en: Dictionary = {
     day: (n: number) => `Day ${n}`,
     readOn: 'Read on ',
     notReadYet: 'Not read yet',
+    showText: 'Read the day’s text',
+    hideText: 'Fold the text',
     remove: (reference: string) => `Remove ${reference}`,
     readOnLabel: 'Read on',
     readText: (ref: string) => `Read the text: ${ref}`,

@@ -4268,3 +4268,23 @@ neuf. Une troisième forme de formulaire, pas une troisième sorte de plan.
 et 4 099 jours avant, plan 70 créé et relu en base — deux passages dans
 `passages`, un seul dans les colonnes, la règle de `toDayColumns` vérifiée
 sur du réel —, supprimé par le bouton, 26 et 4 099 après.
+
+### La page du jour : la première migration de l'import, et ce qu'elle a coûté
+
+Rien, ou presque — et c'est la leçon. « Lire le document dans son intégralité »
+est devenu **une colonne** sur la table qui a déjà la maille du jour, la
+décision de `passages` le 19 août : ni table jointe, ni RLS, ni reprise, ni
+`grant` (vérifié avant d'écrire, `plan_days` est dans le cas de `readings`).
+Le typage a nommé les deux chemins de correspondance (`rowToDay`,
+`dayToRow`) ; le troisième — la mise à jour partielle au cochage — n'écrit
+que `date`, `isRead`, `readingId`, et n'avait rien à apprendre.
+
+**Où vit une donnée se décide par sa maille.** La page d'un document est une
+donnée du *jour* : elle va sur `plan_days`. Elle ne rejoint la *lecture* qu'au
+cochage, copiée dans ses notes, parce qu'à ce moment elle devient l'affaire
+de l'historique. Deux tables, deux moments, aucune duplication avant l'acte.
+
+Aller-retour réel complet — plan 71, lecture 962, décochage, suppression —,
+base revenue à l'octet près sur les tables touchées. Les 53 lectures de plus
+au total sont celles des lecteurs de la journée, dont le propriétaire sur de
+vraies notes de prédication : la fonction sert.

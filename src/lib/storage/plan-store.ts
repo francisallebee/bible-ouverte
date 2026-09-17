@@ -74,6 +74,7 @@ function rowToDay(r: PlanDayRow): PlanDay {
     isRead: r.isRead,
     readingId: r.readingId ?? undefined,
     passages: r.passages ?? undefined,
+    texte: r.texte ?? undefined,
     synced: true,
   };
 }
@@ -94,6 +95,7 @@ function dayToRow(d: PlanDay, userId: string): Omit<PlanDayRow, 'id'> {
     // `null` et non `undefined` : PostgREST écrit la colonne à nul, là où une
     // clé absente la laisserait telle quelle sur une mise à jour partielle.
     passages: d.passages && d.passages.length > 0 ? d.passages : null,
+    texte: d.texte || null,
   };
 }
 

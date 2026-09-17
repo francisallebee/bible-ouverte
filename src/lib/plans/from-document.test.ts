@@ -42,6 +42,39 @@ describe('joursDepuisTexte — une ligne est un jour', () => {
   })
 })
 
+describe('joursDepuisTexte — le document en entier', () => {
+  const DOC = `Méditations d'automne
+Jour 1 : Genèse 1
+Au commencement, Dieu crée. Relis lentement.
+Note ce qui te frappe.
+Jour 2 : Genèse 2, Psaume 8
+Le repos du septième jour.
+`
+  it('chaque jour porte sa page : sa ligne et celles qui suivent jusqu’au jour suivant', () => {
+    const { jours } = joursDepuisTexte(DOC, 'ligne', 'integral')
+    expect(jours).toHaveLength(2)
+    expect(jours[0].texte).toBe("Méditations d'automne\nJour 1 : Genèse 1\nAu commencement, Dieu crée. Relis lentement.\nNote ce qui te frappe.")
+    expect(jours[1].texte).toBe('Jour 2 : Genèse 2, Psaume 8\nLe repos du septième jour.')
+  })
+  it('le titre qui précède le premier jour lui revient ; en références seules, aucun texte', () => {
+    expect(joursDepuisTexte(DOC).jours.every((j) => j.texte === undefined)).toBe(true)
+  })
+  it('en découpage par passage, la page va au premier jour de la ligne', () => {
+    const { jours } = joursDepuisTexte(DOC, 'passage', 'integral')
+    expect(jours).toHaveLength(3)
+    expect(jours[1].texte).toBe('Jour 2 : Genèse 2, Psaume 8\nLe repos du septième jour.')
+    expect(jours[2].texte).toBeUndefined()
+  })
+  it('les lignes sans référence comptent toujours comme passées, même gardées dans la page', () => {
+    expect(joursDepuisTexte(DOC, 'ligne', 'integral').lignesIgnorees).toBe(4)
+  })
+  it('documentDayRows écrit le texte quand il y en a, et rien sinon', () => {
+    const rows = documentDayRows(joursDepuisTexte(DOC, 'ligne', 'integral').jours, null)
+    expect(rows[0].texte).toContain('Au commencement')
+    expect(documentDayRows(joursDepuisTexte(DOC).jours, null)[0]).not.toHaveProperty('texte')
+  })
+})
+
 describe('documentDayRows', () => {
   const { jours } = joursDepuisTexte(PLAN)
   it('daté : une date par jour à partir du début, premier passage dans les colonnes', () => {
