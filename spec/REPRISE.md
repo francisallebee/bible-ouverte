@@ -4455,3 +4455,9 @@ utilisateur, Jacques 1, séance « Jacques chapitre 1 », 15:17 UTC. La base de
 production vit pendant qu'on y travaille ; un compte qui bouge n'est pas
 forcément le nôtre. Base revenue à 26 plans, 4 099 jours, 0 objet. 993 tests.
 Rien n'est poussé.
+
+`60fe5c6` poussé à 17:18:39 UTC ; Vercel `success` à 17:19:49, `buildId`
+`RexGQrDZ…` → `kv0G7C0k…`, feuille `cc48f0bf…` → `db057d4f…`, `.space-y-10`
+de 0 à **1** (l'espacement entre les unités du lecteur HTML), validée à 0
+avant d'attendre. La migration `documents_formats` attendait en base : les
+cinq formats se lisent en production, pour l'administrateur.
