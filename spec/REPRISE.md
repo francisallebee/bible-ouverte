@@ -4461,3 +4461,27 @@ Rien n'est poussé.
 de 0 à **1** (l'espacement entre les unités du lecteur HTML), validée à 0
 avant d'attendre. La migration `documents_formats` attendait en base : les
 cinq formats se lisent en production, pour l'administrateur.
+
+### Le PDF sur l'iPhone : ajuster le contenu, pas la feuille
+
+Le propriétaire : EPUB impeccable, PDF « bien, mais mieux possible, en
+fonction du document lui-même ». La phrase disait le défaut : le lecteur
+ajustait la **feuille** à l'écran, et la feuille d'un livre, c'est un tiers
+de marges. Trois réponses, toutes calculées d'après le document : la boîte
+d'encre de chaque page pour rogner les marges, le pincement pour zoomer avec
+le point gardé sous les doigts, la page sombre en mode sombre.
+
+Le rognage est un rendu à basse résolution suivi d'une recherche des pixels
+non blancs — pure, testée sur des images fabriquées, avec ses deux garde-fous
+(un seuil pour le papier gris des scans, un refus des boîtes trop petites : un
+numéro de page seul ne doit pas devenir un zoom absurde). Le zoom par le
+geste a un piège connu et contourné : **React pose ses écouteurs tactiles en
+passif**, `preventDefault` n'y fait rien, et le navigateur défile ou zoome
+la page entière pendant qu'on pince ; les écouteurs sont donc natifs, non
+passifs, posés dans un effet. Le point focal se garde par une formule de
+trois termes, testée avant d'être vue.
+
+Le plan 85, « La réconciliation », 77 sections d'un vrai EPUB sur 30 jours,
+est celui du propriétaire — créé pendant que je travaillais, encore lui —, et
+c'est lui qu'il a jugé impeccable. Il reste. Plan d'essai 86 supprimé, 0 objet
+d'essai. 1 003 tests. Rien n'est poussé.

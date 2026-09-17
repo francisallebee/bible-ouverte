@@ -621,10 +621,46 @@ Hors de cette session, dit : **PowerPoint et texte brut** ne se lisent pas
 références (A) ; les listes imbriquées d'un OpenDocument referment la
 première trop tôt (rare, l'assainisseur remet d'aplomb).
 
+### Le lecteur PDF « en fonction du document lui-même »
+
+Verdict du propriétaire sur son iPhone : EPUB impeccable (il avait créé le
+plan 85, « La réconciliation », 77 sections sur 30 jours, depuis un vrai EPUB
+de 179 Ko) ; PDF « bien, mais on peut mieux faire, en fonction du document
+lui-même ». Ce que le lecteur ajustait à l'écran, c'était la feuille — et ce
+qu'on voyait d'abord d'une A4 sur 375 px, ses marges. Trois réponses,
+acceptées et livrées le même soir (`lib/plans/lecteur-pdf.ts`, pur, 10 tests) :
+
+1. **Les marges rognées.** Pour chaque page, un rendu à 220 px de large, la
+   boîte des pixels non blancs (`boiteDEncre`, seuil 235 pour le papier des
+   scans, marge de 2 %), refusée si trop petite (`boiteUtile` : un numéro de
+   page seul ne fait pas un zoom), convertie en unités de page et gardée pour
+   la session ; le rendu ajuste **la boîte** à la largeur, par `offsetX` /
+   `offsetY` du viewport pdf.js. Bouton Marges pour la page entière ; le
+   choix est mémorisé.
+2. **Pincer pour zoomer, double-toucher.** Écouteurs tactiles **natifs et non
+   passifs** — React pose les siens en passif et `preventDefault` n'y peut
+   rien ; deux doigts sont pris, un seul reste au navigateur pour défiler.
+   Pendant le geste, une `transform: scale()` CSS à l'origine du pincement ;
+   à la fin, le zoom borné (`zoomPince`, 0,5 à 4) et un redessin net, le
+   point pincé gardé sous les doigts (`defilementApresZoom`, sur le cadre en
+   vertical et la colonne en horizontal). Double-toucher : 1 → 2, sinon → 1,
+   autour du point touché. Le zoom est **mémorisé par document**
+   (`localStorage`).
+3. **La page sombre.** En mode sombre (`html.dark`), `filter: invert(0.9)
+   hue-rotate(180deg)` sur le canevas — papier sombre, encre claire, les
+   images en négatif aussi ; bouton lune/soleil, choix mémorisé.
+
+Vu en format téléphone (375 px) : la page d'essai dont le texte n'occupe qu'un
+coin passe de 349 × 494 (page entière, texte à 8 px) à **349 × 169**, texte
+lisible ; le bouton Marges rend la page entière ; double-clic → 200 % avec le
+défilement recalé (61 px pour un point à 60 : la formule) ; à la réouverture,
+200 % retrouvé ; `dark` ajouté → page inversée, bouton lune. Plan d'essai 86
+supprimé, 0 objet d'essai. 1 003 tests.
+
 ### Ce qui suit
 
-1. Le propriétaire essaie « Lire un document » sur ses vrais fichiers — le
-   cahier PDF, un EPUB, un Word — et juge le lecteur sur l'iPhone.
+1. Le propriétaire rejuge le PDF sur l'iPhone — marges, pincement, sombre —
+   sur son cahier.
 2. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
 3. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
@@ -642,6 +678,7 @@ première trop tôt (rare, l'assainisseur remet d'aplomb).
 
 | Date | Fait |
 |---|---|
+| 17 sept. 2026 | **Lecteur PDF « en fonction du document »** : marges rognées (boîte d'encre par page, débrayable), pincer pour zoomer et double-toucher (zoom mémorisé par document), page sombre en mode sombre. `lib/plans/lecteur-pdf.ts`, 10 tests. Vu en 375 px. 1 003 tests. |
 | 17 sept. 2026 | **Session 2** : EPUB, Word, OpenDocument, HTML rendus dans leur mise en forme (`lib/documents/unites.ts`, Shadow DOM assaini, feuille de l'éditeur filtrée, police des réglages) ; leurs chapitres/sections comme unités de l'éditeur ; migration `documents_formats`. Aller-retour : plan 83 depuis un EPUB, lu, coché, redécoupé, supprimé. 993 tests. |
 | 17 sept. 2026 | **« Lire un document »** : deux fonctions séparées ; migration `plan_lecture_document` (jour sans passage, `titre`) ; `portions.ts` + `EditeurDeJours` (répartir, N pages, chapitres par signets, bornes, scinder/fusionner, marges) ; redécoupage après création ; lecteur plein écran avec précédent/suivant. Aller-retour : plan 80, aucune lecture née, redécoupé, supprimé. 981 tests. |
 | 17 sept. 2026 | **Le document lui-même** : « vraiment illisible » sur le vrai cahier (plan 75) ; deux défauts nommés par la base. Stockage accordé, une page par jour par défaut. Migration `plan_documents` (seau `documents`, dépôt admin par policy, `plans.document`, `plan_days.page_debut/page_fin`), `LecteurDePdf` (pdf.js dessine, zoom, cache IndexedDB v10), `joursDepuisSections`/`joursDepuisPages`/`sectionsParTitre`. Aller-retour réel : plan 76, objet 2 566 octets, lu, supprimé, tout à zéro ; non-admin refusé par la RLS. 963 tests. |
