@@ -31,6 +31,8 @@ interface Props {
   premieresLignes: readonly string[]
   portions: Portion[]
   onChange: (portions: Portion[]) => void
+  /** Ce que sont les unités : les pages d'un PDF, ou les sections (chapitres) d'un autre document. Ne change que les mots. */
+  unite?: 'page' | 'section'
 }
 
 /**
@@ -59,8 +61,9 @@ function ChampNombre({ valeur, onCommit, label, className }: { valeur: number; o
   )
 }
 
-export default function EditeurDeJours({ total, reperes, premieresLignes, portions, onChange }: Props) {
+export default function EditeurDeJours({ total, reperes, premieresLignes, portions, onChange, unite = 'page' }: Props) {
   const { t } = useI18n()
+  const mots = unite === 'page' ? t.plans.lecture.pages : t.plans.lecture.sections
   const [nJours, setNJours] = useState(Math.min(30, Math.max(1, portions.length || 1)))
   const [pas, setPas] = useState(1)
   const chapitres = reperesUtiles(reperes)
@@ -81,27 +84,29 @@ export default function EditeurDeJours({ total, reperes, premieresLignes, portio
           <button type="button" className={bouton} onClick={() => onChange(repartir(premiere, derniere, nJours))}>{l.spread}</button>
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <ChampNombre valeur={pas} onCommit={(v) => setPas(Math.max(1, Math.min(total, v)))} label={l.pagesPerDay} className="w-16" />
-          <button type="button" className={bouton} onClick={() => onChange(parPas(premiere, derniere, pas))}>{l.perDay}</button>
+          <ChampNombre valeur={pas} onCommit={(v) => setPas(Math.max(1, Math.min(total, v)))} label={mots.perDayLabel} className="w-16" />
+          <button type="button" className={bouton} onClick={() => onChange(parPas(premiere, derniere, pas))}>{mots.perDay}</button>
         </span>
-        <button type="button" className={bouton} disabled={chapitres.length < 2}
-          onClick={() => onChange(parReperes(premiere, derniere, chapitres))}
-          title={chapitres.length < 2 ? l.noChapters : undefined}>
-          {l.byChapter(chapitres.length)}
-        </button>
+        {unite === 'page' && (
+          <button type="button" className={bouton} disabled={chapitres.length < 2}
+            onClick={() => onChange(parReperes(premiere, derniere, chapitres))}
+            title={chapitres.length < 2 ? l.noChapters : undefined}>
+            {l.byChapter(chapitres.length)}
+          </button>
+        )}
       </div>
 
       {/* Les marges : ce que le plan laisse dehors, avant et après. */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[--text-secondary]">
         <label className="inline-flex items-center gap-1.5">
-          {l.startAt}
-          <ChampNombre valeur={premiere} onCommit={(v) => onChange(commencerA(portions, v, total))} label={l.startAt} />
+          {mots.startAt}
+          <ChampNombre valeur={premiere} onCommit={(v) => onChange(commencerA(portions, v, total))} label={mots.startAt} />
         </label>
         <label className="inline-flex items-center gap-1.5">
-          {l.endAt}
-          <ChampNombre valeur={derniere} onCommit={(v) => onChange(finirA(portions, v, total))} label={l.endAt} />
+          {mots.endAt}
+          <ChampNombre valeur={derniere} onCommit={(v) => onChange(finirA(portions, v, total))} label={mots.endAt} />
         </label>
-        <span>{l.ofPages(total)}</span>
+        <span>{mots.of(total)}</span>
         {(marges.avant > 0 || marges.apres > 0) && <span>{l.leftOut(marges.avant, marges.apres)}</span>}
       </div>
 
@@ -114,14 +119,14 @@ export default function EditeurDeJours({ total, reperes, premieresLignes, portio
             <li key={i} className="flex flex-wrap items-center gap-2 px-3 py-2">
               <span className="text-xs text-gray-400 font-mono w-14 shrink-0">{t.planDetail.day(i + 1)}</span>
               <span className="inline-flex items-center gap-1 text-sm shrink-0">
-                <ChampNombre valeur={p.debut} onCommit={(v) => onChange(deplacerDebut(portions, i, v))} label={l.from} />
+                <ChampNombre valeur={p.debut} onCommit={(v) => onChange(deplacerDebut(portions, i, v))} label={mots.from} />
                 <span className="text-gray-400">–</span>
                 <ChampNombre valeur={p.fin}
                   onCommit={(v) => onChange(dernierJour ? deplacerDerniereFin(portions, v, total) : deplacerFin(portions, i, v))}
-                  label={l.to} />
+                  label={mots.to} />
               </span>
               <span className="flex-1 min-w-[8rem] text-sm truncate text-[--text]" title={titre}>
-                {titre || <span className="text-gray-400">{t.planDetail.pages(p.debut, p.fin)}</span>}
+                {titre || <span className="text-gray-400">{mots.range(p.debut, p.fin)}</span>}
               </span>
               <span className="inline-flex items-center shrink-0">
                 <button type="button" className={icone} disabled={p.fin <= p.debut} aria-label={l.split} title={l.split}

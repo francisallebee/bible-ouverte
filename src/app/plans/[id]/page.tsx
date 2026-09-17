@@ -26,8 +26,10 @@ import { textDirection } from "@/lib/i18n/locales";
 import type { ReadingPlan, PlanDay, BibleVersion, PlanDuration, BiblePassage } from "@/lib/storage";
 import LecteurDeJour from "@/components/plans/LecteurDeJour";
 import LecteurDePdf from "@/components/plans/LecteurDePdf";
+import LecteurDeDocument from "@/components/plans/LecteurDeDocument";
 import EditeurDeJours from "@/components/plans/EditeurDeJours";
-import { structureDuPdf, type StructureDuPdf } from "@/lib/import/pdf";
+import { structureDuDocument } from "@/lib/documents/structure";
+import { estPdf, type StructureDuDocument } from "@/lib/documents/unites";
 import { octetsDuDocument } from "@/lib/plans/document-store";
 import { portionsDesJours, redecouper } from "@/lib/plans/lecture-document";
 import { reperesUtiles, type Portion } from "@/lib/plans/portions";
@@ -86,9 +88,13 @@ export default function PlanDetailPage() {
    * n'enregistre aucune lecture, et l'édition redécoupe au lieu de régénérer.
    */
   const estLecture = !!plan?.document;
+  /** Un PDF se dessine page par page ; un autre document se rend en HTML, unité par unité. */
+  const documentEstPdf = !!plan?.document && estPdf(plan.document);
+  /** « p. 3-4 » pour un PDF, « sections 3-4 » sinon. */
+  const etendue = useCallback((a: number, b: number) => (documentEstPdf ? t.planDetail.pages(a, b) : t.planDetail.sections(a, b)), [documentEstPdf, t]);
 
   /** Le redécoupage d'un document lu : sa structure, chargée à la demande, et les portions en cours d'édition. */
-  const [structure, setStructure] = useState<StructureDuPdf | null>(null);
+  const [structure, setStructure] = useState<StructureDuDocument | null>(null);
   const [chargementStructure, setChargementStructure] = useState(false);
   const [portions, setPortions] = useState<Portion[]>([]);
   const [structureErreur, setStructureErreur] = useState(false);
@@ -98,7 +104,7 @@ export default function PlanDetailPage() {
     setChargementStructure(true);
     setStructureErreur(false);
     try {
-      const s = await structureDuPdf(await octetsDuDocument(plan.document));
+      const s = await structureDuDocument(await octetsDuDocument(plan.document), plan.document);
       setStructure(s);
       setPortions(portionsDesJours(days));
     } catch (e) {
@@ -297,9 +303,9 @@ export default function PlanDetailPage() {
   const referenceDuJour = useCallback((day: PlanDay) => {
     const passages = dayPassages(day);
     if (passages.length > 0) return passages.map(referenceDuPassage).join(" · ");
-    if (day.pageDebut !== undefined) return day.titre || t.planDetail.pages(day.pageDebut, day.pageFin ?? day.pageDebut);
+    if (day.pageDebut !== undefined) return day.titre || etendue(day.pageDebut, day.pageFin ?? day.pageDebut);
     return "";
-  }, [referenceDuPassage, t]);
+  }, [referenceDuPassage, etendue]);
 
   /** Les jours qui ont des pages, dans l'ordre : le fil de « précédent / suivant » du lecteur. */
   const joursAvecPages = useMemo(() => days.filter((d) => d.pageDebut !== undefined).sort((a, b) => a.day - b.day), [days]);
@@ -550,6 +556,7 @@ export default function PlanDetailPage() {
                     premieresLignes={structure.premieresLignes}
                     portions={portions}
                     onChange={setPortions}
+                    unite={documentEstPdf ? "page" : "section"}
                   />
                 )}
               </div>
@@ -663,8 +670,8 @@ export default function PlanDetailPage() {
                     {/* Une portion de document : son titre, et ses pages en dessous. */}
                     {dayPassages(day).length === 0 && day.pageDebut !== undefined && (
                       <>
-                        <p>{day.titre || t.planDetail.pages(day.pageDebut, day.pageFin ?? day.pageDebut)}</p>
-                        {day.titre && <p className="text-xs font-normal text-gray-500">{t.planDetail.pages(day.pageDebut, day.pageFin ?? day.pageDebut)}</p>}
+                        <p>{day.titre || etendue(day.pageDebut, day.pageFin ?? day.pageDebut)}</p>
+                        {day.titre && <p className="text-xs font-normal text-gray-500">{etendue(day.pageDebut, day.pageFin ?? day.pageDebut)}</p>}
                       </>
                     )}
                   </div>
@@ -742,20 +749,20 @@ export default function PlanDetailPage() {
         const i = joursAvecPages.findIndex((d) => d.day === pageOuverte.day);
         const precedent = i > 0 ? joursAvecPages[i - 1] : null;
         const suivant = i >= 0 && i + 1 < joursAvecPages.length ? joursAvecPages[i + 1] : null;
-        return (
-          <LecteurDePdf
-            open
-            titre={`${t.planDetail.day(pageOuverte.day)} · ${pageOuverte.titre || t.planDetail.pages(pageOuverte.pageDebut, pageOuverte.pageFin ?? pageOuverte.pageDebut)}`}
-            sousTitre={`${t.planDetail.pages(pageOuverte.pageDebut, pageOuverte.pageFin ?? pageOuverte.pageDebut)}${pageOuverte.date ? ` · ${formatDate(locale, pageOuverte.date, { day: "numeric", month: "long" })}` : ""}`}
-            chemin={plan.document}
-            pageDebut={pageOuverte.pageDebut}
-            pageFin={pageOuverte.pageFin ?? pageOuverte.pageDebut}
-            onPrecedent={precedent ? () => setPageOuverte(precedent) : undefined}
-            onSuivant={suivant ? () => setPageOuverte(suivant) : undefined}
-            lu={pageOuverte.isRead}
-            onMarquerLu={pageOuverte.isRead ? undefined : () => { const jour = pageOuverte; setPageOuverte(null); handleToggleDay(jour); }}
-            onClose={() => setPageOuverte(null)}
-          />
+        const communs = {
+          titre: `${t.planDetail.day(pageOuverte.day)} · ${pageOuverte.titre || etendue(pageOuverte.pageDebut, pageOuverte.pageFin ?? pageOuverte.pageDebut)}`,
+          sousTitre: `${etendue(pageOuverte.pageDebut, pageOuverte.pageFin ?? pageOuverte.pageDebut)}${pageOuverte.date ? ` · ${formatDate(locale, pageOuverte.date, { day: "numeric", month: "long" })}` : ""}`,
+          chemin: plan.document,
+          onPrecedent: precedent ? () => setPageOuverte(precedent) : undefined,
+          onSuivant: suivant ? () => setPageOuverte(suivant) : undefined,
+          lu: pageOuverte.isRead,
+          onMarquerLu: pageOuverte.isRead ? undefined : () => { const jour = pageOuverte; setPageOuverte(null); handleToggleDay(jour); },
+          onClose: () => setPageOuverte(null),
+        };
+        return documentEstPdf ? (
+          <LecteurDePdf open {...communs} pageDebut={pageOuverte.pageDebut} pageFin={pageOuverte.pageFin ?? pageOuverte.pageDebut} />
+        ) : (
+          <LecteurDeDocument open {...communs} debut={pageOuverte.pageDebut} fin={pageOuverte.pageFin ?? pageOuverte.pageDebut} />
         );
       })() : (
         <LecteurDeJour

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, type ReactNode } from 'react'
-import { X } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useI18n } from '@/contexts/I18nContext'
 
 /**
@@ -29,6 +29,41 @@ interface Props {
   pied?: ReactNode
   onClose: () => void
   children: ReactNode
+}
+
+
+/**
+ * Le pied d'un lecteur de document : jour précédent, marquer lu (ou « lu »),
+ * jour suivant. Le même pour les pages d'un PDF et les unités d'un EPUB.
+ */
+export function PiedDeLecture({ onPrecedent, onSuivant, lu, onMarquerLu }: {
+  onPrecedent?: () => void
+  onSuivant?: () => void
+  lu?: boolean
+  onMarquerLu?: () => void
+}) {
+  const { t } = useI18n()
+  if (!onPrecedent && !onSuivant && !onMarquerLu && !lu) return null
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <button type="button" onClick={onPrecedent} disabled={!onPrecedent}
+        className="inline-flex items-center gap-1 text-sm text-[--text-secondary] hover:text-[--text] disabled:opacity-30">
+        <ChevronLeft className="w-4 h-4" /> {t.planDetail.previousDay}
+      </button>
+      {onMarquerLu ? (
+        <button type="button" onClick={onMarquerLu}
+          className="inline-flex items-center gap-1.5 bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover]">
+          <CheckCircle2 className="w-4 h-4" /> {t.planDetail.markAsRead}
+        </button>
+      ) : lu ? (
+        <span className="inline-flex items-center gap-1.5 text-sm text-green-700"><CheckCircle2 className="w-4 h-4" /> {t.planDetail.alreadyRead}</span>
+      ) : <span />}
+      <button type="button" onClick={onSuivant} disabled={!onSuivant}
+        className="inline-flex items-center gap-1 text-sm text-[--text-secondary] hover:text-[--text] disabled:opacity-30">
+        {t.planDetail.nextDay} <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  )
 }
 
 export default function FenetreDeLecture({ open, titre, sousTitre, outils, large, pleinEcran, pied, onClose, children }: Props) {

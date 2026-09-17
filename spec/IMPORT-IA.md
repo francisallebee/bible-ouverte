@@ -567,14 +567,66 @@ depuis le lecteur, **798 lectures avant et après** ; redécoupé (jour 1 scind�
 le propriétaire a lui-même créé et supprimé un plan 81 depuis le serveur de
 développement — les journaux PostgREST l'ont montré. 981 tests.
 
+### Session 2 — EPUB, Word, OpenDocument, HTML dans leur mise en forme
+
+Un PDF a des pages ; les autres formats ont une **structure** et une **mise en
+forme**. `lib/documents/unites.ts` (pur, 12 tests) les convertit en
+**unités** — un chapitre, une section —, chacune avec son titre et son HTML,
+et c'est sur ces unités que l'éditeur de jours découpe, exactement comme sur
+les pages : « Commencer à la section », « sections 2-3 ».
+
+- **EPUB** : une unité par entrée de la `spine` (le document `nav` exclu),
+  le titre par la table des matières (`nav` EPUB 3, sinon NCX), sinon le
+  premier `h1`–`h3`, sinon `<title>` ; les images résolues depuis l'archive
+  en `data:` ; **la feuille de l'éditeur gardée mais filtrée**
+  (`filtrerCss`, déclaration par déclaration) : marges, retraits, alignements,
+  petites capitales restent ; police, taille, couleurs, interligne,
+  `@font-face` tombent — la mise en page de l'éditeur, la typographie et le
+  thème du lecteur.
+- **Word** : titres (`Heading n`/`Titre n`/`Title`), gras, italique,
+  souligné, barré, exposant, listes groupées, tableaux, images
+  (`document.xml.rels` → `media/`), liens, sauts. **OpenDocument** : `text:h`
+  et son `outline-level`, styles automatiques (`fo:font-weight`,
+  `fo:font-style`, soulignement), listes, tableaux, images, `text:s`,
+  `text:tab`. **HTML** : le corps sans `script` ni `style`, coupé à ses
+  titres.
+- **Sectionnement** (`sectionner`) : le niveau utile est le plus fin de
+  `h1`/`h2` qui compte au moins deux titres — les chapitres d'un livre en
+  parties, pas ses parties ; un titre de rang supérieur sans contenu propre
+  **s'accroche au chapitre qui suit** (le titre du document ouvre le premier
+  jour, il n'en fait pas un vide) ; sans aucun titre, des tranches de douze
+  blocs.
+- **Rendu** (`LecteurDeDocument`) : chaque unité dans un **Shadow DOM** — la
+  feuille de l'éditeur ne fuit pas dans l'application, la police des réglages
+  hérite par l'hôte — après **`assainir`** (`DOMParser`, liste blanche de
+  balises et d'attributs : `script`, `iframe`, `object`, `form`, `on*`,
+  `javascript:` tombent ; une balise inconnue disparaît mais garde ses
+  enfants). Navigateur seul, pas de test Vitest : éprouvé à l'écran.
+- Le lecteur zip est sorti dans `lib/import/zip.ts` avec une lecture
+  **binaire** (`octets`) ; l'écrivain zip des tests dans `zip-fixture.ts`.
+  Migration `20260917230000_documents_formats` (appliquée sur accord, journal
+  à 33) : le seau accepte les cinq types.
+
+Vu : EPUB de trois chapitres fabriqué (feuille avec `text-indent`, `justify`,
+petites capitales ; image ; `<script>` ; lien `javascript:`) → « Lire un
+document » → 3 sections aux titres de la table des matières → plan 83 → le
+chapitre rendu **dans la mise en page de l'éditeur et en Lora italique**,
+gras, liste, tableau, image ; 0 `<script>`, le lien piégé sans adresse, le
+sain en `noopener noreferrer` → coché sans lecture → fusion des jours 2 et 3
+→ supprimé, 0 objet. La lecture 799 apparue pendant l'essai est celle d'un
+autre lecteur, en production (Jacques 1). 993 tests.
+
+Hors de cette session, dit : **PowerPoint et texte brut** ne se lisent pas
+« tels quels » (pas de mise en forme à préserver) — ils passent par les
+références (A) ; les listes imbriquées d'un OpenDocument referment la
+première trop tôt (rare, l'assainisseur remet d'aplomb).
+
 ### Ce qui suit
 
-1. **Session 2** : EPUB et Word rendus en HTML riche — leurs chapitres et
-   sections comme unités de l'éditeur, le seau ouvert à leurs types.
-2. Le propriétaire refait son cahier en « Lire un document » et juge sur le
-   vrai PDF : le découpage par signets s'il en a, le lecteur sur l'iPhone.
-3. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
-4. Le modèle, plus tard — et avec lui le « tout » du point 5.
+1. Le propriétaire essaie « Lire un document » sur ses vrais fichiers — le
+   cahier PDF, un EPUB, un Word — et juge le lecteur sur l'iPhone.
+2. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
+3. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
 
@@ -590,6 +642,7 @@ développement — les journaux PostgREST l'ont montré. 981 tests.
 
 | Date | Fait |
 |---|---|
+| 17 sept. 2026 | **Session 2** : EPUB, Word, OpenDocument, HTML rendus dans leur mise en forme (`lib/documents/unites.ts`, Shadow DOM assaini, feuille de l'éditeur filtrée, police des réglages) ; leurs chapitres/sections comme unités de l'éditeur ; migration `documents_formats`. Aller-retour : plan 83 depuis un EPUB, lu, coché, redécoupé, supprimé. 993 tests. |
 | 17 sept. 2026 | **« Lire un document »** : deux fonctions séparées ; migration `plan_lecture_document` (jour sans passage, `titre`) ; `portions.ts` + `EditeurDeJours` (répartir, N pages, chapitres par signets, bornes, scinder/fusionner, marges) ; redécoupage après création ; lecteur plein écran avec précédent/suivant. Aller-retour : plan 80, aucune lecture née, redécoupé, supprimé. 981 tests. |
 | 17 sept. 2026 | **Le document lui-même** : « vraiment illisible » sur le vrai cahier (plan 75) ; deux défauts nommés par la base. Stockage accordé, une page par jour par défaut. Migration `plan_documents` (seau `documents`, dépôt admin par policy, `plans.document`, `plan_days.page_debut/page_fin`), `LecteurDePdf` (pdf.js dessine, zoom, cache IndexedDB v10), `joursDepuisSections`/`joursDepuisPages`/`sectionsParTitre`. Aller-retour réel : plan 76, objet 2 566 octets, lu, supprimé, tout à zéro ; non-admin refusé par la RLS. 963 tests. |
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |

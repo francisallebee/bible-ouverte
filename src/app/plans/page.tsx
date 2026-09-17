@@ -13,7 +13,9 @@ import { parPas, parReperes, reperesUtiles, type Portion } from "@/lib/plans/por
 import EditeurDeJours from "@/components/plans/EditeurDeJours";
 import { useAuth } from "@/contexts/AuthContext";
 import { texteDuFichier, TAILLE_MAXIMALE, type RaisonRefus } from "@/lib/import/fichiers";
-import { structureDuPdf, type ProgressionPdf, type StructureDuPdf } from "@/lib/import/pdf";
+import type { ProgressionPdf } from "@/lib/import/pdf";
+import { structureDuDocument } from "@/lib/documents/structure";
+import { estPdf, EXTENSIONS_HTML_RICHE, type StructureDuDocument } from "@/lib/documents/unites";
 import { ecrireReference } from "@/lib/lectures/reference";
 import type { BibleVersion, ReadingPlan, PlanDuration, PlanKind } from "@/lib/storage";
 import { useI18n, useBookName } from "@/contexts/I18nContext";
@@ -76,7 +78,7 @@ export default function PlansPage() {
    */
   const lectureRef = useRef<HTMLInputElement>(null);
   const [lectureFichier, setLectureFichier] = useState<File | null>(null);
-  const [lectureStructure, setLectureStructure] = useState<StructureDuPdf | null>(null);
+  const [lectureStructure, setLectureStructure] = useState<StructureDuDocument | null>(null);
   const [lectureEnCours, setLectureEnCours] = useState(false);
   const [lectureProgression, setLectureProgression] = useState<ProgressionPdf | null>(null);
   const [lecturePortions, setLecturePortions] = useState<Portion[]>([]);
@@ -125,22 +127,28 @@ export default function PlansPage() {
     }
   }
 
-  /** Le document à lire : sa structure, puis un premier découpage — un chapitre par jour s'il a des signets, sinon une page par jour. */
+  /**
+   * Le document à lire : sa structure, puis un premier découpage — un PDF : un
+   * chapitre par jour s'il a des signets, sinon une page par jour ; un EPUB,
+   * un Word, un OpenDocument, un HTML : une unité (chapitre, section) par jour.
+   */
   async function lireDocumentALire(fichier: File) {
     setLectureErreur(null);
     setLectureStructure(null);
     setLectureFichier(null);
     setLecturePortions([]);
-    if (!(fichier.type === "application/pdf" || /\.pdf$/i.test(fichier.name))) { setLectureErreur("format"); return; }
+    const ext = fichier.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!estPdf(fichier.name) && !(EXTENSIONS_HTML_RICHE as readonly string[]).includes(ext)) { setLectureErreur("format"); return; }
     if (fichier.size > TAILLE_MAXIMALE) { setLectureErreur("taille"); return; }
     setLectureEnCours(true);
     try {
-      const structure = await structureDuPdf(fichier, setLectureProgression);
+      const structure = await structureDuDocument(fichier, fichier.name, setLectureProgression);
       if (structure.pages === 0) { setLectureErreur("illisible"); return; }
       const chapitres = reperesUtiles(structure.reperes);
       setLectureStructure(structure);
       setLectureFichier(fichier);
-      setLecturePortions(chapitres.length >= 2 ? parReperes(1, structure.pages, chapitres) : parPas(1, structure.pages, 1));
+      setLecturePortions(!estPdf(fichier.name) ? parPas(1, structure.pages, 1)
+        : chapitres.length >= 2 ? parReperes(1, structure.pages, chapitres) : parPas(1, structure.pages, 1));
       if (!formName.trim()) setFormName(nomDePlanPour(fichier.name));
     } catch (e) {
       console.warn("structure du PDF :", e);
@@ -165,7 +173,7 @@ export default function PlansPage() {
       // Le PDF est déposé **avant** que le plan existe : si le seau refuse,
       // rien n'a été créé. Le chemin porte le préfixe du compte, seul que la
       // policy admette ; le dépôt lui-même est réservé à l'administrateur.
-      const document = cheminDeDocument(userId);
+      const document = cheminDeDocument(userId, lectureFichier.name);
       try {
         await deposerDocument(document, lectureFichier);
       } catch (e) {
@@ -428,7 +436,7 @@ export default function PlansPage() {
                   ref={lectureRef}
                   type="file"
                   className="sr-only"
-                  accept=".pdf,application/pdf"
+                  accept=".pdf,.epub,.docx,.odt,.html,.htm,application/pdf,application/epub+zip"
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) void lireDocumentALire(f); }}
                 />
                 <div className="flex flex-wrap items-center gap-3">
@@ -447,7 +455,9 @@ export default function PlansPage() {
                     </span>
                   )}
                   {!lectureEnCours && lectureFichier && lectureStructure && (
-                    <span className="text-sm text-[--text-secondary]">{lectureFichier.name} · {t.plans.lecture.ofPages(lectureStructure.pages)}</span>
+                    <span className="text-sm text-[--text-secondary]">
+                      {lectureFichier.name} · {estPdf(lectureFichier.name) ? t.plans.lecture.ofPages(lectureStructure.pages) : t.plans.lecture.ofSections(lectureStructure.pages)}
+                    </span>
                   )}
                 </div>
                 {lectureErreur && (
@@ -489,6 +499,7 @@ export default function PlansPage() {
                         premieresLignes={lectureStructure.premieresLignes}
                         portions={lecturePortions}
                         onChange={setLecturePortions}
+                        unite={lectureFichier && estPdf(lectureFichier.name) ? "page" : "section"}
                       />
                     </div>
                   </>

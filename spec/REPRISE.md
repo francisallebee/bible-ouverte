@@ -4420,3 +4420,38 @@ livre. 981 tests. Rien n'est poussé.
 avant d'attendre. Les migrations `plan_documents` et `plan_lecture_document`
 attendaient en base : « Lire un document » est en production, pour
 l'administrateur. Session 2 à suivre : EPUB et Word en HTML riche.
+
+### Session 2 : la mise en page de l'éditeur, la typographie du lecteur
+
+La ligne que la proposition avait tracée tenait en une phrase, et elle a
+guidé chaque choix : **ce qui est mise en page appartient au document, ce qui
+est typographie et thème appartient au lecteur.** Un EPUB est du HTML dans un
+zip : on l'affiche avec sa feuille — filtrée de la police, de la taille, des
+couleurs —, on ne le réécrit pas. Un Word, un OpenDocument n'ont pas de
+feuille : on les convertit en HTML propre, et c'est la même fenêtre qui les
+rend. Le Shadow DOM est exactement la frontière voulue : il encapsule les
+règles de l'éditeur et laisse hériter la police des réglages.
+
+Deux gardes, pour deux raisons différentes. `filtrerCss` avalait le `;` entre
+deux déclarations et ratait la seconde : une expression sur le tout, là où il
+fallait travailler déclaration par déclaration — l'erreur classique de la
+regex trop ambitieuse, vue par un test, pas par la lecture. Et l'assainisseur
+n'a **pas** de test Vitest : `DOMParser` n'existe pas en Node, et un analyseur
+HTML écrit à la main est précisément ce qu'on ne veut pas dans une fonction de
+sécurité ; il est éprouvé à l'écran, sur un EPUB qui portait un `<script>` et
+un lien `javascript:`, et la doc le dit tel quel.
+
+Le sectionnement a demandé de choisir entre deux heuristiques raisonnables :
+« le premier niveau qui compte deux titres » donne les *parties* d'un livre en
+parties ; « le plus fin de h1/h2 » donne ses *chapitres* — et l'éditeur sait
+fusionner, pas scinder un chapitre en deux à la bonne place. Un titre de
+partie sans contenu propre ne fait pas un jour vide : il s'accroche au
+chapitre qui suit. Ce sont des règles de lecture, pas de format ; écrites dans
+le commentaire de `sectionner`, pas déduites du code.
+
+Le piège du jour, encore lui : **799 lectures** au relevé, une de plus qu'au
+départ. Avant de chercher le défaut dans mon cochage, la ligne 967 : un autre
+utilisateur, Jacques 1, séance « Jacques chapitre 1 », 15:17 UTC. La base de
+production vit pendant qu'on y travaille ; un compte qui bouge n'est pas
+forcément le nôtre. Base revenue à 26 plans, 4 099 jours, 0 objet. 993 tests.
+Rien n'est poussé.

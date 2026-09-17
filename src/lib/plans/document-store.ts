@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { getDB } from '@/lib/storage/db'
+import { extensionDe, typeMimeDe } from '@/lib/documents/unites'
 
 /**
  * Le document d'un plan : le PDF gardé dans le seau `documents`, et sa copie
@@ -19,9 +20,9 @@ import { getDB } from '@/lib/storage/db'
 
 export const SEAU_DOCUMENTS = 'documents'
 
-/** Le chemin d'un nouveau document : sous le préfixe du compte, un nom que personne ne devine. */
-export function cheminDeDocument(userId: string): string {
-  return `${userId}/${crypto.randomUUID()}.pdf`
+/** Le chemin d'un nouveau document : sous le préfixe du compte, un nom que personne ne devine, l'extension du fichier — c'est elle qui dit au lecteur quoi en faire. */
+export function cheminDeDocument(userId: string, nomDeFichier = 'document.pdf'): string {
+  return `${userId}/${crypto.randomUUID()}.${extensionDe(nomDeFichier) || 'pdf'}`
 }
 
 async function garder(chemin: string, octets: ArrayBuffer): Promise<void> {
@@ -38,7 +39,7 @@ export async function deposerDocument(chemin: string, fichier: File): Promise<vo
   const supabase = createClient()
   const { error } = await supabase.storage
     .from(SEAU_DOCUMENTS)
-    .upload(chemin, fichier, { contentType: 'application/pdf', upsert: false })
+    .upload(chemin, fichier, { contentType: typeMimeDe(chemin), upsert: false })
   if (error) throw new Error(error.message)
   await garder(chemin, await fichier.arrayBuffer())
 }

@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { CheckCircle2, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react'
+import { Minus, Plus } from 'lucide-react'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
 import { useI18n } from '@/contexts/I18nContext'
 import { chargerPdfjs } from '@/lib/import/pdf'
 import { octetsDuDocument } from '@/lib/plans/document-store'
-import FenetreDeLecture from './FenetreDeLecture'
+import FenetreDeLecture, { PiedDeLecture } from './FenetreDeLecture'
 
 /**
  * Les pages du jour, dessinées depuis le PDF lui-même.
@@ -153,26 +153,7 @@ export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut
     colonneRef.current?.closest('[role="dialog"]')?.scrollTo({ top: 0 })
   }, [pageDebut, pageFin])
 
-  const pied = (onPrecedent || onSuivant || onMarquerLu || lu) ? (
-    <div className="flex items-center justify-between gap-3">
-      <button type="button" onClick={onPrecedent} disabled={!onPrecedent}
-        className="inline-flex items-center gap-1 text-sm text-[--text-secondary] hover:text-[--text] disabled:opacity-30">
-        <ChevronLeft className="w-4 h-4" /> {t.planDetail.previousDay}
-      </button>
-      {onMarquerLu ? (
-        <button type="button" onClick={onMarquerLu}
-          className="inline-flex items-center gap-1.5 bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover]">
-          <CheckCircle2 className="w-4 h-4" /> {t.planDetail.markAsRead}
-        </button>
-      ) : lu ? (
-        <span className="inline-flex items-center gap-1.5 text-sm text-green-700"><CheckCircle2 className="w-4 h-4" /> {t.planDetail.alreadyRead}</span>
-      ) : <span />}
-      <button type="button" onClick={onSuivant} disabled={!onSuivant}
-        className="inline-flex items-center gap-1 text-sm text-[--text-secondary] hover:text-[--text] disabled:opacity-30">
-        {t.planDetail.nextDay} <ChevronRight className="w-4 h-4" />
-      </button>
-    </div>
-  ) : undefined
+  const pied = <PiedDeLecture onPrecedent={onPrecedent} onSuivant={onSuivant} lu={lu} onMarquerLu={onMarquerLu} />
 
   const outils = (
     <div className="flex items-center gap-1 text-sm text-[--text-secondary]" role="group" aria-label={t.planDetail.zoom}>

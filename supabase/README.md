@@ -42,6 +42,7 @@ aucune donnée.
 | `20260915120000_memorised_verse_ranges.sql` | `chapterEnd` et `verseEnd` sur `memorised_verses` : un groupe de versets est **un seul texte appris, donc une seule ligne** ; l'unicité passe du verset de départ à l'intervalle entier — aucun `grant`, la table ayant l'`update` au niveau table comme `readings` |
 | `20260916120000_plan_readings_last_verse.sql` | **Réparation de données** : les 108 lectures de plan daté d'avant le 9 septembre 2026 portaient `1:1` pour bornes ; elles reçoivent le dernier verset réel de leur chapitre de fin, par la versification de Louis Segond — reconnues par le contexte « Plan de lecture » **et** la note « Plan : … », jamais par l'un seul |
 | `20260917200000_plan_day_texte.sql` | `plan_days.texte` : la page d'un document dont le plan est tiré, quand le lecteur a choisi de lire le document en entier — nulle sinon. Additive, sans reprise, **aucun `grant`** : `plan_days` a l'`UPDATE` au niveau table, vérifié le 17 septembre |
+| `20260917230000_documents_formats.sql` | Le seau `documents` accepte EPUB, Word (.docx), OpenDocument (.odt) et HTML en plus du PDF — une seule `update storage.buckets`, même plafond, mêmes policies |
 | `20260917220000_plan_lecture_document.sql` | **Un jour sans passage** : `plan_days.book`, `chapterStart/End`, `verseStart/End` deviennent nullables (défauts gardés), `plan_days.titre` ajoutée — le jour lit une portion du document du plan, pas la Bible. Aucune ligne touchée, aucun `grant` |
 | `20260917210000_plan_documents.sql` | **Le premier fichier stocké** : seau `documents` (privé, 20 Mo, PDF seul) créé par la migration, trois policies — lecture et suppression au propriétaire du préfixe, **dépôt réservé à l'administrateur** par `private.is_admin()` —, `plans.document` et `plan_days.page_debut`/`page_fin`, nulles. Additive, aucun `grant` |
 
@@ -94,6 +95,14 @@ par l'outil MCP : **30 fichiers, 28 enregistrées**, la dernière sous
 l'outil MCP, sur accord du propriétaire : **32 fichiers, 30 enregistrées**, la
 dernière sous `20260917102928`. Colonne `texte` de type `text`, nullable,
 relue par `information_schema.columns` ; 4 099 jours, aucun avec texte.
+
+**Quatrième relevé du 17 septembre 2026**, après application de
+`documents_formats` par l'outil MCP, sur accord du propriétaire : **35
+fichiers, 33 enregistrées**. Relu : le seau porte cinq types MIME, reste privé
+à 20 Mo. Aller-retour : un EPUB de 2 773 octets déposé (type
+`application/epub+zip`), plan 83 à trois jours sans livre, lu dans le lecteur
+HTML — feuille de l'éditeur filtrée, police des réglages, 0 script, lien
+`javascript:` désarmé —, coché sans lecture, redécoupé, supprimé : 0 objet.
 
 **Troisième relevé du 17 septembre 2026**, après application de
 `plan_lecture_document` par l'outil MCP, sur accord du propriétaire : **34
@@ -212,9 +221,11 @@ limites de taille et de type qui n'existaient pas (10 Mo pour les images, 25 Mo
 pour l'audio).
 
 **Le seau `documents`** (17 septembre 2026, `20260917210000_plan_documents.sql`)
-est le premier à porter des fichiers : le PDF dont un plan de lecture est tiré,
-lu ensuite page par page dans l'application. Créé **par la migration** et non
-au dashboard, même cloisonnement par préfixe, 20 Mo, `application/pdf` seul ;
+est le premier à porter des fichiers : le document dont un plan de lecture est
+tiré — PDF dessiné page par page, ou EPUB, Word, OpenDocument, HTML rendus
+dans leur mise en forme (`20260917230000_documents_formats.sql`). Créé **par
+la migration** et non au dashboard, même cloisonnement par préfixe, 20 Mo,
+cinq types MIME ;
 le **dépôt est réservé à l'administrateur** (`private.is_admin()` dans le
 `with check`), la lecture et la suppression au propriétaire du préfixe, pas
 d'`update` — un document ne se remplace pas, on refait le plan. Le fichier
