@@ -4517,3 +4517,11 @@ surlignage ; le repérage recherche donc chaque fragment sur tout le texte.
 Et le propriétaire, entre deux de mes essais, a créé son plan 87 depuis son
 vrai cahier PDF : ses deux documents sont les seuls objets du seau, et c'est
 sur eux qu'il touchera une référence. 988 tests. Rien n'est poussé.
+
+`8454618` poussé à 20:41:13 UTC ; Vercel `success` à 20:42:51, `buildId`
+`0a3J-Jp0…` → `RPyAb4QQ…`, feuille `10c1e8f0…` → `95235f8b…`,
+`bg-yellow-300\/40` de 0 à **1** (les zones de surlignage du PDF) et
+`.list-disc{` de 1 à **0** — la liste du lecteur texte retiré : la sonde
+atteste le retrait autant que l'ajout. Les références surlignées et
+ajoutables, « Importer un document », la confirmation des droits sont en
+production.
