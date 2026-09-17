@@ -1071,7 +1071,6 @@ export const en: Dictionary = {
     readOn: 'Read on ',
     notReadYet: 'Not read yet',
     showText: 'Read the day’s text',
-    hideText: 'Fold the text',
     remove: (reference: string) => `Remove ${reference}`,
     readOnLabel: 'Read on',
     readText: (ref: string) => `Read the text: ${ref}`,

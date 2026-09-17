@@ -4288,3 +4288,25 @@ Aller-retour réel complet — plan 71, lecture 962, décochage, suppression —
 base revenue à l'octet près sur les tables touchées. Les 53 lectures de plus
 au total sont celles des lecteurs de la journée, dont le propriétaire sur de
 vraies notes de prédication : la fonction sert.
+
+### « Sinon c'est illisible » : la structure d'abord, la fenêtre ensuite
+
+Un texte aplati ne se relit pas, et une belle fenêtre n'y aurait rien
+changé : il fallait que l'extraction **garde** ce que les formats savent —
+titres, listes, paragraphes — et que le PDF, qui ne sait rien, se le fasse
+déduire des positions. La notation choisie est la plus petite qui tienne
+(`#`, `-`, ligne vide) ; elle traverse l'analyseur de références sans le
+gêner, et un seul composant la rend.
+
+Deux pièges d'expressions régulières, en chemin. `<w:p/>` satisfait aussi
+`<w:p[^>]*>` : la branche ouvrante avalait le paragraphe suivant tant que la
+branche auto-fermante ne passait pas d'abord. Et une marque insérée avant
+une balise plus la ligne rendue par sa fermante font une ligne vide entre
+deux titres ou deux puces — retirée devant les marques, et sous un titre en
+PDF où la grande police creuse l'interligne.
+
+Le propriétaire a essayé la fonction **sur le serveur de développement,
+depuis sa propre machine**, entre deux de mes essais : le plan 72 porte six
+pages d'un vrai manuel. Le serveur de développement écrit dans la base de
+production — piège 7 —, et c'est ici une chance : sa donnée réelle est là
+pour juger la fenêtre.

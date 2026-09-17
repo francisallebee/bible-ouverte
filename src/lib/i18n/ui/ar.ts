@@ -1179,7 +1179,6 @@ export const ar: Dictionary = {
     readOn: 'قُرئ في ',
     notReadYet: 'لم يُقرأ بعد',
     showText: 'قراءة نص اليوم',
-    hideText: 'طيّ النص',
     remove: (reference: string) => `إزالة ${reference}`,
     readOnLabel: 'قُرئ في',
     readText: (ref: string) => `اقرأ النص: ${ref}`,

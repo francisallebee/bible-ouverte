@@ -1098,7 +1098,6 @@ export const it: Dictionary = {
     readOn: 'Letto il ',
     notReadYet: 'Non ancora letto',
     showText: 'Leggi il testo del giorno',
-    hideText: 'Ripiega il testo',
     remove: (reference: string) => `Rimuovi ${reference}`,
     readOnLabel: 'Letto il',
     readText: (ref: string) => `Leggi il testo: ${ref}`,

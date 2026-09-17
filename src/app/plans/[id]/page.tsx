@@ -24,6 +24,7 @@ import PassagePreview from "@/components/PassagePreview";
 import { versetsDuChapitre } from "@/lib/progression/chapitres";
 import { textDirection } from "@/lib/i18n/locales";
 import type { ReadingPlan, PlanDay, BibleVersion, PlanDuration, BiblePassage } from "@/lib/storage";
+import LecteurDeJour from "@/components/plans/LecteurDeJour";
 
 /** Les durées proposées. Leurs libellés vivent dans les dictionnaires. */
 const DURATIONS: { value: PlanDuration }[] = [
@@ -60,8 +61,8 @@ export default function PlanDetailPage() {
    * c'est elle qui a servi à composer les passages.
    */
   const [apercu, setApercu] = useState<PlanDay | null>(null);
-  /** Les jours dont le texte du document est déplié. */
-  const [textesOuverts, setTextesOuverts] = useState<Set<number>>(new Set());
+  /** Le jour dont la page du document est ouverte dans la fenêtre de lecture. */
+  const [pageOuverte, setPageOuverte] = useState<PlanDay | null>(null);
   const [passagesApercu, setPassagesApercu] = useState<BiblePassage[]>([]);
   const [chargementApercu, setChargementApercu] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -588,20 +589,17 @@ export default function PlanDetailPage() {
             </div>
 
             {/* La page du jour, quand le plan est tiré d'un document en entier :
-                repliée par défaut, un jour de plan reste une ligne. */}
+                elle se lit dans une fenêtre, avec sa mise en page — dépliée ici
+                sous la ligne, elle était illisible. */}
             {day.texte && (
               <div className="border-t border-gray-200 px-4 py-2">
                 <button
                   type="button"
-                  onClick={() => setTextesOuverts((prev) => { const s = new Set(prev); if (s.has(day.day)) s.delete(day.day); else s.add(day.day); return s; })}
-                  aria-expanded={textesOuverts.has(day.day)}
+                  onClick={() => setPageOuverte(day)}
                   className="text-xs text-[--primary] hover:underline"
                 >
-                  {textesOuverts.has(day.day) ? t.planDetail.hideText : t.planDetail.showText}
+                  {t.planDetail.showText}
                 </button>
-                {textesOuverts.has(day.day) && (
-                  <p className="mt-2 text-sm text-gray-800 whitespace-pre-line">{day.texte}</p>
-                )}
               </div>
             )}
             {dating?.day === day.day && (
@@ -638,6 +636,13 @@ export default function PlanDetailPage() {
         téléchargé. En faire le seul chemin fermerait le plan à qui lit hors
         ligne — le piège exact du 31 août 2026.
       */}
+      <LecteurDeJour
+        open={pageOuverte !== null}
+        titre={pageOuverte ? `${t.planDetail.day(pageOuverte.day)} · ${referenceDuJour(pageOuverte)}` : ""}
+        sousTitre={pageOuverte?.date ? formatDate(locale, pageOuverte.date, { day: "numeric", month: "long" }) : undefined}
+        texte={pageOuverte?.texte ?? ""}
+        onClose={() => setPageOuverte(null)}
+      />
       {apercu && plan && (
         <PassagePreview
           open

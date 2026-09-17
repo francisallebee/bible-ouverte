@@ -84,7 +84,8 @@ describe('texteDuFichier — le texte brut', () => {
 
   it('un html perd ses balises, ses scripts, et garde ses blocs en lignes', async () => {
     const html = '<html><head><style>p{}</style><script>x=1</script></head><body><h1>Culte</h1><p>Jean&nbsp;3:16</p><p>Ps&#160;23 &amp; Ps 24</p></body></html>'
-    expect(await texteDuFichier(fichier('culte.html', html))).toEqual({ texte: 'Culte\nJean 3:16\nPs 23 & Ps 24' })
+    // Le titre garde sa marque : c'est la structure qui rend la page lisible.
+    expect(await texteDuFichier(fichier('culte.html', html))).toEqual({ texte: '# Culte\nJean 3:16\nPs 23 & Ps 24' })
   })
 })
 
@@ -97,6 +98,36 @@ describe('texteDuFichier — les archives de bureau', () => {
         + '<w:p><w:r><w:t>Romains 8:28</w:t></w:r><w:r><w:tab/><w:t>Ps&#160;23</w:t></w:r></w:p></w:body></w:document>',
     })
     expect(await texteDuFichier(fichier('culte.docx', docx))).toEqual({ texte: 'Culte du matin\nRomains 8:28\tPs 23' })
+  })
+
+  it('Word : un titre garde son niveau, une liste ses éléments, un paragraphe vide espace', async () => {
+    const docx = zip({
+      'word/document.xml':
+        '<w:document><w:body>'
+        + '<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>Jour 3</w:t></w:r></w:p>'
+        + '<w:p><w:pPr><w:pStyle w:val="Titre2"/></w:pPr><w:r><w:t>Lecture</w:t></w:r></w:p>'
+        + '<w:p><w:r><w:t>Genèse 4-7 et Ps 2.</w:t></w:r></w:p>'
+        + '<w:p/>'
+        + '<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/></w:numPr></w:pPr><w:r><w:t>Relire lentement</w:t></w:r></w:p>'
+        + '<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/></w:numPr></w:pPr><w:r><w:t>Noter</w:t></w:r></w:p>'
+        + '</w:body></w:document>',
+    })
+    expect(await texteDuFichier(fichier('plan.docx', docx))).toEqual({
+      texte: '# Jour 3\n## Lecture\nGenèse 4-7 et Ps 2.\n\n- Relire lentement\n- Noter',
+    })
+  })
+
+  it('HTML : h1 à h6 et li portent leur marque, trois dièses au plus', async () => {
+    const html = '<h1>Un</h1><h2>Deux</h2><h4>Quatre</h4><ul><li>a</li><li>b</li></ul>'
+    expect(await texteDuFichier(fichier('t.html', html))).toEqual({ texte: '# Un\n## Deux\n### Quatre\n- a\n- b' })
+  })
+
+  it('PowerPoint : le titre de la diapositive est un titre', async () => {
+    const pptx = zip({
+      'ppt/slides/slide1.xml': '<p:sld><p:sp><p:nvSpPr><p:nvPr><p:ph type="title"/></p:nvPr></p:nvSpPr><p:txBody><a:p><a:r><a:t>Jour 1</a:t></a:r></a:p></p:txBody></p:sp>'
+        + '<p:sp><p:txBody><a:p><a:r><a:t>Jean 3:16</a:t></a:r></a:p></p:txBody></p:sp></p:sld>',
+    })
+    expect(await texteDuFichier(fichier('c.pptx', pptx))).toEqual({ texte: '# Jour 1\nJean 3:16' })
   })
 
   it('Excel : chaînes partagées, chaînes en ligne et nombres, une ligne par ligne', async () => {
@@ -125,7 +156,7 @@ describe('texteDuFichier — les archives de bureau', () => {
     const odt = zip({
       'content.xml': '<office:document-content><office:text><text:h>Culte</text:h><text:p>Jean <text:span>3:16</text:span></text:p></office:text></office:document-content>',
     })
-    expect(await texteDuFichier(fichier('culte.odt', odt))).toEqual({ texte: 'Culte\nJean 3:16' })
+    expect(await texteDuFichier(fichier('culte.odt', odt))).toEqual({ texte: '# Culte\nJean 3:16' })
   })
 
   it('une archive sans compression se lit aussi', async () => {
@@ -155,7 +186,7 @@ describe('texteDuFichier — les livres numériques', () => {
         + '<spine><itemref idref="a"/><itemref idref="b"/></spine></package>',
       'META-INF/container.xml': '<container><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>',
     })
-    expect(await texteDuFichier(fichier('livre.epub', epub))).toEqual({ texte: 'Chapitre un\nLire Jean 3:16.\n\nPuis Ps 23.' })
+    expect(await texteDuFichier(fichier('livre.epub', epub))).toEqual({ texte: '# Chapitre un\nLire Jean 3:16.\n\nPuis Ps 23.' })
   })
 
   it('EPUB sans container.xml : les XHTML triés par nom, plutôt que rien', async () => {

@@ -415,7 +415,7 @@ export default function PlansPage() {
                                 {j.passages.map((p) => ecrireReference(getBookName(p.book), p.book, p)).join(", ")}
                                 {/* En mode intégral, un aperçu de la page du jour : ses premiers mots. */}
                                 {j.texte && (
-                                  <span className="block text-xs text-[--text-secondary] truncate">{j.texte.replace(/\s+/g, " ").slice(0, 120)}</span>
+                                  <span className="block text-xs text-[--text-secondary] truncate">{j.texte.replace(/^(?:#{1,3}|-)\s+/gm, "").replace(/\s+/g, " ").slice(0, 120)}</span>
                                 )}
                               </span>
                             </li>

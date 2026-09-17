@@ -13,6 +13,15 @@
  * version publiée sur npm traîne des vulnérabilités que son auteur ne corrige
  * plus là. La règle 6 d'`AGENTS.md` tient.
  *
+ * **La structure est gardée, en notation légère.** Un titre devient une ligne
+ * `# Titre` (`##`, `###` selon le niveau), un élément de liste une ligne
+ * `- élément`, un paragraphe une ligne, un changement de bloc une ligne vide.
+ * Rien d'autre : c'est ce qu'il faut pour relire une page de méditation dans
+ * la fenêtre de lecture d'un plan (`LecteurDeJour`) sans que tout soit aplati
+ * en un seul bloc — demandé par le propriétaire le 17 septembre 2026, « sinon
+ * c'est illisible ». L'analyseur de références ne voit dans `#` et `-` que
+ * des caractères qui ne sont pas des lettres.
+ *
  * Ce qui est lu : `txt`, `md`, `csv`, `tsv`, `html` ; `docx`, `xlsx`, `pptx` ;
  * `odt`, `ods`, `odp` ; `epub` et `fb2` — les livres numériques, demandés par
  * le propriétaire le 17 septembre 2026 ; `pdf`, par `pdf.js` dans `./pdf.ts`,
@@ -88,7 +97,7 @@ export async function texteDuFichier(fichier: File, options: OptionsLecture = { 
     if (OPEN_DOCUMENT.has(ext)) {
       const zip = await lireZip(new Uint8Array(await fichier.arrayBuffer()))
       const contenu = await zip.texte('content.xml')
-      return { texte: contenu === null ? '' : texteDuXml(contenu, /<\/text:(?:p|h)>|<text:line-break\/>/g) }
+      return { texte: contenu === null ? '' : texteOpenDocument(contenu) }
     }
     if (ext === 'epub') return { texte: await texteEpub(await lireZip(new Uint8Array(await fichier.arrayBuffer()))) }
     if (ext === 'fb2') return { texte: texteDuXml(await lireTexte(fichier), /<\/(?:p|v|subtitle|text-author)>|<empty-line\/>/g) }
@@ -134,13 +143,35 @@ function texteDuXml(xml: string, finsDeBloc: RegExp): string {
     .replace(/\u00a0/g, ' ')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
+    // Une ligne vide devant un titre ou un élément de liste n'apporte rien :
+    // le lecteur espace lui-même, et deux éléments de liste se suivent.
+    .replace(/\n\n+(?=(?:#{1,3}|-) )/g, '\n')
     .trim()
+}
+
+/** `#` répété selon le niveau, trois au plus : au-delà, l'œil ne distingue plus. */
+function marqueDeTitre(niveau: number): string {
+  return '#'.repeat(Math.min(Math.max(niveau, 1), 3)) + ' '
 }
 
 function texteDuHtml(html: string): string {
   return texteDuXml(
-    html.replace(/<(script|style)[\s\S]*?<\/\1>/gi, ''),
+    html
+      .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
+      // Les titres et les listes portent leur marque avant que les balises tombent.
+      .replace(/<h([1-6])\b[^>]*>/gi, (_, n) => '\n' + marqueDeTitre(Number(n)))
+      .replace(/<li\b[^>]*>/gi, '\n- '),
     /<\/(?:p|div|li|h[1-6]|tr|td|th|blockquote|pre)>|<br\s*\/?>/gi,
+  )
+}
+
+function texteOpenDocument(xml: string): string {
+  return texteDuXml(
+    xml
+      .replace(/<text:h\b[^>]*outline-level="(\d+)"[^>]*>/g, (_, n) => '\n' + marqueDeTitre(Number(n)))
+      .replace(/<text:h\b[^>]*>/g, '\n# ')
+      .replace(/<text:list-item\b[^>]*>/g, '\n- '),
+    /<\/text:(?:p|h)>|<text:line-break\/>/g,
   )
 }
 
@@ -148,7 +179,7 @@ async function texteOffice(ext: string, octets: Uint8Array): Promise<string> {
   const zip = await lireZip(octets)
   if (ext === 'docx') {
     const doc = await zip.texte('word/document.xml')
-    return doc === null ? '' : texteDuXml(doc.replace(/<w:tab\/>/g, '\t'), /<\/w:p>|<w:br\/>/g)
+    return doc === null ? '' : texteWord(doc)
   }
   if (ext === 'pptx') {
     const noms = zip.noms().filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n))
@@ -156,7 +187,12 @@ async function texteOffice(ext: string, octets: Uint8Array): Promise<string> {
     const diapos: string[] = []
     for (const n of noms) {
       const xml = await zip.texte(n)
-      if (xml !== null) diapos.push(texteDuXml(xml, /<\/a:p>/g))
+      if (xml === null) continue
+      // La forme titrée d'une diapositive (`<p:ph type="title"/>`, ou `ctrTitle`)
+      // devient un titre ; le reste, des paragraphes.
+      const marque = xml.replace(/<p:sp>([\s\S]*?)<\/p:sp>/g, (bloc: string) =>
+        /<p:ph\b[^>]*type="(?:ctr)?[tT]itle"/.test(bloc) ? bloc.replace(/<a:p\b[^>]*>/g, '\n# ') : bloc)
+      diapos.push(texteDuXml(marque, /<\/a:p>/g))
     }
     return diapos.join('\n\n')
   }
@@ -195,6 +231,28 @@ async function texteEpub(zip: Zip): Promise<string> {
     if (xhtml !== null) textes.push(texteDuHtml(xhtml))
   }
   return textes.filter((t) => t !== '').join('\n\n')
+}
+
+/**
+ * Un document Word, paragraphe par paragraphe : le style `Heading1`/`Titre1`/
+ * `Title` fait un titre de son niveau, un `<w:numPr>` un élément de liste, une
+ * tabulation reste une tabulation. Les paragraphes vides — que Word emploie
+ * pour espacer — deviennent des lignes vides, et `texteDuXml` les borne.
+ */
+function texteWord(xml: string): string {
+  const lignes: string[] = []
+  // La branche auto-fermante d'abord : `<w:p/>` satisfait aussi `<w:p[^>]*>`, et
+  // la branche ouvrante avalerait alors le paragraphe suivant.
+  for (const m of Array.from(xml.matchAll(/<w:p\b[^>]*\/>|<w:p\b[^>]*>([\s\S]*?)<\/w:p>/g))) {
+    const corps = m[1] ?? ''
+    const style = /<w:pStyle\b[^>]*w:val="([^"]+)"/.exec(corps)?.[1] ?? ''
+    const niveau = /^(?:heading|titre|title|h)\s?(\d)?/i.exec(style)
+    const liste = /<w:numPr\b/.test(corps)
+    const texte = decoderEntites(corps.replace(/<w:tab\/>/g, '\t').replace(/<w:br\/>/g, '\n').replace(/<[^>]+>/g, '')).trim()
+    if (!texte) { lignes.push(''); continue }
+    lignes.push(niveau ? marqueDeTitre(Number(niveau[1] ?? 1)) + texte : liste ? '- ' + texte : texte)
+  }
+  return lignes.join('\n').replace(/\u00a0/g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
 /**

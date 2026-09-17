@@ -1114,7 +1114,6 @@ export const fr = {
     readOn: 'Lu le ',
     notReadYet: 'Pas encore lu',
     showText: 'Lire le texte du jour',
-    hideText: 'Replier le texte',
     remove: (reference: string) => `Retirer ${reference}`,
     readOnLabel: 'Lu le',
     readText: (ref: string) => `Lire le texte : ${ref}`,

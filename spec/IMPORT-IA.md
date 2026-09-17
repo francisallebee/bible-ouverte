@@ -421,9 +421,47 @@ En chemin, la base a montré que le propriétaire s'est servi de l'import en
 production sur de vraies notes de prédication — séances « Approchez-vous de
 Dieu » (20 lectures) et « L'hérédité, que dit la bible ? ».
 
+### La mise en page, « sinon c'est illisible »
+
+Le propriétaire a vu la page dépliée sous la ligne du jour : un bloc aplati.
+Deux choses, l'une sans l'autre ne suffisait pas.
+
+**L'extraction garde la structure**, en notation légère que rien d'autre n'a
+à connaître : `# Titre` (`##`, `###` selon le niveau, trois au plus),
+`- élément`, un paragraphe par ligne, une ligne vide entre les blocs. Word :
+le style `Heading`/`Titre`/`Title` fait le niveau, `<w:numPr>` la liste, un
+paragraphe vide espace ; OpenDocument : `text:h` et son `outline-level`,
+`text:list-item` ; HTML et EPUB : `h1`–`h6`, `li` ; PowerPoint : la forme
+titrée de la diapositive. **Le PDF n'a pas de structure, elle est déduite des
+positions** (`lignesDepuisElements`, pure, 6 tests) : les fragments d'une même
+ordonnée font une ligne, un saut vertical au-delà de 1,6 fois l'interligne
+médian ouvre un paragraphe, une police d'un quart au-dessus de la médiane sur
+une ligne courte fait un titre. L'analyseur de références ne voit dans `#` et
+`-` que des caractères qui ne sont pas des lettres ; l'aperçu du formulaire
+les retire de ses premiers mots.
+
+**La page se lit dans une fenêtre flottante**, `LecteurDeJour` — la coque de
+`PassagePreview`, la police de lecture des réglages (`.texte-biblique`), une
+colonne de mesure, un interligne large —, seul endroit à rendre la notation :
+titres sur trois niveaux, paragraphes, listes. « Lire le texte du jour »
+l'ouvre depuis la ligne du jour ; le dépliage sous la ligne a disparu.
+
+Vu : un `.docx` fabriqué avec `Title`, deux `Heading1`, un `Heading2`, un
+paragraphe et deux éléments de liste → plan 73 en entier → la fenêtre :
+« Méditations d'automne », « Jour 1 — Genèse 1 », le paragraphe, « Pour aller
+plus loin », la liste à deux puces, en Lora italique — la police du
+propriétaire. Retiré ; base revenue.
+
+**Et un plan que l'agent n'a pas créé** : 72, « Petit Manuel pratique du
+Moniteur », six jours avec leur page, créé à 10:39 UTC depuis le serveur de
+développement sur la machine du propriétaire — avant que le lecteur existe.
+Le propriétaire a essayé la fonction sur un vrai document ; c'est sa donnée,
+elle reste.
+
 ### Ce qui suit
 
-1. Sur l'iPhone du propriétaire : un vrai plan depuis un PDF, en entier.
+1. Le propriétaire relit « Petit Manuel pratique du Moniteur » dans la
+   fenêtre : c'est le vrai document, avec la vraie mise en page à juger.
 2. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
 ## Ce qui n'est pas demandé, et qu'il faudra dire
@@ -442,6 +480,7 @@ Dieu » (20 lectures) et « L'hérédité, que dit la bible ? ».
 |---|---|
 | 16 sept. 2026 | Demande reçue, cadre écrit. Aucune décision prise, aucun code. |
 | 17 sept. 2026 | Sept réponses reçues et consignées. Deux tensions relevées : transcription serveur sans fournisseur, modèle gratuit qui n'existe pas. Aucun code. |
+| 17 sept. 2026 | **La mise en page** : l'extraction garde titres, listes et paragraphes (Word, OpenDocument, HTML/EPUB, PowerPoint ; le PDF par les positions), et `LecteurDeJour` lit la page dans une fenêtre flottante avec la police des réglages. 950 tests. |
 | 17 sept. 2026 | **Le document en entier** : migration `plan_day_texte` appliquée (journal à 30), la page de chaque jour dans `plan_days.texte`, dépliable à l'écran, copiée dans les notes au cochage. Aller-retour réel : plan 71, lecture 962, tout retiré. 943 tests. |
 | 17 sept. 2026 | **Un plan depuis un document** : `lib/plans/from-document.ts`, une ligne = un jour, troisième forme du formulaire des plans avec aperçu. Aller-retour réel : plan 70 créé, vu, supprimé. 938 tests. |
 | 17 sept. 2026 | **Seconde revue du propriétaire** : PDF et fichiers ok. Photo → appareil direct, une prise à la fois, texte cumulé. Bouton Audio retiré, l'audio passe par « Choisir un fichier ». |
