@@ -4,12 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Crop, Minus, Moon, Plus, Sun } from 'lucide-react'
 import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
-import { etendueDe, referencesSituees, texteDeLigne, type Fragment } from '@/lib/documents/reperage'
+import { cleDeReference, etendueDe, referencesSituees, texteDeLigne, type Fragment } from '@/lib/documents/reperage'
 import { chargerPdfjs, type ElementTexte } from '@/lib/import/pdf'
 import type { ReferenceExtraite } from '@/lib/import/references'
 import { ecrireReference } from '@/lib/lectures/reference'
 import { octetsDuDocument } from '@/lib/plans/document-store'
-import AjoutDeReference from './AjoutDeReference'
+import AjoutDeReference, { type EtatAjout } from './AjoutDeReference'
 import {
   boiteDEncre, boiteUtile, defilementApresZoom, ecart, milieu, zoomBorne, zoomDoubleToucher, zoomPince,
   ZOOM_MAX, ZOOM_MIN, ZOOM_PAS, type Boite,
@@ -46,7 +46,11 @@ import FenetreDeLecture, { PiedDeLecture } from './FenetreDeLecture'
  * canevas : la couche texte de pdf.js dit où chaque fragment est écrit,
  * `referencesSituees` ce qu'il contient, `etendueDe` l'étendue de la référence
  * entre les fragments d'une ligne ; les toucher ouvre `AjoutDeReference` à la
- * place du pied. Demandé par le propriétaire le 17 septembre au soir.
+ * place du pied. Demandé par le propriétaire le 17 septembre au soir. **Une
+ * référence ne s'ajoute qu'une fois par séance** (le 18) : le lecteur tient
+ * les clés déjà ajoutées tant qu'il est ouvert — les zones, recalculées à
+ * chaque zoom avec des objets neufs, retrouvent leur état par la clé —, la
+ * zone passe au vert, et le panneau s'ouvre sur « Ajoutée ».
  */
 
 interface Props {
@@ -186,9 +190,11 @@ async function boiteDeLaPage(cle: string, page: PDFPageProxy): Promise<Boite | n
 }
 
 /** Une page, dessinée quand elle a son document, sa largeur et son zoom ; redessinée si l'un change. Ses références surlignées par-dessus. */
-function PageDuPdf({ doc, chemin, numero, largeur, zoom, rogner, sombre, onReference, libelle }: {
+function PageDuPdf({ doc, chemin, numero, largeur, zoom, rogner, sombre, onReference, libelle, ajouts }: {
   doc: PDFDocumentProxy; chemin: string; numero: number; largeur: number; zoom: number; rogner: boolean; sombre: boolean
   onReference: (r: ReferenceExtraite) => void; libelle: (r: ReferenceExtraite) => string
+  /** L'état des références de la séance, par clé. */
+  ajouts: ReadonlyMap<string, EtatAjout>
 }) {
   const { t } = useI18n()
   const canevasRef = useRef<HTMLCanvasElement>(null)
@@ -262,12 +268,18 @@ function PageDuPdf({ doc, chemin, numero, largeur, zoom, rogner, sombre, onRefer
           // L'inversion douce du mode sombre : le papier devient sombre, l'encre
           // claire ; les images passent en négatif aussi — c'est débrayable.
           style={sombre ? { filter: 'invert(0.9) hue-rotate(180deg)' } : undefined} />
-        {surlignages.map((z, i) => (
-          <button key={i} type="button" onClick={() => onReference(z.reference)}
-            aria-label={t.planDetail.reference(libelle(z.reference))} title={libelle(z.reference)}
-            className="absolute rounded-sm bg-yellow-300/40 hover:bg-yellow-300/70 focus:bg-yellow-300/70 border-b border-dotted border-yellow-700/60 outline-none"
-            style={{ left: z.left, top: z.top, width: z.width, height: z.height }} />
-        ))}
+        {surlignages.map((z, i) => {
+          const ajoutee = ajouts.get(cleDeReference(z.reference)) === 'ajoutee'
+          const titre = ajoutee ? `${libelle(z.reference)} — ${t.planDetail.referenceAdded}` : libelle(z.reference)
+          return (
+            <button key={i} type="button" onClick={() => onReference(z.reference)}
+              aria-label={t.planDetail.reference(titre)} title={titre}
+              className={`absolute rounded-sm border-b outline-none ${ajoutee
+                ? 'bg-green-400/40 hover:bg-green-400/60 focus:bg-green-400/60 border-solid border-green-700/60'
+                : 'bg-yellow-300/40 hover:bg-yellow-300/70 focus:bg-yellow-300/70 border-dotted border-yellow-700/60'}`}
+              style={{ left: z.left, top: z.top, width: z.width, height: z.height }} />
+          )
+        })}
       </div>
       <figcaption className="text-center text-xs text-[--text-secondary] mt-1">{t.planDetail.page(numero)}</figcaption>
     </figure>
@@ -279,6 +291,14 @@ export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut
   const getBookName = useBookName()
   const libelle = useCallback((r: ReferenceExtraite) => ecrireReference(getBookName(r.book), r.book, r), [getBookName])
   const [referenceChoisie, setReferenceChoisie] = useState<ReferenceExtraite | null>(null)
+  // L'état des références de cette séance — une ouverture du lecteur —, en cours ou ajoutées.
+  const [ajouts, setAjouts] = useState<ReadonlyMap<string, EtatAjout>>(() => new Map())
+  const noterEtat = useCallback((r: ReferenceExtraite, etat: EtatAjout | null) => setAjouts((prev) => {
+    const suivant = new Map(prev)
+    if (etat) suivant.set(cleDeReference(r), etat)
+    else suivant.delete(cleDeReference(r))
+    return suivant
+  }), [])
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null)
   const [erreur, setErreur] = useState(false)
   const [zoom, setZoomBrut] = useState(1)
@@ -290,8 +310,10 @@ export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut
   const pagesRef = useRef<HTMLDivElement>(null)
 
   // Le zoom mémorisé par document ; les marges et la page sombre, pour tous.
+  // Et une séance neuve : rien n'est encore ajouté.
   useEffect(() => {
     if (!open) return
+    setAjouts(new Map())
     setZoomBrut(lireReglage(CLE_ZOOM(chemin), 1, (v) => zoomBorne(Number(v))))
     setRogner(lireReglage(CLE_MARGES, true, (v) => v !== '0'))
     setSombre(lireReglage(CLE_SOMBRE, true, (v) => v !== '0'))
@@ -478,7 +500,8 @@ export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut
   )
 
   const pied = referenceChoisie
-    ? <AjoutDeReference reference={referenceChoisie} versionId={versionId} sessionTitle={sessionTitle} onClose={() => setReferenceChoisie(null)} />
+    ? <AjoutDeReference reference={referenceChoisie} versionId={versionId} sessionTitle={sessionTitle}
+        etat={ajouts.get(cleDeReference(referenceChoisie)) ?? null} onEtat={noterEtat} onClose={() => setReferenceChoisie(null)} />
     : <PiedDeLecture onPrecedent={onPrecedent} onSuivant={onSuivant} lu={lu} onMarquerLu={onMarquerLu} />
 
   return (
@@ -491,7 +514,7 @@ export default function LecteurDePdf({ open, titre, sousTitre, chemin, pageDebut
           <div ref={pagesRef} className="space-y-4 will-change-transform">
             {pages.map((n) => (
               <PageDuPdf key={n} doc={doc} chemin={chemin} numero={n} largeur={largeur} zoom={zoom} rogner={rogner} sombre={modeSombre && sombre}
-                onReference={setReferenceChoisie} libelle={libelle} />
+                onReference={setReferenceChoisie} libelle={libelle} ajouts={ajouts} />
             ))}
           </div>
         )}

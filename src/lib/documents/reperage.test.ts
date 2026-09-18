@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { referencesSituees, etendueDe, texteDeLigne } from './reperage'
+import { referencesSituees, etendueDe, texteDeLigne, cleDeReference } from './reperage'
 
 describe('referencesSituees', () => {
   it('situe chaque référence à sa place — toutes les occurrences, là où l’analyseur dédoublonne', () => {
@@ -13,6 +13,35 @@ describe('referencesSituees', () => {
   })
   it('un texte sans référence ne situe rien', () => {
     expect(referencesSituees('Bonjour à tous.')).toEqual([])
+  })
+  it('un chapitre entier ne se pose pas sur le verset dont il est le préfixe — la plus longue occurrence gagne', () => {
+    const texte = 'Colossiens 3 ; Colossiens 3.13 ; Colossiens 3.12-13.'
+    const s = referencesSituees(texte)
+    expect(s.map((r) => texte.slice(r.debut, r.fin))).toEqual(['Colossiens 3', 'Colossiens 3.13', 'Colossiens 3.12-13'])
+    expect(s.map((r) => cleDeReference(r.reference))).toEqual(['COL:3:1-3:25', 'COL:3:13-3:13', 'COL:3:12-3:13'])
+    // Et dans l'autre ordre, où le verset vient en premier chez l'analyseur.
+    const inverse = 'Colossiens 3.13 puis Colossiens 3.'
+    expect(referencesSituees(inverse).map((r) => inverse.slice(r.debut, r.fin))).toEqual(['Colossiens 3.13', 'Colossiens 3'])
+  })
+})
+
+describe('cleDeReference', () => {
+  it('la même référence dans deux paragraphes — deux objets — a une seule clé', () => {
+    const [a] = referencesSituees('Voir Actes 8.30-31.')
+    const [b] = referencesSituees('Et encore Actes 8:30-31, plus loin.')
+    expect(a.reference).not.toBe(b.reference)
+    expect(a.reference.source).not.toBe(b.reference.source)
+    expect(cleDeReference(a.reference)).toBe(cleDeReference(b.reference))
+    expect(cleDeReference(a.reference)).toBe('ACT:8:30-8:31')
+  })
+  it('un verset, un intervalle et un chapitre entier du même livre sont trois clés', () => {
+    const [seul] = referencesSituees('Colossiens 3.13').map((s) => cleDeReference(s.reference))
+    const [intervalle] = referencesSituees('Colossiens 3.12-13').map((s) => cleDeReference(s.reference))
+    const [chapitre] = referencesSituees('Colossiens 3').map((s) => cleDeReference(s.reference))
+    expect(seul).toBe('COL:3:13-3:13')
+    expect(intervalle).toBe('COL:3:12-3:13')
+    expect(chapitre).toBe('COL:3:1-3:25')
+    expect(new Set([seul, intervalle, chapitre]).size).toBe(3)
   })
 })
 

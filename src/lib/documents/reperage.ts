@@ -25,24 +25,42 @@ export interface ReferenceSituee {
  * occurrences**. L'analyseur dédoublonne (« Actes 8.30-31 » cité deux fois
  * n'est rendu qu'une fois : juste pour un plan) ; pour surligner, chaque
  * occurrence compte, et chaque fragment est recherché sur tout le texte.
- * Triées par position ; deux fragments au même endroit n'en font qu'un.
+ * Triées par position, **sans chevauchement** : « Colossiens 3 » est un
+ * préfixe de « Colossiens 3.13 », et la plus longue occurrence gagne à sa
+ * position — sans quoi le chapitre entier se posait sur le verset, au hasard
+ * de l'ordre de l'analyseur (trouvé par la revue du 18 septembre 2026).
  */
 export function referencesSituees(texte: string): ReferenceSituee[] {
   const { references } = extraireReferences(texte)
-  const situees: ReferenceSituee[] = []
-  const vus = new Set<number>()
+  const candidates: ReferenceSituee[] = []
   for (const reference of references) {
     if (!reference.source) continue
     let i = texte.indexOf(reference.source)
     while (i !== -1) {
-      if (!vus.has(i)) {
-        vus.add(i)
-        situees.push({ reference, debut: i, fin: i + reference.source.length })
-      }
+      candidates.push({ reference, debut: i, fin: i + reference.source.length })
       i = texte.indexOf(reference.source, i + reference.source.length)
     }
   }
-  return situees.sort((a, b) => a.debut - b.debut)
+  candidates.sort((a, b) => a.debut - b.debut || b.fin - a.fin)
+  const situees: ReferenceSituee[] = []
+  let libre = 0
+  for (const c of candidates) {
+    if (c.debut < libre) continue
+    situees.push(c)
+    libre = c.fin
+  }
+  return situees
+}
+
+/**
+ * La clé d'une référence, par sa **valeur** : deux occurrences de « Actes
+ * 8.30-31 » sont deux objets, une seule référence. C'est sur cette clé qu'un
+ * lecteur se souvient de ce qu'il a déjà ajouté pendant la séance — une
+ * dépendance d'effet sur l'objet lui-même repartait de zéro à chaque
+ * occurrence, à chaque zoom d'un PDF, à chaque réouverture du panneau.
+ */
+export function cleDeReference(r: ReferenceExtraite): string {
+  return `${r.book}:${r.chapterStart}:${r.verseStart}-${r.chapterEnd}:${r.verseEnd}`
 }
 
 /** Un fragment de texte tel que pdf.js le rend, avec sa place sur la ligne. */

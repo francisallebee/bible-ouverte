@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BookmarkPlus, Check, Loader2, X } from 'lucide-react'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
 import { addReading, getPassagesForRange } from '@/lib/storage'
 import { ecrireReference } from '@/lib/lectures/reference'
+import { cleDeReference } from '@/lib/documents/reperage'
 import type { ReferenceExtraite } from '@/lib/import/references'
 
 /**
@@ -18,28 +19,52 @@ import type { ReferenceExtraite } from '@/lib/import/references'
  * du plan, sans contexte, avec pour séance le nom du document — c'est ainsi
  * qu'on la retrouvera groupée dans l'historique ; le texte du passage vient
  * du cache, comme partout (la question de `spec/DROITS.md` ne s'ouvre pas).
+ *
+ * **Une référence ne s'ajoute qu'une fois par séance de lecture** — décision
+ * du propriétaire, le 18 septembre 2026, après neuf lectures dont deux
+ * paires de doublons dans son EPUB. Le panneau ne se souvient de rien : il
+ * naît à chaque toucher et meurt à la croix. C'est le lecteur qui tient
+ * l'état de chaque référence de la séance (`etat`, par `cleDeReference`) —
+ * **y compris « en cours d'enregistrement »** : la revue a montré qu'un état
+ * local pendant l'`await` (une demi-seconde à deux sur téléphone) laissait
+ * une croix ou une autre marque réarmer le bouton avant que la lecture ne
+ * soit écrite. Le panneau s'ouvre donc directement sur la roue ou sur
+ * « Ajoutée », quel que soit l'objet, l'occurrence ou le zoom qui l'a fait
+ * rouvrir ; seule l'erreur reste chez lui, transitoire.
  */
+
+/** Ce que le lecteur sait d'une référence pendant la séance. */
+export type EtatAjout = 'enregistrement' | 'ajoutee'
 
 interface Props {
   reference: ReferenceExtraite
   versionId: string
   /** Le nom du document lu, qui devient celui de la séance. */
   sessionTitle: string
+  /** L'état de cette référence dans la séance ; `null` : rien encore. */
+  etat: EtatAjout | null
+  /** Le lecteur note l'état — `null` quand l'enregistrement a échoué. */
+  onEtat: (reference: ReferenceExtraite, etat: EtatAjout | null) => void
   onClose: () => void
 }
 
-export default function AjoutDeReference({ reference, versionId, sessionTitle, onClose }: Props) {
+export default function AjoutDeReference({ reference, versionId, sessionTitle, etat, onEtat, onClose }: Props) {
   const { t } = useI18n()
   const getBookName = useBookName()
-  const [etat, setEtat] = useState<'pret' | 'enregistrement' | 'ajoutee' | 'erreur'>('pret')
+  const [erreur, setErreur] = useState(false)
+  const cle = cleDeReference(reference)
+  // La clé affichée à l'instant : un échec tardif d'une autre référence ne s'affiche pas ici.
+  const cleCourante = useRef(cle)
+  cleCourante.current = cle
 
-  // Une autre référence choisie : le panneau repart neuf.
-  useEffect(() => { setEtat('pret') }, [reference])
+  // Une autre référence choisie — par sa valeur, pas son objet : l'erreur ne la suit pas.
+  useEffect(() => { setErreur(false) }, [cle])
 
   const libelle = ecrireReference(getBookName(reference.book), reference.book, reference)
 
   async function ajouter() {
-    setEtat('enregistrement')
+    if (etat) return
+    onEtat(reference, 'enregistrement')
     try {
       const passages = await getPassagesForRange(versionId, reference.book, reference)
       await addReading({
@@ -56,10 +81,11 @@ export default function AjoutDeReference({ reference, versionId, sessionTitle, o
         sessionTitle,
         notes: '',
       })
-      setEtat('ajoutee')
+      onEtat(reference, 'ajoutee')
     } catch (e) {
       console.warn('AjoutDeReference:', e)
-      setEtat('erreur')
+      onEtat(reference, null)
+      if (cleCourante.current === cle) setErreur(true)
     }
   }
 
@@ -79,7 +105,7 @@ export default function AjoutDeReference({ reference, versionId, sessionTitle, o
             {t.planDetail.addToReadings}
           </button>
         )}
-        {etat === 'erreur' && <span className="text-sm text-red-700">{t.planDetail.referenceError}</span>}
+        {erreur && <span className="text-sm text-red-700">{t.planDetail.referenceError}</span>}
         <button type="button" onClick={onClose} aria-label={t.common.close}
           className="p-1 text-[--text-secondary] hover:text-[--text]">
           <X className="w-4 h-4" />

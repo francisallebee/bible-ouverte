@@ -4,12 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
 import { ecrireReference } from '@/lib/lectures/reference'
 import { assainir } from '@/lib/documents/assainir'
-import { referencesSituees } from '@/lib/documents/reperage'
+import { cleDeReference, referencesSituees } from '@/lib/documents/reperage'
 import { unitesEnCache } from '@/lib/documents/structure'
 import type { Unite } from '@/lib/documents/unites'
 import type { ReferenceExtraite } from '@/lib/import/references'
 import { octetsDuDocument } from '@/lib/plans/document-store'
-import AjoutDeReference from './AjoutDeReference'
+import AjoutDeReference, { type EtatAjout } from './AjoutDeReference'
 import FenetreDeLecture, { PiedDeLecture } from './FenetreDeLecture'
 
 /**
@@ -28,7 +28,10 @@ import FenetreDeLecture, { PiedDeLecture } from './FenetreDeLecture'
  * Les **références bibliques** du texte sont surlignées (`surlignerReferences`
  * : les nœuds texte du Shadow DOM, chaque occurrence dans un `<mark>`) ; les
  * toucher ouvre `AjoutDeReference` à la place du pied — demandé par le
- * propriétaire le 17 septembre au soir.
+ * propriétaire le 17 septembre au soir. **Une référence ne s'ajoute qu'une
+ * fois par séance** (le 18) : le lecteur tient les clés déjà ajoutées tant
+ * qu'il est ouvert, la marque passe au vert, et le panneau s'ouvre sur
+ * « Ajoutée ».
  */
 
 interface Props {
@@ -63,6 +66,8 @@ const STYLE_DE_BASE = `
   pre { white-space: pre-wrap; }
   mark.ref { background: rgba(250, 204, 21, .35); color: inherit; border-bottom: 1px dotted currentColor; border-radius: 2px; padding: 0 .1em; cursor: pointer; }
   mark.ref:hover, mark.ref:focus { background: rgba(250, 204, 21, .6); outline: none; }
+  mark.ref.ajoutee { background: rgba(34, 197, 94, .28); border-bottom-style: solid; }
+  mark.ref.ajoutee:hover, mark.ref.ajoutee:focus { background: rgba(34, 197, 94, .45); }
 `
 
 /**
@@ -105,17 +110,38 @@ function surlignerReferences(racine: ShadowRoot, libelle: (r: ReferenceExtraite)
   return refs
 }
 
+/**
+ * Les marques déjà ajoutées pendant la séance passent au vert, et leur titre
+ * le dit. Séparé du surlignage : l'ensemble change à chaque ajout, le Shadow
+ * DOM ne se reconstruit pas pour autant.
+ */
+function marquerAjoutees(racine: ShadowRoot, refs: readonly ReferenceExtraite[], ajouts: ReadonlyMap<string, EtatAjout>, libelle: (r: ReferenceExtraite) => string, mention: string) {
+  racine.querySelectorAll<HTMLElement>('mark.ref').forEach((mark) => {
+    const r = refs[Number(mark.dataset.i)]
+    if (!r) return
+    const ajoutee = ajouts.get(cleDeReference(r)) === 'ajoutee'
+    mark.classList.toggle('ajoutee', ajoutee)
+    mark.title = ajoutee ? `${libelle(r)} — ${mention}` : libelle(r)
+  })
+}
+
 /** Une unité dans son Shadow DOM, remplie et remplacée quand le HTML change ; ses références surlignées. */
-function UniteRendue({ html, onReference, libelle }: { html: string; onReference: (r: ReferenceExtraite) => void; libelle: (r: ReferenceExtraite) => string }) {
+function UniteRendue({ html, onReference, libelle, ajouts, mention }: {
+  html: string; onReference: (r: ReferenceExtraite) => void; libelle: (r: ReferenceExtraite) => string
+  /** L'état des références de la séance, par clé, et la mention qui écrit « ajoutée ». */
+  ajouts: ReadonlyMap<string, EtatAjout>; mention: string
+}) {
   const hote = useRef<HTMLDivElement>(null)
   const surReference = useRef(onReference)
   surReference.current = onReference
+  const refsRendues = useRef<ReferenceExtraite[]>([])
   useEffect(() => {
     const el = hote.current
     if (!el) return
     const racine = el.shadowRoot ?? el.attachShadow({ mode: 'open' })
     racine.innerHTML = `<style>${STYLE_DE_BASE}</style>${assainir(html)}`
     const refs = surlignerReferences(racine, libelle)
+    refsRendues.current = refs
     const clic = (e: Event) => {
       const mark = (e.target as Element | null)?.closest?.('mark.ref') as HTMLElement | null
       if (!mark) return
@@ -130,6 +156,11 @@ function UniteRendue({ html, onReference, libelle }: { html: string; onReference
       racine.removeEventListener('keydown', clavier)
     }
   }, [html, libelle])
+  // Après le rendu (même passage), et à chaque ajout : les marques suivent l'ensemble.
+  useEffect(() => {
+    const racine = hote.current?.shadowRoot
+    if (racine) marquerAjoutees(racine, refsRendues.current, ajouts, libelle, mention)
+  }, [html, libelle, ajouts, mention])
   return <div ref={hote} className="texte-biblique leading-7 text-[--text]" />
 }
 
@@ -139,14 +170,23 @@ export default function LecteurDeDocument({ open, titre, sousTitre, chemin, debu
   const [unites, setUnites] = useState<Unite[] | null>(null)
   const [erreur, setErreur] = useState(false)
   const [referenceChoisie, setReferenceChoisie] = useState<ReferenceExtraite | null>(null)
+  // L'état des références de cette séance — une ouverture du lecteur —, en cours ou ajoutées.
+  const [ajouts, setAjouts] = useState<ReadonlyMap<string, EtatAjout>>(() => new Map())
   const colonneRef = useRef<HTMLDivElement>(null)
   const libelle = useCallback((r: ReferenceExtraite) => ecrireReference(getBookName(r.book), r.book, r), [getBookName])
+  const noterEtat = useCallback((r: ReferenceExtraite, etat: EtatAjout | null) => setAjouts((prev) => {
+    const suivant = new Map(prev)
+    if (etat) suivant.set(cleDeReference(r), etat)
+    else suivant.delete(cleDeReference(r))
+    return suivant
+  }), [])
 
   useEffect(() => {
     if (!open) return
     let annule = false
     setUnites(null)
     setErreur(false)
+    setAjouts(new Map())
     void (async () => {
       try {
         const toutes = await unitesEnCache(chemin, () => octetsDuDocument(chemin))
@@ -167,7 +207,8 @@ export default function LecteurDeDocument({ open, titre, sousTitre, chemin, debu
   const duJour = unites ? unites.slice(Math.max(0, debut - 1), Math.min(unites.length, fin)) : []
 
   const pied = referenceChoisie
-    ? <AjoutDeReference reference={referenceChoisie} versionId={versionId} sessionTitle={sessionTitle} onClose={() => setReferenceChoisie(null)} />
+    ? <AjoutDeReference reference={referenceChoisie} versionId={versionId} sessionTitle={sessionTitle}
+        etat={ajouts.get(cleDeReference(referenceChoisie)) ?? null} onEtat={noterEtat} onClose={() => setReferenceChoisie(null)} />
     : <PiedDeLecture onPrecedent={onPrecedent} onSuivant={onSuivant} lu={lu} onMarquerLu={onMarquerLu} />
 
   return (
@@ -177,7 +218,10 @@ export default function LecteurDeDocument({ open, titre, sousTitre, chemin, debu
         {!erreur && !unites && <p className="text-sm text-[--text-secondary] text-center py-8" role="status">{t.planDetail.documentLoading}</p>}
         {unites && (
           <div className="max-w-prose mx-auto space-y-10">
-            {duJour.map((u, i) => <UniteRendue key={`${debut + i}`} html={u.html} onReference={setReferenceChoisie} libelle={libelle} />)}
+            {duJour.map((u, i) => (
+              <UniteRendue key={`${debut + i}`} html={u.html} onReference={setReferenceChoisie} libelle={libelle}
+                ajouts={ajouts} mention={t.planDetail.referenceAdded} />
+            ))}
           </div>
         )}
       </div>
