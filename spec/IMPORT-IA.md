@@ -734,6 +734,22 @@ séance de lecture, et la marque change.**
   plaçait par `indexOf` sans frontière, et « Colossiens 3 » se posait sur
   « Colossiens 3.13 » selon l'ordre de l'analyseur. La plus longue occurrence
   gagne à sa position, sans chevauchement (test dans les deux ordres).
+- **Le vert « un peu calme » en mode sombre** (le propriétaire, sur l'iPhone,
+  le 18 septembre — le mode sombre qu'il restait à voir). Mesuré avant de
+  toucher : sur `--surface`, le lavis vert rendait **1,70** de présence contre
+  **2,38** au jaune, moitié moins visible que le surlignage ordinaire ; en
+  clair il le dépassait déjà (1,27 contre 1,17). Un lavis translucide perd sa
+  force sur un fond foncé — c'est un défaut du mode sombre, pas de la couleur.
+  Les trois valeurs deviennent des **variables de thème**
+  (`--surlignage-ajoutee`, `-survol`, `-bord`), pour deux raisons : elles
+  traversent le **Shadow DOM** par héritage là où `html.dark` ne peut pas
+  entrer, et les deux lecteurs partagent enfin une seule définition du même
+  état (leurs deux verts clairs rendaient 1,271 et 1,269 — les unifier ne
+  change rien à l'œil). En sombre, base plus claire et plus opaque : présence
+  **2,85** sur `--surface` et **3,01** sur la page inversée du PDF, le texte
+  gardant 4,69 sur le lavis (au-delà de .45, il passe dessous). Le mode clair
+  ne bouge pas. Vu en sombre dans les deux lecteurs, et le basculement de
+  thème est instantané — la variable suit, le Shadow DOM n'est pas reconstruit.
 - **La marque passe du jaune au vert**, trait plein au lieu de pointillé, et
   son titre porte « — Ajoutée à tes lectures » (la clé `referenceAdded`, déjà
   dans les cinq dictionnaires). HTML : `mark.ref.ajoutee` dans le Shadow DOM,
@@ -777,6 +793,7 @@ siens : 92 EPUB, 95 PDF). 991 tests.
 
 | Date | Fait |
 |---|---|
+| 18 sept. 2026 | **Le vert en mode sombre** : « un peu calme » sur l'iPhone. Mesure : 1,70 de présence contre 2,38 au jaune, l'inverse du mode clair. Les couleurs de l'état « ajoutée » passent en variables de thème — elles traversent le Shadow DOM, et les deux lecteurs partagent une définition ; en sombre, présence portée à 2,85 (HTML) et 3,01 (PDF), texte à 4,69. Clair inchangé. |
 | 18 sept. 2026 | **Une référence par séance** : les doublons du propriétaire (deux paires dans le plan 92) venaient d'un « Ajoutée » local au panneau, perdu à la croix, à l'autre occurrence, au zoom. `cleDeReference` (par la valeur), la `Map` clé → état au lecteur — « en cours » compris, trou trouvé par la revue adversariale —, `etat`/`onEtat` au panneau, la marque verte ; `referencesSituees` sans chevauchement. Vu sur EPUB et PDF, `fetch` ralenti : trois lectures pour une douzaine de touchers. 991 tests. |
 | 17 sept. 2026 | **Quatre demandes** : « Depuis un document » retirée (lib, lecteur, tests) ; références **surlignées dans le document lu** (HTML par les nœuds texte, PDF par la couche texte mesurée) et ajoutables aux lectures ; « Importer un document » ; confirmation des droits avant dépôt. `lib/documents/reperage.ts`, 7 tests. 988 tests. |
 | 17 sept. 2026 | **Lecteur PDF « en fonction du document »** : marges rognées (boîte d'encre par page, débrayable), pincer pour zoomer et double-toucher (zoom mémorisé par document), page sombre en mode sombre. `lib/plans/lecteur-pdf.ts`, 10 tests. Vu en 375 px. 1 003 tests. |

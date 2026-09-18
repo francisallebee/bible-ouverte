@@ -4600,6 +4600,32 @@ premier passage les cherchait à tort suivies de `{`), le témoin
 `bg-yellow-300\/40` resté à 1. Une référence par séance, la marque verte et
 le repérage sans chevauchement sont en production.
 
-Non vu : l'iPhone, où le propriétaire retouchera une référence déjà ajoutée ;
-le mode sombre sur les zones vertes du PDF (une teinte translucide sur la page
-inversée, comme le jaune déjà en production).
+### Le vert « un peu calme », et pourquoi c'était vrai
+
+Le propriétaire a essayé sur l'iPhone : le vert fonctionne en mode sombre,
+« c'est un peu calme ». La mesure lui a donné raison, et a dit *où* : sur
+`--surface`, le lavis vert rendait **1,70** de présence quand le jaune en
+rendait **2,38** — l'état remarquable était moitié moins visible que l'état
+ordinaire. En mode clair, l'inverse (1,27 contre 1,17). **Un lavis
+translucide perd sa force sur un fond foncé** : ce n'était pas la couleur,
+c'était le thème, et cela s'est vu en chiffres avant d'être corrigé au juger.
+
+La correction a réglé un second problème au passage. Les couleurs vivaient à
+deux endroits — une chaîne CSS figée dans le Shadow DOM du lecteur HTML, des
+classes Tailwind dans le lecteur PDF — et **`html.dark` n'entre pas dans un
+Shadow DOM**. Des **variables de thème** le font, elles, par héritage : une
+seule définition pour les deux lecteurs, le basculement suivi en direct sans
+reconstruire le document. Les deux verts clairs rendaient 1,271 et 1,269 : les
+unifier ne change rien à l'œil, et le mode clair n'a pas bougé. En sombre, la
+présence passe à **2,85** (HTML) et **3,01** (PDF), le texte gardant 4,69 sur
+le lavis — au-delà de .45 il passe dessous, et c'est ce plafond qui a décidé
+de la valeur, pas le goût.
+
+Deux plans d'essai (97 EPUB, 98 PDF) et leurs lectures supprimés ; base à
+28 plans, 4 136 jours, 835 lectures, 2 objets — les siens. **Le `confirm()`
+natif n'est pas cliquable depuis le panneau** : deux suppressions de lecture
+n'avaient pas pris parce que j'avais oublié de l'intercepter, et c'est le
+relevé SQL qui l'a montré, pas l'écran. Le compte à blanc sert exactement à
+ça. 991 tests.
+
+Non vu : l'iPhone, où le propriétaire retouchera une référence déjà ajoutée.
