@@ -929,6 +929,17 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   `applyTheme()` de `lib/themes.ts` ; le mode « Système » n'aurait pas pu être
   fiable autrement.
 
+- **Un « c'est fait » gardé dans le composant qui l'a fait ne survit à rien.**
+  `AjoutDeReference` retenait « Ajoutée » dans son `useState` : la croix le
+  démontait, une autre occurrence de la même référence était un autre objet
+  pour `useEffect([reference])`, chaque zoom du PDF recréait les objets — et
+  le propriétaire a eu deux paires de doublons le 17 septembre 2026 au soir.
+  La revue du 18 a trouvé le même trou **pendant l'`await`** : un état local
+  « enregistrement » se perd de la même façon, une demi-seconde à deux sur
+  téléphone. La mémoire d'un acte appartient à celui qui *survit* à l'acte —
+  ici le lecteur, pour la séance —, indexée par la **valeur** (`cleDeReference`)
+  et non par l'objet, et posée **avant** l'attente, pas après.
+
 ## Méthode
 
 Sur la session du 9 août, quatre diagnostics posés à la lecture du code se sont
@@ -4525,3 +4536,62 @@ sur eux qu'il touchera une référence. 988 tests. Rien n'est poussé.
 atteste le retrait autant que l'ajout. Les références surlignées et
 ajoutables, « Importer un document », la confirmation des droits sont en
 production.
+
+## La séance du 18 septembre 2026 : une référence par séance
+
+Reprise sur l'état vérifié — `4d2230b` partout, Vercel `success` à 20:57:13
+UTC la veille, 988 tests — et une base qui avait bougé depuis : les plans 85
+et 87 avaient disparu, remplacés par le **plan 92, « Je choisis de
+pardonner »**, EPUB de 178 890 octets, 30 jours ; 837 lectures, dont neuf à la
+séance du document entre 21:18 et 22:03 UTC. Le retour attendu était là, en
+base avant d'être en mots : le propriétaire avait touché ses références sur
+l'iPhone, et **deux d'entre elles étaient en double** — Colossiens 2:13-14 et
+Éphésiens 4:32, à trois minutes d'écart chacune.
+
+À sa demande, le code d'abord : le panneau désarmait bien, mais son
+« Ajoutée » était un `useState` du panneau, et trois gestes ordinaires le
+perdaient — la croix (démontage), une autre occurrence (autre objet, et
+`useEffect([reference])` compare l'identité), le zoom d'un PDF (zones
+recalculées). Il a tranché : **une fois par séance, avec la marque changée.**
+`spec/IMPORT-IA.md` porte le détail ; trois choses pour ce document.
+
+**Le test a corrigé le diagnostic d'un cran.** `expect(a.reference).not.toBe(
+b.reference)` a échoué : dans un même nœud texte, `referencesSituees`
+réutilise l'objet de l'analyseur pour toutes les occurrences. Les objets ne
+diffèrent qu'entre paragraphes, entre pages, et à chaque zoom — c'est le cas
+réel, et la clé par valeur les couvre tous sans savoir lequel s'est produit.
+Écrire le test avant d'avoir vu, c'est encore ce qu'il révèle qui compte.
+
+**La revue adversariale a trouvé ce que l'essai vert n'avait pas montré.**
+Trois relecteurs (React, règles du dépôt, cas limites), puis trois sceptiques
+par trouvaille — la limite de session a coupé huit des douze réfutations, les
+quatre restantes ont toutes confirmé. Deux lentilles ont trouvé le même trou
+indépendamment : la clé n'entrait dans l'ensemble qu'*après* l'`await` de
+`addReading`, et pendant ce temps seul un état local du panneau retenait le
+bouton — le même défaut, une fenêtre plus courte. Réponse : **tout l'état de
+l'ajout vit au lecteur**, une `Map` clé → `'enregistrement' | 'ajoutee'`,
+posée *avant* l'attente ; le panneau ne garde que l'erreur, transitoire, et
+un `setEtat('pret')` tardif qui aurait réarmé une autre référence en vol
+n'existe plus. Troisième trouvaille, antérieure au diff mais réelle :
+`referencesSituees` plaçait par `indexOf` sans frontière, et « Colossiens 3 »
+se posait sur « Colossiens 3.13 » selon l'ordre de l'analyseur — la plus
+longue occurrence gagne désormais à sa position, sans chevauchement.
+
+**La fenêtre s'observe en ralentissant `fetch`.** En local, l'insertion
+Supabase tenait en 120 ms et la retouche arrivait après ; deux secondes
+ajoutées aux appels Supabase depuis la console ont montré le panneau
+**renaître sur la roue, bouton désactivé**, après la croix et la retouche, et
+après un passage par une autre référence. Deux aller-retour réels — EPUB
+fabriqué (Colossiens 2.13-14 dans deux paragraphes du jour 1, une fois au
+jour 2), PDF fabriqué (même référence sur deux lignes, zoom 100 → 125 %) —,
+puis un troisième après la revue : **trois lectures pour une douzaine de
+touchers**, une par référence. Lectures et plans 93, 94, 96 supprimés par
+l'écran. Le serveur de développement, arrêté pendant la pause, a été relancé
+sur le 3000 ; pendant l'essai le propriétaire a créé son plan 95, « Petit
+Manuel pratique du Moniteur », un PDF de sept jours — le second objet du seau
+est le sien. Base : 28 plans, 4 136 jours, 837 lectures, 0 d'essai, 2 objets.
+991 tests. Rien n'est poussé.
+
+Non vu : l'iPhone, où le propriétaire retouchera une référence déjà ajoutée ;
+le mode sombre sur les zones vertes du PDF (une teinte translucide sur la page
+inversée, comme le jaune déjà en production).

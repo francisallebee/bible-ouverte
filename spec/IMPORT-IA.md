@@ -696,10 +696,70 @@ mesure de police ; panneau ouvert au toucher. Lecture 968 supprimée par
 l'écran, plans 88-89 supprimés ; restent les deux documents du propriétaire
 (85 « La réconciliation », 87 « Pour une foi réfléchie 2 »). 988 tests.
 
+### Une référence par séance, et la marque qui le dit — 18 septembre 2026
+
+Le propriétaire a touché ses références le soir même, sur l'iPhone, dans un
+nouvel EPUB (plan 92, « Je choisis de pardonner », 30 jours ; les plans 85 et
+87 ont disparu) : neuf lectures entre 21:18 et 22:03 UTC, séance « Je choisis
+de pardonner » — dont **deux paires de doublons**, Colossiens 2:13-14 et
+Éphésiens 4:32, à trois minutes d'écart chacune.
+
+Le panneau désarmait bien après un ajout — mais son « Ajoutée » était un état
+**local**, et trois gestes ordinaires le perdaient : la croix démonte le
+panneau, retoucher la marque le remonte armé ; une autre occurrence dans un
+autre paragraphe est un autre objet, et `useEffect([reference])` comparait
+l'identité, pas la valeur ; sur un PDF, chaque zoom recalcule les zones avec
+des objets neufs. Décision : **une référence ne s'ajoute qu'une fois par
+séance de lecture, et la marque change.**
+
+- `cleDeReference` (`lib/documents/reperage.ts`, 2 tests) : la clé d'une
+  référence par sa valeur — `COL:2:13-2:14`. Le test a précisé le diagnostic :
+  dans un même nœud texte, `referencesSituees` réutilise l'objet de
+  l'analyseur pour toutes les occurrences ; c'est entre paragraphes, entre
+  pages et à chaque zoom que les objets diffèrent.
+- **La mémoire est au lecteur, pas au panneau — l'enregistrement en cours
+  compris.** `LecteurDeDocument` et `LecteurDePdf` tiennent une `Map` clé →
+  `'enregistrement' | 'ajoutee'` pour la durée de leur ouverture — remise à
+  zéro quand `open` passe à vrai, **gardée au changement de jour** —, et
+  `AjoutDeReference` reçoit `etat` et `onEtat` : il note `'enregistrement'`
+  **avant** l'`await`, `'ajoutee'` après, `null` sur échec, et s'ouvre donc
+  directement sur la roue ou sur « Ajoutée » pour une clé connue, quel que
+  soit l'objet, l'occurrence ou le zoom qui l'a fait rouvrir. La première
+  version gardait « en cours » chez le panneau : la revue adversariale a
+  montré qu'une croix ou une autre marque pendant l'insertion Supabase
+  (0,5 à 2 s sur téléphone) réarmait le bouton — corrigé avant commit, et vu
+  en ralentissant `fetch` de deux secondes. Fermer le lecteur et le rouvrir
+  est une nouvelle séance.
+- **Une collision antérieure, trouvée par la même revue** : `referencesSituees`
+  plaçait par `indexOf` sans frontière, et « Colossiens 3 » se posait sur
+  « Colossiens 3.13 » selon l'ordre de l'analyseur. La plus longue occurrence
+  gagne à sa position, sans chevauchement (test dans les deux ordres).
+- **La marque passe du jaune au vert**, trait plein au lieu de pointillé, et
+  son titre porte « — Ajoutée à tes lectures » (la clé `referenceAdded`, déjà
+  dans les cinq dictionnaires). HTML : `mark.ref.ajoutee` dans le Shadow DOM,
+  posé par un second effet qui ne reconstruit pas le document ; PDF : les
+  zones calculent leur classe à chaque rendu depuis l'ensemble
+  (`bg-green-400/40`, `border-green-700/60`), rien à synchroniser.
+
+Vu, sur le serveur de développement : EPUB fabriqué avec Colossiens 2.13-14
+dans deux paragraphes du jour 1 et une fois au jour 2 → première touchée,
+ajoutée → **les deux occurrences vertes d'un coup** ; croix, retouche →
+« Ajoutée », pas de bouton ; autre occurrence → pareil ; Éphésiens 4.32, elle,
+propose le bouton ; jour suivant → Colossiens **déjà verte** ; fermer, rouvrir
+→ tout jaune. PDF fabriqué, même référence sur deux lignes → ajoutée, les deux
+zones vertes ; zoom 100 → 125 % → toujours vertes ; retouche après zoom →
+« Ajoutée ». **Deux lectures en base pour six touchers** (1010, 1011), une
+par lecteur. Puis, après la revue, `fetch` ralenti de deux secondes vers
+Supabase : « Ajouter » → croix → retouche → **panneau sur la roue, bouton
+désactivé** ; autre référence puis retour → pareil ; trois lectures pour une
+douzaine de touchers (1012-1014). Lectures et plans 93, 94, 96 supprimés par
+l'écran ; base à 28 plans, 4 136 jours, 837 lectures, 0 d'essai, 2 objets (les
+siens : 92 EPUB, 95 PDF). 991 tests.
+
 ### Ce qui suit
 
-1. Le propriétaire touche une référence dans son cahier et dans son EPUB, sur
-   l'iPhone.
+1. Le propriétaire retouche une référence déjà ajoutée dans son EPUB, sur
+   l'iPhone : la marque verte, et « Ajoutée » sans bouton.
 2. Ouvrir le dépôt à tous, si un jour il le veut : une ligne de policy.
 3. Le modèle, plus tard — et avec lui le « tout » du point 5.
 
@@ -717,6 +777,7 @@ l'écran, plans 88-89 supprimés ; restent les deux documents du propriétaire
 
 | Date | Fait |
 |---|---|
+| 18 sept. 2026 | **Une référence par séance** : les doublons du propriétaire (deux paires dans le plan 92) venaient d'un « Ajoutée » local au panneau, perdu à la croix, à l'autre occurrence, au zoom. `cleDeReference` (par la valeur), la `Map` clé → état au lecteur — « en cours » compris, trou trouvé par la revue adversariale —, `etat`/`onEtat` au panneau, la marque verte ; `referencesSituees` sans chevauchement. Vu sur EPUB et PDF, `fetch` ralenti : trois lectures pour une douzaine de touchers. 991 tests. |
 | 17 sept. 2026 | **Quatre demandes** : « Depuis un document » retirée (lib, lecteur, tests) ; références **surlignées dans le document lu** (HTML par les nœuds texte, PDF par la couche texte mesurée) et ajoutables aux lectures ; « Importer un document » ; confirmation des droits avant dépôt. `lib/documents/reperage.ts`, 7 tests. 988 tests. |
 | 17 sept. 2026 | **Lecteur PDF « en fonction du document »** : marges rognées (boîte d'encre par page, débrayable), pincer pour zoomer et double-toucher (zoom mémorisé par document), page sombre en mode sombre. `lib/plans/lecteur-pdf.ts`, 10 tests. Vu en 375 px. 1 003 tests. |
 | 17 sept. 2026 | **Session 2** : EPUB, Word, OpenDocument, HTML rendus dans leur mise en forme (`lib/documents/unites.ts`, Shadow DOM assaini, feuille de l'éditeur filtrée, police des réglages) ; leurs chapitres/sections comme unités de l'éditeur ; migration `documents_formats`. Aller-retour : plan 83 depuis un EPUB, lu, coché, redécoupé, supprimé. 993 tests. |
