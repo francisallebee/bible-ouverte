@@ -275,7 +275,7 @@ function PageDuPdf({ doc, chemin, numero, largeur, zoom, rogner, sombre, onRefer
             <button key={i} type="button" onClick={() => onReference(z.reference)}
               aria-label={t.planDetail.reference(titre)} title={titre}
               className={`absolute rounded-sm border-b outline-none ${ajoutee
-                ? 'bg-green-400/40 hover:bg-green-400/60 focus:bg-green-400/60 border-solid border-green-700/60'
+                ? 'bg-[--surlignage-ajoutee] hover:bg-[--surlignage-ajoutee-survol] focus:bg-[--surlignage-ajoutee-survol] border-solid border-[--surlignage-ajoutee-bord]'
                 : 'bg-yellow-300/40 hover:bg-yellow-300/70 focus:bg-yellow-300/70 border-dotted border-yellow-700/60'}`}
               style={{ left: z.left, top: z.top, width: z.width, height: z.height }} />
           )

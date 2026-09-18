@@ -66,8 +66,10 @@ const STYLE_DE_BASE = `
   pre { white-space: pre-wrap; }
   mark.ref { background: rgba(250, 204, 21, .35); color: inherit; border-bottom: 1px dotted currentColor; border-radius: 2px; padding: 0 .1em; cursor: pointer; }
   mark.ref:hover, mark.ref:focus { background: rgba(250, 204, 21, .6); outline: none; }
-  mark.ref.ajoutee { background: rgba(34, 197, 94, .28); border-bottom-style: solid; }
-  mark.ref.ajoutee:hover, mark.ref.ajoutee:focus { background: rgba(34, 197, 94, .45); }
+  /* Les variables du thème traversent la frontière du Shadow DOM par
+     héritage : le vert suit le mode sombre sans que rien ne le lui dise. */
+  mark.ref.ajoutee { background: var(--surlignage-ajoutee); border-bottom-style: solid; }
+  mark.ref.ajoutee:hover, mark.ref.ajoutee:focus { background: var(--surlignage-ajoutee-survol); }
 `
 
 /**

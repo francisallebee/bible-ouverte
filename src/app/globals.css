@@ -12,6 +12,23 @@
      marge, les cibles retombaient à 40 px de large — sous le seuil que le
      2 septembre 2026 avait justement porté à 48. */
   --nav-width: 80px;
+
+  /* Les deux surlignages d'une référence dans un document lu : repérée, et
+     déjà ajoutée aux lectures. Des variables plutôt que des classes, pour
+     deux raisons — elles **traversent le Shadow DOM** du lecteur HTML par
+     héritage, là où `html.dark` ne peut pas entrer, et les deux lecteurs
+     (HTML et PDF) partagent enfin une seule définition du même état.
+     Mesuré le 18 septembre 2026, le propriétaire trouvant le vert « un peu
+     calme » en mode sombre : sur `--surface`, le vert rendait 1,70 de
+     présence contre 2,38 au jaune — deux fois moins visible que le
+     surlignage ordinaire, alors qu'en clair il le dépassait déjà (1,27
+     contre 1,17). Un lavis translucide perd sa force sur un fond foncé ; le
+     mode sombre reçoit donc une base plus claire et plus opaque, et le mode
+     clair ne bouge pas. */
+  --surlignage-ajoutee: rgba(74, 222, 128, .4);
+  --surlignage-ajoutee-survol: rgba(74, 222, 128, .6);
+  --surlignage-ajoutee-bord: rgba(21, 128, 61, .6);
+
   --primary: #1e3a5f;
   --primary-hover: #2a4f7a;
   --primary-light: #e8eef5;
@@ -253,6 +270,14 @@ html.dark .border-\[--primary\] { border-color: var(--primary-clair) !important;
 html.dark .bg-\[--primary-light\] { background-color: var(--primary-panneau) !important; }
 
 html.dark {
+  /* Présence portée de 1,70 à 2,85 sur `--surface` (le jaune vaut 2,38) et à
+     3,01 sur la page inversée du PDF (le jaune, 3,16) ; le texte du document
+     garde 4,69 sur le lavis, au-dessus du seuil AA de 4,5. Au-delà de .45,
+     le texte passe dessous. */
+  --surlignage-ajoutee: rgba(74, 222, 128, .45);
+  --surlignage-ajoutee-survol: rgba(74, 222, 128, .65);
+  --surlignage-ajoutee-bord: rgba(74, 222, 128, .75);
+
   --success-light: #0a2e1a;
   --warning-light: #2a2208;
   --danger-light: #2a0a0a;
