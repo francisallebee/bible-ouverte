@@ -4592,6 +4592,14 @@ Manuel pratique du Moniteur », un PDF de sept jours — le second objet du seau
 est le sien. Base : 28 plans, 4 136 jours, 837 lectures, 0 d'essai, 2 objets.
 991 tests. Rien n'est poussé.
 
+`457c94b` poussé à 14:36:41 UTC (avec `01e52ac`) ; Vercel `success` à
+14:37:40, `buildId` `y7ayZIOej…` → `n6O9PGIaq…`, feuille `95235f8b…` →
+`cc070182…`, `bg-green-400\/40` et `border-green-700\/60` de 0 à **1**, les
+variantes `hover:`/`focus:` à 1 (elles s'écrivent `…:hover{`, la sonde du
+premier passage les cherchait à tort suivies de `{`), le témoin
+`bg-yellow-300\/40` resté à 1. Une référence par séance, la marque verte et
+le repérage sans chevauchement sont en production.
+
 Non vu : l'iPhone, où le propriétaire retouchera une référence déjà ajoutée ;
 le mode sombre sur les zones vertes du PDF (une teinte translucide sur la page
 inversée, comme le jaune déjà en production).
