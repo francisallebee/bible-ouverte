@@ -4701,3 +4701,50 @@ siens, dans le plan 92, depuis le 17 septembre. C'est le comportement décidé
 alors, et c'est l'autre moitié de ce qu'il a ressenti en écrivant « les plans
 de lectures ne sont pas pris en compte ». Les compter supposerait une notion
 que le produit n'a pas : une lecture sans passage.
+
+### Le menu replié, et l'appel qui se tait
+
+Demande du propriétaire, le 28 septembre au soir : garder fixe la première
+partie du menu, **replier ce qui est sous la ligne de séparation** — profil,
+réglages, feuille de route, support, soutenir, déconnexion —, et trouver une
+astuce, « peut-être en clignotant », pour que personne ne l'oublie.
+
+**Le clignotement a été refusé, et remplacé.** Le WCAG 2.2.2 interdit ce qui
+clignote au-delà de cinq secondes sans moyen de l'arrêter, et un appel qui ne
+se tait jamais cesse d'être vu au bout de deux jours — c'est la cécité aux
+bannières. L'astuce retenue enseigne puis disparaît : une **pastille** et une
+pulsation de **trois battements**, rejouées à chaque ouverture de
+l'application **jusqu'au premier clic**, et plus jamais ensuite
+(`nav_compte_vu`). Le mouvement est coupé par `prefers-reduced-motion` ; la
+pastille, elle, reste — un repère qui ne tiendrait qu'au mouvement n'en est
+pas un.
+
+**Ce qui n'est pas mémorisé, et pourquoi.** L'état replié revient à chaque
+ouverture : « masqué automatiquement » est ce qui a été demandé, et retenir
+l'ouverture ferait que le menu ne se replierait plus jamais pour qui l'a
+ouvert une fois. Seul le *fait de l'avoir trouvé* est retenu. Le bloc s'ouvre
+en revanche de lui-même quand on est déjà sur l'une de ses pages : arriver
+dans Réglages sans voir Réglages dans son menu ferait douter d'être au bon
+endroit.
+
+Deux défauts trouvés à la mesure, aucun à la relecture. En rail (80 px), le
+chevron se posait **par-dessus l'avatar** — 32-48 px contre 24-56 : un
+`lg:absolute` sans ancêtre positionné. Il est masqué en rail, où l'avatar seul
+porte l'affordance, et la pulsation a déménagé sur l'avatar, présent dans les
+deux mises en page. Et le libellé « Compte et réglages » recevait **exactement
+127 px pour 130** : il s'achevait en points de suspension, alors que le DOM
+annonçait `scrollWidth === clientWidth`, donc pas de troncature. **C'est
+l'écran qui a tranché, pas la mesure** — huit pixels repris sur les écarts
+(`gap-2`) ont suffi, sans toucher au mot.
+
+Vu à 375 px et en rail, mode clair et mode sombre : replié à l'arrivée,
+déplié au clic avec ses huit entrées, refermé au second clic, ouvert de
+lui-même sur `/settings` avec Réglages en actif, pastille éteinte après le
+premier clic et absente au rechargement. `aria-expanded` suit, sur un vrai
+`<button>`. La barre tient désormais en entier sur un téléphone, sans
+défilement. L'anneau de la pastille est passé de `ring-white` à
+`ring-[--surface]` : blanc, il faisait un halo sur l'ardoise du mode sombre.
+
+Pas de test : le dépôt n'a pas d'environnement DOM sous Vitest, et la logique
+restante — deux booléens — ne justifie pas un module à elle seule. 997 tests,
+inchangés.
