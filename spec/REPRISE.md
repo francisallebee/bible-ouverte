@@ -4805,6 +4805,13 @@ autrui refusé, `delete` emportant 0 ligne. Aller-retour complet — créé, rel
 modifié, supprimé —, base revenue à 0 thème, 992 lectures, 27 plans, cache
 local vide. 1 008 tests.
 
+`9367532` poussé à 19:04:04 UTC ; Vercel `success` à 19:05:18, `buildId`
+`IapNRsJcR…` → `IauVmTcw0…`, feuille `277276e6…` → `a40c6861…`,
+`.border-dashed{`, `.ps-3\.5{` et `.pe-1\.5{` de 0 à **1** — le bouton de
+création en pointillés et les pastilles personnelles —, `.appel-menu{` resté à
+**2**, témoin du déploiement précédent. La migration `user_themes` attendait
+en base : la recherche par thème accepte les siens en production.
+
 ### Ce que les deux autres demandes supposent, et qui n'est pas du code
 
 Rien n'a été construit pour elles, et rien ne doit l'être avant que le
