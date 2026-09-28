@@ -20,6 +20,8 @@ import PassageAdder from "@/components/PassageAdder";
 import type { PassageDraft } from "@/components/PassageAdder";
 import { describeRange } from "@/components/PassagePicker";
 import { dayPassages, readingIdsOf } from "@/lib/storage/plan-passages";
+import { datesDuCochage } from "@/lib/plans/cochage";
+import { aujourdhui } from "@/lib/objectifs/objectifs";
 import PassagePreview from "@/components/PassagePreview";
 import { versetsDuChapitre } from "@/lib/progression/chapitres";
 import { textDirection } from "@/lib/i18n/locales";
@@ -163,21 +165,26 @@ export default function PlanDetailPage() {
   const pageDays = days.slice(currentPage * DAYS_PER_PAGE, (currentPage + 1) * DAYS_PER_PAGE);
 
   /**
-   * Coche une entrée : enregistre **une lecture par passage** à la date donnée.
+   * Coche une entrée : enregistre **une lecture par passage** au jour où on a lu.
    *
    * Une par passage, et non une par jour : c'est la règle du reste du produit,
    * les statistiques, la progression et les plans raisonnant tous par lecture.
    * Chaque passage retient son identifiant, sans quoi décocher un jour à
    * plusieurs passages en laisserait derrière lui dans l'historique.
+   *
+   * `date` est la date de **lecture**, que `datesDuCochage` décide — ce n'est
+   * pas forcément celle que le plan avait prévue pour ce jour, et le
+   * calendrier du plan ne bouge pas avec elle (ticket 32).
    */
   async function markRead(day: PlanDay, date: string) {
     setTogglingDay(day.day);
+    const dates = datesDuCochage(isFree, aujourdhui(), date);
     try {
       const passages = dayPassages(day);
       const ecrits = [];
       for (const passage of passages) {
         const readingId = await addReading({
-          date,
+          date: dates.lecture,
           book: passage.book,
           chapterStart: passage.chapterStart,
           chapterEnd: passage.chapterEnd,
@@ -207,7 +214,10 @@ export default function PlanDetailPage() {
       }
       const updatedDay: PlanDay = {
         ...day,
-        date,
+        // Un plan daté garde la date qu'il a prévue : cocher un jour en retard
+        // ne décale pas le calendrier. Un plan libre n'en a pas et reçoit
+        // celle de la lecture.
+        ...(dates.jour !== null ? { date: dates.jour } : {}),
         isRead: true,
         // La colonne garde la première : c'est ce que lit un appareil resté
         // sur l'ancienne version. Un jour sans passage — une portion de
@@ -249,9 +259,11 @@ export default function PlanDetailPage() {
 
   function handleToggleDay(day: PlanDay) {
     if (day.isRead) return unmarkRead(day);
-    // Un plan daté a déjà sa date ; un plan libre la demande.
-    if (plan?.kind !== "free") return markRead(day, day.date);
-    setDating({ day: day.day, date: new Date().toISOString().slice(0, 10) });
+    // Un plan daté enregistre la lecture **au jour où on coche**, et non au
+    // jour qu'il avait prévu : c'est le ticket 32, et `datesDuCochage` porte
+    // la règle. Un plan libre, lui, demande la date.
+    if (plan?.kind !== "free") return markRead(day, aujourdhui());
+    setDating({ day: day.day, date: aujourdhui() });
   }
 
   /**
