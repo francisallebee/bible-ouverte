@@ -4748,3 +4748,9 @@ défilement. L'anneau de la pastille est passé de `ring-white` à
 Pas de test : le dépôt n'a pas d'environnement DOM sous Vitest, et la logique
 restante — deux booléens — ne justifie pas un module à elle seule. 997 tests,
 inchangés.
+
+`9f35e19` poussé à 18:26:59 UTC ; Vercel `success` à 18:28:09, `buildId`
+`p7Mq2xKaP…` → `iFAQwueXR…`, feuille `5353b4aa…` → `277276e6…`, `appel-menu`
+de 0 à **1** et son `prefers-reduced-motion` de 0 à **1** — l'appel et son
+garde-fou sont en production ensemble, ce qui est la seule façon de les
+livrer. Le menu replié est en ligne.
