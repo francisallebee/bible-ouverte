@@ -929,6 +929,17 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
   `applyTheme()` de `lib/themes.ts` ; le mode « Système » n'aurait pas pu être
   fiable autrement.
 
+- **Deux dates qui se ressemblent ne sont pas la même.** Le jour qu'un plan
+  **prévoit** et le jour où on **lit** sont deux choses ; `markRead` écrivait
+  ses lectures à la première. Cocher le 28 septembre un jour programmé le 9
+  enregistrait une lecture du 9 — et statistiques, séries et objectifs comptant
+  tous par `readings.date`, l'écran ne bougeait pas. Relevé le 28 septembre
+  2026 : **242 des 362 lectures de plan mal datées**, sur 8 comptes, dont 81
+  dans le futur (jours cochés en avance, invisibles jusqu'à leur date). Aucun
+  test, aucun type ne pouvait le voir : les deux valeurs sont des chaînes
+  `YYYY-MM-DD` également valides. Quand deux dates cohabitent, **nommer
+  laquelle on écrit**, et la sortir dans une fonction qui porte la règle.
+
 - **Un « c'est fait » gardé dans le composant qui l'a fait ne survit à rien.**
   `AjoutDeReference` retenait « Ajoutée » dans son `useState` : la croix le
   démontait, une autre occurrence de la même référence était un autre objet
@@ -4629,3 +4640,46 @@ relevé SQL qui l'a montré, pas l'écran. Le compte à blanc sert exactement à
 ça. 991 tests.
 
 Non vu : l'iPhone, où le propriétaire retouchera une référence déjà ajoutée.
+
+## La séance du 28 septembre 2026 : le ticket 32, deux dates confondues
+
+Le propriétaire a ouvert le ticket 32 à 12:22 UTC : « Les plans de lectures,
+notamment bibliques, ne sont pas pris en compte dans les statistiques, la
+progression etc. »
+
+**La base a nommé le défaut avant toute lecture de code.** Les lectures
+existaient bien — 213 jours cochés sur 221 en portaient une, contexte
+`plan-lecture` —, donc le défaut n'était pas à l'écriture. Et la dernière,
+créée à **12:19:43**, trois minutes avant le ticket, portait la date du
+**9 septembre** : « Plan : Un proverbe par jour (jour 6) ». Il avait coché
+aujourd'hui un jour programmé dix-neuf jours plus tôt, et la lecture était
+partie dans une semaine révolue. Aucun écran ne l'excluait ; tous comptent par
+`readings.date`.
+
+`handleToggleDay` passait `day.date` — la date **prévue** — à `markRead` pour
+tout plan qui n'est pas libre. Seul un plan libre, qui n'a pas de calendrier,
+demandait la date au lecteur. L'ampleur, relevée avant de corriger : **242 des
+362 lectures de plan mal datées**, sur **8 comptes**, écart de −221 à +70
+jours, dont **81 dans le futur** — celles-là n'apparaîtront nulle part avant
+leur date.
+
+La règle est sortie dans `lib/plans/cochage.ts` (`datesDuCochage`, pur, 6
+tests) plutôt que laissée dans le composant : **une lecture est datée du jour
+où on l'a lue**, et le calendrier du plan ne bouge pas avec elle — sans quoi
+cocher un jour en retard décalerait le plan lui-même. Un plan libre garde son
+comportement : il demande la date, et le jour la prend. Au passage, le défaut
+par défaut du sélecteur de date passe d'`toISOString()` (UTC) à `aujourdhui()`
+(le jour civil du lecteur) : à 0 h 30 à Paris, UTC est encore la veille.
+
+Vu de bout en bout : plan d'essai 101 « Psaumes de confiance », **jour 5
+programmé le 2 octobre, coché le 28 septembre** → le jour garde le 2 octobre à
+l'écran et en base, la lecture porte le 28 (Psaume 91:1-16, contexte
+`plan-lecture`), et Statistiques passe « Cette semaine » à 3. Décoché,
+supprimé ; base revenue à 27 plans et 992 lectures.
+
+Reste, et ce sont deux décisions du propriétaire : les **242 lectures déjà mal
+datées** (une migration de données les ramènerait à leur `createdAt`, qui est
+le jour réel du cochage — 10 sont les siennes), et les **jours d'un plan tiré
+d'un document**, qui ne créent aucune lecture faute de passage biblique. Huit
+de ses jours du plan 92 sont dans ce cas depuis le 17 septembre : c'est le
+comportement décidé alors, et l'autre moitié de ce qu'il a ressenti.
