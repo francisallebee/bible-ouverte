@@ -44,6 +44,7 @@ aucune donnée.
 | `20260917200000_plan_day_texte.sql` | `plan_days.texte` : la page d'un document dont le plan est tiré, quand le lecteur a choisi de lire le document en entier — nulle sinon. Additive, sans reprise, **aucun `grant`** : `plan_days` a l'`UPDATE` au niveau table, vérifié le 17 septembre |
 | `20260917230000_documents_formats.sql` | Le seau `documents` accepte EPUB, Word (.docx), OpenDocument (.odt) et HTML en plus du PDF — une seule `update storage.buckets`, même plafond, mêmes policies |
 | `20260917220000_plan_lecture_document.sql` | **Un jour sans passage** : `plan_days.book`, `chapterStart/End`, `verseStart/End` deviennent nullables (défauts gardés), `plan_days.titre` ajoutée — le jour lit une portion du document du plan, pas la Bible. Aucune ligne touchée, aucun `grant` |
+| `20260928120000_plan_readings_date_de_lecture.sql` | **Réparation de données** : les 242 lectures de plan (sur 362, 8 comptes) datées du jour **prévu** par le plan reçoivent celle de leur création — le jour où le lecteur a réellement coché. Ticket 32 ; le code est corrigé par `lib/plans/cochage.ts`. Fuseau `Europe/Paris` assumé, faute d'en stocker un par compte. Idempotente, aucune ligne supprimée, **non réversible** |
 | `20260917210000_plan_documents.sql` | **Le premier fichier stocké** : seau `documents` (privé, 20 Mo, PDF seul) créé par la migration, trois policies — lecture et suppression au propriétaire du préfixe, **dépôt réservé à l'administrateur** par `private.is_admin()` —, `plans.document` et `plan_days.page_debut`/`page_fin`, nulles. Additive, aucun `grant` |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
@@ -95,6 +96,17 @@ par l'outil MCP : **30 fichiers, 28 enregistrées**, la dernière sous
 l'outil MCP, sur accord du propriétaire : **32 fichiers, 30 enregistrées**, la
 dernière sous `20260917102928`. Colonne `texte` de type `text`, nullable,
 relue par `information_schema.columns` ; 4 099 jours, aucun avec texte.
+
+**Relevé du 28 septembre 2026**, après application de
+`plan_readings_date_de_lecture` par l'outil MCP, sur accord explicite du
+propriétaire : **36 fichiers, 34 enregistrées**, la dernière sous ce nom.
+Deuxième migration de **données** du dépôt, après `plan_readings_last_verse`.
+Compte à blanc avant : 242 lignes, 8 comptes, dates courant du 1er janvier au
+**11 novembre** — le futur, celui des jours cochés en avance. Après : **0
+lecture de plan mal datée, 0 dans le futur**, 362 lectures de plan et 992
+lectures au total, inchangées — la réparation ne touche que la colonne `date`.
+Trois témoins relus : les lignes 13, 14 et 15, du plan « 2026 », passent du
+2, 3 et 4 janvier au **1er août**, jour où elles ont été cochées.
 
 **Quatrième relevé du 17 septembre 2026**, après application de
 `documents_formats` par l'outil MCP, sur accord du propriétaire : **35
