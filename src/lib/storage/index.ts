@@ -2,6 +2,7 @@ export * from './types';
 export * from './db';
 export * from './reading-store';
 export * from './context-store';
+export * from './user-theme-store';
 export * from './version-store';
 export * from './passage-store';
 export * from './settings-store';

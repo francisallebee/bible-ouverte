@@ -44,6 +44,7 @@ aucune donnée.
 | `20260917200000_plan_day_texte.sql` | `plan_days.texte` : la page d'un document dont le plan est tiré, quand le lecteur a choisi de lire le document en entier — nulle sinon. Additive, sans reprise, **aucun `grant`** : `plan_days` a l'`UPDATE` au niveau table, vérifié le 17 septembre |
 | `20260917230000_documents_formats.sql` | Le seau `documents` accepte EPUB, Word (.docx), OpenDocument (.odt) et HTML en plus du PDF — une seule `update storage.buckets`, même plafond, mêmes policies |
 | `20260917220000_plan_lecture_document.sql` | **Un jour sans passage** : `plan_days.book`, `chapterStart/End`, `verseStart/End` deviennent nullables (défauts gardés), `plan_days.titre` ajoutée — le jour lit une portion du document du plan, pas la Bible. Aucune ligne touchée, aucun `grant` |
+| `20260928180000_user_themes.sql` | `user_themes` : les thèmes que le lecteur écrit lui-même, à côté des quinze du code. Jumeau de `contexts` — table de référence dans le code, entrées personnelles en base ; `id` en `text` engendré par le client, pour qu'un thème puisse naître hors ligne ; `passages` en `jsonb`, comme `plan_days.passages`. Quatre policies sur `auth.uid() = user_id`, aucun `grant` de colonne |
 | `20260928120000_plan_readings_date_de_lecture.sql` | **Réparation de données** : les 242 lectures de plan (sur 362, 8 comptes) datées du jour **prévu** par le plan reçoivent celle de leur création — le jour où le lecteur a réellement coché. Ticket 32 ; le code est corrigé par `lib/plans/cochage.ts`. Fuseau `Europe/Paris` assumé, faute d'en stocker un par compte. Idempotente, aucune ligne supprimée, **non réversible** |
 | `20260917210000_plan_documents.sql` | **Le premier fichier stocké** : seau `documents` (privé, 20 Mo, PDF seul) créé par la migration, trois policies — lecture et suppression au propriétaire du préfixe, **dépôt réservé à l'administrateur** par `private.is_admin()` —, `plans.document` et `plan_days.page_debut`/`page_fin`, nulles. Additive, aucun `grant` |
 
@@ -96,6 +97,18 @@ par l'outil MCP : **30 fichiers, 28 enregistrées**, la dernière sous
 l'outil MCP, sur accord du propriétaire : **32 fichiers, 30 enregistrées**, la
 dernière sous `20260917102928`. Colonne `texte` de type `text`, nullable,
 relue par `information_schema.columns` ; 4 099 jours, aucun avec texte.
+
+**Second relevé du 28 septembre 2026**, après application de `user_themes`
+par l'outil MCP, sur accord explicite du propriétaire : **37 fichiers, 35
+enregistrées**. Relu : 7 colonnes, RLS active, quatre policies toutes en
+`auth.uid() = user_id`, 0 ligne. Aller-retour réel depuis le serveur de
+développement : thème créé (« Essai — la patience », 🌿, Jacques 1), relu en
+base sur le bon compte, modifié par l'ajout de Romains — rangé **avant**
+Jacques, l'ordre canonique et non celui des clics —, puis supprimé ; 0 thème,
+et le cache local vide. La barrière éprouvée en base dans un bloc annulé, sous
+les `request.jwt.claims` d'un autre compte : **0 thème visible**, `insert`
+chez autrui refusé (« new row violates row-level security policy »), `delete`
+emportant **0 ligne**.
 
 **Relevé du 28 septembre 2026**, après application de
 `plan_readings_date_de_lecture` par l'outil MCP, sur accord explicite du

@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase, type DBSchema } from 'idb';
-import type { AppSettings, BiblePassage, BibleVersion, GameSession, MemorisedVerse, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket } from './types';
+import type { AppSettings, BiblePassage, BibleVersion, GameSession, MemorisedVerse, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket, ThemeUtilisateur } from './types';
 
 interface BibleOuverteDB extends DBSchema {
   readings: {
@@ -13,6 +13,10 @@ interface BibleOuverteDB extends DBSchema {
   contexts: {
     key: string;
     value: ReadingContext;
+  };
+  user_themes: {
+    key: string;
+    value: ThemeUtilisateur;
   };
   bible_versions: {
     key: string;
@@ -79,7 +83,7 @@ let dbPromise: Promise<IDBPDatabase<BibleOuverteDB>> | null = null;
 
 export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 10, {
+    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 11, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const readingsStore = db.createObjectStore('readings', {
@@ -158,6 +162,13 @@ export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
           // le dessine depuis ici, et le plan se lit hors ligne comme les
           // autres. Clé = chemin dans le seau, unique par document.
           db.createObjectStore('documents', { keyPath: 'chemin' });
+        }
+
+        if (oldVersion < 11) {
+          // Les thèmes du lecteur, à côté des quinze du code. Clé `text`
+          // engendrée par le client, comme `contexts` : on doit pouvoir en
+          // créer un hors ligne et le pousser ensuite.
+          db.createObjectStore('user_themes', { keyPath: 'id' });
         }
       },
     });

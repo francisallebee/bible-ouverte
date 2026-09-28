@@ -416,6 +416,46 @@ export async function deleteContext(id: string): Promise<boolean> {
   )
 }
 
+// -- Thèmes de l'utilisateur -- //
+
+export interface UserThemeRow {
+  id: string
+  user_id: string
+  name: string
+  emoji: string
+  passages: { book: string; chapter: number; verseStart: number; verseEnd: number }[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+export async function fetchUserThemes(): Promise<UserThemeRow[] | null> {
+  return tryAuthenticated(
+    (uid) => select<UserThemeRow>('user_themes', uid),
+    null,
+  )
+}
+
+export async function upsertUserTheme(theme: Omit<UserThemeRow, 'user_id'>): Promise<boolean> {
+  return tryAuthenticated(async (uid) => {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('user_themes')
+      .upsert({ ...theme, user_id: uid } as any, { onConflict: 'id,user_id' })
+    if (error) {
+      console.warn('supabase upsertUserTheme:', error.message)
+      return false
+    }
+    return true
+  }, false)
+}
+
+export async function deleteUserTheme(id: string): Promise<boolean> {
+  return tryAuthenticated(
+    () => remove('user_themes', id),
+    false,
+  )
+}
+
 // -- Settings store (payload JSON complet dans la colonne jsonb `data`) -- //
 
 export interface SettingsRow {

@@ -50,6 +50,26 @@ export interface ReadingEntry {
   synced?: boolean;
 }
 
+/**
+ * Un thème créé par le lecteur, à côté des quinze thèmes du code.
+ *
+ * Les thèmes de `features/bible/themes.ts` n'ont pas de `name` : leur libellé
+ * vit dans les cinq dictionnaires, indexé par leur `slug`. Ceux-ci gardent le
+ * texte de celui qui les écrit — on ne traduit pas ce qu'un lecteur a nommé,
+ * c'est déjà la règle des contextes.
+ */
+export interface ThemeUtilisateur {
+  /** Engendré par le client : un thème doit pouvoir naître hors ligne. */
+  id: string;
+  name: string;
+  emoji?: string;
+  passages: { book: string; chapter: number; verseStart: number; verseEnd: number }[];
+  createdAt?: string;
+  updatedAt?: string;
+  /** true si la ligne existe dans Supabase (drapeau local seulement) */
+  synced?: boolean;
+}
+
 export interface ReadingContext {
   id: string;
   name: string;

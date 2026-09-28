@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Search, BookOpen, BookPlus, BookText, FileText, Tags } from "lucide-react";
-import { seedIfNeeded, getEnabledVersions, addReading, getPassagesForRange, searchPassages, getSettings, getAllContexts } from "@/lib/storage";
-import type { BibleVersion, BiblePassage, ReadingContext } from "@/lib/storage";
+import { Search, BookOpen, BookPlus, BookText, FileText, Tags, Plus, Pencil, Trash2, X } from "lucide-react";
+import { seedIfNeeded, getEnabledVersions, addReading, getPassagesForRange, searchPassages, getSettings, getAllContexts,
+  getUserThemes, saveUserTheme, deleteUserTheme } from "@/lib/storage";
+import type { BibleVersion, BiblePassage, ReadingContext, ThemeUtilisateur } from "@/lib/storage";
 
-import { getBook } from "@/features/bible";
-import { THEMES, themeParSlug, type ThemeSlug } from "@/features/bible/themes";
+import { getBook, BOOKS } from "@/features/bible";
+import { THEMES, themeParSlug, type ThemeSlug, type PassageThematique } from "@/features/bible/themes";
+import { validerTheme, ajouterPassage, retirerPassage, clePassage, type RaisonInvalide } from "@/features/bible/themes-utilisateur";
+import PassageAdder from "@/components/PassageAdder";
 import BookPicker from "@/components/BookPicker";
 import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange, type PassageRange } from "@/components/PassagePicker";
@@ -88,6 +91,18 @@ export default function SearchPage() {
    * application réglée en français.
    */
   const [themeSlug, setThemeSlug] = useState<ThemeSlug | "">("");
+  /**
+   * Les thèmes du lecteur, à côté des quinze du code — demandé le 28 septembre
+   * 2026. `themeSlug` désigne un thème du code, `themePerso` un des siens : deux
+   * états plutôt qu'un identifiant mêlé, parce que les deux n'ont ni la même
+   * clé, ni la même source de libellé, et qu'un `slug` fourre-tout aurait fini
+   * par confondre « un thème nommé `foi` par le lecteur » et le thème `foi`.
+   */
+  const [themesPerso, setThemesPerso] = useState<ThemeUtilisateur[]>([]);
+  const [themePerso, setThemePerso] = useState<string>("");
+  /** Le thème en cours d'écriture : `null` quand l'éditeur est fermé. */
+  const [edition, setEdition] = useState<ThemeUtilisateur | null>(null);
+  const [erreurs, setErreurs] = useState<RaisonInvalide[]>([]);
   const [themeVersion, setThemeVersion] = useState("");
   const [themeResults, setThemeResults] = useState<
     { book: string; chapter: number; verseStart: number; verseEnd: number; passages: BiblePassage[] }[]
@@ -180,10 +195,72 @@ export default function SearchPage() {
     setThemeLoading(false);
   }, []);
 
+  const rechargerThemesPerso = useCallback(async () => {
+    try { setThemesPerso(await getUserThemes()); } catch { /* le cache suffit */ }
+  }, []);
+
+  useEffect(() => { rechargerThemesPerso(); }, [rechargerThemesPerso]);
+
+  /** Les passages d'une liste quelconque — thème du code ou du lecteur. */
+  const chargerPassages = useCallback(async (passages: readonly PassageThematique[], versionId: string) => {
+    if (!versionId) { setThemeResults([]); return; }
+    setThemeLoading(true);
+    try {
+      const lots = await Promise.all(passages.map(async (ref) => ({
+        book: ref.book,
+        chapter: ref.chapter,
+        verseStart: ref.verseStart,
+        verseEnd: ref.verseEnd,
+        passages: await getPassagesForRange(versionId, ref.book, {
+          chapterStart: ref.chapter,
+          chapterEnd: ref.chapter,
+          verseStart: ref.verseStart,
+          verseEnd: ref.verseEnd,
+        }).catch(() => [] as BiblePassage[]),
+      })));
+      setThemeResults(lots.filter((lot) => lot.passages.length > 0));
+    } catch {
+      setThemeResults([]);
+    }
+    setThemeLoading(false);
+  }, []);
+
   useEffect(() => {
-    if (!themeSlug) { setThemeResults([]); return; }
-    chargerTheme(themeSlug, themeVersion);
-  }, [themeSlug, themeVersion, chargerTheme]);
+    if (themeSlug) { chargerTheme(themeSlug, themeVersion); return; }
+    if (themePerso) {
+      const perso = themesPerso.find((x) => x.id === themePerso);
+      chargerPassages(perso?.passages ?? [], themeVersion);
+      return;
+    }
+    setThemeResults([]);
+  }, [themeSlug, themePerso, themesPerso, themeVersion, chargerTheme, chargerPassages]);
+
+  /** Le titre de la liste affichée : traduit pour un thème du code, tel quel pour les siens. */
+  const titreDuTheme = themeSlug
+    ? t.themes.labels[themeSlug]
+    : themesPerso.find((x) => x.id === themePerso)?.name ?? "";
+
+  const ordreDuLivre = useCallback((book: string) => BOOKS.findIndex((b) => b.abbreviation === book), []);
+
+  async function enregistrerTheme() {
+    if (!edition) return;
+    const raisons = validerTheme(edition.name, edition.passages);
+    setErreurs(raisons);
+    if (raisons.length > 0) return;
+    await saveUserTheme({ ...edition, name: edition.name.trim() });
+    await rechargerThemesPerso();
+    setThemeSlug("");
+    setThemePerso(edition.id);
+    setEdition(null);
+  }
+
+  async function supprimerTheme(id: string) {
+    if (!window.confirm(t.themes.supprimerConfirme)) return;
+    await deleteUserTheme(id);
+    if (themePerso === id) setThemePerso("");
+    setEdition(null);
+    await rechargerThemesPerso();
+  }
 
   function openAddForm(target: AddTarget) {
     setAddTarget(target);
@@ -412,7 +489,7 @@ export default function SearchPage() {
             <div className="flex flex-wrap gap-2 mb-4">
               {THEMES.map((theme) => (
                 <button key={theme.slug}
-                  onClick={() => setThemeSlug(theme.slug === themeSlug ? "" : theme.slug)}
+                  onClick={() => { setThemePerso(""); setThemeSlug(theme.slug === themeSlug ? "" : theme.slug); }}
                   className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
                     themeSlug === theme.slug
                       ? "bg-[--primary] text-white"
@@ -423,6 +500,143 @@ export default function SearchPage() {
                 </button>
               ))}
             </div>
+
+            {/*
+              Les thèmes du lecteur, sur leur propre rang et sous leur nom.
+              Un rang à part plutôt que mêlés aux quinze : les siens se
+              modifient et se suppriment, les autres non, et une pastille qui
+              se comporte différemment de sa voisine sans le dire est un piège.
+            */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-[--text-secondary] mb-2">{t.themes.mesThemes}</p>
+              <div className="flex flex-wrap gap-2">
+                {themesPerso.map((theme) => {
+                  const actif = themePerso === theme.id;
+                  return (
+                    <span key={theme.id}
+                      className={`inline-flex items-center rounded-full text-sm font-medium transition-colors ${
+                        actif ? "bg-[--primary] text-white" : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      <button
+                        onClick={() => { setThemeSlug(""); setThemePerso(actif ? "" : theme.id); }}
+                        className="ps-3.5 pe-1.5 py-1.5"
+                      >
+                        {theme.emoji ? `${theme.emoji} ` : ""}{theme.name}
+                      </button>
+                      <button
+                        onClick={() => { setErreurs([]); setEdition({ ...theme, passages: [...theme.passages] }); }}
+                        aria-label={`${t.themes.modifier} — ${theme.name}`}
+                        title={t.themes.modifier}
+                        className={`pe-3 ps-1 py-1.5 ${actif ? "text-white/80 hover:text-white" : "text-gray-500 hover:text-gray-800"}`}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  );
+                })}
+                <button
+                  onClick={() => {
+                    setErreurs([]);
+                    setEdition({ id: crypto.randomUUID(), name: "", emoji: "", passages: [] });
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium border border-dashed border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {t.themes.creer}
+                </button>
+              </div>
+            </div>
+
+            {/* L'éditeur, ouvert sur place — un thème se compose en regardant
+                les autres, pas dans un écran séparé. */}
+            {edition && (
+              <div className="border border-gray-200 rounded-xl p-4 mb-4 bg-gray-50">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-xs font-medium text-[--text-secondary] mb-1" htmlFor="theme-nom">
+                      {t.themes.nom}
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        value={edition.emoji ?? ""}
+                        onChange={(e) => setEdition({ ...edition, emoji: e.target.value.slice(0, 4) })}
+                        aria-label="Emoji"
+                        className="w-14 border border-gray-300 rounded-lg px-2 py-2 text-sm text-center"
+                        placeholder="🕊️"
+                      />
+                      <input
+                        id="theme-nom"
+                        value={edition.name}
+                        onChange={(e) => setEdition({ ...edition, name: e.target.value })}
+                        placeholder={t.themes.nomPlaceholder}
+                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <button onClick={() => setEdition(null)} aria-label={t.common.close}
+                    className="p-1 text-gray-400 hover:text-gray-700 mt-5">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <p className="text-xs font-medium text-[--text-secondary] mb-1.5">{t.themes.passagesDuTheme}</p>
+                {edition.passages.length === 0 ? (
+                  <p className="text-sm text-gray-500 mb-3">{t.themes.aucunPassage}</p>
+                ) : (
+                  <ul className="flex flex-wrap gap-2 mb-3">
+                    {edition.passages.map((p) => (
+                      <li key={clePassage(p)}
+                        className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-full ps-3 pe-1.5 py-1 text-sm text-gray-700">
+                        {getBookName(p.book)} {p.chapter}:{p.verseStart}
+                        {p.verseEnd !== p.verseStart ? `-${p.verseEnd}` : ""}
+                        <button
+                          onClick={() => setEdition({ ...edition, passages: retirerPassage(edition.passages, p) })}
+                          aria-label={t.newReading.removePassage(`${getBookName(p.book)} ${p.chapter}:${p.verseStart}`)}
+                          className="p-0.5 text-gray-400 hover:text-red-600"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <PassageAdder
+                  versionId={themeVersion}
+                  onAdd={async (draft) => {
+                    setEdition((e) => e && ({
+                      ...e,
+                      passages: ajouterPassage(e.passages, {
+                        book: draft.book,
+                        chapter: draft.chapterStart,
+                        verseStart: draft.verseStart,
+                        verseEnd: draft.verseEnd,
+                      }, ordreDuLivre),
+                    }));
+                  }}
+                />
+
+                {erreurs.length > 0 && (
+                  <ul className="mt-3 text-sm text-red-700" role="alert">
+                    {erreurs.map((r) => (<li key={r}>{t.themes.erreurs[r]}</li>))}
+                  </ul>
+                )}
+
+                <div className="flex items-center gap-3 mt-4">
+                  <button onClick={enregistrerTheme}
+                    className="bg-[--primary] text-white px-4 py-2 rounded-lg text-sm hover:bg-[--primary-hover]">
+                    {t.themes.enregistrer}
+                  </button>
+                  {themesPerso.some((x) => x.id === edition.id) && (
+                    <button onClick={() => supprimerTheme(edition.id)}
+                      className="text-sm text-red-600 hover:text-red-700">
+                      {t.themes.supprimer}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="w-full sm:w-64">
               <label className="block text-xs font-medium text-[--text-secondary] mb-1">{t.search.version}</label>
               <select value={themeVersion} onChange={(e) => setThemeVersion(e.target.value)}
@@ -434,10 +648,10 @@ export default function SearchPage() {
 
           {themeLoading ? (
             <p className="text-gray-500 text-sm">{t.search.searching}</p>
-          ) : themeSlug && themeResults.length > 0 ? (
+          ) : (themeSlug || themePerso) && themeResults.length > 0 ? (
             <div>
               <p className="text-sm text-gray-500 mb-3">
-                {t.themes.labels[themeSlug]} — {t.themes.passages(themeResults.length)}
+                {titreDuTheme} — {t.themes.passages(themeResults.length)}
               </p>
               <div className="space-y-2">
                 {themeResults.map((lot) => (
