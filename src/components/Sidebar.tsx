@@ -7,7 +7,8 @@ import {
   FlaskConical,
   BookPlus, Search, History, BarChart3,
   BookOpen, Settings, Menu, X, Trophy, LogOut, Shield,
-  User, Route, MessageCircle, Heart, Sparkles, Sun, Brain, Mail } from "lucide-react";
+  User, Route, MessageCircle, Heart, Sparkles, Sun, Brain, Mail,
+  ChevronDown, ChevronUp } from "lucide-react";
 import { seedIfNeeded } from "@/lib/storage";
 import { compterMesNonLus } from "@/lib/storage/messages-store";
 import { APP_VERSION } from "@/lib/version";
@@ -84,6 +85,9 @@ export const NAV_COMPTE: {
   { href: "/avance", label: (t) => t.nav.avance, icon: FlaskConical, adminOnly: true },
 ];
 
+/** Le lecteur a déjà déplié « Compte et réglages » : l'appel s'est tu pour de bon. */
+const CLE_COMPTE_VU = "nav_compte_vu";
+
 export default function Sidebar(
   { hiddenPages, pageOrder, homePage }:
   { hiddenPages?: string[]; pageOrder?: string[]; homePage?: string },
@@ -95,6 +99,24 @@ export default function Sidebar(
   const t = useT();
   const [profileName, setProfileName] = useState("");
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
+
+  /**
+   * Le bloc du compte est **replié par défaut** — demandé le 28 septembre 2026.
+   *
+   * Ce qui est au-dessus de la ligne se lit tous les jours ; ce qui est en
+   * dessous — profil, réglages, feuille de route, support, déconnexion — se
+   * visite une fois de temps en temps et occupait pourtant un tiers de la
+   * hauteur sur un téléphone. La ligne de séparation devient une poignée.
+   *
+   * Replié à chaque ouverture de l'application, et non mémorisé : « masqué
+   * automatiquement » est précisément ce qui a été demandé, et un état retenu
+   * ferait que le menu ne se replierait plus jamais pour qui l'a ouvert une
+   * fois. Ce qui est mémorisé, c'est **l'avoir trouvé** (`CLE_COMPTE_VU`), et
+   * cela seulement pour taire l'appel.
+   */
+  const [compteOuvert, setCompteOuvert] = useState(false);
+  /** Le lecteur n'a jamais ouvert ce bloc : l'appel se montre. */
+  const [jamaisOuvert, setJamaisOuvert] = useState(false);
 
   useEffect(() => { seedIfNeeded() }, []);
 
@@ -124,6 +146,31 @@ export default function Sidebar(
     setProfileName(name);
     setProfileAvatar(avatar);
   }, []);
+
+  // `localStorage` peut lever — navigation privée, stockage refusé — et un
+  // appel raté ne doit pas priver le lecteur de son menu.
+  useEffect(() => {
+    try { setJamaisOuvert(localStorage.getItem(CLE_COMPTE_VU) !== "1") } catch { setJamaisOuvert(false) }
+  }, []);
+
+  /**
+   * Le bloc s'ouvre de lui-même quand on est **déjà sur l'une de ses pages** :
+   * arriver dans Réglages et ne pas voir Réglages dans son menu ferait douter
+   * d'être au bon endroit, et le repère actif n'aurait plus où s'afficher.
+   */
+  const surUnePageDuCompte =
+    pathname === "/profil" ||
+    NAV_COMPTE.some((l) => pathname === l.href || pathname.startsWith(l.href + "/"));
+
+  useEffect(() => { if (surUnePageDuCompte) setCompteOuvert(true) }, [surUnePageDuCompte]);
+
+  function basculerCompte() {
+    setCompteOuvert((o) => !o);
+    if (jamaisOuvert) {
+      setJamaisOuvert(false);
+      try { localStorage.setItem(CLE_COMPTE_VU, "1") } catch { /* l'appel reviendra, sans dégât */ }
+    }
+  }
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -258,17 +305,77 @@ export default function Sidebar(
 
         {user && (
           <div className="pt-3 border-t border-gray-100 shrink-0">
-            <Link href="/profil" onClick={() => setOpen(false)}
-              title={profileName || user.email || undefined}
-              className="flex items-center lg:justify-center gap-3 px-3 lg:px-0 py-2.5 rounded-lg hover:bg-gray-100 transition-colors no-underline">
-              {profileAvatar ? (
-                <img src={profileAvatar} alt="" width="32" height="32" className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-gray-100" />
-              ) : (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-[--primary]">
-                  {(profileName?.[0] || user.email?.[0] || "?").toUpperCase()}
-                </div>
-              )}
-              <span className="flex-1 truncate text-sm text-gray-700 lg:sr-only">{profileName || user.email}</span>
+            {/*
+              La poignée du bloc. Elle porte l'avatar — l'identité reste
+              visible repliée, c'est ce qu'on lit d'abord dans une barre — et
+              elle dit son nom : « Compte et réglages ». Un chevron seul aurait
+              laissé deviner ce qu'il ouvre.
+
+              `aria-expanded` sur un vrai `<button>` : le lecteur d'écran
+              annonce « réduit » ou « développé », ce qu'aucune astuce visuelle
+              ne remplace. En rail (lg), le libellé est `sr-only` comme partout
+              ailleurs, et c'est le chevron qui porte l'indication à l'œil.
+            */}
+            <button
+              type="button"
+              onClick={basculerCompte}
+              aria-expanded={compteOuvert}
+              aria-controls="menu-compte"
+              title={t.nav.account}
+              /* `gap-2` et non `gap-3` comme les autres lignes : l'avatar de
+                 32 px laissait exactement 127 px au libellé pour un texte qui
+                 en demande 130, et « Compte et réglages » s'achevait en points
+                 de suspension. Les 8 px repris sur les deux écarts suffisent —
+                 mesuré à 375 px, et vu à l'écran, le DOM annonçant pourtant un
+                 texte non tronqué. */
+              className={`flex items-center lg:justify-center gap-2 px-3 lg:px-0 py-2.5 rounded-lg w-full transition-colors ${
+                surUnePageDuCompte && !compteOuvert ? "bg-gray-100" : "hover:bg-gray-100"
+              }`}
+            >
+              {/* L'appel porte sur l'avatar et non sur le chevron : en rail
+                  (80 px) le chevron n'a pas la place et disparaît, l'avatar
+                  reste. Un repère qui s'évanouit dans l'une des deux mises en
+                  page n'est pas un repère. */}
+              <span className={`relative shrink-0 ${jamaisOuvert && !compteOuvert ? "appel-menu" : ""}`}>
+                {profileAvatar ? (
+                  <img src={profileAvatar} alt="" width="32" height="32" className="w-8 h-8 rounded-full object-cover ring-2 ring-gray-100" />
+                ) : (
+                  <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold bg-[--primary]">
+                    {(profileName?.[0] || user.email?.[0] || "?").toUpperCase()}
+                  </span>
+                )}
+                {/* La pastille de l'appel : elle ne dépend pas du mouvement,
+                    et elle disparaît au premier clic, définitivement. Ses
+                    couleurs sont posées à la main — `bg-[--primary]` n'est pas
+                    remappé en mode sombre (règle 15). */}
+                {jamaisOuvert && !compteOuvert && (
+                  <span className="absolute -top-0.5 -end-0.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-[--surface]" />
+                )}
+              </span>
+              <span className="flex-1 truncate text-sm text-gray-700 text-start lg:sr-only">{t.nav.account}</span>
+              {/* `lg:hidden` : mesuré le 28 septembre 2026, en rail le chevron
+                  se posait **par-dessus** l'avatar — 32-48 px contre 24-56.
+                  Sur 80 px, l'avatar seul porte l'affordance ; `title` et
+                  `aria-expanded` disent le reste, à l'œil comme au lecteur
+                  d'écran. */}
+              <span className="shrink-0 text-gray-400 lg:hidden">
+                {compteOuvert ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </span>
+            </button>
+
+            {/* Rendu en permanence et masqué par `hidden` plutôt que retiré :
+                `aria-controls` désigne alors toujours quelque chose. */}
+            <div id="menu-compte" hidden={!compteOuvert}>
+            <Link href="/profil" onClick={() => { setOpen(false); }}
+              title={t.nav.profile}
+              className={`flex items-center lg:justify-center gap-3 px-3 lg:px-0 py-3.5 lg:min-h-12 rounded-lg text-sm mt-0.5 transition-colors no-underline ${
+                pathname === "/profil"
+                  ? "bg-[--primary] text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <User className="w-4 h-4 shrink-0" />
+              <span className="flex-1 lg:sr-only">{t.nav.profile}</span>
             </Link>
 
             {NAV_COMPTE
@@ -306,6 +413,7 @@ export default function Sidebar(
                   nue ne peut pas porter `lg:sr-only`. */}
               <span className="lg:sr-only">{t.nav.signOut}</span>
             </button>
+            </div>
           </div>
         )}
 

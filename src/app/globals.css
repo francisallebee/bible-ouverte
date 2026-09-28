@@ -386,6 +386,31 @@ html.dark .text-gray-800 { color: var(--text) !important; }
  * d'administration. Le bloc `html.dark` ne remappait que les gris, et chaque
  * balayage en découvre une famille de plus.
  */
+/* ---------------------------------------------------------------------------
+ * L'appel du menu « Compte et réglages », replié par défaut depuis le
+ * 28 septembre 2026.
+ *
+ * Trois battements, puis plus rien — et seulement tant que le lecteur ne l'a
+ * jamais ouvert. Un clignotement permanent était la première idée ; il est
+ * refusé pour deux raisons. Le WCAG 2.2.2 interdit ce qui clignote au-delà de
+ * cinq secondes sans moyen de l'arrêter, et un appel qui ne se tait jamais
+ * cesse d'être vu au bout de deux jours — c'est la cécité aux bannières. Un
+ * appel **fini**, rejoué à chaque ouverture de l'application jusqu'au premier
+ * clic, enseigne puis disparaît pour de bon.
+ *
+ * `prefers-reduced-motion` coupe l'animation : la pastille, elle, reste — le
+ * repère ne dépend donc jamais du mouvement seul.
+ * ------------------------------------------------------------------------- */
+@keyframes appel-menu {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(3px); }
+}
+.appel-menu { animation: appel-menu 900ms ease-in-out 3; }
+
+@media (prefers-reduced-motion: reduce) {
+  .appel-menu { animation: none; }
+}
+
 html.dark .text-red-500:not([class~="bg-red-50"]),
 html.dark .text-red-600:not([class~="bg-red-50"]) { color: #f87171 !important; }
 html.dark .text-green-600:not([class~="bg-green-50"]),

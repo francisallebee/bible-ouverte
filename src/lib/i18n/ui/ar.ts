@@ -180,6 +180,7 @@ export const ar: Dictionary = {
     messages: 'الرسائل',
     donate: 'ادعم المشروع',
     profile: 'ملفي الشخصي',
+    account: 'الحساب والإعدادات',
     admin: 'الإدارة',
     avance: 'الوظائف المتقدمة',
     signOut: 'تسجيل الخروج',

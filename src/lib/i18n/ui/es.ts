@@ -62,6 +62,7 @@ export const es: Dictionary = {
     messages: 'Mensajes',
     donate: 'Apoyar el proyecto',
     profile: 'Mi perfil',
+    account: 'Cuenta y ajustes',
     admin: 'Administración',
     avance: 'Funciones avanzadas',
     signOut: 'Cerrar sesión',

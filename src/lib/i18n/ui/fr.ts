@@ -63,6 +63,7 @@ export const fr = {
     messages: 'Messages',
     donate: 'Soutenir le projet',
     profile: 'Mon profil',
+    account: 'Compte et réglages',
     admin: 'Administration',
     avance: 'Fonctions avancées',
     signOut: 'Déconnexion',

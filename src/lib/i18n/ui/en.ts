@@ -54,6 +54,7 @@ export const en: Dictionary = {
     messages: 'Messages',
     donate: 'Support the project',
     profile: 'My profile',
+    account: 'Account and settings',
     admin: 'Administration',
     avance: 'Advanced features',
     signOut: 'Sign out',
