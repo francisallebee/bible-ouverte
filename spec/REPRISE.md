@@ -4677,9 +4677,27 @@ l'écran et en base, la lecture porte le 28 (Psaume 91:1-16, contexte
 `plan-lecture`), et Statistiques passe « Cette semaine » à 3. Décoché,
 supprimé ; base revenue à 27 plans et 992 lectures.
 
-Reste, et ce sont deux décisions du propriétaire : les **242 lectures déjà mal
-datées** (une migration de données les ramènerait à leur `createdAt`, qui est
-le jour réel du cochage — 10 sont les siennes), et les **jours d'un plan tiré
-d'un document**, qui ne créent aucune lecture faute de passage biblique. Huit
-de ses jours du plan 92 sont dans ce cas depuis le 17 septembre : c'est le
-comportement décidé alors, et l'autre moitié de ce qu'il a ressenti.
+**La réparation des anciennes, accordée et faite.** Migration
+`20260928120000_plan_readings_date_de_lecture`, deuxième migration de données
+du dépôt : les 242 lignes reçoivent le jour civil de leur `createdAt`, celui du
+cochage. Compte à blanc conforme (242, 8 comptes, dates du 1er janvier au
+11 novembre) ; après : **0 mal datée, 0 dans le futur**, 992 lectures au total
+inchangées, témoins 13-15 passés du 2-4 janvier au 1er août. Le fuseau
+`Europe/Paris` est une hypothèse assumée — le dépôt n'en stocke aucun par
+compte —, et s'y tromper coûte au plus un jour là où l'écart corrigé allait
+jusqu'à sept mois.
+
+`241bfe3` poussé à 17:08:46 UTC avec quatre commits en attente, dont les deux
+du 18 septembre ; Vercel `success` à 17:10:03, `buildId` `JH9kmrFqn…` →
+`lTLt0sYbZ…`, feuille `cc070182…` → `5353b4aa…`, la variable
+`surlignage-ajoutee` de 0 à **1** et l'ancienne classe `bg-green-400\/40` de 1
+à **0** — la sonde atteste le remplacement autant que l'ajout. **Ticket 32
+clos** par l'écran Administration (ouvert 2 → 1, clos 22 → 23), confirmé en
+base.
+
+Reste, et c'est une décision qui n'a pas été prise : les **jours d'un plan tiré
+d'un document** ne créent aucune lecture, faute de passage biblique — huit des
+siens, dans le plan 92, depuis le 17 septembre. C'est le comportement décidé
+alors, et c'est l'autre moitié de ce qu'il a ressenti en écrivant « les plans
+de lectures ne sont pas pris en compte ». Les compter supposerait une notion
+que le produit n'a pas : une lecture sans passage.
