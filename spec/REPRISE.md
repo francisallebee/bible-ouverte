@@ -4754,3 +4754,80 @@ inchangés.
 de 0 à **1** et son `prefers-reduced-motion` de 0 à **1** — l'appel et son
 garde-fou sont en production ensemble, ce qui est la seule façon de les
 livrer. Le menu replié est en ligne.
+
+## La séance du 28 septembre 2026, au soir : ses propres thèmes
+
+Trois demandes du propriétaire : créer ses propres thèmes dans la recherche
+biblique (et peut-être un index complet des thèmes de la Bible), un
+dictionnaire biblique libre de droits accessible d'un clic sur un mot, et les
+codes Strong avec les interlinéaires. **La première est livrée** ; les deux
+autres sont d'une autre nature — ce sont des questions de contenu, de droits
+et de volume avant d'être des questions de code, et elles sont posées plus
+bas.
+
+**Les thèmes personnels sont le jumeau des contextes**, et c'est ce qui a
+décidé de tout. Une table de référence dans le code — quinze thèmes dont le
+libellé vit dans les cinq dictionnaires, indexé par `slug` —, et des entrées
+que le lecteur nomme lui-même, qui gardent son texte. Les quinze ne
+descendent donc **pas** en base : ils s'y mêleraient, et une traduction
+cesserait d'être une traduction. `user_themes` porte `passages` en `jsonb`
+(décision du 19 août) et un `id` engendré par le client, pour qu'un thème
+puisse naître hors ligne.
+
+Deux rangs distincts à l'écran, et non une liste mêlée : les siens se
+modifient et se suppriment, les quinze non — une pastille qui se comporte
+autrement que sa voisine sans le dire est un piège. L'éditeur s'ouvre sur
+place, réemploie `PassageAdder` (le geste des plans libres et de la
+mémorisation) et la fenêtre de choix du livre de tout le produit.
+
+La règle est pure et testée (`features/bible/themes-utilisateur.ts`, 11
+tests) : validation qui rend **toutes** les raisons à la fois — un écran qui
+ne montre que la première fait corriger en trois allers-retours ce qui pouvait
+l'être en un —, dédoublonnage par la valeur, et **rangement dans l'ordre
+canonique**. Vu à l'essai : Jacques ajouté d'abord, Romains ensuite, et
+l'éditeur affiche Romains en tête. Un thème se lit du début à la fin ; l'ordre
+des clics ne dit rien à personne.
+
+**Le défaut du soir est une course déjà rencontrée, dans l'autre sens.**
+Supprimer un thème le faisait disparaître de Supabase mais **revenir dans le
+cache local** : la suppression distante était lancée sans être attendue, et la
+resynchronisation qui suit relisait le serveur avant que le `delete` n'y soit
+parvenu — elle réécrivait donc la ligne. La base finissait à zéro et l'écran
+gardait un fantôme. C'est exactement ce que `replacePlanDays` avait rencontré
+le 17 septembre. Le distant est désormais **attendu**, et il passe **avant**
+le local : un échec réseau laisse la ligne des deux côtés, ce qui se rattrape,
+plutôt que supprimée ici et vivante là-bas, ce qui la ferait revenir.
+
+Migration `20260928180000_user_themes` appliquée sur accord explicite (journal
+à 35), relue, et la barrière éprouvée **en base** dans un bloc annulé : sous
+les `request.jwt.claims` d'un autre compte, 0 thème visible, `insert` chez
+autrui refusé, `delete` emportant 0 ligne. Aller-retour complet — créé, relu,
+modifié, supprimé —, base revenue à 0 thème, 992 lectures, 27 plans, cache
+local vide. 1 008 tests.
+
+### Ce que les deux autres demandes supposent, et qui n'est pas du code
+
+Rien n'a été construit pour elles, et rien ne doit l'être avant que le
+propriétaire ait tranché. Ce qui est établi :
+
+- **Un index complet des thèmes** et **un dictionnaire** sont des *contenus*,
+  pas des fonctions : ils suivent la règle 13 — un script de téléchargement,
+  une entrée au registre, un chargement à la demande — et surtout la question
+  de `spec/DROITS.md`. « Libre de droits » se vérifie à la source, pas au
+  résumé : la leçon de Biblica, dont la page rendait `403` et dont la piste
+  est restée non vérifiée depuis le 2 septembre.
+- **Le volume décide de la forme.** `public/bibles/` pèse déjà 82 Mo pour
+  douze versions, et le dépôt sait qu'un appareil qui active tout garde
+  42 Mo en cache. Un dictionnaire, un lexique Strong et un texte interlinéaire
+  taggé ne se chargent pas comme une traduction de plus : ils demandent de
+  décider ce qui vit sur l'appareil et ce qui reste au serveur.
+- **« Accessible partout quand on clique sur un mot » est un inventaire de
+  chemins**, du même genre que la mention de copyright de `spec/DROITS.md` :
+  l'aperçu, la recherche, le verset du jour, la mémorisation, le détail d'une
+  lecture, le lecteur de document. Le rendre par `tsc` suppose de passer par
+  un composant unique de rendu du texte biblique, que le produit n'a pas
+  encore.
+- **Les Strong supposent un texte taggé**, pas seulement un lexique. Le
+  lexique de Strong (1890) est ancien ; un texte **français** aligné mot à mot
+  sur les numéros ne l'est pas nécessairement, et c'est là que la question des
+  droits se pose vraiment.
