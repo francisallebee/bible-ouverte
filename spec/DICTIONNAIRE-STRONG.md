@@ -125,7 +125,21 @@ balisage du français ?**
 | Ce que le lecteur voit | Le verset français, et en regard le mot original, son numéro et sa définition | Le mot **français** cliquable, relié à son original |
 | Ce qui manque | Le lien mot-à-mot vers le **français** — précisément ce qui était imaginé | Rien, mais ce n'est plus du code |
 
-Une fois tranché, l'ordre des travaux ne dépend plus d'aucune enquête :
+### Tranché le 29 septembre 2026 : les originaux seulement
+
+Le propriétaire a retenu **les Strong sur les textes originaux**, et écarté le
+balisage du français. La conséquence est à écrire noir sur blanc, parce qu'elle
+sera la première question posée à l'usage : **on ne pourra pas cliquer un mot
+français pour en voir le Strong.** Ce que le lecteur aura, c'est le verset dans
+sa version, et en regard le mot hébreu ou grec avec son numéro et sa
+définition. C'est moins que ce qui était imaginé le 28 septembre, et c'est le
+seul périmètre que les licences et les données existantes permettent
+honnêtement.
+
+Ce que cette décision ferme : aucun chantier d'édition, aucune dépendance à un
+module tiers incomplet, aucune zone d'ombre sur les droits.
+
+L'ordre des travaux ne dépend plus d'aucune enquête :
 
 1. Le **composant unique de rendu du texte biblique** — préalable indépendant
    du dictionnaire comme des Strong, et le seul moyen que `tsc` garantisse
@@ -137,5 +151,6 @@ Une fois tranché, l'ordre des travaux ne dépend plus d'aucune enquête :
 
 | Date | Fait |
 |---|---|
+| 29 sept. 2026 | **Décision du propriétaire : les Strong sur les originaux seulement.** Le balisage du français est écarté. Conséquence assumée : pas de clic sur un mot français pour en voir le Strong. |
 | 29 sept. 2026 | **Enquête achevée.** SBLGNT : CC BY 4.0 **sans clause additionnelle**, page relue en entier. OSHB : **28,8 Mo utiles** sur 39 fichiers, et non 79. **Westphal écarté** — sa date de mort est contestée (IdRef 1951 / BnF 1961), mais surtout l'ouvrage est collectif et **André Parrot (1901-1980)** siégeait à son comité : 2051 et non 2022. **Aucun dictionnaire français structuré sous licence vérifiée** ; le seul candidat ne déclare aucune licence. Reste une décision, non une recherche. |
 | 28 sept. 2026 | Enquête lancée. Vérifiés à la source : les deux lexiques Strong (3 Mo, dépôt **sans licence déclarée**), OSHB en CC BY 4.0 avec attribution imposée, MorphGNT en deux licences dont CC BY-**SA** pour la morphologie, la page SBLGNT servant une CC BY 4.0. Établi par la liste CrossWire qu'**aucun Segond 1910 balisé Strong fiable et autorisé n'existe**. Bost 1849 confirmé du domaine public, mais sans version structurée. Enquête **interrompue par la limite d'usage** ; cinq points restent ouverts. |
