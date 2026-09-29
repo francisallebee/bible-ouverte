@@ -311,6 +311,28 @@ html.dark .remplissage-teinte { background-color: var(--teinte-sombre); fill: va
    secondaire, tient 4,83 et 5,71. La règle suit le mode par la variable, et
    couvre tout graphique à venir sans un `tick={{ fill }}` par axe. */
 .recharts-cartesian-axis-tick-value { fill: var(--text-secondary); }
+/* La famille ambre, oubliée depuis le commit initial.
+ *
+ * `bg-amber-50` n'avait aucun remap, si bien que la carte « Texte biblique »
+ * du Détail d'une lecture restait crème en mode sombre pendant que `--text`
+ * passait au presque blanc. **Contraste 1,06** — le même chiffre que les
+ * badges du 21 août et la barre latérale de la règle 15, et il portait ici sur
+ * le texte biblique lui-même, en français comme en hébreu. Mesuré le
+ * 29 septembre 2026 : 251 éléments sur 295 sous 4,5 dans cette seule carte.
+ *
+ * Trouvé en regardant le mode sombre d'une fonctionnalité neuve, pas par une
+ * relecture : le défaut avait traversé toute l'histoire du dépôt.
+ *
+ * `text-amber-900` et `text-amber-700` sont remappés **avec** le fond, et non
+ * après : plusieurs écrans les posent explicitement sur `bg-amber-50` — les
+ * bandeaux d'alerte de Plans et de l'import. Remapper le fond seul les aurait
+ * rendus illisibles à leur tour, en inversant le défaut plutôt qu'en le
+ * corrigeant. */
+html.dark .bg-amber-50 { background-color: var(--warning-light) !important; }
+html.dark .border-amber-200 { border-color: #574a18 !important; }
+html.dark .text-amber-900, html.dark .text-amber-800,
+html.dark .text-amber-700 { color: #fcd34d !important; }
+
 html.dark .bg-white { background-color: var(--surface) !important; }
 html.dark .bg-gray-50 { background-color: #0f172a !important; }
 html.dark .bg-gray-100 { background-color: var(--surface) !important; }

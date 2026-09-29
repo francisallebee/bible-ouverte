@@ -615,7 +615,14 @@ export default function ReadingDetailPage() {
                 langue={version?.language}
                 numerotation="depuis-le-debut"
                 className="text-sm leading-relaxed"
-                classeNumero="text-xs text-gray-400 me-1"
+                /*
+                  `--text-secondary` et non `text-gray-400` : sur le fond
+                  `bg-amber-50` de cette carte, gray-400 ne tenait que **2,45**
+                  en mode clair — mesuré le 29 septembre 2026, et c'est le
+                  chiffre et la cause exacts du défaut des badges du 21 août.
+                  La variable tient 4,66 en clair et suit le mode en sombre.
+                */
+                classeNumero="text-xs text-[--text-secondary] me-1"
                 classeVerset="mb-1"
               />
             )}
