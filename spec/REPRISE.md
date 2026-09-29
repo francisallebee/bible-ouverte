@@ -4986,3 +4986,81 @@ n'auront pas de numéro.
 Trois décisions attendent donc le propriétaire avant la première ligne de code :
 ce qu'on fait de la CC BY-SA, ce qu'on fait des 484 lemmes sans raccord, et ce
 qu'on fait des onze lemmes qui se raccordent à plusieurs numéros à la fois.
+
+### Les lexiques Strong, de la conversion aux deux cases
+
+Trois commits, et aucune ligne d'affichage : la fonctionnalité est **complète
+en dessous et invisible au-dessus**, délibérément.
+
+**Le script d'abord** (`scripts/download-strong.mjs`). Il désarme dans le code
+les deux pièges que le relevé avait trouvés : découpage entre accolades plutôt
+que `require()`, et `normaliser()` qui ramène `xlit` (hébreu) et `translit`
+(grec) à un seul nom. Produit 8 674 et 5 523 entrées, 4,0 Mio, déterministe.
+
+**La mesure a décidé à la place du goût**, une fois de plus. Restait à trancher
+le sort des 19 entrées grecques sans définition. La fréquence l'a réglé : elles
+couvrent 3 072 occurrences du texte, et la première est **`G1473` — `ἐγώ`,
+« je », 2 572 occurrences**, le pronom le plus courant du Nouveau Testament.
+Les écarter aurait fait d'un mot sur cinquante un lien mort. Elles sont donc
+gardées, et `definition` est **optionnelle** dans le type.
+
+**Les trois gestes au complet**, règle 13 : le script, `LEXIQUES_STRONG` dans
+`seed.ts`, `LEXIQUES` dans `features/bible/strong.ts`, et `strong.test.ts` qui
+croise les deux tables dans les deux sens. Base en **version 12**, deux
+magasins — le registre d'un côté, les entrées de l'autre, comme
+`bible_versions` et `bible_passages`.
+
+**Deux cases et non une**, sur décision du propriétaire : l'hébreu pèse 2,5 Mo
+et le grec 1,5 Mo. Un test fige le choix, pour que le fusionner redevienne une
+décision plutôt qu'un glissement.
+
+**Aucune migration SQL, et ce n'est pas un oubli.** `bible_versions` n'est pas
+synchronisé vers Supabase — vérifié, non supposé —, ces deux magasins non plus.
+Ce qu'on coche est une préférence d'appareil, pas une donnée de compte. C'est
+l'exception à la règle d'`AGENTS.md`, et elle tient précisément parce que rien
+ne part au cloud. Faire suivre le choix d'un appareil à l'autre serait une
+autre fonctionnalité, et celle-là demanderait une migration.
+
+#### Ce que la vérification à l'écran a trouvé, et que les tests ne voyaient pas
+
+Les 1 018 tests étaient au vert, `tsc` et `eslint` aussi. En basculant en
+arabe, deux défauts sont apparus.
+
+**Les noms des lexiques restaient français.** Pour une version biblique c'est
+légitime — « Smith & Van Dyck 1865 » est un nom propre d'édition. « Lexique
+Strong hébreu » est une description, et elle va donc aux dictionnaires, indexée
+par l'identifiant du registre. C'est la règle 10, et le relevé par `grep`
+n'aurait rien vu : la chaîne était déjà dans un fichier TypeScript, simplement
+dans le mauvais.
+
+**Le genre.** « Activé » et non « Activée » : un lexique est masculin là où une
+version est féminine, en français comme en espagnol et en italien. Réutiliser
+la clé existante aurait produit un accord faux dans trois langues sur cinq. Les
+messages d'erreur, eux, sont neutres — ils prennent le nom en paramètre — et
+sont réutilisés tels quels.
+
+#### Vu agir, pas seulement vu s'afficher
+
+La leçon du 18 août appliquée : cocher le grec écrit **5 523 entrées** en base,
+et `G1473` y est bien, sans `definition`, avec son étymologie et ses rendus.
+Les deux activés donnent 5 523 et 8 674 ; **décocher l'hébreu laisse le grec
+intact à 5 523**, donc l'index cible bien un seul lexique. Et 31 102 versets
+sont restés en cache : aucune version biblique n'a été touchée par la
+manipulation — vérifié après coup, parce qu'un sélecteur trop large avait rendu
+un compte ambigu.
+
+#### La section est masquée, et pourquoi le commit est tout de même poussé
+
+Rien n'affiche encore une définition : ni les textes originaux ni l'écran qui
+les rend ne sont au dépôt. Une case visible ferait occuper 4 Mo pour un effet
+nul. `LEXIQUES_VISIBLES` vaut donc `false`, et un test le fige.
+
+La première intention était de **garder le commit en local**. C'était une
+erreur de raisonnement, corrigée le jour même : le commit était déjà sur
+`main`, et le prochain `git push` l'aurait emporté quel qu'en soit le motif.
+« Local » n'est pas un état stable dès lors qu'on a commité. Masquer puis
+pousser tient la même promesse — rien d'inachevé n'atteint les lecteurs — et
+met le travail à l'abri plutôt que sur un seul disque externe.
+
+**Les 4,0 Mio de données ne sont pas versionnés**, en attente de la décision
+sur la CC BY-SA que les en-têtes revendiquent. Une commande les régénère.

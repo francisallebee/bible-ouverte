@@ -556,7 +556,9 @@ trous.
 Tout est relevé. Ce qui reste n'est plus de l'enquête mais des décisions :
 
 1. **La CC BY-SA** revendiquée par les en-têtes des lexiques et par la
-   morphologie MorphGNT — ce qu'on en fait.
+   morphologie MorphGNT — ce qu'on en fait. C'est elle qui retient les
+   4,0 Mio de `public/strong/` hors du dépôt : le code est poussé, la donnée
+   attend.
 2. **Les 484 lemmes grecs sans raccord** — table manuelle, ou mots sans numéro
    assumés.
 3. **Les onze lemmes ambigus** — choisir, ou montrer les deux.
@@ -565,6 +567,7 @@ Tout est relevé. Ce qui reste n'est plus de l'enquête mais des décisions :
 
 | Date | Fait |
 |---|---|
+| 29 sept. 2026 | **Les lexiques livrés en dessous, masqués au-dessus.** Script de conversion (8 674 + 5 523 entrées, 4,0 Mio, déterministe), les trois gestes de la règle 13 au complet, base en version 12, **deux cases séparées** hébreu/grec. `G1473` (`ἐγώ`, 2 572 occurrences) a décidé de garder les 19 entrées sans définition : `definition` est optionnelle. **Aucune migration SQL** — `bible_versions` n'est pas synchronisé, ces magasins non plus. Vu agir en base : 5 523 écrites, décocher l'hébreu laisse le grec intact. La vérification en arabe a trouvé deux défauts que les tests ne voyaient pas — noms non traduits, et « Activé » au lieu d'« Activée ». `LEXIQUES_VISIBLES` reste à `false` tant qu'aucun clic n'affiche de définition. |
 | 29 sept. 2026 | **Forme du MorphGNT relevée et mesurée** sur les 27 fichiers : texte tabulé à sept colonnes, 8,94 Mo, 137 554 mots, 7 927 versets, 5 461 lemmes. **Asymétrie de fond : aucun numéro Strong dans la donnée**, contrairement à l'hébreu — le raccord se fait par le lemme. Mesuré : **97,45 % des occurrences en exact, 98,45 % après pliage, 98,65 % après retrait des parenthèses ; 1,35 % (1 852 mots, 484 lemmes) hors d'atteinte**. Cause **textuelle et non technique** — SBLGNT critique contre Textus Receptus de 1890 : `Δαυίδ`/`Δαβίδ`, `Καφαρναούμ`/`Καπερναούμ`, `οἶδα`/`εἴδω`. Onze lemmes ambigus. Relevé aussi : `strongs_def` **manque dans 19 entrées grecques** — le type doit la rendre optionnelle. |
 | 29 sept. 2026 | **Forme de l'OSHB relevée et mesurée** sur les 39 livres téléchargés : OSIS, 28 527 617 o, 23 213 versets, **306 785 mots**, 8 640 Strong distincts. Quatre pièges : `lemma` n'est pas un numéro (préfixes agglutinés, `+` des noms composés, lettre d'homonyme), **5 977 mots (1,95 %) n'ont aucun numéro**, la ponctuation est en `<seg>` hors des mots, et 2 472 `<note>` anglaises sont au fil du verset. **Mesure décisive : 0 numéro employé absent du lexique** — la source tient. 40 fichiers pour 39 livres (`VerseMap.xml`), correspondance par **nom** et non par position. |
 | 29 sept. 2026 | **Forme des lexiques Strong relevée à la source.** CommonJS (`var … = {…}; module.exports`), et non du JSON : découper entre accolades, ne jamais `require()`. Clés `H1`…`H8674` **triées**, `G1`…`G5624` **en désordre**. Les champs diffèrent : le grec dit `translit`, l'hébreu `xlit` + `pron` — un convertisseur écrit sur le grec perdrait 8 674 translittérations en silence. **Correction de licence** : le dépôt n'en déclare aucune, mais les deux fichiers portent « Copyright 2009/2010, Open Scriptures. CC-BY-SA » dans leur en-tête — du copyleft. |
