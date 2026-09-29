@@ -139,6 +139,39 @@ honnêtement.
 Ce que cette décision ferme : aucun chantier d'édition, aucune dépendance à un
 module tiers incomplet, aucune zone d'ombre sur les droits.
 
+### La conversion de Bost, tentée et mesurée — 29 septembre 2026
+
+La source a été choisie sur deux critères, et non sur sa commodité :
+l'édition **1865** déposée à l'Internet Archive (`bub_gb_6v4UAAAAYAAJ`) porte
+une licence **explicite** — Public Domain Mark 1.0, lue dans ses métadonnées
+et non déduite de l'âge de l'ouvrage — et elle **se sert à un script**. Les
+transcriptions en ligne, de bien meilleure qualité de texte, répondent `403` à
+tout ce qui n'est pas un navigateur : un script du dépôt ne dépendra pas d'un
+déguisement.
+
+`scripts/download-bost.mjs` nettoie ce que l'OCR d'un fac-similé de 1865
+laisse : **24 087 césures** recollées, **940** « Digitized by Google »,
+**764 080** doubles espaces, et la confusion systématique du `1` pour `I` dans
+les capitales — ABILÈNE lu AB1LÈNE, ARCHIPPE ARCH1PPE. Cette dernière est sûre
+parce qu'elle est bornée aux mots tout en capitales, où un chiffre entouré de
+lettres n'est jamais un chiffre.
+
+**Le résultat ne se publie pas, et le chiffre le dit** : 1 015 entrées
+détectées quand la page de titre de l'ouvrage annonce « PLUS DE 4 000
+ARTICLES » — un quart. Les entrées manquées se collent à la précédente, dont
+la plus longue atteint 74 363 caractères contre une médiane de 2 195. AARON
+manque quand ABEL est là.
+
+Le repérage du terme est réparable. **Le texte, non** : « ennanéenne » pour
+cananéenne, « tixès » pour fixés, « .los. » pour Jos., « DE8 » pour DES. Un
+meilleur analyseur relèverait la couverture sans corriger une seule de ces
+fautes, et la valeur d'un dictionnaire est dans son texte. Rien n'a donc été
+écrit dans `public/` ; le script reste au dépôt parce qu'il porte la mesure.
+
+**Décision à prendre** : reprendre cette source et la faire relire, ou en
+trouver une déjà corrigée — la transcription de 2014 existe, refuse l'accès
+automatisé, et ses droits d'édition restent à éclaircir.
+
 L'ordre des travaux ne dépend plus d'aucune enquête :
 
 1. Le **composant unique de rendu du texte biblique** — préalable indépendant
@@ -151,6 +184,7 @@ L'ordre des travaux ne dépend plus d'aucune enquête :
 
 | Date | Fait |
 |---|---|
+| 29 sept. 2026 | **Composant unique livré** (`TexteBiblique`) : sept rendus de texte biblique rassemblés, règle de numérotation sortie et testée, une exception documentée (la Mémorisation, mot à mot). **Conversion de Bost tentée** depuis l'édition 1865 d'archive.org (Public Domain Mark 1.0, licence lue à la source) : 1 015 entrées sur plus de 4 000, texte OCR fautif — **rien publié**, décision à prendre. |
 | 29 sept. 2026 | **Décision du propriétaire : les Strong sur les originaux seulement.** Le balisage du français est écarté. Conséquence assumée : pas de clic sur un mot français pour en voir le Strong. |
 | 29 sept. 2026 | **Enquête achevée.** SBLGNT : CC BY 4.0 **sans clause additionnelle**, page relue en entier. OSHB : **28,8 Mo utiles** sur 39 fichiers, et non 79. **Westphal écarté** — sa date de mort est contestée (IdRef 1951 / BnF 1961), mais surtout l'ouvrage est collectif et **André Parrot (1901-1980)** siégeait à son comité : 2051 et non 2022. **Aucun dictionnaire français structuré sous licence vérifiée** ; le seul candidat ne déclare aucune licence. Reste une décision, non une recherche. |
 | 28 sept. 2026 | Enquête lancée. Vérifiés à la source : les deux lexiques Strong (3 Mo, dépôt **sans licence déclarée**), OSHB en CC BY 4.0 avec attribution imposée, MorphGNT en deux licences dont CC BY-**SA** pour la morphologie, la page SBLGNT servant une CC BY 4.0. Établi par la liste CrossWire qu'**aucun Segond 1910 balisé Strong fiable et autorisé n'existe**. Bost 1849 confirmé du domaine public, mais sans version structurée. Enquête **interrompue par la limite d'usage** ; cinq points restent ouverts. |
