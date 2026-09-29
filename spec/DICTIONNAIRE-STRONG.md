@@ -309,17 +309,140 @@ si une simple transcription du domaine public en JSON ouvre réellement un
 droit d'auteur — la question de l'originalité d'une base de données — est un
 point de droit, pas un relevé. Il est noté, non résolu.
 
-### L'étape suivante, et ce qu'elle suppose
+## La forme exacte de l'OSHB — relevée et mesurée le 29 septembre 2026
 
-L'OSHB — 28,8 Mo utiles sur 39 fichiers XML, CC BY 4.0 avec formule
-d'attribution imposée — n'a **pas** encore été ouvert. Sa forme reste à
-relever comme celle-ci vient de l'être, et rien ne dit qu'elle se devine
-mieux.
+Même démarche que pour les lexiques, et elle était nécessaire : la structure
+porte **quatre pièges dont aucun ne se voit sur un seul exemple**. Les
+39 livres ont été téléchargés et parcourus en entier ; tous les chiffres
+ci-dessous sont des relevés, pas des estimations.
+
+### Ce qu'est le fichier
+
+Du **OSIS** — XML à espace de noms par défaut
+(`http://www.bibletechnologies.net/2003/OSIS/namespace`), ce qui oblige tout
+XPath à le déclarer. Un fichier par livre, `wlc/Gen.xml` … `wlc/Mal.xml`, plus
+un `wlc/VerseMap.xml` : **40 fichiers pour 39 livres**, ce qui explique l'écart
+avec le relevé du 28 septembre — il comptait les livres, non les fichiers.
+
+```xml
+<verse osisID="Obad.1.1">
+  <w lemma="2377" n="1.0" morph="HNcmsc" id="31xeN">חֲז֖וֹן</w>
+  <w lemma="3541" morph="HD" id="31TyA">כֹּֽה</w><seg type="x-maqqef">־</seg>
+  <w lemma="c/6735 a" morph="HC/Ncmsa" id="31C5U">וְ/צִיר֙</w>
+</verse>
+```
+
+L'en-tête de chaque livre porte sa propre déclaration de droits —
+`<rights type="x-BY">Creative Commons Attribution 4.0</rights>` pour l'OSHB,
+`Public Domain` pour le Westminster Leningrad Codex sous-jacent. La CC BY 4.0
+relevée le 28 septembre est donc confirmée **dans la donnée**, et pas seulement
+dans le `LICENSE.md`.
+
+### Ce que pèse et contient réellement la donnée
+
+| Mesuré sur les 39 livres | |
+|---|---|
+| Octets | **28 527 617** (28,5 Mo) |
+| Versets | **23 213** |
+| Mots `<w>` | **306 785** |
+| Notes `<note>` | **2 472** |
+| Numéros Strong distincts employés | **8 640** |
+
+### Les quatre pièges
+
+**1. `lemma` n'est pas un numéro Strong.** C'est le piège principal, et il est
+structurel : le champ porte les préfixes agglutinés du mot, puis le numéro,
+puis parfois une lettre.
+
+| Forme rencontrée | Lecture | Combien |
+|---|---|---|
+| `2377` | numéro nu | 189 538 mots |
+| `c/6735 a` | préfixe + numéro + homonyme | 110 469 mots portent au moins un préfixe |
+| `6965 b` | numéro + lettre d'homonyme | 59 283 mots |
+| `1177+` | numéro suivi de `+` — **premier mot d'un nom propre composé** | 801 mots, 348 formes |
+| `l` | **préfixe seul, aucun numéro** | voir le piège 2 |
+
+Les segments de préfixe sont **huit, et seulement huit** : `c` (51 272),
+`d` (24 060), `l` (16 361), `b` (14 469), `m` (6 316), `k` (2 964),
+`i` (661), `s` (142). Les lettres d'homonyme sont **six** : `a` (46 457),
+`b` (10 015), `c` (1 807), `d` (848), `e` (155), `f` (1 — une seule occurrence
+dans toute la Bible hébraïque).
+
+Obtenir la clé du lexique demande donc **trois gestes** : découper sur `/` et
+garder le dernier segment, retirer un `+` final, retirer une lettre d'homonyme
+finale. Aucun des trois ne se devine en lisant un exemple.
+
+**La lettre d'homonyme est une information que le lexique ne sait pas
+recevoir** : `6965 a` et `6965 b` sont deux mots distincts pour l'OSHB, mais
+Strong n'a qu'une entrée `H6965`. La distinction est portée par la source et
+perdue à l'affichage — à dire, plutôt qu'à masquer.
+
+**2. Environ 2 % des mots n'ont aucun numéro Strong.** Mesuré : **5 977 mots
+sur 306 785**, soit **1,95 %**. Ce sont les formes préposition + suffixe
+pronominal — `ל֔/וֹ`, « à lui » —, dont le noyau vaut `l` (4 491), `b` (1 378),
+`m` (98), `k` (9) ou `i` (1). **Tous se ramènent à un préfixe, aucun n'est une
+anomalie.** L'interface devra donc prévoir un mot sans entrée : ce n'est pas un
+défaut de la donnée, c'est sa nature.
+
+**3. La ponctuation est hors des mots.** Maqqef et sof-pasuq sont des `<seg>`
+**entre** les `<w>`, jamais dedans : 42 577 `x-maqqef`, 23 192 `x-sof-pasuq`,
+2 278 `x-paseq`, plus quelques marques rares (`x-samekh`, `x-pe`,
+`x-reversednun`, `x-large`, `x-small`, `x-suspended`). Un rendu qui ne
+ramasserait que les `<w>` rendrait un texte **faux** — mots recollés sans leur
+trait d'union, versets sans leur point final.
+
+**4. Les notes sont à l'intérieur du verset, entre deux mots.** 2 472 `<note>`,
+en anglais, placées au fil du texte. Une extraction qui concaténerait le texte
+des descendants d'un `<verse>` **injecterait de la prose anglaise au milieu de
+l'hébreu**. Elles se sautent explicitement.
+
+Deux détails de moindre portée : le texte du mot contient lui aussi un `/` —
+`וְ/צִיר֙` — qui marque la frontière de morphème et doit être retiré à
+l'affichage (146 757 mots concernés) ; et `morph` est parallèle au `lemma`,
+un segment par morphème (`HC/Ncmsa` répond à `c/6735 a`), ce qui permettra plus
+tard de gloser chaque morceau — mais suppose que les deux découpages soient
+traités ensemble, jamais séparément.
+
+### La mesure qui décide : tous les mots trouvent leur entrée
+
+C'est la question qui commande la fonction entière, et elle a été posée
+frontalement — les 8 640 numéros employés par le texte, croisés avec les
+8 674 entrées du lexique hébreu :
+
+| | |
+|---|---|
+| Numéros employés par l'OSHB | **8 640** |
+| **Employés mais absents du lexique** | **0** |
+| Présents au lexique, jamais employés | 34 |
+
+**Aucun trou.** Tout mot hébreu porteur d'un numéro trouvera sa définition, et
+les 34 entrées inemployées ne coûtent rien. C'est l'inverse exact de ce que la
+conversion de Bost avait donné : là-bas la mesure disait de ne rien publier,
+ici elle dit que la source tient.
+
+### Les correspondances de livres se font par nom, et pas par position
+
+L'OSHB nomme ses livres à la manière OSIS — `Gen`, `1Sam`, `Ps`, `Song`,
+`Obad` — quand `readings.book` stocke des abréviations USFM (`GEN`, `1SA`,
+`PSA`, `SNG`, `OBA`). Une table de correspondance est donc nécessaire, et
+**elle se fait par nom**, contrairement à celle de `scrollmapper` qui se fait
+par position (voir `AGENTS.md`) : les fichiers de `wlc/` sont rangés
+**alphabétiquement**, pas dans l'ordre canonique, et ils ne couvrent que
+l'Ancien Testament — 39 livres sur 66. Se fier à la position ici donnerait
+Amos pour la Genèse.
+
+### Ce qui reste à relever
+
+Le **Nouveau Testament grec** (`morphgnt/sblgnt`) n'a pas été ouvert. Sa forme
+est probablement tout autre — le dépôt annonce du texte tabulé, non du XML —
+et la leçon de cette section vaut pour lui : **la relever avant d'écrire le
+script**, et rappeler que sa morphologie est en CC BY-**SA**, donc copyleft.
 
 ## Journal
 
 | Date | Fait |
 |---|---|
+| 29 sept. 2026 | **Forme de l'OSHB relevée et mesurée** sur les 39 livres téléchargés : OSIS, 28 527 617 o, 23 213 versets, **306 785 mots**, 8 640 Strong distincts. Quatre pièges : `lemma` n'est pas un numéro (préfixes agglutinés, `+` des noms composés, lettre d'homonyme), **5 977 mots (1,95 %) n'ont aucun numéro**, la ponctuation est en `<seg>` hors des mots, et 2 472 `<note>` anglaises sont au fil du verset. **Mesure décisive : 0 numéro employé absent du lexique** — la source tient. 40 fichiers pour 39 livres (`VerseMap.xml`), correspondance par **nom** et non par position. |
 | 29 sept. 2026 | **Forme des lexiques Strong relevée à la source.** CommonJS (`var … = {…}; module.exports`), et non du JSON : découper entre accolades, ne jamais `require()`. Clés `H1`…`H8674` **triées**, `G1`…`G5624` **en désordre**. Les champs diffèrent : le grec dit `translit`, l'hébreu `xlit` + `pron` — un convertisseur écrit sur le grec perdrait 8 674 translittérations en silence. **Correction de licence** : le dépôt n'en déclare aucune, mais les deux fichiers portent « Copyright 2009/2010, Open Scriptures. CC-BY-SA » dans leur en-tête — du copyleft. |
 | 29 sept. 2026 | **Décision du propriétaire : Bost est mis de côté, pas abandonné.** La mesure a tranché — 1 015 entrées sur plus de 4 000, texte OCR fautif qu'aucun analyseur ne corrigerait. `scripts/download-bost.mjs` reste au dépôt parce qu'il porte la mesure. L'effort va aux Strong. |
 | 29 sept. 2026 | **Composant unique livré** (`TexteBiblique`) : sept rendus de texte biblique rassemblés, règle de numérotation sortie et testée, une exception documentée (la Mémorisation, mot à mot). **Conversion de Bost tentée** depuis l'édition 1865 d'archive.org (Public Domain Mark 1.0, licence lue à la source) : 1 015 entrées sur plus de 4 000, texte OCR fautif — **rien publié**, décision à prendre. |
