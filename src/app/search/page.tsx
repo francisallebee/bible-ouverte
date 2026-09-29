@@ -10,12 +10,12 @@ import { getBook, BOOKS } from "@/features/bible";
 import { THEMES, themeParSlug, type ThemeSlug, type PassageThematique } from "@/features/bible/themes";
 import { validerTheme, ajouterPassage, retirerPassage, clePassage, type RaisonInvalide } from "@/features/bible/themes-utilisateur";
 import PassageAdder from "@/components/PassageAdder";
+import TexteBiblique from "@/components/TexteBiblique";
 import BookPicker from "@/components/BookPicker";
 import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange, type PassageRange } from "@/components/PassagePicker";
 import { chapitreEntier } from "@/features/bible/versets";
 import { useI18n, useBookName } from "@/contexts/I18nContext";
-import { textDirection } from "@/lib/i18n/locales";
 
 type Mode = "reference" | "keyword" | "theme";
 
@@ -47,12 +47,14 @@ export default function SearchPage() {
   const [loaded, setLoaded] = useState(false);
 
   /**
-   * Le sens d'écriture du texte affiché suit la **version**, pas l'interface :
+   * La langue du texte affiché, qui suit la **version** et non l'interface :
    * la Smith & Van Dyck se lit de droite à gauche même dans une application
-   * réglée en français.
+   * réglée en français. C'est `TexteBiblique` qui en tire le sens d'écriture
+   * depuis le 29 septembre 2026 — cet écran rendait `textDirection` de son
+   * côté, en trois endroits.
    */
-  const sensDuTexte = (versionId: string) =>
-    textDirection(versions.find((v) => v.id === versionId)?.language ?? "fr");
+  const langueDeVersion = (versionId: string) =>
+    versions.find((v) => v.id === versionId)?.language;
 
   const [mode, setMode] = useState<Mode>("reference");
 
@@ -387,14 +389,13 @@ export default function SearchPage() {
               <p className="font-medium mb-3">
                 {describeRange(getBookName(refBook), refBook, refRange)} — {t.search.verseCount(refResults.length)}
               </p>
-              <div className="texte-biblique text-sm leading-relaxed mb-4" dir={sensDuTexte(refVersion)}>
-                {refResults.map((p) => (
-                  <span key={`${p.chapter}-${p.verse}`}>
-                    <sup className="text-xs text-gray-400 me-0.5">{p.verse}</sup>
-                    {p.text}{" "}
-                  </span>
-                ))}
-              </div>
+              <TexteBiblique
+                versets={refResults}
+                langue={langueDeVersion(refVersion)}
+                disposition="fil"
+                className="text-sm leading-relaxed mb-4"
+                classeNumero="text-xs text-gray-400 me-0.5"
+              />
               <button onClick={() => openAddForm({
                 book: refBook,
                 chapterStart: refRange.chapterStart,
@@ -450,9 +451,11 @@ export default function SearchPage() {
                       <span className="font-medium text-[--primary]">
                         {getBookName(p.book)} {p.chapter}:{p.verse}
                       </span>{" "}
-                      <span className="texte-biblique text-gray-700" dir={sensDuTexte(p.versionId)}>
-                        {highlightText(p.text, kwQuery)}
-                      </span>
+                      <TexteBiblique
+                        texte={highlightText(p.text, kwQuery)}
+                        langue={langueDeVersion(p.versionId)}
+                        className="text-gray-700"
+                      />
                     </div>
                     <button onClick={() => openAddForm({
                       book: p.book,
@@ -661,15 +664,13 @@ export default function SearchPage() {
                       {getBookName(lot.book)} {lot.chapter}:{lot.verseStart}
                       {lot.verseEnd !== lot.verseStart ? `-${lot.verseEnd}` : ""}
                     </p>
-                    <div className="texte-biblique text-sm leading-relaxed text-gray-700 mb-3"
-                      dir={sensDuTexte(themeVersion)}>
-                      {lot.passages.map((v) => (
-                        <span key={`${v.chapter}-${v.verse}`}>
-                          <sup className="text-xs text-gray-400 me-0.5">{v.verse}</sup>
-                          {v.text}{" "}
-                        </span>
-                      ))}
-                    </div>
+                    <TexteBiblique
+                      versets={lot.passages}
+                      langue={langueDeVersion(themeVersion)}
+                      disposition="fil"
+                      className="text-sm leading-relaxed text-gray-700 mb-3"
+                      classeNumero="text-xs text-gray-400 me-0.5"
+                    />
                     <button onClick={() => openAddForm({
                       book: lot.book,
                       chapterStart: lot.chapter,

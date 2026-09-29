@@ -20,6 +20,7 @@ import {
 } from '@/lib/memorisation/revision'
 import PassageAdder, { type PassageDraft } from '@/components/PassageAdder'
 import { describeRange } from '@/components/PassagePicker'
+import TexteBiblique from '@/components/TexteBiblique'
 
 type Etape = 'chargement' | 'liste' | 'seance' | 'bilan'
 
@@ -306,9 +307,8 @@ export default function MemorisationPage() {
                       <Plus className="w-3.5 h-3.5" />
                       {getBookName(p.book)} {p.chapter}:{p.verse}
                     </span>
-                    <span className="texte-biblique block text-sm text-[--text] line-clamp-2" dir={textDirection(langue)}>
-                      {p.text}
-                    </span>
+                    <TexteBiblique texte={p.text} langue={langue}
+                      className="block text-sm text-[--text] line-clamp-2" />
                   </button>
                 ))}
               </div>
@@ -326,6 +326,16 @@ export default function MemorisationPage() {
             {t.memorisation.consigne(reveles.size, masques)}
           </p>
 
+          {/*
+            La seule exception au point de passage unique de `TexteBiblique`,
+            et elle est assumée : ce bloc ne rend pas un passage mais **un mot
+            à la fois**, certains masqués, chacun cliquable pour se révéler.
+            Le faire passer par le composant supposerait que celui-ci sache
+            rendre des mots plutôt qu'un texte — ce qu'il apprendra justement
+            en accueillant le clic du dictionnaire. C'est à ce moment-là que
+            cet écran le rejoindra, et pas avant, pour ne pas inventer une
+            abstraction avant d'avoir son second usage.
+          */}
           <div className="texte-biblique rounded-2xl border border-[--border] bg-[--surface] p-5 leading-loose text-[--text]"
             dir={textDirection(langue)}>
             {mots.map((m, i) => {

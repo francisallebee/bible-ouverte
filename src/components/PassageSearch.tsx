@@ -6,10 +6,10 @@ import { getPassagesForRange, searchPassages } from '@/lib/storage'
 import type { BiblePassage } from '@/lib/storage'
 import { getBook } from '@/features/bible'
 import { useT, useBookName } from '@/contexts/I18nContext'
-import { textDirection } from '@/lib/i18n/locales'
 import BookPicker from '@/components/BookPicker'
 import PassagePicker, { describeRange, type PassageRange } from '@/components/PassagePicker'
 import { chapitreEntier } from '@/features/bible/versets'
+import TexteBiblique from './TexteBiblique'
 
 export interface PickedPassage {
   book: string
@@ -47,7 +47,6 @@ const VIDE: PassageRange = { chapterStart: 1, chapterEnd: 1, verseStart: 1, vers
 export default function PassageSearch({ open, versionId, versionLanguage, onPick, onClose }: Props) {
   const t = useT()
   const getBookName = useBookName()
-  const dir = textDirection(versionLanguage)
 
   const [mode, setMode] = useState<'reference' | 'keyword'>('reference')
 
@@ -136,14 +135,12 @@ export default function PassageSearch({ open, versionId, versionLanguage, onPick
               </button>
 
               {apercu.length > 0 && (
-                <div className="texte-biblique border border-[--border] rounded-lg p-3 text-sm space-y-1 max-h-52 overflow-y-auto" dir={dir}>
-                  {apercu.map((p) => (
-                    <p key={`${p.chapter}-${p.verse}`} className="leading-relaxed text-[--text]">
-                      <sup className="text-xs text-[--text-secondary] me-0.5">{p.verse}</sup>
-                      {p.text}
-                    </p>
-                  ))}
-                </div>
+                <TexteBiblique
+                  versets={apercu}
+                  langue={versionLanguage}
+                  className="border border-[--border] rounded-lg p-3 text-sm space-y-1 max-h-52 overflow-y-auto"
+                  classeVerset="leading-relaxed text-[--text]"
+                />
               )}
             </div>
           ) : (
@@ -178,7 +175,8 @@ export default function PassageSearch({ open, versionId, versionLanguage, onPick
                         <span className="block text-xs font-medium text-[--primary] text-[--text-secondary]">
                           {getBookName(p.book)} {p.chapter}:{p.verse}
                         </span>
-                        <span className="texte-biblique block text-sm text-[--text] line-clamp-2" dir={dir}>{p.text}</span>
+                        <TexteBiblique texte={p.text} langue={versionLanguage}
+                          className="block text-sm text-[--text] line-clamp-2" />
                       </button>
                     ))}
                   </div>

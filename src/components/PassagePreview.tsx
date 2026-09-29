@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { X, Check, SlidersHorizontal } from 'lucide-react'
 import { useT } from '@/contexts/I18nContext'
 import type { BiblePassage } from '@/lib/storage'
+import TexteBiblique from './TexteBiblique'
 
 interface Props {
   open: boolean
@@ -11,7 +12,13 @@ interface Props {
   title: string
   versionName: string
   /** Le sens d'écriture de la **version**, jamais celui de l'interface. */
-  dir: 'ltr' | 'rtl'
+  /**
+   * La langue du **texte** lu, d'où le sens d'écriture se déduit.
+   * Remplace l'ancienne prop `dir` le 29 septembre 2026 : chaque appelant
+   * calculait `textDirection` de son côté, et c'est exactement la règle que
+   * `TexteBiblique` rassemble désormais.
+   */
+  langue?: string
   passages: BiblePassage[]
   loading: boolean
   /**
@@ -49,7 +56,7 @@ interface Props {
  * ouvre cette fenêtre pour vérifier, donc pour corriger le cas échéant.
  */
 export default function PassagePreview({
-  open, title, versionName, dir, passages, loading, onEdit, onValidate,
+  open, title, versionName, langue, passages, loading, onEdit, onValidate,
   validateLabel, onClose,
 }: Props) {
   const t = useT()
@@ -90,14 +97,12 @@ export default function PassagePreview({
               {t.newReading.previewUnavailable}
             </p>
           ) : (
-            <div className="texte-biblique space-y-1 text-sm leading-relaxed text-[--text]" dir={dir}>
-              {passages.map((p) => (
-                <p key={`${p.chapter}-${p.verse}`} className="leading-relaxed">
-                  <sup className="text-xs text-[--text-secondary] me-0.5">{p.verse}</sup>
-                  {p.text}
-                </p>
-              ))}
-            </div>
+            <TexteBiblique
+              versets={passages}
+              langue={langue}
+              className="space-y-1 text-sm leading-relaxed text-[--text]"
+              classeVerset="leading-relaxed"
+            />
           )}
         </div>
 

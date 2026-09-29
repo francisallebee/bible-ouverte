@@ -14,7 +14,6 @@ import type { BibleVersion, ReadingLink, BiblePassage, ReadingContext } from "@/
 import { getBook } from "@/features/bible";
 import type { BibleBook } from "@/features/bible";
 import { useI18n, useBookName } from "@/contexts/I18nContext";
-import { textDirection } from "@/lib/i18n/locales";
 import AudioRecorder from "@/components/AudioRecorder";
 import ContextPicker from "@/components/ContextPicker";
 import PassagePicker, { describeRange } from "@/components/PassagePicker";
@@ -826,7 +825,7 @@ export default function NewReadingPage() {
         open={previewOpen && !!book}
         title={describeRange(getBookName(book), book, { chapterStart, chapterEnd: cEnd, verseStart, verseEnd: vEnd })}
         versionName={versions.find((v) => v.id === versionId)?.name || versionId}
-        dir={textDirection(versions.find((v) => v.id === versionId)?.language ?? "fr")}
+        langue={versions.find((v) => v.id === versionId)?.language}
         passages={passages}
         loading={loadingPassage}
         // Corriger ce qu'on vient de valider : la ligne quitte le panneau et

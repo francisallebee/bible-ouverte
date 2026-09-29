@@ -24,10 +24,10 @@ import { getBook } from "@/features/bible";
 import { versetsAProposer } from "@/features/bible/versets";
 import { useI18n, useBookName, useBooks, useContextName } from "@/contexts/I18nContext";
 import { formatDate } from "@/lib/i18n/format";
-import { textDirection } from "@/lib/i18n/locales";
 import ContextPicker from "@/components/ContextPicker";
 import AudioRecorder from "@/components/AudioRecorder";
 import { resizeImage } from "@/lib/image-utils";
+import TexteBiblique from "@/components/TexteBiblique";
 
 export default function ReadingDetailPage() {
   const { t, locale } = useI18n();
@@ -562,23 +562,16 @@ export default function ReadingDetailPage() {
                 {t.readingDetail.textUnavailable}
               </p>
             ) : (
-              // Le sens d'écriture suit la version lue, pas l'interface.
-              <div
-                className="texte-biblique text-sm leading-relaxed"
-                dir={textDirection(version?.language ?? "fr")}
-              >
-                {passages.map((p) => (
-                  <p key={`${p.chapter}-${p.verse}`} className="mb-1">
-                    <sup className="text-xs text-gray-400 me-1">
-                      {p.chapter !== reading.chapterStart ||
-                      p.verse !== reading.verseStart
-                        ? `${p.chapter}:${p.verse}`
-                        : p.verse}
-                    </sup>
-                    {p.text}
-                  </p>
-                ))}
-              </div>
+              // Le sens d'écriture suit la version lue, pas l'interface —
+              // c'est `TexteBiblique` qui en répond désormais.
+              <TexteBiblique
+                versets={passages}
+                langue={version?.language}
+                numerotation="depuis-le-debut"
+                className="text-sm leading-relaxed"
+                classeNumero="text-xs text-gray-400 me-1"
+                classeVerset="mb-1"
+              />
             )}
           </div>
         </>

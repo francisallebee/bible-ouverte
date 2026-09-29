@@ -9,9 +9,9 @@ import {
 } from '@/lib/storage'
 import type { BiblePassage, GameSession } from '@/lib/storage'
 import { useI18n, useBookName } from '@/contexts/I18nContext'
-import { textDirection } from '@/lib/i18n/locales'
 import { rassemblerVersets } from '@/lib/quiz/matiere'
 import { versetStable, degradeDe, jourLocal } from '@/lib/verset-du-jour/choix'
+import TexteBiblique from '@/components/TexteBiblique'
 
 /**
  * Le contexte donné aux lectures nées d'ici.
@@ -154,10 +154,12 @@ export default function VersetDuJourPage() {
             <p className="text-white/70 text-xs uppercase tracking-widest mb-4">
               {t.versetDuJour.duJour}
             </p>
-            <p className="texte-biblique text-xl sm:text-2xl leading-relaxed"
-              dir={textDirection(langueDuTexte)}>
-              {verset.text}
-            </p>
+            <TexteBiblique
+              texte={verset.text}
+              langue={langueDuTexte}
+              balise="p"
+              className="text-xl sm:text-2xl leading-relaxed"
+            />
             <p className="mt-5 font-medium text-white/90">{reference}</p>
           </div>
 

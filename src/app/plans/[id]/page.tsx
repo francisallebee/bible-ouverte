@@ -24,7 +24,6 @@ import { datesDuCochage } from "@/lib/plans/cochage";
 import { aujourdhui } from "@/lib/objectifs/objectifs";
 import PassagePreview from "@/components/PassagePreview";
 import { versetsDuChapitre } from "@/lib/progression/chapitres";
-import { textDirection } from "@/lib/i18n/locales";
 import type { ReadingPlan, PlanDay, BibleVersion, PlanDuration, BiblePassage } from "@/lib/storage";
 import LecteurDePdf from "@/components/plans/LecteurDePdf";
 import LecteurDeDocument from "@/components/plans/LecteurDeDocument";
@@ -764,7 +763,7 @@ export default function PlanDetailPage() {
           open
           title={referenceDuJour(apercu)}
           versionName={versions.find((v) => v.id === plan.versionId)?.name ?? plan.versionId}
-          dir={textDirection(versions.find((v) => v.id === plan.versionId)?.language ?? "fr")}
+          langue={versions.find((v) => v.id === plan.versionId)?.language}
           passages={passagesApercu}
           loading={chargementApercu}
           validateLabel={t.planDetail.markAsRead}
