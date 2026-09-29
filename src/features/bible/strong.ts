@@ -11,6 +11,25 @@ import type { EntreeStrong } from '@/lib/storage/types';
  * chargement — pour une donnée qui n'est que de la donnée.
  */
 
+/**
+ * La section des Réglages est-elle montrée ?
+ *
+ * **Non, et c'est délibéré jusqu'à ce que le clic sur un mot existe.** Toute
+ * la plomberie est là et vérifiée — cocher écrit les entrées, décocher les
+ * efface —, mais rien n'affiche encore une définition : ni les textes
+ * originaux (OSHB, MorphGNT) ni l'écran qui les rend ne sont au dépôt. Une
+ * case visible ferait donc occuper 4 Mo pour un effet nul, et le lecteur
+ * n'aurait aucun moyen de comprendre pourquoi.
+ *
+ * Le drapeau est ici plutôt que dans les Réglages parce que c'est une
+ * propriété de la fonctionnalité, pas de l'écran : le jour où le clic
+ * arrivera, c'est ce fichier qu'on relira.
+ *
+ * Passer à `true` est tout ce qu'il y aura à faire — le reste est déjà en
+ * place, et `strong.test.ts` fige le drapeau pour que ce soit une décision.
+ */
+export const LEXIQUES_VISIBLES: boolean = false;
+
 /** Ce que `scripts/download-strong.mjs` écrit. */
 interface FichierLexique {
   id: string;

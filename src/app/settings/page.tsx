@@ -6,7 +6,7 @@ import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersion
 import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 // Par chemin et non par les barils : ces deux modules ne servent qu'ici, et
 // `features/bible/index.ts` documente ce que réexporter coûte en chunk partagé.
-import { importerLexiqueStrong, oublierLexiqueImporte } from "@/features/bible/strong";
+import { importerLexiqueStrong, oublierLexiqueImporte, LEXIQUES_VISIBLES } from "@/features/bible/strong";
 import {
   getAllLexiques, updateLexique, deleteEntreesForLexique,
 } from "@/lib/storage/strong-store";
@@ -948,6 +948,7 @@ export default function SettingsPage() {
           C'est la règle 15 : une variante est une classe distincte, et en
           ajouter une passerait inaperçue jusqu'au mode sombre.
         */}
+        {LEXIQUES_VISIBLES && (
         <SectionCard icon={BookMarked} title={t.settings.strongTitle}>
           <p className="text-sm text-[--text-secondary] mb-3">
             {t.settings.strongHint}
@@ -979,6 +980,7 @@ export default function SettingsPage() {
             ))}
           </div>
         </SectionCard>
+        )}
 
         <SectionCard icon={Download} title={t.settings.exportTitle}>
           <p className="text-sm text-[--text-secondary] mb-3">

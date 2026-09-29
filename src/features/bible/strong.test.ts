@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LEXIQUES } from './strong';
+import { LEXIQUES, LEXIQUES_VISIBLES } from './strong';
 import { LEXIQUES_STRONG } from '@/lib/storage/seed';
 
 /**
@@ -63,5 +63,21 @@ describe('les tables de lexiques Strong restent d’accord', () => {
   it('ne livre aucun lexique actif par défaut', () => {
     const actifs = LEXIQUES_STRONG.filter((l) => l.isEnabled).map((l) => l.id);
     expect(actifs, 'lexiques actifs à l’installation').toEqual([]);
+  });
+
+  /**
+   * La section reste masquée tant que rien n'affiche une définition.
+   *
+   * Ce test ne protège d'aucun bogue non plus : il fait du passage à `true`
+   * une décision, prise le jour où le clic sur un mot existera. Sans lui, le
+   * drapeau se retournerait au détour d'un commit et la case téléchargerait
+   * 4 Mo pour un effet nul — exactement ce que la règle 4 cherche à éviter,
+   * mais par l'autre bout.
+   *
+   * **Quand le clic arrivera** : passer le drapeau à `true` et retourner ce
+   * test, dans le même commit que l'écran qui affiche la définition.
+   */
+  it('garde la section masquée tant que rien n’affiche une définition', () => {
+    expect(LEXIQUES_VISIBLES).toBe(false);
   });
 });
