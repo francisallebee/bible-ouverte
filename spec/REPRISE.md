@@ -5096,3 +5096,63 @@ fallait interroger la production en visiteur anonyme, c'est-à-dire faire la
 sonde d'après-déploiement autrement que par un `200` sur l'accueil. **Sonder,
 c'est demander à la production ce qu'elle sert sur les chemins que la
 fonctionnalité vient d'ajouter**, pas vérifier qu'elle répond.
+
+### Les textes originaux, et deux mesures contre mes propres raccourcis
+
+L'OSHB et le SBLGNT convertis vers `public/originaux/` — 39 + 27 livres,
+306 785 + 137 554 mots, 16,5 + 9,1 Mo. `public/` passe de 95 à 119 Mo, et le
+déploiement git l'absorbe sans peine.
+
+Côté hébreu, les quatre pièges du relevé sont désarmés dans le code, et la
+ponctuation en est le plus discret : maqqef et sof-pasuq sont des `<seg>`
+**entre** les mots, portés ici par le champ `a` du mot précédent. Sans cela le
+texte serait faux — mots recollés, versets sans point final — et rien ne le
+signalerait.
+
+Côté grec, la source ne porte aucun numéro : le raccord se fait du lemme vers
+le lexique. **Deux mesures y ont tranché contre ce que j'allais faire.**
+
+**Le raccord par distance d'édition se trompe dans 20 % des cas.** Contrôle sur
+vingt raccords tirés au hasard : `Βόες` (Booz) devenait « bœuf », `Καῦδα`
+(l'île) devenait « chaleur », `Ἰωβήλ` devenait Joël. Les noms propres sont le
+piège — une lettre sépare deux personnes. La substitution de lettre se trompe
+dans 4 % : `γαμίζω` (« donner en mariage ») raccordé à `γεμίζω` (« remplir »),
+parce qu'une substitution peut produire **un autre mot réel**. Les deux passes
+sont abandonnées. Ne restent que les transformations qui ne peuvent pas changer
+de mot — voix déponente, gémination, itacisme —, vérifiées 25 sur 25.
+
+**Et l'ordre des passes n'est pas un détail de style.** Le pliage retire accents
+et esprits, qui sont distinctifs en grec : `εἰς` (« vers ») et `εἷς` (« un »)
+ne diffèrent que par l'esprit, `τίς` (« qui ? ») et `τις` (« quelqu'un ») par
+l'accent. Plier avant de chercher la correspondance exacte rendait 42 lemmes
+ambigus et perdait **6 010 occurrences**, dont `εἰς` qui paraît 1 754 fois.
+J'avais mesuré le bon ordre puis écrit l'inverse ; c'est le fichier produit qui
+l'a dit, pas la relecture.
+
+La table manuelle porte **38 lemmes confirmés un par un contre la glose anglaise
+du lexique**, couvrant 885 occurrences — la fréquence étant très inégale, le
+travail manuel utile était petit. Elle sépare trois choses : `faites`, seule lue
+par le script ; `a_faire`, 278 lemmes en attente, dont les candidats sont une
+**aide à la décision et non une proposition** ; et `ambigus`, 6 vrais
+homographes que seul le contexte départagerait — les laisser sans numéro est
+**juste, pas un manque**.
+
+Couverture : **99,31 %** du grec, **98,05 %** de l'hébreu.
+
+#### Le même défaut deux fois dans la même séance
+
+`/originaux/` n'était pas exclu du `matcher` du middleware — exactement comme
+`/strong/` deux heures plus tôt, **après** que le premier cas eut été corrigé,
+documenté et poussé.
+
+La leçon n'est donc pas « penser au matcher » : j'y avais pensé, et j'ai
+recommencé. C'est **l'énoncé de la règle 7 qui induisait en erreur**. Il disait
+« toute ressource servie avant connexion », or ni `/strong/` ni `/originaux/`
+ne le sont : ils sont chargés par un utilisateur **connecté**, dont les cookies
+passent le middleware. La règle ne pouvait pas les attraper, et son rédacteur
+s'est fait prendre par sa propre formulation.
+
+La règle est réécrite autour du critère qui attrape les deux cas : **tout
+nouveau dossier de `public/` que du code va chercher par `fetch()`**. Une règle
+qui ne se déclenche pas sur le cas qu'elle vise n'est pas une règle, c'est un
+souvenir.

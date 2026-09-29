@@ -557,9 +557,19 @@ Tout est relevé. Ce qui reste n'est plus de l'enquête mais des décisions :
 
 1. ~~La CC BY-SA~~ — **acceptée par le propriétaire le 29 septembre 2026**,
    voir ci-dessous. Les 4,0 Mio de `public/strong/` sont versionnés.
-2. **Les 484 lemmes grecs sans raccord** — table manuelle, ou mots sans numéro
-   assumés.
-3. **Les onze lemmes ambigus** — choisir, ou montrer les deux.
+2. ~~Les 484 lemmes grecs sans raccord~~ — **réglé le 29 septembre 2026** :
+   les règles sûres en résolvent 177, la table manuelle 38 de plus. Restent
+   **278 lemmes / 916 occurrences** dans `a_faire` de
+   `scripts/strong-grec-manuel.json`, à confirmer au fil de l'eau. Ce n'est
+   plus une décision mais un travail d'appoint, et il ne bloque rien.
+3. ~~Les onze lemmes ambigus~~ — **six en réalité**, une fois les accents
+   respectés : `ὦ`, `ἄπειμι`, `βάτος`, `σύνειμι`, `ῥέω`, `εἴκω`. Ce sont de
+   vrais homographes que seul le contexte départagerait ; ils restent **sans
+   numéro à dessein**, et c'est le comportement juste.
+
+Ce qui reste, désormais, n'est plus une décision du tout : **l'écran qui
+affiche une définition au clic sur un mot**. C'est lui qui allumera
+`LEXIQUES_VISIBLES` et éteindra la dette d'attribution.
 
 ### La CC BY-SA acceptée — 29 septembre 2026
 
@@ -593,6 +603,7 @@ qu'après coup.
 
 | Date | Fait |
 |---|---|
+| 29 sept. 2026 | **Textes originaux convertis et versionnés.** OSHB et SBLGNT dans `public/originaux/` — 306 785 + 137 554 mots, 16,5 + 9,1 Mo ; `public/` passe à 119 Mo. Couverture Strong **98,05 %** (hébreu) et **99,31 %** (grec). Deux mesures ont écarté mes raccourcis : le raccord par distance d'édition se trompe dans **20 %** des cas (Βόες → « bœuf », Καῦδα → « chaleur »), la substitution de lettre dans **4 %** (γαμίζω → γεμίζω). Et plier les accents **avant** la correspondance exacte perdait **6 010 occurrences**, `εἰς` et `εἷς` ne différant que par l'esprit. Table manuelle : **38 lemmes confirmés un par un contre la glose**, 885 occurrences ; 278 en attente, 6 homographes laissés sans numéro à dessein. |
 | 29 sept. 2026 | **CC BY-SA acceptée par le propriétaire, données versionnées.** 4,0 Mio dans `public/strong/`, `public/` passe à 95 Mo. Vérifié avant de verser : l'export de données n'emporte pas les entrées, le seul chemin de redistribution est le fichier servi. Reste dû : **afficher la mention**, qui attend l'écran des définitions. |
 | 29 sept. 2026 | **Les lexiques livrés en dessous, masqués au-dessus.** Script de conversion (8 674 + 5 523 entrées, 4,0 Mio, déterministe), les trois gestes de la règle 13 au complet, base en version 12, **deux cases séparées** hébreu/grec. `G1473` (`ἐγώ`, 2 572 occurrences) a décidé de garder les 19 entrées sans définition : `definition` est optionnelle. **Aucune migration SQL** — `bible_versions` n'est pas synchronisé, ces magasins non plus. Vu agir en base : 5 523 écrites, décocher l'hébreu laisse le grec intact. La vérification en arabe a trouvé deux défauts que les tests ne voyaient pas — noms non traduits, et « Activé » au lieu d'« Activée ». `LEXIQUES_VISIBLES` reste à `false` tant qu'aucun clic n'affiche de définition. |
 | 29 sept. 2026 | **Forme du MorphGNT relevée et mesurée** sur les 27 fichiers : texte tabulé à sept colonnes, 8,94 Mo, 137 554 mots, 7 927 versets, 5 461 lemmes. **Asymétrie de fond : aucun numéro Strong dans la donnée**, contrairement à l'hébreu — le raccord se fait par le lemme. Mesuré : **97,45 % des occurrences en exact, 98,45 % après pliage, 98,65 % après retrait des parenthèses ; 1,35 % (1 852 mots, 484 lemmes) hors d'atteinte**. Cause **textuelle et non technique** — SBLGNT critique contre Textus Receptus de 1890 : `Δαυίδ`/`Δαβίδ`, `Καφαρναούμ`/`Καπερναούμ`, `οἶδα`/`εἴδω`. Onze lemmes ambigus. Relevé aussi : `strongs_def` **manque dans 19 entrées grecques** — le type doit la rendre optionnelle. |
