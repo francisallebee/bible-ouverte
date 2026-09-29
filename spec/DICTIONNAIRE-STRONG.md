@@ -431,17 +431,141 @@ par position (voir `AGENTS.md`) : les fichiers de `wlc/` sont rangés
 l'Ancien Testament — 39 livres sur 66. Se fier à la position ici donnerait
 Amos pour la Genèse.
 
-### Ce qui reste à relever
+## La forme exacte du MorphGNT — relevée et mesurée le 29 septembre 2026
 
-Le **Nouveau Testament grec** (`morphgnt/sblgnt`) n'a pas été ouvert. Sa forme
-est probablement tout autre — le dépôt annonce du texte tabulé, non du XML —
-et la leçon de cette section vaut pour lui : **la relever avant d'écrire le
-script**, et rappeler que sa morphologie est en CC BY-**SA**, donc copyleft.
+Les 27 fichiers téléchargés et parcourus en entier. La forme est **tout autre**
+que celle de l'hébreu, et une asymétrie de fond sépare les deux moitiés du
+projet.
+
+### Du texte tabulé, sept colonnes, aucun en-tête
+
+```
+010101 N- ----NSF- Βίβλος Βίβλος βίβλος βίβλος
+010102 V- 3AAI-S-- ἐγέννησεν ἐγέννησεν ἐγέννησε(ν) γεννάω
+```
+
+Séparateur espace, sept colonnes exactement : référence, partie du discours,
+code d'analyse, texte (ponctuation comprise), mot (ponctuation retirée), mot
+normalisé, lemme. **Vérifié sur les 137 554 lignes : aucune n'en a un autre
+nombre.** C'est la seule bonne nouvelle de forme — l'analyse ne demande pas de
+parseur, un `split(' ')` suffit.
+
+| Mesuré sur les 27 fichiers | |
+|---|---|
+| Octets | **8 936 874** (8,94 Mo — trois fois moins que l'hébreu) |
+| Lignes, donc mots | **137 554** |
+| Versets | **7 927** |
+| Lemmes distincts | **5 461** |
+
+**Piège de numérotation** : les fichiers s'appellent `61-Mt` … `87-Re`, mais
+la référence *à l'intérieur* commence à `01` pour Matthieu. Le `010101` de la
+première ligne se lit livre 01, chapitre 01, verset 01 — deux numérotations
+pour la même Bible, dans le même dépôt. Se fier au nom de fichier pour lire la
+colonne mènerait au mauvais livre.
+
+### L'asymétrie qui commande tout : MorphGNT ne porte aucun numéro Strong
+
+C'est le fait central de cette section, et il n'était pas prévisible :
+**il n'y a pas de colonne Strong.** Là où l'OSHB inscrit le numéro dans la
+donnée — d'où le « 0 absent » mesuré plus haut —, le grec ne donne qu'un
+lemme. Le raccord au lexique doit donc se faire **texte contre texte**, du
+lemme MorphGNT vers le champ `lemma` du lexique.
+
+Ce raccord se mesure ; il ne se suppose pas. Voici la mesure.
+
+| Raccord des 5 461 lemmes vers le lexique grec | Types | Occurrences |
+|---|---|---|
+| **Exact** | 4 840 (88,6 %) | 134 052 (**97,45 %**) |
+| **Après pliage** (accents retirés, minuscules, sigma final unifié) | +132 (2,4 %) | +1 381 (1,00 %) |
+| **Aucun raccord** | **489 (9,0 %)** | **2 121 (1,54 %)** |
+
+Sur les 489 échecs, **5 types seulement sont mécaniques** : MorphGNT note les
+finales facultatives entre parenthèses — `οὕτω(ς)`, `ἔξεστι(ν)`, `μέχρι(ς)` —
+et retirer la parenthèse les récupère tous les cinq, soit 269 occurrences.
+**Reste 484 types et 1 852 occurrences, soit 1,35 % du texte**, qu'aucune
+normalisation ne rattrapera.
+
+Onze lemmes, par ailleurs, se raccordent à **plusieurs** numéros Strong : le
+raccord n'est pas une fonction, et il faudra choisir ou afficher les deux.
+
+### Pourquoi ces 1,35 % ne se rattrapent pas : deux textes différents
+
+La cause est **textuelle, pas technique**, et c'est ce qui la rend définitive.
+MorphGNT suit le **SBLGNT**, texte critique moderne ; le lexique de Strong
+suit le **Textus Receptus** de 1890. Ce ne sont pas deux orthographes du même
+mot, ce sont deux éditions du Nouveau Testament. Vérifié entrée par entrée :
+
+| MorphGNT (SBLGNT) | Lexique Strong | Nature de l'écart |
+|---|---|---|
+| `Δαυίδ` (59×) | `Δαβίδ` — G1138 | β contre υ |
+| `Μωϋσῆς` (79×) | `Μωσεύς` — G3475 | forme du nom |
+| `Καφαρναούμ` (16×) | `Καπερναούμ` — G2584 | φ contre π |
+| `τεσσεράκοντα` (22×) | `τεσσαράκοντα` — G5062 | ε contre α |
+| `οἶδα` (296×) | `εἴδω` — G1492 | forme attestée contre racine supposée |
+| `φοβέομαι` (95×) | `φοβέω` — G5399 | déponent moyen contre vedette active |
+
+Les deux dernières lignes ne sont même pas des variantes de texte : ce sont
+deux **conventions de vedette** lexicographique. Strong range sous une racine
+active ou hypothétique ce que MorphGNT range sous la forme réellement attestée.
+
+**C'est la leçon de Bost, à l'envers.** Là-bas, un meilleur analyseur aurait
+relevé la couverture sans corriger une faute. Ici, la couverture est déjà
+bonne — 98,65 % après les correctifs mécaniques — et le reste ne demande ni un
+meilleur analyseur ni un meilleur pliage, mais **une table de correspondance
+écrite à la main**, 484 lignes, ou l'aveu que ces mots-là n'auront pas de
+numéro.
+
+### Ce que les deux moitiés donnent, côte à côte
+
+| | Hébreu (OSHB) | Grec (MorphGNT) |
+|---|---|---|
+| Format | OSIS XML, 39 fichiers | texte tabulé, 27 fichiers |
+| Poids | 28,5 Mo | 8,94 Mo |
+| Mots | 306 785 | 137 554 |
+| Numéro Strong dans la donnée | **oui** | **non** |
+| Mots atteignant leur définition | **100 %** des mots numérotés, 0 absent | **98,65 %** après correctifs, sans table manuelle |
+| Mots sans numéro possible | 5 977 (1,95 %), tous préposition + suffixe | 1 852 (1,35 %), écart de texte |
+| Licence | CC BY 4.0, attribution imposée | texte SBLGNT CC BY 4.0, **morphologie CC BY-SA 3.0** |
+
+**La morphologie grecque est le seul élément copyleft de l'ensemble**, avec la
+mise en forme JSON des lexiques. À traiter ensemble le jour où la question des
+licences sera tranchée, et non comme deux cas.
+
+### Les champs des lexiques ne sont pas tous remplis
+
+Mesuré, parce qu'un type TypeScript écrit sur un exemple rassurerait à tort :
+
+| Champ | Hébreu (8 674 entrées) | Grec (5 523 entrées) |
+|---|---|---|
+| `lemma` | complet | complet |
+| `xlit` / `translit` | complet | complet |
+| `pron` | complet | *(absent du grec)* |
+| `strongs_def` | complet | **manque dans 19** |
+| `derivation` | manque dans 4 | manque dans 13 |
+| `kjv_def` | manque dans 4 | manque dans 3 |
+
+**`strongs_def` est la définition même** — celle que le lecteur vient chercher.
+Elle manque dans 19 entrées grecques. Le type doit donc la déclarer optionnelle
+et l'affichage prévoir son absence, faute de quoi 19 clics rendront
+`undefined`. Le lexique grec compte par ailleurs **5 523 entrées**, et non les
+5 624 que la dernière clé laisserait croire : la numérotation de Strong a des
+trous.
+
+### Ce qui reste avant d'écrire du code
+
+Tout est relevé. Ce qui reste n'est plus de l'enquête mais des décisions :
+
+1. **La CC BY-SA** revendiquée par les en-têtes des lexiques et par la
+   morphologie MorphGNT — ce qu'on en fait.
+2. **Les 484 lemmes grecs sans raccord** — table manuelle, ou mots sans numéro
+   assumés.
+3. **Les onze lemmes ambigus** — choisir, ou montrer les deux.
 
 ## Journal
 
 | Date | Fait |
 |---|---|
+| 29 sept. 2026 | **Forme du MorphGNT relevée et mesurée** sur les 27 fichiers : texte tabulé à sept colonnes, 8,94 Mo, 137 554 mots, 7 927 versets, 5 461 lemmes. **Asymétrie de fond : aucun numéro Strong dans la donnée**, contrairement à l'hébreu — le raccord se fait par le lemme. Mesuré : **97,45 % des occurrences en exact, 98,45 % après pliage, 98,65 % après retrait des parenthèses ; 1,35 % (1 852 mots, 484 lemmes) hors d'atteinte**. Cause **textuelle et non technique** — SBLGNT critique contre Textus Receptus de 1890 : `Δαυίδ`/`Δαβίδ`, `Καφαρναούμ`/`Καπερναούμ`, `οἶδα`/`εἴδω`. Onze lemmes ambigus. Relevé aussi : `strongs_def` **manque dans 19 entrées grecques** — le type doit la rendre optionnelle. |
 | 29 sept. 2026 | **Forme de l'OSHB relevée et mesurée** sur les 39 livres téléchargés : OSIS, 28 527 617 o, 23 213 versets, **306 785 mots**, 8 640 Strong distincts. Quatre pièges : `lemma` n'est pas un numéro (préfixes agglutinés, `+` des noms composés, lettre d'homonyme), **5 977 mots (1,95 %) n'ont aucun numéro**, la ponctuation est en `<seg>` hors des mots, et 2 472 `<note>` anglaises sont au fil du verset. **Mesure décisive : 0 numéro employé absent du lexique** — la source tient. 40 fichiers pour 39 livres (`VerseMap.xml`), correspondance par **nom** et non par position. |
 | 29 sept. 2026 | **Forme des lexiques Strong relevée à la source.** CommonJS (`var … = {…}; module.exports`), et non du JSON : découper entre accolades, ne jamais `require()`. Clés `H1`…`H8674` **triées**, `G1`…`G5624` **en désordre**. Les champs diffèrent : le grec dit `translit`, l'hébreu `xlit` + `pron` — un convertisseur écrit sur le grec perdrait 8 674 translittérations en silence. **Correction de licence** : le dépôt n'en déclare aucune, mais les deux fichiers portent « Copyright 2009/2010, Open Scriptures. CC-BY-SA » dans leur en-tête — du copyleft. |
 | 29 sept. 2026 | **Décision du propriétaire : Bost est mis de côté, pas abandonné.** La mesure a tranché — 1 015 entrées sur plus de 4 000, texte OCR fautif qu'aucun analyseur ne corrigerait. `scripts/download-bost.mjs` reste au dépôt parce qu'il porte la mesure. L'effort va aux Strong. |
