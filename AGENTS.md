@@ -159,8 +159,13 @@ coûterait une passe complète sur les 19 écrans.
 5. `npm run typecheck`, `npm run lint` et `npm test` doivent passer avant
    chaque commit.
 6. Pas de dépendance nouvelle sans raison sérieuse.
-7. Toute ressource servie avant connexion doit être exclue du `matcher` du
-   middleware, sans quoi elle répond une redirection vers `/auth/login`.
+7. **Tout nouveau dossier de `public/` que du code va chercher par `fetch()`**
+   doit être exclu du `matcher` du middleware — pas seulement ce qui est servi
+   avant connexion. L'énoncé précédent ne disait que la seconde moitié, et le
+   défaut a été commis **deux fois le 29 septembre 2026**, à deux heures
+   d'intervalle : `/strong/` puis `/originaux/`. Ni l'un ni l'autre n'est servi
+   avant connexion, et c'est justement pourquoi la règle ne les attrapait pas.
+   Sans l'exclusion, le chemin répond une redirection vers `/auth/login`.
    **Et la redirection ne se voit pas comme une erreur** : elle aboutit à un
    `200` portant du HTML, si bien que `res.ok` est vrai et que c'est
    `res.json()` qui casse sur `<!DOCTYPE`. L'utilisateur lit alors « Vérifie ta

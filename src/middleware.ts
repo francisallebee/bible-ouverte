@@ -20,8 +20,15 @@ export async function middleware(request: NextRequest) {
 // « Vérifie ta connexion » quand sa connexion va très bien. Un compte connecté
 // n'était pas touché — ses cookies passent le middleware —, ce qui est
 // précisément ce qui rendait le défaut invisible aux essais.
+//
+// `originaux/` ajouté le même jour, deux heures plus tard, **après avoir
+// répété le défaut**. La leçon n'est donc pas « penser au matcher » mais que
+// l'énoncé de la règle 7 induisait en erreur : ni /strong/ ni /originaux/ ne
+// sont « servis avant connexion », ils sont chargés par un utilisateur
+// connecté. Le critère qui attrape les deux est : **tout nouveau dossier de
+// `public/` que du code va chercher par fetch()**.
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|auth/login|auth/signup|auth/callback|bibles/|strong/|manifest\\.json|sw\\.js|sw-register\\.js|offline\\.html|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|webm|mov)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|auth/login|auth/signup|auth/callback|bibles/|strong/|originaux/|manifest\\.json|sw\\.js|sw-register\\.js|offline\\.html|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|webm|mov)$).*)',
   ],
 }
