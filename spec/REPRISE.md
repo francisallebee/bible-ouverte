@@ -5156,3 +5156,62 @@ La règle est réécrite autour du critère qui attrape les deux cas : **tout
 nouveau dossier de `public/` que du code va chercher par `fetch()`**. Une règle
 qui ne se déclenche pas sur le cas qu'elle vise n'est pas une règle, c'est un
 souvenir.
+
+### Le clic sur un mot : la chaîne est bouclée
+
+`TexteOriginal` rend le texte hébreu ou grec mot à mot, chaque mot cliquable,
+et le panneau montre l'entrée Strong avec sa mention de licence.
+`LEXIQUES_VISIBLES` est passé à `true` dans le même commit, et son test a été
+retourné — comme sa version précédente l'annonçait.
+
+Base en **version 13**. Le magasin `originaux` garde **un enregistrement par
+verset et non par mot** : 444 339 mots feraient autant de lignes, 31 140
+versets suffisent, et c'est exactement la maille que l'écran demande.
+
+**Une case commande deux ressources** — le lexique et le texte qu'il annote.
+Les séparer aurait donné quatre cases dont deux inutiles seules : un lexique
+sans texte n'a rien à définir, un texte sans lexique n'a rien à montrer au
+clic. L'indication de poids dit donc la vérité, **19 Mo pour l'hébreu et 11
+pour le grec**, et non les 2,5 et 1,5 du seul lexique.
+
+#### Trois défauts que seul l'écran pouvait montrer
+
+**`textDirection` ne connaissait pas l'hébreu.** Elle ne traitait que les
+langues d'interface et rendait `ltr` pour `he` : la Genèse se serait affichée
+à l'envers sans que rien ne le signale — ni `tsc` ni les tests ne lisent un
+sens d'écriture. Le cas était pourtant **annoncé dans son propre commentaire
+depuis la veille** : « sauf l'hébreu ». Écrire qu'un piège existe ne le
+désarme pas ; deux tests le figent désormais.
+
+**Un défaut de bidi, invisible en français.** En arabe, l'apostrophe de
+`shaw-neh'` sautait en tête de ligne et l'étymologie mêlait hébreu et latin
+dans le désordre. Les champs en écriture latine portent maintenant leur propre
+`dir="ltr"` : le lexique de Strong est une œuvre anglaise de 1890, et son
+contenu ne suit pas la langue de l'interface. **Un relevé n'aurait rien vu —
+les chaînes étaient justes, c'est leur rendu qui ne l'était pas.** C'est la
+forme la plus fine qu'ait prise la règle 10 jusqu'ici.
+
+**Et une version biblique activée par erreur**, en visant mal une case à
+cocher depuis le panneau : 31 102 versets téléchargés dans le navigateur de
+développement. Remis en état, vérifié en base. La leçon est la même que le
+18 août : un sélecteur approximatif agit, et seul le comptage le dit.
+
+#### Ce qui reste, et qui n'est pas un défaut
+
+**Les définitions restent en anglais.** Le lexique de Strong est une œuvre
+anglaise de 1890 : l'interface est traduite dans les cinq langues, son contenu
+ne l'est pas. Les traduire serait un chantier éditorial de 14 197 entrées — la
+même nature que celui qui avait fait écarter le balisage du français le
+29 septembre au matin, et la même réponse.
+
+**278 lemmes grecs restent sans numéro** (916 occurrences, 0,67 % du texte),
+en attente de confirmation dans `a_faire`. Et **six homographes** resteront
+sans numéro quoi qu'il arrive : seul le contexte de la phrase les
+départagerait.
+
+`TexteOriginal` **ne passe pas par `TexteBiblique`**, et c'est voulu : ce
+dernier est le point de passage du texte **traduit**, il rend des versets, pas
+des mots. La Mémorisation avait déjà été laissée dehors pour cette raison
+exacte. Les deux le rejoindront quand il y aura **deux** appelants à servir —
+inventer l'abstraction avant son second usage coûterait plus qu'elle ne
+rapporte.

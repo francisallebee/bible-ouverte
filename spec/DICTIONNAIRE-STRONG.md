@@ -567,9 +567,21 @@ Tout est relevé. Ce qui reste n'est plus de l'enquête mais des décisions :
    vrais homographes que seul le contexte départagerait ; ils restent **sans
    numéro à dessein**, et c'est le comportement juste.
 
-Ce qui reste, désormais, n'est plus une décision du tout : **l'écran qui
-affiche une définition au clic sur un mot**. C'est lui qui allumera
-`LEXIQUES_VISIBLES` et éteindra la dette d'attribution.
+~~Ce qui reste, désormais, n'est plus une décision du tout : l'écran qui
+affiche une définition au clic sur un mot.~~ **Livré le 29 septembre 2026.**
+`LEXIQUES_VISIBLES` est allumé et la mention de licence s'affiche avec la
+définition.
+
+**Les trois demandes du propriétaire du 28 septembre sont donc closes** — le
+composant unique, le dictionnaire (écarté sur mesure, voir Bost), les Strong
+sur les originaux. Ce qui subsiste tient en trois lignes, et aucune n'est
+bloquante :
+
+| | |
+|---|---|
+| 278 lemmes grecs sans numéro | 0,67 % du texte, à confirmer au fil de l'eau dans `a_faire` |
+| Six homographes | resteront sans numéro : seul le contexte les départagerait |
+| Définitions en anglais | l'œuvre de Strong l'est ; les traduire serait un chantier éditorial de 14 197 entrées |
 
 ### La CC BY-SA acceptée — 29 septembre 2026
 
@@ -603,6 +615,7 @@ qu'après coup.
 
 | Date | Fait |
 |---|---|
+| 29 sept. 2026 | **Le clic sur un mot rend sa définition — la chaîne est bouclée.** `TexteOriginal`, base en version 13, `LEXIQUES_VISIBLES` allumé. Une case commande le lexique **et** son texte (19 Mo hébreu, 11 Mo grec). **La mention de licence s'affiche avec la définition : la dette de la CC BY-SA est éteinte.** Trois défauts trouvés à l'écran et nulle part ailleurs : `textDirection` ignorait l'hébreu et rendait la Genèse à l'envers, un défaut de bidi désordonnait l'étymologie en arabe, et un sélecteur approximatif a activé une version biblique par erreur. Limite assumée : **les définitions restent en anglais**, le lexique étant une œuvre de 1890. |
 | 29 sept. 2026 | **Textes originaux convertis et versionnés.** OSHB et SBLGNT dans `public/originaux/` — 306 785 + 137 554 mots, 16,5 + 9,1 Mo ; `public/` passe à 119 Mo. Couverture Strong **98,05 %** (hébreu) et **99,31 %** (grec). Deux mesures ont écarté mes raccourcis : le raccord par distance d'édition se trompe dans **20 %** des cas (Βόες → « bœuf », Καῦδα → « chaleur »), la substitution de lettre dans **4 %** (γαμίζω → γεμίζω). Et plier les accents **avant** la correspondance exacte perdait **6 010 occurrences**, `εἰς` et `εἷς` ne différant que par l'esprit. Table manuelle : **38 lemmes confirmés un par un contre la glose**, 885 occurrences ; 278 en attente, 6 homographes laissés sans numéro à dessein. |
 | 29 sept. 2026 | **CC BY-SA acceptée par le propriétaire, données versionnées.** 4,0 Mio dans `public/strong/`, `public/` passe à 95 Mo. Vérifié avant de verser : l'export de données n'emporte pas les entrées, le seul chemin de redistribution est le fichier servi. Reste dû : **afficher la mention**, qui attend l'écran des définitions. |
 | 29 sept. 2026 | **Les lexiques livrés en dessous, masqués au-dessus.** Script de conversion (8 674 + 5 523 entrées, 4,0 Mio, déterministe), les trois gestes de la règle 13 au complet, base en version 12, **deux cases séparées** hébreu/grec. `G1473` (`ἐγώ`, 2 572 occurrences) a décidé de garder les 19 entrées sans définition : `definition` est optionnelle. **Aucune migration SQL** — `bible_versions` n'est pas synchronisé, ces magasins non plus. Vu agir en base : 5 523 écrites, décocher l'hébreu laisse le grec intact. La vérification en arabe a trouvé deux défauts que les tests ne voyaient pas — noms non traduits, et « Activé » au lieu d'« Activée ». `LEXIQUES_VISIBLES` reste à `false` tant qu'aucun clic n'affiche de définition. |
