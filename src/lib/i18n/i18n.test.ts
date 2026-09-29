@@ -295,6 +295,19 @@ describe("le sens d'écriture d'un texte biblique", () => {
     expect(textDirection('ar')).toBe('rtl')
   })
 
+  /**
+   * L'hébreu n'est pas une langue d'interface, et doit pourtant s'écrire de
+   * droite à gauche. Sans ce cas, le texte de l'OSHB s'afficherait à l'envers
+   * et rien ne le signalerait : un sens d'écriture ne se voit qu'à l'écran.
+   */
+  it("met le texte hébreu de droite à gauche, bien qu'il ne soit pas une langue d’interface", () => {
+    expect(textDirection('he')).toBe('rtl')
+  })
+
+  it('laisse le grec de gauche à droite', () => {
+    expect(textDirection('el')).toBe('ltr')
+  })
+
   it('laisse les autres langues de gauche à droite', () => {
     for (const code of ['fr', 'en', 'it', 'es']) {
       expect(textDirection(code), code).toBe('ltr')

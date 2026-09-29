@@ -109,6 +109,15 @@ export interface BibleVersion {
 export interface LexiqueStrong {
   id: string;
   name: string;
+  /**
+   * La mention imposée par la licence, recopiée du fichier à l'import.
+   *
+   * Elle vit dans le fichier servi — seule source — mais doit rester lisible
+   * **hors ligne**, quand plus rien ne se télécharge. La recopier ici à
+   * l'import est ce qui l'y rend disponible sans la dupliquer dans le code.
+   * C'est la contrepartie de la CC BY-SA acceptée le 29 septembre 2026.
+   */
+  attribution?: string;
   /** `he` ou `el` — la langue **du lexique**, jamais celle de l'interface. */
   language: string;
   copyrightStatus: string;
@@ -139,6 +148,51 @@ export interface EntreeStrong {
   definition?: string;
   derivation?: string;
   kjvDef?: string;
+}
+
+/**
+ * Un mot du texte original, tel que `scripts/download-originaux.mjs` l'écrit.
+ *
+ * Les clés sont **d'une lettre**, et ce n'est pas de la coquetterie : 444 339
+ * mots portent chacun les leurs, et des noms lisibles coûtaient 4 Mio mesurés.
+ * Le fichier n'est pas lu par un humain ; ce type l'est.
+ */
+export interface MotOriginal {
+  /** Le mot tel qu'il s'écrit. */
+  t: string
+  /**
+   * Le numéro Strong — **absent pour 2 % de l'hébreu et 0,7 % du grec**.
+   *
+   * Côté hébreu ce sont les formes préposition + suffixe, qui n'en ont pas ;
+   * côté grec, les lemmes en attente dans `scripts/strong-grec-manuel.json` et
+   * six homographes laissés sans numéro à dessein. L'affichage doit donc
+   * prévoir le mot qu'on clique et qui n'a rien à montrer.
+   */
+  s?: string
+  /** Le code morphologique. OSHB et MorphGNT ne le notent pas pareil. */
+  m?: string
+  /** Le lemme — grec seulement : c'est par lui que le raccord Strong se fait. */
+  l?: string
+  /**
+   * Ce qui se colle au mot : maqqef `־`, sof-pasuq `׃`, paseq `׀`.
+   *
+   * Hébreu seulement. Ces signes sont des `<seg>` **entre** les mots dans la
+   * source, jamais dedans — 42 577 et 23 192 d'entre eux. Les oublier
+   * recollerait les mots et retirerait les fins de verset.
+   */
+  a?: string
+}
+
+/** Un verset du texte original, tel qu'il est mis en cache. */
+export interface VersetOriginal {
+  /** `GEN.1.1` — la clé du magasin, et l'ordre canonique n'y est pas. */
+  ref: string
+  /** `he` ou `el` : ce qui permet d'effacer une langue sans toucher l'autre. */
+  langue: string
+  book: string
+  chapter: number
+  verse: number
+  mots: MotOriginal[]
 }
 
 export interface BiblePassage {

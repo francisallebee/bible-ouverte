@@ -175,6 +175,17 @@ export const en: Dictionary = {
       `Delete these ${n} readings? This cannot be undone.`,
   },
 
+  strong: {
+    titre: 'Original text',
+    afficher: 'Show the original text',
+    masquer: 'Hide the original text',
+    chargement: 'Loading…',
+    sansNumero: 'This word carries no Strong number — that is the case for forms made of a preposition and a suffix.',
+    definitionVide: 'This lexicon entry has no definition.',
+    definitionAbsente: (numero: string) => `No entry ${numero} in the lexicon.`,
+    indisponible: 'Enable this language’s lexicon in Settings to read the original text.',
+  },
+
   settings: {
     goalUnitLabels: {
       chapters: 'Chapters',
@@ -273,9 +284,10 @@ export const en: Dictionary = {
 
     strongTitle: 'Strong’s lexicons',
     strongHint:
-      'An enabled lexicon is downloaded to this device — about 2.5 MB for '
-      + 'Hebrew, 1.5 MB for Greek. It defines the Hebrew and Greek words, not '
-      + 'the words of your translation.',
+      'Enabling a language downloads its original text and lexicon to this '
+      + 'device — about 19 MB for Hebrew, 11 MB for Greek. You can then tap a '
+      + 'Hebrew or Greek word to read its definition. This does not cover the '
+      + 'words of your translation.',
     strongEnabled: 'Enabled',
     strongNames: {
       'strong-hebreu': 'Strong’s Hebrew lexicon',

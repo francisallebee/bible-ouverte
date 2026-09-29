@@ -47,12 +47,20 @@ export function isLocale(value: unknown): value is Locale {
  * française. Le bloc de versets a donc son propre `dir`, indépendant de celui
  * posé sur `<html>`.
  *
- * Une langue inconnue de `LOCALES` — le jour où une version allemande
- * arriverait — est réputée de gauche à droite, ce qui est vrai de toutes les
- * langues que ce projet est susceptible d'ajouter sauf l'hébreu.
+ * **L'hébreu n'est pas une langue d'interface et doit pourtant s'écrire de
+ * droite à gauche.** Le cas était annoncé ici dès le 29 septembre 2026 — « sauf
+ * l'hébreu » — et il est arrivé le jour même avec le texte de l'OSHB. S'en
+ * remettre aux seules `LOCALES` aurait rendu la Genèse à l'envers, sans que
+ * rien ne le signale : ni `tsc`, ni les tests ne lisent un sens d'écriture.
+ *
+ * D'où cette liste, qui porte les langues **de texte** absentes des langues
+ * d'interface. Une langue inconnue des deux reste de gauche à droite.
  */
+const RTL_HORS_INTERFACE = new Set(['he', 'syr', 'fa', 'ur'])
+
 export function textDirection(language: string): 'ltr' | 'rtl' {
-  return isLocale(language) ? localeInfo(language).dir : 'ltr'
+  if (isLocale(language)) return localeInfo(language).dir
+  return RTL_HORS_INTERFACE.has(language) ? 'rtl' : 'ltr'
 }
 
 /**

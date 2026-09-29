@@ -197,6 +197,24 @@ export const fr = {
       `Supprimer ces ${n} lectures ? Cette action est définitive.`,
   },
 
+  /**
+   * Le texte original et les codes Strong.
+   *
+   * `definitionAbsente` prend le numéro parce qu'un lecteur qui voit « aucune
+   * entrée » sans savoir laquelle ne peut rien en faire — ni chercher
+   * ailleurs, ni signaler.
+   */
+  strong: {
+    titre: 'Texte original',
+    afficher: 'Voir le texte original',
+    masquer: 'Masquer le texte original',
+    chargement: 'Chargement…',
+    sansNumero: "Ce mot ne porte pas de numéro Strong — c'est le cas des formes composées d'une préposition et d'un suffixe.",
+    definitionVide: "Cette entrée du lexique n'a pas de définition.",
+    definitionAbsente: (numero: string) => `Aucune entrée ${numero} dans le lexique.`,
+    indisponible: 'Active le lexique de cette langue dans les Réglages pour lire le texte original.',
+  },
+
   settings: {
     goalUnitLabels: {
       chapters: 'Chapitres',
@@ -295,9 +313,10 @@ export const fr = {
 
     strongTitle: 'Lexiques Strong',
     strongHint:
-      'Un lexique activé est téléchargé sur cet appareil — environ 2,5 Mo pour '
-      + "l'hébreu, 1,5 Mo pour le grec. Il définit les mots hébreux et grecs, "
-      + 'non ceux de ta traduction.',
+      'Activer une langue télécharge son texte original et son lexique sur cet '
+      + "appareil — environ 19 Mo pour l'hébreu, 11 Mo pour le grec. Tu pourras "
+      + 'alors cliquer un mot hébreu ou grec pour en lire la définition. Cela ne '
+      + 'concerne pas les mots de ta traduction.',
     strongEnabled: 'Activé',
     /**
      * Les noms des deux lexiques — libellés, donc dictionnaire.

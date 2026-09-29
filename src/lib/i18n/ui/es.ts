@@ -185,6 +185,17 @@ export const es: Dictionary = {
       `¿Eliminar estas ${n} lecturas? Esta acción es definitiva.`,
   },
 
+  strong: {
+    titre: 'Texto original',
+    afficher: 'Ver el texto original',
+    masquer: 'Ocultar el texto original',
+    chargement: 'Cargando…',
+    sansNumero: 'Esta palabra no lleva número Strong: es el caso de las formas compuestas de preposición y sufijo.',
+    definitionVide: 'Esta entrada del léxico no tiene definición.',
+    definitionAbsente: (numero: string) => `No hay entrada ${numero} en el léxico.`,
+    indisponible: 'Activa el léxico de este idioma en los Ajustes para leer el texto original.',
+  },
+
   settings: {
     goalUnitLabels: {
       chapters: 'Capítulos',
@@ -283,9 +294,10 @@ export const es: Dictionary = {
 
     strongTitle: 'Léxicos Strong',
     strongHint:
-      'Un léxico activado se descarga en este dispositivo: unos 2,5 MB para el '
-      + 'hebreo y 1,5 MB para el griego. Define las palabras hebreas y griegas, '
-      + 'no las de tu traducción.',
+      'Activar un idioma descarga su texto original y su léxico en este '
+      + 'dispositivo: unos 19 MB para el hebreo y 11 MB para el griego. Podrás '
+      + 'tocar una palabra hebrea o griega para leer su definición. No cubre las '
+      + 'palabras de tu traducción.',
     strongEnabled: 'Activado',
     strongNames: {
       'strong-hebreu': 'Léxico Strong hebreo',

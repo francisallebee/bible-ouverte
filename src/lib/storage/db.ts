@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase, type DBSchema } from 'idb';
-import type { AppSettings, BiblePassage, BibleVersion, EntreeStrong, GameSession, LexiqueStrong, MemorisedVerse, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket, ThemeUtilisateur } from './types';
+import type { AppSettings, BiblePassage, BibleVersion, EntreeStrong, GameSession, LexiqueStrong, MemorisedVerse, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket, ThemeUtilisateur, VersetOriginal } from './types';
 
 interface BibleOuverteDB extends DBSchema {
   readings: {
@@ -96,6 +96,20 @@ interface BibleOuverteDB extends DBSchema {
       'by-lexique': string;
     };
   };
+  /**
+   * Le texte original, **un enregistrement par verset et non par mot**.
+   *
+   * 444 339 mots feraient autant de lignes ; 31 140 versets suffisent, et
+   * c'est exactement la maille que l'écran demande — « donne-moi Genèse 1:1 ».
+   * Clé `GEN.1.1`, index sur la langue pour n'effacer qu'un testament.
+   */
+  originaux: {
+    key: string;
+    value: VersetOriginal;
+    indexes: {
+      'by-langue': string;
+    };
+  };
   /** Les PDF des plans, par chemin dans le seau : lus une fois, relus hors ligne. */
   documents: {
     key: string;
@@ -107,7 +121,7 @@ let dbPromise: Promise<IDBPDatabase<BibleOuverteDB>> | null = null;
 
 export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 12, {
+    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 13, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const readingsStore = db.createObjectStore('readings', {
@@ -204,6 +218,14 @@ export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
 
           const entrees = db.createObjectStore('strong_entries', { keyPath: 'number' });
           entrees.createIndex('by-lexique', 'lexiqueId');
+        }
+
+        if (oldVersion < 13) {
+          // Le texte hébreu et grec, par verset. Même raison que
+          // `strong_entries` d'être à part du registre : on coche une ligne,
+          // on écrit 31 140 versets.
+          const originaux = db.createObjectStore('originaux', { keyPath: 'ref' });
+          originaux.createIndex('by-langue', 'langue');
         }
       },
     });

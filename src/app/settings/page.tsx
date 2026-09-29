@@ -7,6 +7,8 @@ import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
 // Par chemin et non par les barils : ces deux modules ne servent qu'ici, et
 // `features/bible/index.ts` documente ce que réexporter coûte en chunk partagé.
 import { importerLexiqueStrong, oublierLexiqueImporte, LEXIQUES_VISIBLES } from "@/features/bible/strong";
+import { importerTexteOriginal, oublierOriginalImporte, originalPourLexique } from "@/features/bible/originaux";
+import { deleteOriginauxPourLangue } from "@/lib/storage/originaux-store";
 import {
   getAllLexiques, updateLexique, deleteEntreesForLexique,
 } from "@/lib/storage/strong-store";
@@ -137,11 +139,22 @@ export default function SettingsPage() {
    * Pas de garde « c'est le lexique par défaut » : il n'y a pas de lexique par
    * défaut. Les deux se cochent et se décochent librement, et c'est tout
    * l'intérêt de les avoir séparés — qui ne lit que le Nouveau Testament ne
-   * descend pas les 2,5 Mo de l'hébreu.
+   * descend pas les 19 Mo de l'hébreu.
    *
    * Et `busyLexique` est distinct de `busyVersion` : les deux sections
    * s'attendraient l'une l'autre sans raison, alors qu'elles ne partagent ni
    * magasin ni fichier.
+   *
+   * **Une case commande deux ressources**, le lexique et le texte qu'il
+   * annote. Les séparer aurait donné quatre cases dont deux inutiles seules :
+   * un lexique sans texte n'a rien à définir, un texte sans lexique n'a rien à
+   * montrer au clic. D'où le poids réel annoncé dans l'indication — 19 Mo pour
+   * l'hébreu, 11 pour le grec — et non les 2,5 et 1,5 du seul lexique.
+   *
+   * L'ordre compte à l'activation : le lexique **d'abord**, le texte ensuite.
+   * Si le second échoue, le premier reste utilisable, et la reprise n'aura que
+   * lui à retélécharger. L'inverse laisserait un texte dont aucun clic ne
+   * rendrait rien.
    */
   async function handleToggleLexique(lexique: LexiqueStrong) {
     if (busyLexique) return;
@@ -150,13 +163,19 @@ export default function SettingsPage() {
     setBusyLexique(lexique.id);
     setLexiqueError("");
     try {
+      const original = originalPourLexique(lexique.id);
       if (activation) {
         await updateLexique(lexique.id, { isEnabled: true });
         await importerLexiqueStrong(lexique.id);
+        if (original) await importerTexteOriginal(original.langue);
       } else {
         await updateLexique(lexique.id, { isEnabled: false });
         await deleteEntreesForLexique(lexique.id);
         oublierLexiqueImporte(lexique.id);
+        if (original) {
+          await deleteOriginauxPourLangue(original.langue);
+          oublierOriginalImporte(original.langue);
+        }
       }
       setLexiques((prev) =>
         prev.map((l) => l.id === lexique.id ? { ...l, isEnabled: activation } : l),

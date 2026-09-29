@@ -185,6 +185,17 @@ export const it: Dictionary = {
       `Eliminare queste ${n} letture? Questa azione è definitiva.`,
   },
 
+  strong: {
+    titre: 'Testo originale',
+    afficher: 'Mostra il testo originale',
+    masquer: 'Nascondi il testo originale',
+    chargement: 'Caricamento…',
+    sansNumero: 'Questa parola non porta un numero Strong: è il caso delle forme composte da preposizione e suffisso.',
+    definitionVide: 'Questa voce del lessico non ha definizione.',
+    definitionAbsente: (numero: string) => `Nessuna voce ${numero} nel lessico.`,
+    indisponible: 'Attiva il lessico di questa lingua nelle Impostazioni per leggere il testo originale.',
+  },
+
   settings: {
     goalUnitLabels: {
       chapters: 'Capitoli',
@@ -284,9 +295,10 @@ export const it: Dictionary = {
 
     strongTitle: 'Lessici Strong',
     strongHint:
-      'Un lessico attivato viene scaricato su questo dispositivo: circa 2,5 MB '
-      + "per l'ebraico e 1,5 MB per il greco. Definisce le parole ebraiche e "
-      + 'greche, non quelle della tua traduzione.',
+      'Attivare una lingua scarica il suo testo originale e il suo lessico su '
+      + "questo dispositivo: circa 19 MB per l'ebraico e 11 MB per il greco. "
+      + 'Potrai toccare una parola ebraica o greca per leggerne la definizione. '
+      + 'Non riguarda le parole della tua traduzione.',
     strongEnabled: 'Attivato',
     strongNames: {
       'strong-hebreu': 'Lessico Strong ebraico',

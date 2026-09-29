@@ -1,4 +1,4 @@
-import { bulkAddEntrees, countEntrees, getEnabledLexiques } from '@/lib/storage/strong-store';
+import { bulkAddEntrees, countEntrees, getEnabledLexiques, updateLexique } from '@/lib/storage/strong-store';
 import type { EntreeStrong } from '@/lib/storage/types';
 
 /**
@@ -14,21 +14,20 @@ import type { EntreeStrong } from '@/lib/storage/types';
 /**
  * La section des Réglages est-elle montrée ?
  *
- * **Non, et c'est délibéré jusqu'à ce que le clic sur un mot existe.** Toute
- * la plomberie est là et vérifiée — cocher écrit les entrées, décocher les
- * efface —, mais rien n'affiche encore une définition : ni les textes
- * originaux (OSHB, MorphGNT) ni l'écran qui les rend ne sont au dépôt. Une
- * case visible ferait donc occuper 4 Mo pour un effet nul, et le lecteur
- * n'aurait aucun moyen de comprendre pourquoi.
+ * **Oui depuis le 29 septembre 2026**, le clic sur un mot existant désormais.
  *
- * Le drapeau est ici plutôt que dans les Réglages parce que c'est une
- * propriété de la fonctionnalité, pas de l'écran : le jour où le clic
- * arrivera, c'est ce fichier qu'on relira.
+ * Le drapeau a vécu quelques heures à `false`, le temps que la chaîne soit
+ * complète : les lexiques, puis les textes originaux, puis `TexteOriginal` et
+ * son panneau de définition. Tant qu'il manquait le dernier maillon, cocher la
+ * case aurait occupé des mégaoctets pour un effet nul, sans que le lecteur
+ * puisse comprendre pourquoi.
  *
- * Passer à `true` est tout ce qu'il y aura à faire — le reste est déjà en
- * place, et `strong.test.ts` fige le drapeau pour que ce soit une décision.
+ * Il reste ici plutôt que dans les Réglages parce que c'est une propriété de
+ * la fonctionnalité et non de l'écran — et il reste tout court plutôt que
+ * d'être retiré : c'est l'interrupteur par lequel la fonctionnalité se
+ * rétracte d'un seul geste si elle devait poser problème en production.
  */
-export const LEXIQUES_VISIBLES: boolean = false;
+export const LEXIQUES_VISIBLES: boolean = true;
 
 /** Ce que `scripts/download-strong.mjs` écrit. */
 interface FichierLexique {
@@ -111,6 +110,10 @@ export async function importerLexiqueStrong(lexiqueId: string): Promise<number> 
   // l'index du cache, pas la donnée, et le répéter 14 197 fois dans un JSON
   // servi sur le réseau coûterait sans rien apprendre.
   const entrees: EntreeStrong[] = fichier.entries.map((e) => ({ ...e, lexiqueId }));
+
+  // La mention voyage du fichier vers le registre, pour rester lisible hors
+  // ligne. Elle n'est pas écrite dans le code : le fichier en reste la source.
+  if (fichier.attribution) await updateLexique(lexiqueId, { attribution: fichier.attribution });
 
   const ecrites = await bulkAddEntrees(lexiqueId, entrees);
   present.add(lexiqueId);

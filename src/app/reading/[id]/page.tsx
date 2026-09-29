@@ -28,6 +28,12 @@ import ContextPicker from "@/components/ContextPicker";
 import AudioRecorder from "@/components/AudioRecorder";
 import { resizeImage } from "@/lib/image-utils";
 import TexteBiblique from "@/components/TexteBiblique";
+import TexteOriginal from "@/components/TexteOriginal";
+import { getVersetsOriginaux } from "@/lib/storage/originaux-store";
+import { getAllLexiques } from "@/lib/storage/strong-store";
+import { ORIGINAUX } from "@/features/bible/originaux";
+import { LEXIQUES_VISIBLES } from "@/features/bible/strong";
+import type { LexiqueStrong, VersetOriginal } from "@/lib/storage";
 
 export default function ReadingDetailPage() {
   const { t, locale } = useI18n();
@@ -42,6 +48,9 @@ export default function ReadingDetailPage() {
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [passages, setPassages] = useState<BiblePassage[]>([]);
+  const [original, setOriginal] = useState<VersetOriginal[]>([]);
+  const [lexiqueOriginal, setLexiqueOriginal] = useState<LexiqueStrong | null>(null);
+  const [montrerOriginal, setMontrerOriginal] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
@@ -94,6 +103,26 @@ export default function ReadingDetailPage() {
         results.push(...chPassages);
       }
       setPassages(results);
+
+      /*
+        Le texte original du même passage, s'il est en cache.
+        `getVersetsOriginaux` omet sans bruit ce qu'elle ne trouve pas : un
+        passage du Nouveau Testament quand seul l'hébreu est activé rend un
+        tableau vide, et le bouton ne paraît simplement pas. Aucune erreur à
+        traiter, parce qu'il n'y en a pas — c'est un état normal.
+      */
+      const versetsOriginaux: VersetOriginal[] = [];
+      for (let ch = r.chapterStart; ch <= r.chapterEnd; ch++) {
+        const vs = ch === r.chapterStart ? r.verseStart : 1;
+        const ve = ch === r.chapterEnd ? r.verseEnd : 999;
+        versetsOriginaux.push(...await getVersetsOriginaux(r.book, ch, vs, ve));
+      }
+      setOriginal(versetsOriginaux);
+      if (versetsOriginaux.length) {
+        const source = ORIGINAUX.find((o) => o.langue === versetsOriginaux[0].langue);
+        const lexiques = await getAllLexiques();
+        setLexiqueOriginal(lexiques.find((l) => l.id === source?.lexiqueId) ?? null);
+      }
 
       setLoaded(true);
     })();
@@ -556,7 +585,24 @@ export default function ReadingDetailPage() {
           </div>
 
           <div className="bg-amber-50 rounded-xl border border-amber-200 p-6 mb-6">
-            <h3 className="font-semibold text-gray-700 mb-3">{t.readingDetail.bibleText}</h3>
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <h3 className="font-semibold text-gray-700">{t.readingDetail.bibleText}</h3>
+              {/*
+                Le bouton n'apparaît que si le texte original est **réellement
+                en cache** pour ce passage. Le proposer sans l'avoir mènerait au
+                clic qui ne rend rien, ce que `LEXIQUES_VISIBLES` cherchait
+                précisément à éviter côté Réglages.
+              */}
+              {LEXIQUES_VISIBLES && original.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setMontrerOriginal((v) => !v)}
+                  className="text-xs text-[--primary] hover:underline shrink-0"
+                >
+                  {montrerOriginal ? t.strong.masquer : t.strong.afficher}
+                </button>
+              )}
+            </div>
             {passages.length === 0 ? (
               <p className="text-gray-400 text-sm">
                 {t.readingDetail.textUnavailable}
@@ -572,6 +618,18 @@ export default function ReadingDetailPage() {
                 classeNumero="text-xs text-gray-400 me-1"
                 classeVerset="mb-1"
               />
+            )}
+
+            {LEXIQUES_VISIBLES && montrerOriginal && original.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-amber-200">
+                <p className="text-xs text-gray-500 mb-2">{t.strong.titre}</p>
+                <TexteOriginal
+                  versets={original}
+                  langue={original[0].langue}
+                  attribution={lexiqueOriginal?.attribution}
+                  className="text-base"
+                />
+              </div>
             )}
           </div>
         </>
