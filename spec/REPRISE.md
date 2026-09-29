@@ -5064,3 +5064,35 @@ met le travail à l'abri plutôt que sur un seul disque externe.
 
 **Les 4,0 Mio de données ne sont pas versionnés**, en attente de la décision
 sur la CC BY-SA que les en-têtes revendiquent. Une commande les régénère.
+
+#### Le 307 que seule la sonde de production a vu
+
+Le code était poussé, les 1 019 tests au vert, le déploiement `READY`. La
+sonde d'après-déploiement — celle qui demande à la production ce qu'elle sert
+vraiment — a trouvé autre chose.
+
+`/strong/hebreu.json` répondait **307 vers `/auth/login`**, aboutissant à
+**200 avec du HTML**. Le `res.ok` du chargeur est alors vrai, et c'est
+`res.json()` qui casse sur `<!DOCTYPE` : l'utilisateur aurait lu « Vérifie ta
+connexion » quand sa connexion va très bien. C'est la famille exacte du défaut
+du 16 août 2026 — une ressource qui s'affiche, se laisse cocher, et échoue sans
+explication.
+
+La cause est la **règle 7** : `/strong/` n'était pas exclu du `matcher` du
+middleware, quand `/bibles/` l'était déjà. Un mot de regex.
+
+**Deux choses valent d'être gardées, et la seconde plus que la première.**
+
+D'abord la portée réelle, qui est limitée : **un compte connecté n'était pas
+touché**, ses cookies passent le middleware. Cocher le grec écrivait bien ses
+5 523 entrées, et c'est exactement ce qui rendait le défaut invisible aux
+essais. Le piège était latent, pas actif — le dire est plus utile que de
+dramatiser.
+
+Ensuite la leçon de méthode. Le défaut n'était atteignable **ni par les tests,
+ni par `tsc`, ni par `eslint`, ni même par l'essai à l'écran** — puisque
+l'essai se fait connecté, et qu'un compte connecté ne le déclenche pas. Il
+fallait interroger la production en visiteur anonyme, c'est-à-dire faire la
+sonde d'après-déploiement autrement que par un `200` sur l'accueil. **Sonder,
+c'est demander à la production ce qu'elle sert sur les chemins que la
+fonctionnalité vient d'ajouter**, pas vérifier qu'elle répond.
