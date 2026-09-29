@@ -14,7 +14,7 @@ depuis le 2 septembre parce que sa page rend `403`, est là pour le rappeler.
 
 | Ressource | Licence relevée | Où | Poids |
 |---|---|---|---|
-| **Lexique Strong hébreu** (`openscriptures/strongs`) | **Aucune licence déclarée par le dépôt** — l'API GitHub rend `license: None`, il n'y a pas de fichier `LICENSE`. Le domaine public vient de l'œuvre de 1890, pas d'une déclaration | API GitHub, 28 sept. 2026 | `strongs-hebrew-dictionary.js` : **1,91 Mo** |
+| **Lexique Strong hébreu** (`openscriptures/strongs`) | **Aucune licence déclarée par le dépôt** — l'API GitHub rend `license: None`, il n'y a pas de fichier `LICENSE`. Le domaine public vient de l'œuvre de 1890, pas d'une déclaration. **Mais l'en-tête du fichier, lui, revendique une CC BY-SA** — voir « La forme exacte des lexiques Strong » plus bas | API GitHub, 28 sept. 2026 ; en-tête relu le 29 | `strongs-hebrew-dictionary.js` : **1,91 Mo** |
 | **Lexique Strong grec** (même dépôt) | idem | idem | `strongs-greek-dictionary.js` : **1,15 Mo** |
 | **Ancien Testament hébreu + morphologie** (`openscriptures/morphhb`, OSHB) | **CC BY 4.0**, sur la base du *Westminster Leningrad Codex*, domaine public. Attribution à la formule imposée : « Original work of the Open Scriptures Hebrew Bible available at https://github.com/openscriptures/morphhb » | `LICENSE.md` lu à la source | **28,8 Mo utiles** — 39 fichiers XML, mesurés le 29 sept. ; les 79 Mo sont le dépôt entier, pas la donnée |
 | **Nouveau Testament grec + morphologie** (`morphgnt/sblgnt`) | Deux licences distinctes : le **texte SBLGNT** en CC BY 4.0, l'**analyse morphologique** sous **CC BY-SA 3.0** — copyleft, à ne pas confondre avec BY | `README.md` lu à la source | dépôt **20,6 Mo** |
@@ -168,22 +168,160 @@ meilleur analyseur relèverait la couverture sans corriger une seule de ces
 fautes, et la valeur d'un dictionnaire est dans son texte. Rien n'a donc été
 écrit dans `public/` ; le script reste au dépôt parce qu'il porte la mesure.
 
-**Décision à prendre** : reprendre cette source et la faire relire, ou en
-trouver une déjà corrigée — la transcription de 2014 existe, refuse l'accès
-automatisé, et ses droits d'édition restent à éclaircir.
+### Tranché le 29 septembre 2026 : Bost est mis de côté, pas abandonné
+
+Décision du propriétaire, et la raison est celle que la mesure avait donnée :
+**1 015 entrées pour « plus de 4 000 » annoncées, et un texte fautif qu'aucun
+meilleur analyseur ne corrigerait.** Le repérage du terme se réparait ; le
+texte, non — et la valeur d'un dictionnaire est dans son texte. Reprendre
+cette source supposerait une relecture éditoriale, c'est-à-dire exactement le
+chantier que le balisage du français avait fait écarter le même jour.
+
+**L'effort va aux Strong.** C'est le point 3 des trois demandes, sa
+faisabilité est acquise et ses licences sont vérifiées, là où le dictionnaire
+attend encore une source qui n'existe peut-être pas sous forme exploitable.
+
+« Mis de côté » n'est pas « abandonné », et la nuance porte sur deux choses
+concrètes :
+
+- **`scripts/download-bost.mjs` reste au dépôt**, et ce n'est pas de
+  l'indécision : il porte la mesure. Le chiffre de 1 015 n'est pas une
+  opinion sur cette source, c'est un relevé reproductible, et il resservira le
+  jour où quelqu'un proposera de reprendre Bost.
+- **Les deux issues restent ouvertes** — faire relire cette édition, ou
+  trouver une transcription déjà corrigée. Celle de 2014 existe, refuse
+  l'accès automatisé, et ses droits d'édition restent à éclaircir : c'est une
+  enquête, pas du code, et rien n'oblige à la mener maintenant.
 
 L'ordre des travaux ne dépend plus d'aucune enquête :
 
 1. Le **composant unique de rendu du texte biblique** — préalable indépendant
    du dictionnaire comme des Strong, et le seul moyen que `tsc` garantisse
-   l'inventaire des chemins.
-2. La **conversion de Bost** depuis HTML, par un script du dépôt.
-3. Les **originaux balisés**, si le propriétaire retient cette issue.
+   l'inventaire des chemins. **Livré le 29 septembre 2026.**
+2. Les **originaux balisés et les codes Strong** — le travail en cours.
+3. Le **dictionnaire**, quand une source au texte sûr aura été trouvée. Bost
+   n'en est pas une en l'état.
+
+## La forme exacte des lexiques Strong — relevée le 29 septembre 2026
+
+Cette section existe parce que **la forme de ces fichiers ne se devine pas**,
+et qu'aucun script de conversion ne s'écrit sans elle. Tout ce qui suit est lu
+à la source (`raw.githubusercontent.com`, dépôt `openscriptures/strongs`,
+branche `master`), et non déduit.
+
+### Ce que sont ces fichiers : du CommonJS, pas du JSON
+
+```js
+var strongsHebrewDictionary = {"H1":{…},"H2":{…}, … };
+
+module.exports = strongsHebrewDictionary;
+```
+
+Le grec est bâti de même, avec `strongsGreekDictionary`. Un `index.js` à la
+racine fait `Object.assign({}, hebrew, greek)` et `package.json` déclare un
+paquet npm `strongs`.
+
+**Conséquence pour la conversion, et c'est la seule qui compte** : ce ne sont
+pas des fichiers JSON, donc `JSON.parse()` échoue sur eux tels quels. Mais il
+n'est pas nécessaire de les exécuter pour autant — découper entre le premier
+`{` et le dernier `}` rend un JSON valide. **Ne pas faire de `require()`** :
+ce serait exécuter du code tiers au moment du build pour lire des données, et
+la règle 4 veut de toute façon un fichier servi depuis `public/`, pas un
+module empaqueté par webpack.
+
+### Les clés, et ce qu'elles ont d'irrégulier
+
+| | Hébreu | Grec |
+|---|---|---|
+| Fichier | `hebrew/strongs-hebrew-dictionary.js` | `greek/strongs-greek-dictionary.js` |
+| Poids | **2 003 130 o** (1,91 Mo) | **1 200 839 o** (1,15 Mo) |
+| Forme des clés | `H1` … `H8674` | `G1` … `G5624` |
+| Ordre des entrées | **numérique croissant** | **quelconque** — le fichier s'ouvre sur `G1615`, puis `G2274`, `G4533` |
+
+Les poids confirment au format près les 1,91 et 1,15 Mo déjà relevés le
+28 septembre. **L'ordre, lui, est un piège** : le grec n'est pas trié, et tout
+affichage qui parcourrait le fichier dans son ordre naturel sortirait en
+désordre. Trier sur la partie numérique de la clé, jamais sur la chaîne —
+`G10` se range avant `G2` dans un tri lexical.
+
+Autre irrégularité, dans le texte et non dans les clés : les renvois internes
+d'une langue à l'autre sont **complétés par des zéros** quand les clés ne le
+sont pas. L'entrée `G4533` porte « of Hebrew origin (H08012); » quand la clé
+réelle est `H8012`. Un lien cliquable construit sur le texte des renvois
+devra retirer ces zéros.
+
+### Les champs ne portent pas les mêmes noms d'une langue à l'autre
+
+C'est le piège principal, et il est silencieux.
+
+| Champ | Hébreu | Grec | Contenu |
+|---|---|---|---|
+| `lemma` | ✅ | ✅ | le mot original — `אָב`, `ἐκτελέω` |
+| `xlit` | ✅ | ❌ | translittération hébraïque — `ʼâb` |
+| `translit` | ❌ | ✅ | translittération grecque — `ekteléō` |
+| `pron` | ✅ | ❌ | prononciation — `awb` |
+| `derivation` | ✅ | ✅ | étymologie |
+| `strongs_def` | ✅ | ✅ | la définition de Strong |
+| `kjv_def` | ✅ | ✅ | les rendus de la King James |
+
+**Un convertisseur écrit sur l'exemple grec perdrait la translittération des
+8 674 entrées hébraïques sans qu'aucune erreur ne soit levée** — `entry.translit`
+vaut simplement `undefined`. C'est exactement le genre de défaut que le dépôt
+a déjà rencontré à la règle 13 : une chose qui s'affiche, se laisse cocher, et
+manque à l'usage. Le type de l'entrée doit donc porter les deux noms, et la
+conversion normaliser vers un seul.
+
+Deux détails de moindre portée : l'ordre des champs **à l'intérieur** d'une
+entrée varie d'une entrée à l'autre — sans effet après analyse, mais de quoi
+rendre illisible un `diff` —, et le `kjv_def` contient des marques d'édition
+comme `[idiom]`, qu'il faudra décider d'afficher ou de retirer.
+
+### La licence : le dépôt n'en déclare aucune, les fichiers si
+
+**Et ce qu'ils déclarent est du copyleft.** C'est une correction à ce qui
+était écrit plus haut le 28 septembre, et elle n'est pas anodine.
+
+| Ce qui a été lu | Où | Le 29 sept. 2026 |
+|---|---|---|
+| `license: None` | API GitHub du dépôt | confirmé |
+| Aucun fichier `LICENSE` | listing de la racine du dépôt | confirmé — `.gitignore`, `build.pl`, `index.js`, `package.json`, deux dossiers, trois fichiers de travail, et rien d'autre |
+| « Copyright 2009, Open Scriptures. **CC-BY-SA**. Derived from XML. » | en-tête de `strongs-greek-dictionary.js` | **relevé ce jour** |
+| « Copyright 2010, Open Scriptures. **CC-BY-SA**. Derived from XML. » | en-tête de `strongs-hebrew-dictionary.js` | **relevé ce jour** |
+
+La ligne du tableau d'ouverture — « aucune licence déclarée par le dépôt » —
+reste **vraie du dépôt**, et c'est bien ainsi qu'elle avait été relevée. Elle
+était seulement incomplète : la déclaration existe, elle est dans les fichiers.
+
+Ce que cela change, concrètement :
+
+- **L'œuvre de 1890 est bien du domaine public**, et c'est toujours elle qui
+  fonde le droit d'usage du contenu. Strong est mort en 1894.
+- **Mais la mise en forme JSON revendique une CC BY-SA**, au même titre que la
+  morphologie MorphGNT déjà relevée. C'est du **copyleft** : partage à
+  l'identique de l'œuvre dérivée, à ne pas confondre avec la simple
+  attribution des CC BY de l'OSHB et du SBLGNT.
+- **En pratique, la prudence est la même dans les deux lectures** : créditer
+  Open Scriptures et signaler la licence là où le lexique est servi. C'est
+  gratuit, et cela vaut que la revendication tienne ou non.
+
+**Ce qui n'est pas tranché ici, et ne peut pas l'être par un agent** : savoir
+si une simple transcription du domaine public en JSON ouvre réellement un
+droit d'auteur — la question de l'originalité d'une base de données — est un
+point de droit, pas un relevé. Il est noté, non résolu.
+
+### L'étape suivante, et ce qu'elle suppose
+
+L'OSHB — 28,8 Mo utiles sur 39 fichiers XML, CC BY 4.0 avec formule
+d'attribution imposée — n'a **pas** encore été ouvert. Sa forme reste à
+relever comme celle-ci vient de l'être, et rien ne dit qu'elle se devine
+mieux.
 
 ## Journal
 
 | Date | Fait |
 |---|---|
+| 29 sept. 2026 | **Forme des lexiques Strong relevée à la source.** CommonJS (`var … = {…}; module.exports`), et non du JSON : découper entre accolades, ne jamais `require()`. Clés `H1`…`H8674` **triées**, `G1`…`G5624` **en désordre**. Les champs diffèrent : le grec dit `translit`, l'hébreu `xlit` + `pron` — un convertisseur écrit sur le grec perdrait 8 674 translittérations en silence. **Correction de licence** : le dépôt n'en déclare aucune, mais les deux fichiers portent « Copyright 2009/2010, Open Scriptures. CC-BY-SA » dans leur en-tête — du copyleft. |
+| 29 sept. 2026 | **Décision du propriétaire : Bost est mis de côté, pas abandonné.** La mesure a tranché — 1 015 entrées sur plus de 4 000, texte OCR fautif qu'aucun analyseur ne corrigerait. `scripts/download-bost.mjs` reste au dépôt parce qu'il porte la mesure. L'effort va aux Strong. |
 | 29 sept. 2026 | **Composant unique livré** (`TexteBiblique`) : sept rendus de texte biblique rassemblés, règle de numérotation sortie et testée, une exception documentée (la Mémorisation, mot à mot). **Conversion de Bost tentée** depuis l'édition 1865 d'archive.org (Public Domain Mark 1.0, licence lue à la source) : 1 015 entrées sur plus de 4 000, texte OCR fautif — **rien publié**, décision à prendre. |
 | 29 sept. 2026 | **Décision du propriétaire : les Strong sur les originaux seulement.** Le balisage du français est écarté. Conséquence assumée : pas de clic sur un mot français pour en voir le Strong. |
 | 29 sept. 2026 | **Enquête achevée.** SBLGNT : CC BY 4.0 **sans clause additionnelle**, page relue en entier. OSHB : **28,8 Mo utiles** sur 39 fichiers, et non 79. **Westphal écarté** — sa date de mort est contestée (IdRef 1951 / BnF 1961), mais surtout l'ouvrage est collectif et **André Parrot (1901-1980)** siégeait à son comité : 2051 et non 2022. **Aucun dictionnaire français structuré sous licence vérifiée** ; le seul candidat ne déclare aucune licence. Reste une décision, non une recherche. |

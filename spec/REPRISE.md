@@ -4906,16 +4906,39 @@ relèverait la couverture sans corriger une seule de ces fautes, et la valeur
 d'un dictionnaire est dans son texte. Rien n'a été écrit dans `public/` ; le
 script reste au dépôt parce qu'il porte la mesure.
 
-### Ce qui n'a pas été vu, et c'est un manque
+**Le propriétaire a tranché le jour même : Bost est mis de côté, pas
+abandonné.** La raison est celle que la mesure avait donnée, et rien d'autre.
+Reprendre cette source demanderait une relecture éditoriale — le chantier que
+le balisage du français avait fait écarter quelques heures plus tôt. L'effort
+va aux Strong, dont la faisabilité est acquise et les licences vérifiées. Le
+script demeure : il ne coûte rien et il porte le chiffre, qui resservira le
+jour où quelqu'un proposera de revenir à cette édition. Le détail est dans
+`spec/DICTIONNAIRE-STRONG.md`.
+
+### Ce qui n'avait pas été vu, et qui l'a été
 
 `313dcbe` poussé à 05:57:19 UTC ; Vercel `success` à 05:58:22, `buildId`
 `5a3XMFh7…` → `fsLqURmweO…`. Pas de sonde de contenu : le refactoring
 n'introduit aucune classe CSS neuve, le changement est dans le JavaScript.
 
-**Le rendu n'a pas été vérifié à l'écran.** La session du panneau était
-déconnectée depuis le remontage du disque, et un agent ne saisit pas le mot de
-passe du propriétaire. Le typage et les 1 013 tests couvrent la règle de
-numérotation, pas l'apparence : c'est un refactoring d'affichage déployé sans
-preuve d'écran, et il faut le dire. À regarder en priorité : le Détail d'une
-lecture (numérotation « depuis-le-debut »), la recherche par thème (versets au
-fil du texte) et le Verset du jour.
+**Le rendu a été vérifié à l'écran, et le refactoring n'a rien changé.** Le
+propriétaire du dépôt a regardé les trois écrans le 29 septembre 2026 — le
+Détail d'une lecture, la recherche par thème, le Verset du jour. Ce sont
+exactement les trois que cette section désignait comme prioritaires, parce
+qu'ils portent les formes les moins ordinaires : la numérotation
+« depuis-le-debut », les versets au fil du texte, et le verset isolé. Aucun
+écart constaté.
+
+**Cette preuve ne vient pas de l'agent, et c'est précisément ce qui lui donne
+son poids.** La session du panneau était déconnectée depuis le remontage du
+disque, et un agent ne saisit pas le mot de passe du propriétaire : le manque
+était réel, et il ne pouvait être comblé que par quelqu'un d'autre. Il l'est.
+C'est la même espèce de preuve que celles des notifications push, du parcours
+découverte et de la synchronisation de langue — les quatre choses que l'agent
+n'a jamais pu constater lui-même.
+
+Ce que cette vérification **ne** dit pas : elle porte sur trois des sept
+rendus que `TexteBiblique` a rassemblés. L'aperçu, la recherche par référence,
+la recherche par mot et la recherche de passage n'ont pas été regardés. Le
+typage et les 1 013 tests les couvrent pour la règle de numérotation, pas pour
+l'apparence.
