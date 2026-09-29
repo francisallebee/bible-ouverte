@@ -579,8 +579,9 @@ bloquante :
 
 | | |
 |---|---|
-| 278 lemmes grecs sans numéro | 0,67 % du texte, à confirmer au fil de l'eau dans `a_faire` |
+| 130 lemmes grecs sans numéro | **0,13 %** du texte, à confirmer au fil de l'eau dans `a_faire` |
 | Six homographes | resteront sans numéro : seul le contexte les départagerait |
+| Dix lemmes écartés | examinés, sans correspondance honnête chez Strong — `ἀλλαχοῦ` n'y est pas, `εὖγε` y est deux mots |
 | Définitions en anglais | l'œuvre de Strong l'est ; les traduire serait un chantier éditorial de 14 197 entrées |
 
 ### La CC BY-SA acceptée — 29 septembre 2026
@@ -615,6 +616,7 @@ qu'après coup.
 
 | Date | Fait |
 |---|---|
+| 29 sept. 2026 | **Les 278 lemmes grecs repris : couverture de 99,31 % à 99,84 %.** 176 lemmes confirmés contre 38, 226 occurrences sans numéro contre 952. Trois preuves : une **concordance sur la King James** pondérée par la fréquence de fond, la **morphologie** (`τετραάρχης` marqué `N-` donne le nom et non le verbe), et l'**élimination** (`τίς` accentué étant résolu, le `τις` nu est l'indéfini `G5100` — 530 occurrences d'un coup). La concordance se trompant dans **13 %** des cas, les 147 candidats ont été relus un par un : 19 écartés, 9 corrigés. Retiré aussi les **marques d'apparat** du SBLGNT, présentes sur un mot sur seize et illisibles sans l'apparat. |
 | 29 sept. 2026 | **Le clic sur un mot rend sa définition — la chaîne est bouclée.** `TexteOriginal`, base en version 13, `LEXIQUES_VISIBLES` allumé. Une case commande le lexique **et** son texte (19 Mo hébreu, 11 Mo grec). **La mention de licence s'affiche avec la définition : la dette de la CC BY-SA est éteinte.** Trois défauts trouvés à l'écran et nulle part ailleurs : `textDirection` ignorait l'hébreu et rendait la Genèse à l'envers, un défaut de bidi désordonnait l'étymologie en arabe, et un sélecteur approximatif a activé une version biblique par erreur. Limite assumée : **les définitions restent en anglais**, le lexique étant une œuvre de 1890. |
 | 29 sept. 2026 | **Textes originaux convertis et versionnés.** OSHB et SBLGNT dans `public/originaux/` — 306 785 + 137 554 mots, 16,5 + 9,1 Mo ; `public/` passe à 119 Mo. Couverture Strong **98,05 %** (hébreu) et **99,31 %** (grec). Deux mesures ont écarté mes raccourcis : le raccord par distance d'édition se trompe dans **20 %** des cas (Βόες → « bœuf », Καῦδα → « chaleur »), la substitution de lettre dans **4 %** (γαμίζω → γεμίζω). Et plier les accents **avant** la correspondance exacte perdait **6 010 occurrences**, `εἰς` et `εἷς` ne différant que par l'esprit. Table manuelle : **38 lemmes confirmés un par un contre la glose**, 885 occurrences ; 278 en attente, 6 homographes laissés sans numéro à dessein. |
 | 29 sept. 2026 | **CC BY-SA acceptée par le propriétaire, données versionnées.** 4,0 Mio dans `public/strong/`, `public/` passe à 95 Mo. Vérifié avant de verser : l'export de données n'emporte pas les entrées, le seul chemin de redistribution est le fichier servi. Reste dû : **afficher la mention**, qui attend l'écran des définitions. |

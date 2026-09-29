@@ -5263,3 +5263,66 @@ aux tests, ni en mode clair**. Elle ne se voit qu'en basculant le thème, sur un
 écran qui l'emploie. C'est pourquoi le mode sombre appartient désormais à la
 vérification d'écran au même titre que la bascule de langue de la règle 10 :
 deux bascules, pas une.
+
+### Les 278 lemmes grecs : trois preuves, et aucune de mémoire
+
+Couverture portée de **99,31 % à 99,84 %** — 226 occurrences sans numéro contre
+952. 176 lemmes confirmés contre 38.
+
+**Une concordance sur la King James**, qui était au dépôt depuis le 16 août sans
+avoir jamais servi à cela. Le champ `kjvDef` de Strong liste les rendus anglais
+d'une entrée ; il suffit de vérifier qu'ils paraissent dans les versets où le
+lemme figure. C'est le principe même d'une concordance, retourné.
+
+**Brute, la méthode dit n'importe quoi**, et le mesurer a été la moitié du
+travail : `αὐτός`, `κατά`, `ἐν` ont des dizaines de rendus et matchent donc
+presque tout verset. Pondérée par leur fréquence de fond — mesurée sur 300
+versets tirés au hasard — elle devient discriminante. Sans cette pondération,
+`τις` se serait raccordé à `αὐτός`.
+
+**La morphologie tranche seule certains cas**, et c'est une preuve, pas un
+jugement : `τετραάρχης` est marqué `N-`, donc le nom `G5076` et non le verbe
+`G5075`.
+
+**L'élimination a rendu le plus gros gain d'un coup.** `τίς` accentué était
+déjà résolu vers `G5101`, l'interrogatif ; le `τις` sans accent est donc
+l'indéfini, que le lexique écrit `τὶς` avec l'accent grave de l'enclitique —
+`G5100`, et **530 occurrences**. La morphologie l'a confirmé (`RI`), et le même
+raisonnement a valu pour `οὔ`, `οὐ` et `οὗ` étant tous deux résolus.
+
+#### Aucune méthode acceptée en bloc, et c'est tout le sujet
+
+La concordance se trompe dans **13 %** des cas, mesuré sur ses dix-huit premiers
+résultats : `Καναναῖος` (Simon le Zélote) devenait « of Canaan », `ψίξ`
+(« miette ») devenait « table ». Les gloses partageaient une racine anglaise, et
+cela suffisait.
+
+Sur 199 occurrences gagnées, accepter en bloc aurait produit **une quinzaine de
+définitions fausses** — pire que le manque qu'elles comblent. Les 147 candidats
+ont donc été relus un par un : **19 écartés, 9 corrigés** après vérification
+dans le lexique, puis contrôlés sur des occurrences réelles.
+
+C'est la troisième fois de la journée qu'une méthode plausible est écartée par
+sa propre mesure — après la distance d'édition à 20 % et la substitution de
+lettre à 4 %. **Le taux d'erreur d'une heuristique se mesure avant de s'en
+servir, pas après.**
+
+#### Un sur seize portait une marque illisible
+
+En contrôlant les raccords sur de vraies occurrences — et non en relisant du
+code — `⸀Καναναῖος` est apparu. Mesure : **8 702 mots sur 137 554**, un sur
+seize, portaient une marque d'apparat critique collée au mot.
+
+Elles signalent les variantes du SBLGNT, mais **l'apparat lui-même n'est pas au
+dépôt** : sans lui, ce sont des symboles que le lecteur ne peut pas
+interpréter. Retirées ; la ponctuation ordinaire est conservée. Les garder
+supposerait d'importer l'apparat et de décider quoi en montrer — c'est une
+fonctionnalité, pas un nettoyage.
+
+#### Ce qui reste, et qui est juste
+
+130 lemmes à confirmer (180 occurrences), **6 homographes** que seul le contexte
+départagerait, et **10 écartés après examen** : `ἀλλαχοῦ` n'a pas d'équivalent
+chez Strong, `εὖγε` y est deux mots, `θά` est la moitié de « marana tha ». Le
+fichier les sépare en trois sections pour cette raison — `a_faire` est une liste
+de travail, `ambigus` et `ecartes` n'en sont pas.
