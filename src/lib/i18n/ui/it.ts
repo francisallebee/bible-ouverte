@@ -282,6 +282,17 @@ export const it: Dictionary = {
     versionDownloading: 'Download…',
     versionEnabled: 'Attivata',
 
+    strongTitle: 'Lessici Strong',
+    strongHint:
+      'Un lessico attivato viene scaricato su questo dispositivo: circa 2,5 MB '
+      + "per l'ebraico e 1,5 MB per il greco. Definisce le parole ebraiche e "
+      + 'greche, non quelle della tua traduzione.',
+    strongEnabled: 'Attivato',
+    strongNames: {
+      'strong-hebreu': 'Lessico Strong ebraico',
+      'strong-grec': 'Lessico Strong greco',
+    },
+
     exportTitle: 'Esportazione dei dati',
     exportHint: 'Scarica tutti i tuoi dati in formato JSON.',
     exportButton: 'Esporta in JSON',

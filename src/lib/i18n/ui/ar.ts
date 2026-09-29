@@ -393,6 +393,17 @@ export const ar: Dictionary = {
     versionDownloading: 'جارٍ التنزيل…',
     versionEnabled: 'مفعّلة',
 
+    strongTitle: 'معاجم سترونغ',
+    strongHint:
+      'يُنزَّل المعجم المفعَّل على هذا الجهاز — نحو 2٫5 ميغابايت للعبرية '
+      + 'و1٫5 ميغابايت لليونانية. يشرح الكلمات العبرية واليونانية، '
+      + 'لا كلمات ترجمتك.',
+    strongEnabled: 'مُفعَّل',
+    strongNames: {
+      'strong-hebreu': 'معجم سترونغ العبري',
+      'strong-grec': 'معجم سترونغ اليوناني',
+    },
+
     exportTitle: 'تصدير البيانات',
     exportHint: 'نزّل كل بياناتك بصيغة JSON.',
     exportButton: 'تصدير بصيغة JSON',

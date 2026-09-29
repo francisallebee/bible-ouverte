@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase, type DBSchema } from 'idb';
-import type { AppSettings, BiblePassage, BibleVersion, GameSession, MemorisedVerse, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket, ThemeUtilisateur } from './types';
+import type { AppSettings, BiblePassage, BibleVersion, EntreeStrong, GameSession, LexiqueStrong, MemorisedVerse, PlanDay, ReadingContext, ReadingEntry, ReadingPlan, RoadmapItem, SupportTicket, ThemeUtilisateur } from './types';
 
 interface BibleOuverteDB extends DBSchema {
   readings: {
@@ -72,6 +72,30 @@ interface BibleOuverteDB extends DBSchema {
       'by-prochain': string;
     };
   };
+  /**
+   * Le registre des lexiques Strong : deux lignes, et le drapeau de chacune.
+   * Séparé de `bible_versions` à dessein — voir `LexiqueStrong` dans `types`.
+   */
+  strong_lexicons: {
+    key: string;
+    value: LexiqueStrong;
+  };
+  /**
+   * Les entrées des lexiques. Clé = le numéro (`H1`, `G1473`), qui est déjà
+   * unique entre les deux langues grâce à son préfixe : pas de clé composée
+   * ni d'auto-incrément, et le clic sur un mot lira donc par clé primaire.
+   *
+   * L'index sur `lexiqueId` sert la désactivation et le comptage. Il serait
+   * possible de s'en passer en bornant la clé (`H` … `H\uffff`), mais un
+   * index dit l'intention et suit ce que `bible_passages` fait déjà.
+   */
+  strong_entries: {
+    key: string;
+    value: EntreeStrong;
+    indexes: {
+      'by-lexique': string;
+    };
+  };
   /** Les PDF des plans, par chemin dans le seau : lus une fois, relus hors ligne. */
   documents: {
     key: string;
@@ -83,7 +107,7 @@ let dbPromise: Promise<IDBPDatabase<BibleOuverteDB>> | null = null;
 
 export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 11, {
+    dbPromise = openDB<BibleOuverteDB>('bible-ouverte', 12, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const readingsStore = db.createObjectStore('readings', {
@@ -169,6 +193,17 @@ export function getDB(): Promise<IDBPDatabase<BibleOuverteDB>> {
           // engendrée par le client, comme `contexts` : on doit pouvoir en
           // créer un hors ligne et le pousser ensuite.
           db.createObjectStore('user_themes', { keyPath: 'id' });
+        }
+
+        if (oldVersion < 12) {
+          // Les lexiques Strong : le registre d'un côté, les entrées de
+          // l'autre. Deux magasins et non un, pour la même raison que
+          // `bible_versions` et `bible_passages` : on coche une ligne, on
+          // efface des dizaines de milliers.
+          db.createObjectStore('strong_lexicons', { keyPath: 'id' });
+
+          const entrees = db.createObjectStore('strong_entries', { keyPath: 'number' });
+          entrees.createIndex('by-lexique', 'lexiqueId');
         }
       },
     });

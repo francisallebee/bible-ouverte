@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Settings, Download, Upload, Sun, Info, BookOpen, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass, Languages, LayoutList, Check, Type, ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
+import { Settings, Download, Upload, Sun, Info, BookOpen, BookMarked, Target, Cloud, RefreshCw, AlertTriangle, Palette, Clock, Bell, Compass, Languages, LayoutList, Check, Type, ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
 import { seedIfNeeded, getSettings, updateSettings, countPassages, getAllVersions, updateVersion, deletePassagesForVersion, getAllPlans } from "@/lib/storage";
 import { importBibleVersion, forgetImportedVersion } from "@/features/bible";
+// Par chemin et non par les barils : ces deux modules ne servent qu'ici, et
+// `features/bible/index.ts` documente ce que réexporter coûte en chunk partagé.
+import { importerLexiqueStrong, oublierLexiqueImporte } from "@/features/bible/strong";
+import {
+  getAllLexiques, updateLexique, deleteEntreesForLexique,
+} from "@/lib/storage/strong-store";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n, useBooks } from "@/contexts/I18nContext";
 import { AVAILABLE_LOCALES } from "@/lib/i18n/ui";
@@ -15,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
 import { exportData, importData } from "@/lib/storage/export-import";
-import type { AppSettings, BibleVersion, ReadingPlan } from "@/lib/storage";
+import type { AppSettings, BibleVersion, LexiqueStrong, ReadingPlan } from "@/lib/storage";
 import { COLOR_THEMES, applyColorTheme, applyTheme, CUSTOM_THEME_ID, DEFAULT_CUSTOM } from "@/lib/themes";
 import { NAV_LINKS, NAV_COMPTE } from "@/components/Sidebar";
 import {
@@ -90,6 +96,9 @@ export default function SettingsPage() {
   const [plans, setPlans] = useState<ReadingPlan[]>([]);
   const [busyVersion, setBusyVersion] = useState<string | null>(null);
   const [versionError, setVersionError] = useState("");
+  const [lexiques, setLexiques] = useState<LexiqueStrong[]>([]);
+  const [busyLexique, setBusyLexique] = useState<string | null>(null);
+  const [lexiqueError, setLexiqueError] = useState("");
 
   // Lu au montage seulement : `Notification.permission` n'existe pas au rendu
   // serveur, et l'état de départ doit donc être neutre.
@@ -99,6 +108,70 @@ export default function SettingsPage() {
 
   async function loadVersions() {
     setVersions(await getAllVersions());
+  }
+
+  async function loadLexiques() {
+    setLexiques(await getAllLexiques());
+  }
+
+  /**
+   * Le libellé d'un lexique, traduit.
+   *
+   * Le `name` du registre reste en secours : il sert si un lexique arrivait
+   * sans sa traduction — ce que le typage interdit pour ceux d'aujourd'hui,
+   * `Dictionary` étant calqué sur `fr`, mais qui coûte moins cher à écrire
+   * qu'un identifiant brut affiché un jour à l'utilisateur.
+   */
+  function nomLexique(lexique: LexiqueStrong): string {
+    const noms: Record<string, string> = t.settings.strongNames;
+    return noms[lexique.id] ?? lexique.name;
+  }
+
+  /**
+   * Activer ou désactiver un lexique Strong.
+   *
+   * Décalque de `handleToggleEnabled` pour les versions, et la ressemblance
+   * est voulue : la case doit commander le cache de la même façon dans les
+   * deux cas. Deux différences seulement, et elles viennent du domaine.
+   *
+   * Pas de garde « c'est le lexique par défaut » : il n'y a pas de lexique par
+   * défaut. Les deux se cochent et se décochent librement, et c'est tout
+   * l'intérêt de les avoir séparés — qui ne lit que le Nouveau Testament ne
+   * descend pas les 2,5 Mo de l'hébreu.
+   *
+   * Et `busyLexique` est distinct de `busyVersion` : les deux sections
+   * s'attendraient l'une l'autre sans raison, alors qu'elles ne partagent ni
+   * magasin ni fichier.
+   */
+  async function handleToggleLexique(lexique: LexiqueStrong) {
+    if (busyLexique) return;
+
+    const activation = !lexique.isEnabled;
+    setBusyLexique(lexique.id);
+    setLexiqueError("");
+    try {
+      if (activation) {
+        await updateLexique(lexique.id, { isEnabled: true });
+        await importerLexiqueStrong(lexique.id);
+      } else {
+        await updateLexique(lexique.id, { isEnabled: false });
+        await deleteEntreesForLexique(lexique.id);
+        oublierLexiqueImporte(lexique.id);
+      }
+      setLexiques((prev) =>
+        prev.map((l) => l.id === lexique.id ? { ...l, isEnabled: activation } : l),
+      );
+    } catch {
+      // Comme pour les versions : remettre la case dans son état réel plutôt
+      // que de laisser croire à un lexique disponible hors ligne.
+      await updateLexique(lexique.id, { isEnabled: !activation });
+      setLexiqueError(
+        activation
+          ? t.errors.versionDownload(nomLexique(lexique))
+          : t.errors.versionDelete(nomLexique(lexique)),
+      );
+    }
+    setBusyLexique(null);
   }
 
   async function handleSetDefault(versionId: string) {
@@ -324,6 +397,7 @@ export default function SettingsPage() {
       setDeviceNotif(readDeviceState());
       setLoaded(true);
       await loadVersions();
+      await loadLexiques();
       // Après le premier rendu, comme les versions : les plans ne servent qu'au
       // choix de la portée de l'objectif, et rien ne doit attendre cet appel.
       setPlans(await getAllPlans());
@@ -857,6 +931,52 @@ export default function SettingsPage() {
                 </div>
               );
             })}
+          </div>
+        </SectionCard>
+
+        {/*
+          Les lexiques Strong, placés juste après les versions bibliques parce
+          qu'ils obéissent à la même règle : la case commande le cache, et rien
+          n'est téléchargé tant qu'elle n'est pas cochée.
+
+          Deux cases et non une, sur décision du propriétaire le 29 septembre
+          2026 : l'hébreu pèse 2,5 Mo et le grec 1,5 Mo, et qui ne lit que le
+          Nouveau Testament n'a aucune raison de descendre les deux.
+
+          Aucune classe grise neuve ici — tout est repris à l'identique du bloc
+          des versions au-dessus, dont les remaps `html.dark` sont déjà écrits.
+          C'est la règle 15 : une variante est une classe distincte, et en
+          ajouter une passerait inaperçue jusqu'au mode sombre.
+        */}
+        <SectionCard icon={BookMarked} title={t.settings.strongTitle}>
+          <p className="text-sm text-[--text-secondary] mb-3">
+            {t.settings.strongHint}
+          </p>
+          {lexiqueError && (
+            <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">
+              {lexiqueError}
+            </p>
+          )}
+          <div className="space-y-2">
+            {lexiques.map(l => (
+              <div key={l.id} className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg border border-[--border] hover:border-gray-300 transition-colors">
+                <span className="text-sm text-[--text] flex-1 min-w-0 truncate">{nomLexique(l)}</span>
+                <label className={`flex items-center gap-1.5 text-xs shrink-0 text-[--text-secondary] ${
+                  busyLexique ? 'cursor-default' : 'cursor-pointer'
+                }`}>
+                  {busyLexique === l.id ? (
+                    <span className="w-3.5 h-3.5 rounded-full border-2 border-[--primary] border-t-transparent animate-spin" />
+                  ) : (
+                    <input type="checkbox" checked={l.isEnabled} disabled={busyLexique !== null}
+                      onChange={() => handleToggleLexique(l)}
+                      className="accent-[--primary] w-3.5 h-3.5" />
+                  )}
+                  {busyLexique === l.id
+                    ? (l.isEnabled ? t.settings.versionDeleting : t.settings.versionDownloading)
+                    : t.settings.strongEnabled}
+                </label>
+              </div>
+            ))}
           </div>
         </SectionCard>
 

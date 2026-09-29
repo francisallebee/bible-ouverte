@@ -271,6 +271,17 @@ export const en: Dictionary = {
     versionDownloading: 'Downloading…',
     versionEnabled: 'Enabled',
 
+    strongTitle: 'Strong’s lexicons',
+    strongHint:
+      'An enabled lexicon is downloaded to this device — about 2.5 MB for '
+      + 'Hebrew, 1.5 MB for Greek. It defines the Hebrew and Greek words, not '
+      + 'the words of your translation.',
+    strongEnabled: 'Enabled',
+    strongNames: {
+      'strong-hebreu': 'Strong’s Hebrew lexicon',
+      'strong-grec': 'Strong’s Greek lexicon',
+    },
+
     exportTitle: 'Data export',
     exportHint: 'Download all your data as JSON.',
     exportButton: 'Export as JSON',

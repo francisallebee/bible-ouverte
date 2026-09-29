@@ -1,4 +1,4 @@
-import type { AppSettings, BibleVersion, ReadingContext } from './types';
+import type { AppSettings, BibleVersion, LexiqueStrong, ReadingContext } from './types';
 import { getDB } from './db';
 import { importEnabledBibleData } from '@/features/bible/import';
 import { deleteContext as deleteContextRemote } from '@/lib/supabase/store';
@@ -71,6 +71,29 @@ export const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'annotee', name: 'Bible Annotée de Neuchâtel 1900', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
 ];
 
+/**
+ * Les deux lexiques Strong — **le deuxième des trois gestes**.
+ *
+ * Même piège que les versions bibliques (règle 13) : un lexique déclaré ici
+ * mais absent de `LEXIQUES` dans `features/bible/strong.ts` s'afficherait aux
+ * Réglages, se laisserait cocher, et échouerait au téléchargement sans autre
+ * explication. `strong.test.ts` croise les deux tables dans les deux sens.
+ *
+ * **Deux lignes et non une**, sur décision du propriétaire : qui ne lit que le
+ * Nouveau Testament n'a pas à descendre les 2,53 Mio de l'hébreu. Les deux
+ * sont désactivées à l'installation, comme les onze traductions non natives —
+ * rien n'arrive tant que le lecteur ne le demande pas.
+ *
+ * `copyrightStatus` reste `public-domain` : l'œuvre de Strong est de 1890 et
+ * son auteur est mort en 1894. La revendication CC BY-SA porte sur la mise en
+ * forme JSON, et c'est le champ `attribution` du fichier servi qui la
+ * transporte — voir `scripts/download-strong.mjs`.
+ */
+export const LEXIQUES_STRONG: LexiqueStrong[] = [
+  { id: 'strong-hebreu', name: 'Lexique Strong hébreu', language: 'he', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'strong-grec', name: 'Lexique Strong grec', language: 'el', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+];
+
 const DEFAULT_SETTINGS: AppSettings = {
   id: 'app',
   defaultVersionId: 'ls1910',
@@ -105,6 +128,7 @@ async function runSeed(): Promise<void> {
 
   if (existingSettings?.firstLaunchCompleted) {
     await ensureVersionsExist(db);
+    await ensureLexiquesExist(db);
     await ensureContextsExist(db);
     await repairNahumAbbreviation();
     // Les appareils touchés par le double import gardent leurs doublons : la
@@ -120,7 +144,7 @@ async function runSeed(): Promise<void> {
     return;
   }
 
-  const tx = db.transaction(['contexts', 'bible_versions', 'settings'], 'readwrite');
+  const tx = db.transaction(['contexts', 'bible_versions', 'strong_lexicons', 'settings'], 'readwrite');
 
   for (const ctx of DEFAULT_CONTEXTS) {
     const existing = await tx.objectStore('contexts').get(ctx.id);
@@ -130,6 +154,11 @@ async function runSeed(): Promise<void> {
   for (const v of TEXT_VERSIONS) {
     const existing = await tx.objectStore('bible_versions').get(v.id);
     if (!existing) await tx.objectStore('bible_versions').add(v);
+  }
+
+  for (const l of LEXIQUES_STRONG) {
+    const existing = await tx.objectStore('strong_lexicons').get(l.id);
+    if (!existing) await tx.objectStore('strong_lexicons').add(l);
   }
 
   if (!existingSettings) {
@@ -204,6 +233,25 @@ async function ensureContextsExist(db: Awaited<ReturnType<typeof getDB>>): Promi
     if (ctx.synced && typeof navigator !== 'undefined' && navigator.onLine) {
       deleteContextRemote(ctx.id).catch(() => {});
     }
+  }
+}
+
+/**
+ * Ajoute les lexiques Strong à une installation antérieure à leur arrivée.
+ *
+ * Sans elle, les appareils déjà utilisés n'auraient jamais les deux lignes :
+ * le bloc d'amorçage complet ne rejoue pas une fois `firstLaunchCompleted`
+ * posé. C'est le même service qu'`ensureVersionsExist`.
+ *
+ * Elle **ne retire rien**, contrairement à sa jumelle : celle-ci nettoie les
+ * versions disparues du code, mais un lexique retiré emporterait avec lui des
+ * milliers d'entrées que plus rien n'effacerait. Le jour où l'un d'eux
+ * disparaîtra, il faudra supprimer ses entrées d'abord.
+ */
+async function ensureLexiquesExist(db: Awaited<ReturnType<typeof getDB>>): Promise<void> {
+  for (const l of LEXIQUES_STRONG) {
+    const existant = await db.get('strong_lexicons', l.id);
+    if (!existant) await db.put('strong_lexicons', l);
   }
 }
 

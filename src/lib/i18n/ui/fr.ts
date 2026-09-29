@@ -293,6 +293,30 @@ export const fr = {
     versionDownloading: 'Téléchargement…',
     versionEnabled: 'Activée',
 
+    strongTitle: 'Lexiques Strong',
+    strongHint:
+      'Un lexique activé est téléchargé sur cet appareil — environ 2,5 Mo pour '
+      + "l'hébreu, 1,5 Mo pour le grec. Il définit les mots hébreux et grecs, "
+      + 'non ceux de ta traduction.',
+    strongEnabled: 'Activé',
+    /**
+     * Les noms des deux lexiques — libellés, donc dictionnaire.
+     *
+     * Les noms des versions bibliques, eux, restent dans `TEXT_VERSIONS` : ce
+     * sont des noms propres d'édition, et « Smith & Van Dyck 1865 » ne se
+     * traduit pas. « Lexique Strong hébreu » est au contraire une description,
+     * qui serait restée française dans les quatre autres langues — vu à
+     * l'écran en arabe le 29 septembre 2026, pas trouvé par un relevé.
+     *
+     * Indexés par l'identifiant du registre, comme `i18n/contexts.ts` l'est
+     * par le `slug` : la clé est logique et ne bouge pas, le libellé est
+     * traduit.
+     */
+    strongNames: {
+      'strong-hebreu': 'Lexique Strong hébreu',
+      'strong-grec': 'Lexique Strong grec',
+    },
+
     exportTitle: 'Export des données',
     exportHint: 'Télécharge toutes tes données au format JSON.',
     exportButton: 'Exporter en JSON',

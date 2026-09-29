@@ -92,6 +92,55 @@ export interface BibleVersion {
   isEnabled: boolean;
 }
 
+/**
+ * Un lexique Strong, tel que les Réglages le proposent.
+ *
+ * Deux entrées seulement — l'hébreu et le grec — et **deux cases séparées**,
+ * non une seule. Le choix est mesuré : l'hébreu pèse 2,53 Mio et le grec
+ * 1,47 Mio, et qui ne lit que le Nouveau Testament n'a aucune raison de
+ * descendre les deux tiers du poids pour rien. C'est la même logique que les
+ * douze traductions, où rien n'arrive sans être demandé (règle 4).
+ *
+ * Volontairement **distinct de `BibleVersion`** : un lexique n'est pas une
+ * version et n'a rien à faire dans le sélecteur de version, ni dans
+ * l'Historique, ni dans les Statistiques. Les mêlanger aurait fait apparaître
+ * « Lexique Strong grec » au moment de choisir dans quelle Bible on lit.
+ */
+export interface LexiqueStrong {
+  id: string;
+  name: string;
+  /** `he` ou `el` — la langue **du lexique**, jamais celle de l'interface. */
+  language: string;
+  copyrightStatus: string;
+  source: string;
+  isEnabled: boolean;
+}
+
+/**
+ * Une entrée de lexique, telle que `scripts/download-strong.mjs` la produit.
+ *
+ * `definition` est **optionnelle**, et ce n'est pas une précaution de style :
+ * elle manque dans 19 des 5 523 entrées grecques, mesuré le 29 septembre 2026.
+ * Parmi elles `G1473` — `ἐγώ`, « je » —, qui paraît 2 572 fois dans le
+ * Nouveau Testament. La déclarer obligatoire ferait mentir `tsc` sur le
+ * pronom le plus courant du texte. `derivation` et `kjvDef` manquent aussi,
+ * plus rarement ; `pron` n'existe qu'en hébreu.
+ */
+export interface EntreeStrong {
+  /** `H1` … `H8674`, `G1` … `G5624`. Le préfixe dit le lexique. */
+  number: string;
+  lexiqueId: string;
+  /** Le mot original : `אָב`, `ἐκτελέω`. */
+  word: string;
+  /** Translittération. La source la nomme `xlit` en hébreu, `translit` en grec. */
+  translit?: string;
+  /** Prononciation — hébreu seulement. */
+  pron?: string;
+  definition?: string;
+  derivation?: string;
+  kjvDef?: string;
+}
+
 export interface BiblePassage {
   id?: number;
   versionId: string;
