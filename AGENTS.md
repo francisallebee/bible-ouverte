@@ -133,6 +133,7 @@ coûterait une passe complète sur les 19 écrans.
 | `src/features/bible/` | Livres, classification, import des versions |
 | `src/components/BookPicker.tsx`, `PassagePicker.tsx` | Le choix d'un livre, d'un chapitre et d'un verset — mêmes fenêtres partout |
 | `public/bibles/` | 12 versions libres de droits : 8 fr, 1 en, 1 it, 1 ar, 1 es (82 Mo) |
+| `public/strong/` | Les deux lexiques Strong, hébreu et grec (4 Mo). CC BY-SA — la mention voyage dans le fichier |
 | `supabase/migrations/` | Schéma et RLS, appliqués dans l'ordre des noms |
 | `scripts/` | Téléchargement et conversion des textes bibliques, mesure du poids en mots et de la versification |
 
@@ -160,6 +161,15 @@ coûterait une passe complète sur les 19 écrans.
 6. Pas de dépendance nouvelle sans raison sérieuse.
 7. Toute ressource servie avant connexion doit être exclue du `matcher` du
    middleware, sans quoi elle répond une redirection vers `/auth/login`.
+   **Et la redirection ne se voit pas comme une erreur** : elle aboutit à un
+   `200` portant du HTML, si bien que `res.ok` est vrai et que c'est
+   `res.json()` qui casse sur `<!DOCTYPE`. L'utilisateur lit alors « Vérifie ta
+   connexion » quand sa connexion va très bien. Un compte **connecté** n'est
+   pas touché, ses cookies passant le middleware : le défaut est donc invisible
+   à tout essai fait en session, et `/strong/` a été livré ainsi le 29 septembre
+   2026. Sonder la production après déploiement veut dire lui demander, **en
+   visiteur anonyme**, ce qu'elle sert sur les chemins que la fonctionnalité
+   vient d'ajouter.
 8. `seedIfNeeded` partage une exécution unique entre tous ses appelants
    simultanés, et un échec de l'import des traductions n'y remonte jamais. Ces
    deux garde-fous ne sont pas décoratifs : la barre latérale et le `useEffect`
@@ -203,6 +213,20 @@ coûterait une passe complète sur les 19 écrans.
     version qui s'affiche, se laisse cocher, et échoue au téléchargement sans
     autre explication — c'est arrivé le 16 août 2026, en production.
     `import.test.ts` compare désormais les deux tables dans les deux sens.
+
+17. **Les lexiques Strong suivent les trois gestes de la règle 13**, avec leurs
+    propres tables : `scripts/download-strong.mjs`, `LEXIQUES_STRONG`
+    (`lib/storage/seed.ts`) et `LEXIQUES` (`features/bible/strong.ts`).
+    `strong.test.ts` croise les deux dernières dans les deux sens.
+    Leur registre est **volontairement séparé** de `bible_versions` : un
+    lexique n'est pas une version et n'a rien à faire dans le sélecteur de
+    version, ni dans l'Historique, ni dans les Statistiques.
+    Ni `strong_lexicons` ni `strong_entries` ne partent vers Supabase — comme
+    `bible_versions`, ce sont des préférences d'appareil. **C'est pourquoi
+    cette fonctionnalité n'a pas de migration**, et c'est la seule raison qui
+    le justifie : la faire suivre le compte en demanderait une.
+    `LEXIQUES_VISIBLES` garde la section des Réglages **masquée** tant qu'aucun
+    écran n'affiche de définition, et un test fige ce drapeau.
 
 14. **Un nom de classe Tailwind écrit hors des dossiers scannés n'existe pas.**
     `tailwind.config.ts` liste `src/app`, `src/components`, `src/features` — et
