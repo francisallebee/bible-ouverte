@@ -4838,3 +4838,84 @@ propriétaire ait tranché. Ce qui est établi :
   lexique de Strong (1890) est ancien ; un texte **français** aligné mot à mot
   sur les numéros ne l'est pas nécessairement, et c'est là que la question des
   droits se pose vraiment.
+
+## La séance du 29 septembre 2026 : le point de passage, et un dictionnaire refusé
+
+Trois travaux demandés d'un coup — le composant unique de rendu, la conversion
+de Bost, les Strong sur les originaux. Le premier est livré, le deuxième s'est
+arrêté sur une mesure, le troisième n'est pas commencé.
+
+**Le disque avait disparu en début de séance.** Le projet vit sur un volume
+externe démonté : plus de dépôt, plus de Bash. Rien n'a été recréé à sa place,
+et c'est délibéré — écrire dans le point de montage d'un volume démonté crée
+un vrai dossier sur le disque système, empêche le volume de se remonter
+proprement, et donne l'illusion d'un projet revenu, vide. Le temps de
+l'interruption a servi à l'enquête sur les sources, qui ne dépendait pas du
+dépôt. Au remontage, `git fsck` n'a signalé que des objets orphelins
+ordinaires.
+
+### Le point de passage unique (`TexteBiblique`)
+
+Sept rendus indépendants, pas six comme annoncé la veille : l'aperçu, la
+recherche par référence, par mot et par thème, la recherche de passage, le
+Verset du jour, le Détail d'une lecture. Chacun avait sa balise, sa
+numérotation et son propre appel à `textDirection`.
+
+**La règle de numérotation est sortie en premier, et c'est ce qui a rendu le
+refactoring sûr.** Elle diffère d'un écran à l'autre, et l'une des formes
+surprend : dans le Détail d'une lecture, seul le tout premier verset porte son
+numéro seul, tous les autres portent « chapitre:verset » — même à l'intérieur
+du chapitre. C'est le comportement livré ; il est **gardé et documenté**
+plutôt que corrigé en passant, parce que le corriger est une décision et non
+un effet de bord. Cinq tests le fixent.
+
+Le composant a dû apprendre deux formes que l'écran imposait déjà : un
+paragraphe par verset **ou** les versets au fil du texte, et un `ReactNode`
+plutôt qu'une chaîne — sans quoi la recherche par mot, qui rend le verset
+surligné, serait restée hors du point de passage, donc hors d'atteinte du
+dictionnaire à venir.
+
+`PassagePreview` reçoit désormais la langue du texte au lieu d'un `dir` que
+chacun de ses appelants calculait. Une exception subsiste, documentée sur
+place : la Mémorisation rend **un mot à la fois**, certains masqués. Elle
+rejoindra le composant quand celui-ci saura rendre des mots — c'est-à-dire en
+accueillant le clic du dictionnaire — et pas avant, pour ne pas inventer une
+abstraction avant son second usage.
+
+### Bost : la source était bonne, le texte ne l'est pas
+
+La source a été choisie sur **les droits et le service**, non sur la
+commodité : l'édition 1865 de l'Internet Archive porte un Public Domain
+Mark 1.0 **lu dans ses métadonnées**, et elle se sert à un script. Les
+transcriptions en ligne, de bien meilleure qualité, répondent `403` à tout ce
+qui n'est pas un navigateur — un script du dépôt ne dépendra pas d'un
+déguisement.
+
+Le nettoyage fonctionne : 24 087 césures recollées, 940 mentions de
+numérisation retirées, et la confusion systématique du `1` pour `I` corrigée
+dans les capitales — sûre parce que bornée aux mots tout en majuscules, où un
+chiffre entouré de lettres n'est jamais un chiffre.
+
+**C'est la mesure qui a tranché, et contre la fonction** : 1 015 entrées
+détectées quand la page de titre de l'ouvrage annonce « plus de 4 000
+articles ». Les entrées manquées se collent à la précédente — 74 363
+caractères pour la plus longue, contre une médiane de 2 195. Le repérage du
+terme est réparable ; **le texte ne l'est pas** : « ennanéenne » pour
+cananéenne, « tixès » pour fixés, « .los. » pour Jos. Un meilleur analyseur
+relèverait la couverture sans corriger une seule de ces fautes, et la valeur
+d'un dictionnaire est dans son texte. Rien n'a été écrit dans `public/` ; le
+script reste au dépôt parce qu'il porte la mesure.
+
+### Ce qui n'a pas été vu, et c'est un manque
+
+`313dcbe` poussé à 05:57:19 UTC ; Vercel `success` à 05:58:22, `buildId`
+`5a3XMFh7…` → `fsLqURmweO…`. Pas de sonde de contenu : le refactoring
+n'introduit aucune classe CSS neuve, le changement est dans le JavaScript.
+
+**Le rendu n'a pas été vérifié à l'écran.** La session du panneau était
+déconnectée depuis le remontage du disque, et un agent ne saisit pas le mot de
+passe du propriétaire. Le typage et les 1 013 tests couvrent la règle de
+numérotation, pas l'apparence : c'est un refactoring d'affichage déployé sans
+preuve d'écran, et il faut le dire. À regarder en priorité : le Détail d'une
+lecture (numérotation « depuis-le-debut »), la recherche par thème (versets au
+fil du texte) et le Verset du jour.
