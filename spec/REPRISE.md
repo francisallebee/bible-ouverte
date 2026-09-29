@@ -5215,3 +5215,51 @@ des mots. La Mémorisation avait déjà été laissée dehors pour cette raison
 exacte. Les deux le rejoindront quand il y aura **deux** appelants à servir —
 inventer l'abstraction avant son second usage coûterait plus qu'elle ne
 rapporte.
+
+### Le mode sombre était cassé depuis le commit initial
+
+Demandé en fin de séance : regarder le mode sombre et l'écran étroit de la
+nouvelle fonctionnalité. L'écran étroit n'avait rien. Le mode sombre a rendu un
+défaut qui n'était pas le mien, et qui dormait depuis le premier commit.
+
+`bg-amber-50` **n'était remappé nulle part**. La carte « Texte biblique » du
+Détail d'une lecture restait donc crème en mode sombre pendant que `--text`
+passait au presque blanc. **Contraste 1,06** — le chiffre des badges du 21 août
+et de la barre latérale de la règle 15 — et il portait ici sur le texte biblique
+lui-même, **en français comme en hébreu**.
+
+| | avant | après |
+|---|---|---|
+| Titre « Texte biblique » | **1,06** | 14,40 |
+| Texte français des versets | ~1,06 | 14,40 |
+| Numéros de verset | 2,47 | 6,15 |
+| Éléments sous 4,5 dans la carte | **251 / 295** | **0 / 295** |
+
+**Ce qui a permis de localiser la cause, c'est un contraste entre deux
+mesures** : le panneau de définition tenait déjà 13,35 quand tout le reste de
+la carte était à 1,06. Le panneau utilise `--surface`, qui est remappé ; la
+carte utilise `bg-amber-50`, qui ne l'est pas. La différence désignait la
+famille de couleurs, pas le composant.
+
+**Le correctif contenait un piège, évité par la mesure.** Remapper le fond seul
+aurait inversé le défaut : quatre écrans posent `text-amber-900/800/700`
+explicitement sur `bg-amber-50` — les bandeaux d'alerte de Plans et de l'import,
+le bloc de Profil, le statut suspendu de la feuille de route. Leur texte sombre
+serait devenu illisible sur fond sombre. La famille entière est donc remappée,
+et **les cinq combinaisons du dépôt ont été fabriquées puis mesurées** plutôt
+que supposées : 10,94 à 14,40.
+
+**Le mode clair avait son défaut aussi**, et c'est le même que le 21 août : les
+numéros de verset tenaient **2,45** sur le fond ambre, en `text-gray-400`.
+Passés à `--text-secondary` : 4,66. La leçon d'alors se répète mot pour mot —
+*la mesure trouve plus large que ce qui était cherché*.
+
+Vérifié dans les **quatre croisements** — clair/sombre × large/375 px — tous à
+zéro élément sous 4,5, sans débordement horizontal.
+
+**La leçon de méthode**, et elle vaut au-delà de l'ambre : une couleur de fond
+posée en Tailwind et jamais remappée ne se voit **ni au typage, ni au lint, ni
+aux tests, ni en mode clair**. Elle ne se voit qu'en basculant le thème, sur un
+écran qui l'emploie. C'est pourquoi le mode sombre appartient désormais à la
+vérification d'écran au même titre que la bascule de langue de la règle 10 :
+deux bascules, pas une.

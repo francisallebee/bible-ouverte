@@ -252,6 +252,18 @@ coûterait une passe complète sur les 19 écrans.
     1,01. Toute classe grise ajoutée à un composant doit être vérifiée dans ce
     bloc, **y compris ses variantes `hover:`**.
 
+18. **Vérifier un écran, c'est basculer deux fois : la langue et le thème.**
+    La règle 10 impose la première. La seconde a manqué jusqu'au 29 septembre
+    2026, et le prix en était lourd : `bg-amber-50`, jamais remappé, laissait
+    le **texte biblique lui-même** à **1,06** de contraste en mode sombre sur
+    le Détail d'une lecture — 251 éléments sur 295 sous le seuil, depuis le
+    commit initial. Une couleur de fond posée en Tailwind et non remappée ne se
+    voit ni au typage, ni au lint, ni aux tests, ni en mode clair.
+    **Et un fond ne se remappe jamais seul** : remapper `bg-amber-50` sans
+    `text-amber-700/800/900` aurait rendu illisibles les quatre bandeaux qui
+    les posent ensemble. Mesurer les combinaisons existantes fait partie du
+    correctif, pas de sa relecture.
+
 16. **Un écran ajouté à la barre latérale demande trois gestes, comme une
     version de la Bible.** L'entrée dans `Sidebar.tsx`, une étape dans
     `TOUR_STEPS` (`lib/tour.ts`) avec son texte dans les **cinq**
