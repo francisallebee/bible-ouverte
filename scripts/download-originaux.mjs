@@ -182,6 +182,24 @@ function convertirHebreu(xml, abbr) {
 
 // ------------------------------------------------------------------ grec
 
+/**
+ * Les marques d'apparat critique du SBLGNT, retirées du texte affiché.
+ *
+ * `⸀` signale une variante sur le mot suivant, `⸂…⸃` en encadre une sur
+ * plusieurs mots, et `⟦…⟧` un passage d'authenticité discutée. **8 702 mots
+ * sur 137 554 en portent une — un sur seize**, mesuré le 29 septembre 2026.
+ *
+ * Elles sont retirées parce que **l'apparat lui-même n'est pas au dépôt** :
+ * sans lui, ce sont des symboles que le lecteur ne peut pas interpréter, et
+ * qui s'affichent collés au mot comme s'ils en faisaient partie. Les garder
+ * supposerait d'importer l'apparat et de savoir quoi en montrer — c'est une
+ * fonctionnalité, pas un nettoyage.
+ *
+ * La ponctuation ordinaire, elle, est **conservée** : virgules, points et
+ * points en haut appartiennent au texte et aident à le lire.
+ */
+const APPARAT = /[\u2E00-\u2E7F\u27E6\u27E7]/gu;
+
 function plier(s) {
   return s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/ς/g, 'σ');
 }
@@ -279,7 +297,7 @@ function convertirGrec(brut, abbr, index, manuel, compte) {
     const [bcv, pos, parse, texte, , , lemme] = p;
     const ch = Number(bcv.slice(2, 4));
     const v = Number(bcv.slice(4, 6));
-    const jeton = { t: texte, l: lemme, m: pos + parse };
+    const jeton = { t: texte.replace(APPARAT, ''), l: lemme, m: pos + parse };
     const s = resoudreStrongGrec(lemme, index, manuel);
     if (s) jeton.s = s; else compte.sansStrong++;
     compte.mots++;
