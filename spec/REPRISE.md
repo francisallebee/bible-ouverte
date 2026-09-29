@@ -4942,3 +4942,47 @@ rendus que `TexteBiblique` a rassemblés. L'aperçu, la recherche par référenc
 la recherche par mot et la recherche de passage n'ont pas été regardés. Le
 typage et les 1 013 tests les couvrent pour la règle de numérotation, pas pour
 l'apparence.
+
+### Les trois sources des Strong, relevées plutôt que supposées
+
+La séance s'est poursuivie sur le point 3 — les Strong sur les textes
+originaux — et elle n'a produit **aucune ligne de code**. C'est délibéré : la
+forme des trois sources ne se devine pas, et un script écrit sur une supposition
+aurait échoué en silence. Le détail complet est dans
+`spec/DICTIONNAIRE-STRONG.md` ; ce qui suit est ce qu'il faut en retenir ici.
+
+**Les lexiques Strong** sont du CommonJS, non du JSON : se découpent entre
+accolades, ne se `require()` jamais. Les clés hébraïques sont triées, les
+grecques non. Et **les champs ne portent pas les mêmes noms d'une langue à
+l'autre** — le grec dit `translit`, l'hébreu `xlit` et `pron` : un convertisseur
+écrit sur l'exemple grec perdrait 8 674 translittérations sans qu'aucune erreur
+ne soit levée.
+
+**Une correction de licence**, trouvée en lisant l'en-tête des fichiers plutôt
+que la fiche du dépôt : le dépôt ne déclare rien, mais chaque lexique revendique
+« Copyright 2009/2010, Open Scriptures. CC-BY-SA ». Du copyleft, là où le relevé
+du 28 septembre ne voyait qu'une absence. La leçon est celle de `spec/DROITS.md`
+à un cran de plus : **ce n'est pas seulement la source qu'il faut lire, c'est le
+fichier lui-même.**
+
+**L'hébreu tient, le grec presque.** C'est l'asymétrie de la séance, et elle
+n'était pas prévisible :
+
+| | Hébreu (OSHB) | Grec (MorphGNT) |
+|---|---|---|
+| Numéro Strong dans la donnée | **oui** | **non** — il faut raccorder par le lemme |
+| Mots atteignant leur définition | **100 %**, zéro absent sur 8 640 numéros | **98,65 %** après correctifs |
+| Ce qui manque | 5 977 mots (1,95 %) sans numéro possible — préposition + suffixe | 1 852 mots (1,35 %), 484 lemmes |
+
+Le trou grec est **textuel, pas technique** : MorphGNT suit le SBLGNT critique,
+le lexique de Strong suit le Textus Receptus de 1890. `Δαυίδ` contre `Δαβίδ`,
+`Καφαρναούμ` contre `Καπερναούμ`. Ce ne sont pas deux orthographes d'un mot,
+ce sont deux éditions du Nouveau Testament. **C'est la leçon de Bost à
+l'envers** : là-bas un meilleur analyseur n'aurait corrigé aucune faute ; ici
+aucun meilleur pliage ne rapprochera deux textes différents. Seule une table
+écrite à la main le ferait — 484 lignes —, ou l'aveu assumé que ces mots-là
+n'auront pas de numéro.
+
+Trois décisions attendent donc le propriétaire avant la première ligne de code :
+ce qu'on fait de la CC BY-SA, ce qu'on fait des 484 lemmes sans raccord, et ce
+qu'on fait des onze lemmes qui se raccordent à plusieurs numéros à la fois.
