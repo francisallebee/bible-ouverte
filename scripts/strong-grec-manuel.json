@@ -1,0 +1,1960 @@
+{
+  "_lisez_moi": [
+    "Correspondances des lemmes du SBLGNT vers les numéros Strong, là où le raccord",
+    "automatique échoue. La cause est textuelle : MorphGNT suit le texte critique,",
+    "le lexique de Strong suit le Textus Receptus de 1890 — deux éditions du",
+    "Nouveau Testament, pas deux orthographes d'un mot.",
+    "",
+    "« faites » est la SEULE partie lue par scripts/download-originaux.mjs.",
+    "Chaque entrée y a été confirmée UNE PAR UNE contre la glose anglaise du",
+    "lexique, jamais par ressemblance : une mesure du 29 septembre 2026 a montré",
+    "qu'un raccord par distance d'édition se trompe dans 20 % des cas, et que les",
+    "noms propres sont le piège — Βόες (Booz) devenait « bœuf », Καῦδα (l'île)",
+    "devenait « chaleur ». Une définition fausse est pire qu'une absente.",
+    "",
+    "« a_faire » n'est PAS lue par le script : ces mots resteront sans numéro tant",
+    "que quelqu'un ne les aura pas confirmés. Les candidats listés aident à",
+    "décider ; ils ne sont surtout pas à recopier — le premier est souvent faux,",
+    "c'est précisément l'objet de l'avertissement ci-dessus.",
+    "",
+    "« ambigus » n'est pas une liste de travail : ce sont de vrais homographes, que",
+    "seul le contexte de la phrase départagerait. Les laisser sans numéro est le",
+    "comportement juste, et non un manque à combler.",
+    "",
+    "Pour compléter : vérifier le sens dans un lexique, puis déplacer la ligne de",
+    "« a_faire » vers « faites » en ne gardant que le numéro."
+  ],
+  "faites": {
+    "Δαυίδ": "G1138",
+    "Καφαρναούμ": "G2584",
+    "Μαθθαῖος": "G3156",
+    "Μαριάμ": "G3137",
+    "Μωϋσῆς": "G3475",
+    "Ναζαρέτ": "G3478",
+    "γαμίζω": "G1061",
+    "δάκρυον": "G1144",
+    "δείκνυμι": "G1166",
+    "δεσμός": "G1199",
+    "διαρρήγνυμι": "G1284",
+    "εἴπερ": "G1512",
+    "εἴωθα": "G1486",
+    "κράβαττος": "G2895",
+    "λεγιών": "G3003",
+    "λοιπός": "G3062",
+    "νοέω": "G3539",
+    "οἶδα": "G1492",
+    "πίμπλημι": "G4130",
+    "προσωπολημψία": "G4382",
+    "σιδηροῦς": "G4603",
+    "στάδιος": "G4712",
+    "συνίστημι": "G4921",
+    "σωτήριος": "G4992",
+    "τεσσεράκοντα": "G5062",
+    "χρυσοῦς": "G5552",
+    "ἀμφότεροι": "G297",
+    "ἀνεκτός": "G414",
+    "ἀφίσταμαι": "G868",
+    "ἄρσην": "G730",
+    "ἐγκακέω": "G1573",
+    "ἐλεάω": "G1653",
+    "ἐμπίμπλημι": "G1705",
+    "ἐραυνάω": "G2045",
+    "ἕλκω": "G1670",
+    "ἕνεκεν": "G1752",
+    "ἥμισυς": "G2255",
+    "ὀψία": "G3798"
+  },
+  "a_faire": {
+    "τις": {
+      "occurrences": 530,
+      "candidats": [
+        "G5100 τὶς — some or any person or object",
+        "G5101 τίς — an interrogative pronoun, who, which or ",
+        "G1364 δίς — twice"
+      ]
+    },
+    "οὔ": {
+      "occurrences": 17,
+      "candidats": [
+        "G3756 οὐ — the absolute negative (compare G3361 (μή",
+        "G3757 οὗ — at which place, i.e. where",
+        "G2095 εὖ — (adverbially) well"
+      ]
+    },
+    "μήγε": {
+      "occurrences": 5,
+      "candidats": [
+        "G3366 μηδέ — but not, not even; in a continued negati",
+        "G3383 μήτε — not too, i.e. (in continued negation) ne",
+        "G1065 γέ — ?"
+      ]
+    },
+    "ἔπειμι": {
+      "occurrences": 5,
+      "candidats": [
+        "G1751 ἔνειμι — to be within (neuter participle plural)",
+        "G1826 ἔξειμι — to issue, i.e. leave (a place), escape (",
+        "G548 ἄπειμι — to be away"
+      ]
+    },
+    "στεῖρα": {
+      "occurrences": 4,
+      "candidats": [
+        "G4577 σειρά — akin to G138 (αἱρέομαι)); a chain (as bi",
+        "G4686 σπεῖρα — a coil (spira, \"spire\"), i.e. (figurativ",
+        "G3984 πεῖρα — a test, i.e. attempt, experience"
+      ]
+    },
+    "τετραάρχης": {
+      "occurrences": 4,
+      "candidats": [
+        "G5076 τετράρχης — the ruler of a fourth part of a country "
+      ]
+    },
+    "ἐνενήκοντα": {
+      "occurrences": 4,
+      "candidats": []
+    },
+    "Γερασηνός": {
+      "occurrences": 3,
+      "candidats": [
+        "G1086 Γεργεσηνός — a Gergesene (i.e. Girgashite) or one of "
+      ]
+    },
+    "βιβλαρίδιον": {
+      "occurrences": 3,
+      "candidats": [
+        "G974 βιβλιαρίδιον — a booklet"
+      ]
+    },
+    "μεγιστάν": {
+      "occurrences": 3,
+      "candidats": [
+        "G3175 μεγιστᾶνες — grandees",
+        "G3176 μέγιστος — greatest or very great"
+      ]
+    },
+    "νηφάλιος": {
+      "occurrences": 3,
+      "candidats": [
+        "G3524 νηφάλεος — sober, i.e. (figuratively) circumspect"
+      ]
+    },
+    "οἶμαι": {
+      "occurrences": 3,
+      "candidats": [
+        "G3633 οἴομαι — to make like (oneself), i.e. imagine (be",
+        "G129 αἷμα — blood, literally (of men or animals), fi",
+        "G1510 εἰμί — I exist (used only when emphatic)"
+      ]
+    },
+    "πλοῦς": {
+      "occurrences": 3,
+      "candidats": [
+        "G4144 πλόος — a sail, i.e. navigation",
+        "G4228 πούς — a \"foot\" (figuratively or literally)",
+        "G573 ἁπλοῦς — properly, folded together, i.e. single ("
+      ]
+    },
+    "τετρααρχέω": {
+      "occurrences": 3,
+      "candidats": [
+        "G5075 τετραρχέω — to be a tetrarch"
+      ]
+    },
+    "ἀνεπίλημπτος": {
+      "occurrences": 3,
+      "candidats": [
+        "G423 ἀνεπίληπτος — not arrested, i.e. (by implication) incu"
+      ]
+    },
+    "ἀργυροῦς": {
+      "occurrences": 3,
+      "candidats": [
+        "G696 ἄργυρος — silver (the metal, in the articles or co",
+        "G693 ἀργύρεος — made of silver"
+      ]
+    },
+    "ἀροτριάω": {
+      "occurrences": 3,
+      "candidats": [
+        "G722 ἀροτριόω — to plow"
+      ]
+    },
+    "Ἄλφα": {
+      "occurrences": 3,
+      "candidats": [
+        "G235 ἀλλά — properly, other things, i.e. (adverbiall",
+        "G1051 γάλα — milk (figuratively)",
+        "G129 αἷμα — blood, literally (of men or animals), fi"
+      ]
+    },
+    "ἐχθές": {
+      "occurrences": 3,
+      "candidats": [
+        "G5504 χθές — \"yesterday\"; by extension, in time past ",
+        "G1485 ἔθος — a usage (prescribed by habit or law)",
+        "G2066 ἐσθής — dress"
+      ]
+    },
+    "ἑκατόνταρχος": {
+      "occurrences": 3,
+      "candidats": [
+        "G1543 ἑκατοντάρχης — the captain of one hundred men"
+      ]
+    },
+    "Ἰσκαριώθ": {
+      "occurrences": 3,
+      "candidats": []
+    },
+    "ὑπερεκπερισσοῦ": {
+      "occurrences": 3,
+      "candidats": []
+    },
+    "Ὦ": {
+      "occurrences": 3,
+      "candidats": [
+        "G5598 Ω — the last letter of the Greek alphabet, i",
+        "G5599 ὦ — as a sign of the vocative case, O; as a ",
+        "G5600 ὦ — (may, might, can, could, would, should, "
+      ]
+    },
+    "Βηθσαϊδάν": {
+      "occurrences": 2,
+      "candidats": [
+        "G966 Βηθσαϊδά — fishing-house; Bethsaida, a place in Pal"
+      ]
+    },
+    "Βόες": {
+      "occurrences": 2,
+      "candidats": [
+        "G1016 βοῦς — an ox (as grazing), i.e. an animal of th",
+        "G1000 βολή — a throw (as a measure of distance)",
+        "G1002 βολίς — a missile, i.e. javelin"
+      ]
+    },
+    "Γεθσημανί": {
+      "occurrences": 2,
+      "candidats": [
+        "G1068 Γεθσημανῆ — oil-press; Gethsemane, a garden near Jer"
+      ]
+    },
+    "Καναναῖος": {
+      "occurrences": 2,
+      "candidats": [
+        "G5478 Χανααναῖος — a Chanaanæan (i.e. Kenaanite), or native"
+      ]
+    },
+    "Καϊνάμ": {
+      "occurrences": 2,
+      "candidats": [
+        "G2536 Καϊνάν — Cainan (i.e. Kenan), the name of two pat",
+        "G2535 Κάϊν — Cain, (i.e. Cajin), the son of Adam",
+        "G2537 καινός — ?"
+      ]
+    },
+    "Μαθθάτ": {
+      "occurrences": 2,
+      "candidats": [
+        "G3158 Ματθάτ — Matthat (i.e. Mattithjah), the name of t",
+        "G3136 Μάρθα — Martha, a Christian woman",
+        "G3157 Ματθάν — Matthan (i.e. Mattan), an Israelite"
+      ]
+    },
+    "Μαθθίας": {
+      "occurrences": 2,
+      "candidats": [
+        "G3159 Ματθίας — Matthias (i.e. Mattithjah), an Israelite"
+      ]
+    },
+    "Ναζαρά": {
+      "occurrences": 2,
+      "candidats": [
+        "G2196 Ζαρά — Zara, (i.e. Zerach), an Israelite",
+        "G2671 κατάρα — imprecation, execration",
+        "G3478 Ναζαρέθ — Nazareth or Nazaret, a place in Palestin"
+      ]
+    },
+    "Πάγος": {
+      "occurrences": 2,
+      "candidats": [
+        "G3097 μάγος — a Magian, i.e. Oriental scientist; by im",
+        "G3803 παγίς — a trap (as fastened by a noose or notch)",
+        "G3806 πάθος — properly, suffering (\"pathos\"), i.e. (su"
+      ]
+    },
+    "αὔξω": {
+      "occurrences": 2,
+      "candidats": [
+        "G103 ᾄδω — to sing",
+        "G1416 δύνω — to go \"down\"",
+        "G142 αἴρω — to lift up; by implication, to take up o"
+      ]
+    },
+    "βραχύ": {
+      "occurrences": 2,
+      "candidats": [
+        "G1024 βραχύς — short (of time, place, quantity, or numb",
+        "G1021 βραδύς — slow; figuratively, dull",
+        "G1026 βρέχω — to moisten (especially by a shower)"
+      ]
+    },
+    "δεκαοκτώ": {
+      "occurrences": 2,
+      "candidats": []
+    },
+    "εἵνεκεν": {
+      "occurrences": 2,
+      "candidats": []
+    },
+    "κρυφαῖος": {
+      "occurrences": 2,
+      "candidats": [
+        "G2900 κραταιός — powerful"
+      ]
+    },
+    "λεμά": {
+      "occurrences": 2,
+      "candidats": [
+        "G2982 λαμά — lama (i.e. why)",
+        "G1073 γέμω — to swell out, i.e. be full",
+        "G1176 δέκα — ten"
+      ]
+    },
+    "προσαίτης": {
+      "occurrences": 2,
+      "candidats": [
+        "G4319 προσαιτέω — to ask repeatedly (importune), i.e. soli",
+        "G4375 προσφιλής — friendly towards, i.e. acceptable"
+      ]
+    },
+    "ραββουνι": {
+      "occurrences": 2,
+      "candidats": [
+        "G4462 ῥαββονί — corresponding to G4461 (ῥαββί)"
+      ]
+    },
+    "σάρδιον": {
+      "occurrences": 2,
+      "candidats": [
+        "G4556 σάρδιος — sardian (3037 being implied), i.e. (as n",
+        "G3813 παιδίον — a childling (of either sex), i.e. (prope",
+        "G4555 σάρδινος — sardine (G3037 (λίθος) being implied), i"
+      ]
+    },
+    "συνοράω": {
+      "occurrences": 2,
+      "candidats": [
+        "G4917 συνθλάω — to dash together, i.e. shatter"
+      ]
+    },
+    "σύμφορον": {
+      "occurrences": 2,
+      "candidats": []
+    },
+    "σύνοιδα": {
+      "occurrences": 2,
+      "candidats": [
+        "G2133 εὔνοια — kindness; euphemistically, conjugal duty",
+        "G4894 συνείδω — to see completely; used (like its primar",
+        "G4923 συνοδία — companionship on a journey, i.e. (by imp"
+      ]
+    },
+    "τεσσερακονταετής": {
+      "occurrences": 2,
+      "candidats": [
+        "G5063 τεσσαρακονταετής — of forty years of age"
+      ]
+    },
+    "φιλοξενία": {
+      "occurrences": 2,
+      "candidats": [
+        "G5381 φιλονεξία — hospitableness",
+        "G5382 φιλόξενος — fond of guests, i.e. hospitable"
+      ]
+    },
+    "χοῦς": {
+      "occurrences": 2,
+      "candidats": [
+        "G1016 βοῦς — an ox (as grazing), i.e. an animal of th",
+        "G3563 νοῦς — the intellect, i.e. mind (divine or huma",
+        "G3775 οὖς — the ear (physically or mentally)"
+      ]
+    },
+    "χρεοφειλέτης": {
+      "occurrences": 2,
+      "candidats": [
+        "G5533 χρεωφειλέτης — a loan-ower, i.e. indebted person"
+      ]
+    },
+    "ψίξ": {
+      "occurrences": 2,
+      "candidats": [
+        "G1223 διά — through (in very wide applications, loca",
+        "G1352 διό — through which thing, i.e. consequently",
+        "G1364 δίς — twice"
+      ]
+    },
+    "ψευδόμαρτυς": {
+      "occurrences": 2,
+      "candidats": [
+        "G5575 ψευδομάρτυρ — a spurious witness, i.e. bearer of untru"
+      ]
+    },
+    "ἀλάβαστρος": {
+      "occurrences": 2,
+      "candidats": [
+        "G211 ἀλάβαστρον — properly, an \"alabaster\" box, i.e. (by e"
+      ]
+    },
+    "ἀνάγαιον": {
+      "occurrences": 2,
+      "candidats": [
+        "G316 ἀναγκαῖος — necessary; by implication, close (of kin"
+      ]
+    },
+    "ἀνακεφαλαιόω": {
+      "occurrences": 2,
+      "candidats": []
+    },
+    "ἀντίτυπος": {
+      "occurrences": 2,
+      "candidats": [
+        "G499 ἀντίτυπον — corresponding (\"antitype\"), i.e. a repre"
+      ]
+    },
+    "ἄχρις": {
+      "occurrences": 2,
+      "candidats": [
+        "G200 ἀκρίς — a locust (as pointed, or as lighting on ",
+        "G891 ἄχρι — (of time) until or (of place) up to",
+        "G2054 ἔρις — a quarrel, i.e. (by implication) wrangli"
+      ]
+    },
+    "Ἀσάφ": {
+      "occurrences": 2,
+      "candidats": [
+        "G760 Ἀσά — Asa, an Israelite",
+        "G217 ἅλας — salt; figuratively, prudence",
+        "G2269 Ἠσαῦ — Esau, an Edomite"
+      ]
+    },
+    "Ἄρειος": {
+      "occurrences": 2,
+      "candidats": [
+        "G739 ἄρτιος — fresh, i.e. (by implication) complete",
+        "G888 ἀχρεῖος — useless, i.e. (euphemistically) unmerito",
+        "G1025 βρέφος — an infant (properly, unborn) literally o"
+      ]
+    },
+    "ἐάνπερ": {
+      "occurrences": 2,
+      "candidats": [
+        "G1512 εἴ περ — if perhaps",
+        "G2539 καίπερ — and indeed, i.e. nevertheless or notwith"
+      ]
+    },
+    "ἐλωΐ": {
+      "occurrences": 2,
+      "candidats": [
+        "G1682 ἐλοΐ — ?",
+        "G1071 γέλως — laughter (as a mark of gratification)",
+        "G1439 ἐάω — to let be, i.e. permit or leave alone"
+      ]
+    },
+    "ἐπίστασις": {
+      "occurrences": 2,
+      "candidats": [
+        "G1611 ἔκστασις — a displacement of the mind, i.e. bewilde",
+        "G1988 ἐπιστάτης — an appointee over, i.e. commander (teach",
+        "G1999 ἐπισύστασις — a conspiracy, i.e. concourse (riotous or"
+      ]
+    },
+    "ἐφοράω": {
+      "occurrences": 2,
+      "candidats": [
+        "G872 ἀφοράω — to consider attentively",
+        "G2164 εὐφορέω — to bear well, i.e. be fertile",
+        "G3708 ὁράω — by extension, to attend to; by Hebraism,"
+      ]
+    },
+    "ἔνθεν": {
+      "occurrences": 2,
+      "candidats": [
+        "G1767 ἐννέα — nine",
+        "G1855 ἔξωθεν — external(-ly)",
+        "G2070 ἐσμέν — we are"
+      ]
+    },
+    "ἔοικα": {
+      "occurrences": 2,
+      "candidats": [
+        "G1500 εἰκῆ — idly, i.e. without reason (or effect)",
+        "G1502 εἴκω — properly, to be weak, i.e. yield",
+        "G1503 εἴκω — to resemble"
+      ]
+    },
+    "ἥσσων": {
+      "occurrences": 2,
+      "candidats": [
+        "G2257 ἡμῶν — of (or from) us",
+        "G2394 Ἰάσων — about to cure; Jason, a Christian",
+        "G4622 Σιών — Sion (i.e. Tsijon), a hill of Jerusalem;"
+      ]
+    },
+    "Ἰωβήδ": {
+      "occurrences": 2,
+      "candidats": [
+        "G5601 Ὠβήδ — Obed, an Israelite",
+        "G2492 Ἰώβ — Job (i.e. Ijob), a patriarch",
+        "G2493 Ἰωήλ — Joel, an Israelite"
+      ]
+    },
+    "ὑπερλίαν": {
+      "occurrences": 2,
+      "candidats": []
+    },
+    "ὠτάριον": {
+      "occurrences": 2,
+      "candidats": [
+        "G3678 ὀνάριον — a little ass",
+        "G3795 ὀψάριον — a relish to other food (as if cooked sau",
+        "G4712 στάδιον — a stade or certain measure of distance; "
+      ]
+    },
+    "Βαριωνᾶ": {
+      "occurrences": 1,
+      "candidats": [
+        "G920 Βαριωνᾶς — son of Jonas (or Jonah); Bar-jonas, an I"
+      ]
+    },
+    "Βελιάρ": {
+      "occurrences": 1,
+      "candidats": [
+        "G955 Βελίαλ — worthlessness; Belial, as an epithet of "
+      ]
+    },
+    "Βόος": {
+      "occurrences": 1,
+      "candidats": [
+        "G1003 Βοόζ — Booz, (i.e. Boaz), an Israelite",
+        "G1016 βοῦς — an ox (as grazing), i.e. an animal of th",
+        "G5522 χόος — a heap (as poured out), i.e. rubbish; lo"
+      ]
+    },
+    "Καῦδα": {
+      "occurrences": 1,
+      "candidats": [
+        "G2738 καῦμα — properly, a burn (concretely), but used ",
+        "G2295 θαῦμα — wonder (properly concrete; but by implic",
+        "G2448 Ἰουδά — Judah (i.e. Jehudah or Juttah), a part o"
+      ]
+    },
+    "Μαγαδάν": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "Μαδιάμ": {
+      "occurrences": 1,
+      "candidats": [
+        "G3099 Μαδιάν — Madian (i.e. Midian), a region of Arabia",
+        "G3130 μανία — craziness",
+        "G3137 Μαρία — Maria or Mariam (i.e. Mirjam), the name "
+      ]
+    },
+    "Μελεά": {
+      "occurrences": 1,
+      "candidats": [
+        "G3190 Μελεᾶς — Meleas, an Israelite",
+        "G1074 γενεά — a generation; by implication, an age (th",
+        "G272 ἀμελέω — to be careless of"
+      ]
+    },
+    "Μεννά": {
+      "occurrences": 1,
+      "candidats": [
+        "G3131 μάννα — manna (i.e. man), an edible gum",
+        "G1067 γέεννα — valley of (the son of) Hinnom; ge-henna ",
+        "G1074 γενεά — a generation; by implication, an age (th"
+      ]
+    },
+    "Νέα": {
+      "occurrences": 1,
+      "candidats": [
+        "G1436 ἔα — properly, let it be, i.e. (as interjecti",
+        "G2299 θεά — a female deity",
+        "G1 Α — the first letter of the alphabet; figura"
+      ]
+    },
+    "Ναθάμ": {
+      "occurrences": 1,
+      "candidats": [
+        "G3481 Ναθάν — Nathan, an Israelite",
+        "G2488 Ἰωάθαμ — Joatham (i.e. Jotham), an Israelite",
+        "G2505 καθά — according to which things, i.e. just as"
+      ]
+    },
+    "Ναιμάν": {
+      "occurrences": 1,
+      "candidats": [
+        "G1142 δαίμων — a dæmon or supernatural spirit (of a bad",
+        "G129 αἷμα — blood, literally (of men or animals), fi",
+        "G2536 Καϊνάν — Cainan (i.e. Kenan), the name of two pat"
+      ]
+    },
+    "Νύμφα": {
+      "occurrences": 1,
+      "candidats": [
+        "G3564 Νυμφᾶς — nymph-given (i.e. -born); Nymphas, a Chr",
+        "G3565 νύμφη — compare Latin \"nupto,\" to marry); a youn",
+        "G2949 κῦμα — a billow (as bursting or toppling)"
+      ]
+    },
+    "Σάπφιρα": {
+      "occurrences": 1,
+      "candidats": [
+        "G4551 Σαπφείρη — Sapphire, an Israelitess",
+        "G4686 σπεῖρα — a coil (spira, \"spire\"), i.e. (figurativ",
+        "G682 Ἀπφία — Apphia, a woman of Collosæ"
+      ]
+    },
+    "Σεμεΐν": {
+      "occurrences": 1,
+      "candidats": [
+        "G4584 Σεμεΐ — Semei (i.e. Shimi), an Israelite",
+        "G4592 σημεῖον — an indication, especially ceremonially o",
+        "G4826 Συμεών — Symeon (i.e. Shimon), the name of five I"
+      ]
+    },
+    "Σερούχ": {
+      "occurrences": 1,
+      "candidats": [
+        "G4562 Σαρούχ — Saruch (i.e. Serug), a patriarch"
+      ]
+    },
+    "Στοϊκός": {
+      "occurrences": 1,
+      "candidats": [
+        "G4770 Στωϊκός — a \"Stoic\" (as occupying a particular por",
+        "G2092 ἕτοιμος — adjusted, i.e. ready",
+        "G3624 οἶκος — a dwelling (more or less extensive, lite"
+      ]
+    },
+    "Συροφοινίκισσα": {
+      "occurrences": 1,
+      "candidats": [
+        "G4949 Συροφοίνισσα — a Syro-phœnician woman, i.e. a female na"
+      ]
+    },
+    "Τίτιος": {
+      "occurrences": 1,
+      "candidats": [
+        "G159 αἴτιος — causative, i.e. (concretely) a causer",
+        "G5093 τίμιος — valuable, i.e. (objectively) costly, or ",
+        "G5102 τίτλος — a titulus or \"title\" (placard)"
+      ]
+    },
+    "Ταβέρνη": {
+      "occurrences": 1,
+      "candidats": [
+        "G4999 Ταβέρναι — huts or wooden-walled buildings; Tabernæ"
+      ]
+    },
+    "Χαναναῖος": {
+      "occurrences": 1,
+      "candidats": [
+        "G5478 Χανααναῖος — a Chanaanæan (i.e. Kenaanite), or native"
+      ]
+    },
+    "Χεροῦβ": {
+      "occurrences": 1,
+      "candidats": [
+        "G5502 χερουβίμ — \"cherubim\" (i.e. cherubs or kerubim)"
+      ]
+    },
+    "αἰτίωμα": {
+      "occurrences": 1,
+      "candidats": [
+        "G157 αἰτίαμα — a thing charged",
+        "G135 αἴνιγμα — an obscure saying (\"enigma\"), i.e. (abst",
+        "G155 αἴτημα — a thing asked or (abstractly) an asking"
+      ]
+    },
+    "αἱμορροέω": {
+      "occurrences": 1,
+      "candidats": [
+        "G131 αἱμοῤῥέω — to flow blood, i.e. have a hæmorrhage"
+      ]
+    },
+    "αὐχέω": {
+      "occurrences": 1,
+      "candidats": [
+        "G832 αὐλέω — to play the flute",
+        "G118 ἀθλέω — to contend in the competitive games",
+        "G120 ἀθυμέω — to be spiritless, i.e. disheartened"
+      ]
+    },
+    "βατταλογέω": {
+      "occurrences": 1,
+      "candidats": [
+        "G945 βαττολογέω — to stutter, i.e. (by implication) to pra"
+      ]
+    },
+    "βελόνη": {
+      "occurrences": 1,
+      "candidats": [
+        "G4582 σελήνη — probably akin to the alternate of G138 (",
+        "G5341 φελόνης — a mantle (surtout)",
+        "G956 βέλος — a missile, i.e. spear or arrow"
+      ]
+    },
+    "γυμνιτεύω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1130 γυμνητεύω — to strip, i.e. (reflexively) go poorly c"
+      ]
+    },
+    "δέος": {
+      "occurrences": 1,
+      "candidats": [
+        "G2316 θεός — figuratively, a magistrate; by Hebraism,",
+        "G3501 νέος — \"new\", i.e. (of persons) youthful, or (o",
+        "G105 ἀετός — an eagle (from its wind-like flight)"
+      ]
+    },
+    "δεισιδαίμων": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "διακαθαίρω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1245 διακαθαρίζω — to cleanse perfectly, i.e. (specially) w"
+      ]
+    },
+    "διαπαρατριβή": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "διαυγής": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "διαχλευάζω": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "διενθυμέομαι": {
+      "occurrences": 1,
+      "candidats": [
+        "G1760 ἐνθυμέομαι — to be inspirited, i.e. ponder"
+      ]
+    },
+    "δισμυριάς": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "διόρθωμα": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "δοκιμασία": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "δυσεντέριον": {
+      "occurrences": 1,
+      "candidats": [
+        "G1420 δυσεντερία — a \"dysentery\""
+      ]
+    },
+    "δυσφημέω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1426 δυσφημία — defamation"
+      ]
+    },
+    "δύσις": {
+      "occurrences": 1,
+      "candidats": [
+        "G1394 δόσις — a giving; by implication, (concretely) a",
+        "G3080 λύσις — a loosening, i.e. (specially), divorce",
+        "G4511 ῥύσις — a flux (of blood)"
+      ]
+    },
+    "εὐθύμως": {
+      "occurrences": 1,
+      "candidats": [
+        "G2115 εὔθυμος — in fine spirits, i.e. cheerful",
+        "G2112 εὐθέως — directly, i.e. at once or soon",
+        "G2114 εὐθυμέω — to cheer up, i.e. (intransitively) be ch"
+      ]
+    },
+    "εὐπάρεδρον": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "εὐρακύλων": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "εὖγε": {
+      "occurrences": 1,
+      "candidats": [
+        "G1489 εἴγε — if indeed, seeing that, unless, (with ne",
+        "G1065 γέ — ?",
+        "G1205 δεῦτε — come hither!"
+      ]
+    },
+    "ζηλεύω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2206 ζηλόω — to have warmth of feeling for or against",
+        "G2212 ζητέω — to seek (literally or figuratively); spe",
+        "G2340 θηρεύω — to hunt (an animal), i.e. (figuratively)"
+      ]
+    },
+    "θά": {
+      "occurrences": 1,
+      "candidats": [
+        "G1 Α — the first letter of the alphabet; figura",
+        "G1436 ἔα — properly, let it be, i.e. (as interjecti",
+        "G2299 θεά — a female deity"
+      ]
+    },
+    "θανάσιμον": {
+      "occurrences": 1,
+      "candidats": [
+        "G2286 θανάσιμος — fatal, i.e. poisonous"
+      ]
+    },
+    "θεμέλιον": {
+      "occurrences": 1,
+      "candidats": [
+        "G2310 θεμέλιος — something put down, i.e. a substruction ",
+        "G2311 θεμελιόω — to lay a basis for, i.e. (literally) ere"
+      ]
+    },
+    "θορυβάζω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2350 θορυβέω — to be in tumult, i.e. disturb, clamor"
+      ]
+    },
+    "θυμιατήριον": {
+      "occurrences": 1,
+      "candidats": [
+        "G2369 θυμιαστήριον — a place of fumigation, i.e. the alter of",
+        "G2379 θυσιαστήριον — a place of sacrifice, i.e. an altar (spe"
+      ]
+    },
+    "κέλευσμα": {
+      "occurrences": 1,
+      "candidats": [
+        "G2752 κέλευμα — a cry of incitement"
+      ]
+    },
+    "κίχρημι": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "καθώσπερ": {
+      "occurrences": 1,
+      "candidats": [
+        "G2509 καθάπερ — exactly as"
+      ]
+    },
+    "κατάθεμα": {
+      "occurrences": 1,
+      "candidats": [
+        "G2646 κατάλυμα — properly, a dissolution (breaking up of ",
+        "G2652 κατανάθεμα — an imprecation",
+        "G331 ἀνάθεμα — a (religious) ban or (concretely) excomm"
+      ]
+    },
+    "κατήγωρ": {
+      "occurrences": 1,
+      "candidats": [
+        "G2609 κατάγω — to lead down; specially, to moor a vesse",
+        "G2935 κτήτωρ — an owner"
+      ]
+    },
+    "καταβαρύνομαι": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "καταδίκη": {
+      "occurrences": 1,
+      "candidats": [
+        "G2614 καταδιώκω — to hunt down, i.e. search for"
+      ]
+    },
+    "καταθεματίζω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2653 καταναθεματίζω — to imprecate",
+        "G332 ἀναθεματίζω — to declare or vow under penalty of execr"
+      ]
+    },
+    "κατακληρονομέω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2624 κατακληροδοτέω — to be a giver of lots to each, i.e. (by "
+      ]
+    },
+    "κατασφάζω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2683 κατασκιάζω — to overshade, i.e. cover",
+        "G2695 κατασφάττω — to kill down, i.e. slaughter"
+      ]
+    },
+    "καταφρονητής": {
+      "occurrences": 1,
+      "candidats": [
+        "G2707 καταφροντής — a contemner"
+      ]
+    },
+    "κατευλογέω": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "κατοικίζω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2730 κατοικέω — to house permanently, i.e. reside (liter",
+        "G2733 κατοικία — residence (properly, the condition; but ",
+        "G3351 μετοικίζω — to transfer as a settler or captive, i.e"
+      ]
+    },
+    "κατωτέρω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2702 καταφέρω — to bear down, i.e. (figuratively) overco",
+        "G2737 κατώτερος — inferior (locally, of Hades)"
+      ]
+    },
+    "καυστηριάζω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2743 καυτηριάζω — to brand (\"cauterize\"), i.e. (by implica"
+      ]
+    },
+    "κεφαλιόω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2775 κεφαλαιόω — (specially) to strike on the head",
+        "G2774 κεφάλαιον — a principal thing, i.e. main point; spec",
+        "G2777 κεφαλίς — properly, a knob, i.e. (by implication) "
+      ]
+    },
+    "κημόω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1213 δηλόω — to make plain (by words)",
+        "G1218 δῆμος — the public (as bound together socially)",
+        "G2049 ἐρημόω — to lay waste (literally or figuratively)"
+      ]
+    },
+    "κλινάριον": {
+      "occurrences": 1,
+      "candidats": [
+        "G2826 κλινίδιον — a pallet or little couch",
+        "G2952 κυνάριον — a puppy"
+      ]
+    },
+    "κορβανᾶς": {
+      "occurrences": 1,
+      "candidats": [
+        "G2878 κορβᾶν — a votive offering and the offering; a co"
+      ]
+    },
+    "κουμ": {
+      "occurrences": 1,
+      "candidats": [
+        "G2891 κοῦμι — cumi (i.e. rise!)",
+        "G1016 βοῦς — an ox (as grazing), i.e. an animal of th",
+        "G191 ἀκούω — to hear (in various senses)"
+      ]
+    },
+    "κυκλεύω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2753 κελεύω — \"hail\"; to incite by word, i.e. order",
+        "G2944 κυκλόω — to encircle, i.e. surround",
+        "G2945 κύκλῳ — akin to G2947 (κυλιόω)); i.e. in a circl"
+      ]
+    },
+    "κυλίομαι": {
+      "occurrences": 1,
+      "candidats": [
+        "G2946 κύλισμα — a wallow (the effect of rolling), i.e. f",
+        "G835 αὐλίζομαι — to pass the night (properly, in the open"
+      ]
+    },
+    "κυλισμός": {
+      "occurrences": 1,
+      "candidats": [
+        "G2946 κύλισμα — a wallow (the effect of rolling), i.e. f"
+      ]
+    },
+    "κόπριον": {
+      "occurrences": 1,
+      "candidats": [
+        "G2781 κηρίον — a cell for honey, i.e. (collectively) th",
+        "G2874 κοπρία — perhaps akin to G2875 (κόπτω)); manure",
+        "G2953 Κύπριος — a Cyprian (Cypriot), i.e. inhabitant of "
+      ]
+    },
+    "λακάω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1143 δάκνω — to bite, i.e. (figuratively) thwart",
+        "G2559 κακόω — to injure; figuratively, to exasperate",
+        "G270 ἀμάω — properly, to collect, i.e. (by implicati"
+      ]
+    },
+    "μαράνα": {
+      "occurrences": 1,
+      "candidats": [
+        "G3112 μακράν — at a distance (literally or figuratively",
+        "G3131 μάννα — manna (i.e. man), an edible gum",
+        "G3133 μαραίνω — to extinguish (as fire), i.e. (figurativ"
+      ]
+    },
+    "μενοῦν": {
+      "occurrences": 1,
+      "candidats": [
+        "G3304 μενοῦνγε — so then at least",
+        "G3440 μόνον — merely"
+      ]
+    },
+    "μετατρέπω": {
+      "occurrences": 1,
+      "candidats": [
+        "G3344 μεταστρέφω — to turn across, i.e. transmute or (figur"
+      ]
+    },
+    "μητρολῴας": {
+      "occurrences": 1,
+      "candidats": [
+        "G3389 μητραλῴας — a mother-thresher, i.e. matricide"
+      ]
+    },
+    "μύλινος": {
+      "occurrences": 1,
+      "candidats": [
+        "G3457 μυλικός — belonging to a mill",
+        "G3585 ξύλινος — wooden",
+        "G2367 θύϊνος — denoting a certain fragrant tree); made "
+      ]
+    },
+    "οἰκετεία": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "οἰκοδόμος": {
+      "occurrences": 1,
+      "candidats": [
+        "G3623 οἰκονόμος — a house-distributor (i.e. manager), or o",
+        "G3530 Νικόδημος — victorious among his people; Nicodemus, ",
+        "G3618 οἰκοδομέω — to be a house-builder, i.e. construct or"
+      ]
+    },
+    "οἰκουργός": {
+      "occurrences": 1,
+      "candidats": [
+        "G3626 οἰκουρός — be \"ware\"); a stayer at home, i.e. domes",
+        "G2557 κακοῦργος — a wrong-doer, i.e. criminal"
+      ]
+    },
+    "πανταχῇ": {
+      "occurrences": 1,
+      "candidats": [
+        "G3837 πανταχοῦ — universally",
+        "G3839 πάντη — wholly"
+      ]
+    },
+    "παραβολεύομαι": {
+      "occurrences": 1,
+      "candidats": [
+        "G3851 παραβουλεύομαι — to misconsult, i.e. disregard",
+        "G3899 παραπορεύομαι — to travel near"
+      ]
+    },
+    "παρακαθέζομαι": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "παραρρέω": {
+      "occurrences": 1,
+      "candidats": [
+        "G3901 παραῤῥυέω — to flow by, i.e. (figuratively) careless",
+        "G3867 παραινέω — to mispraise, i.e. recommend or advise (",
+        "G3896 παραπλέω — to sail near"
+      ]
+    },
+    "παρεδρεύω": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "παρεισδύω": {
+      "occurrences": 1,
+      "candidats": [
+        "G3921 παρεισδύνω — to settle in alongside, i.e. lodge steal",
+        "G3919 παρεισάγω — to lead in aside, i.e. introduce surrept"
+      ]
+    },
+    "παρεμβάλλω": {
+      "occurrences": 1,
+      "candidats": [
+        "G3846 παραβάλλω — to throw alongside, i.e. (reflexively) t"
+      ]
+    },
+    "πατρολῴας": {
+      "occurrences": 1,
+      "candidats": [
+        "G3964 πατραλῴας — a parricide",
+        "G3969 Πατροβᾶς — father's life; Patrobas, a Christian"
+      ]
+    },
+    "περίψημα": {
+      "occurrences": 1,
+      "candidats": [
+        "G4067 περίψωμα — something brushed all around, i.e. off-s"
+      ]
+    },
+    "περαιτέρω": {
+      "occurrences": 1,
+      "candidats": [
+        "G4064 περιφέρω — to convey around, i.e. transport hither "
+      ]
+    },
+    "περιάπτω": {
+      "occurrences": 1,
+      "candidats": [
+        "G4013 περιάγω — to take around (as a companion); reflexi",
+        "G4045 περιπίπτω — to fall into something that is all aroun",
+        "G4049 περισπάω — to drag all around, i.e. (figuratively) "
+      ]
+    },
+    "περικρύβω": {
+      "occurrences": 1,
+      "candidats": [
+        "G4032 περικρύπτω — to conceal all around, i.e. entirely"
+      ]
+    },
+    "πορρώτερον": {
+      "occurrences": 1,
+      "candidats": [
+        "G4208 ποῤῥωτέρω — further, i.e. a greater distance"
+      ]
+    },
+    "πραϋπαθία": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "προθεσμία": {
+      "occurrences": 1,
+      "candidats": [
+        "G3734 ὁροθεσία — a limit-placing, i.e. (concretely) bound",
+        "G4286 πρόθεσις — a setting forth, i.e. (figuratively) pro",
+        "G4287 προθέσμιος — fixed beforehand, i.e. (feminine with G2"
+      ]
+    },
+    "προπάτωρ": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "προσκλίνομαι": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "προσωπολήμπτης": {
+      "occurrences": 1,
+      "candidats": [
+        "G4381 προσωπολήπτης — an accepter of a face (individual), i.e."
+      ]
+    },
+    "προσωπολημπτέω": {
+      "occurrences": 1,
+      "candidats": [
+        "G4380 προσωποληπτέω — to favor an individual, i.e. show partia"
+      ]
+    },
+    "πρόσλημψις": {
+      "occurrences": 1,
+      "candidats": [
+        "G4356 πρόσληψις — admission"
+      ]
+    },
+    "πρόϊμος": {
+      "occurrences": 1,
+      "candidats": [
+        "G4406 πρώϊμος — dawning, i.e. (by analogy) autumnal (sho",
+        "G1408 δρόμος — a race, i.e. (figuratively) career",
+        "G2092 ἕτοιμος — adjusted, i.e. ready"
+      ]
+    },
+    "πρώτως": {
+      "occurrences": 1,
+      "candidats": [
+        "G4413 πρῶτος — foremost (in time, place, order or impor",
+        "G3843 πάντως — entirely; specially, at all events, (wit",
+        "G4412 πρῶτον — firstly (in time, place, order, or impor"
+      ]
+    },
+    "πυκνά": {
+      "occurrences": 1,
+      "candidats": [
+        "G3073 Λυκία — Lycia, a province of Asia Minor",
+        "G4403 πρύμνα — the stern of a ship",
+        "G4437 πυκνός — clasped (thick), i.e. (figuratively) fre"
+      ]
+    },
+    "σιρικός": {
+      "occurrences": 1,
+      "candidats": [
+        "G4596 σηρικός — hence the name of the silk-worm); Seric,",
+        "G4559 σαρκικός — pertaining to flesh, i.e. (by extension)",
+        "G4770 Στωϊκός — a \"Stoic\" (as occupying a particular por"
+      ]
+    },
+    "σιτίον": {
+      "occurrences": 1,
+      "candidats": [
+        "G158 αἴτιον — a reason or crime (like G156 (αἰτία))",
+        "G159 αἴτιος — causative, i.e. (concretely) a causer",
+        "G3400 μίλιον — a thousand paces, i.e. a \"mile\""
+      ]
+    },
+    "σιτομέτριον": {
+      "occurrences": 1,
+      "candidats": [
+        "G4620 σιτόμετρον — a grain-measure, i.e. (by implication) r"
+      ]
+    },
+    "σκῦλα": {
+      "occurrences": 1,
+      "candidats": [
+        "G207 Ἀκύλας — Akulas, an Israelite",
+        "G2949 κῦμα — a billow (as bursting or toppling)",
+        "G4527 Σαλά — Sala (i.e. Shelach), a patriarch"
+      ]
+    },
+    "στασιαστής": {
+      "occurrences": 1,
+      "candidats": [
+        "G4955 συστασιαστής — a fellow-insurgent"
+      ]
+    },
+    "στιβάς": {
+      "occurrences": 1,
+      "candidats": [
+        "G4746 στοιβάς — a spread (as if tramped flat) of loose m",
+        "G4609 Σίλας — Silas, a Christian",
+        "G4694 σπιλάς — a ledge or reef of rock in the sea"
+      ]
+    },
+    "στυγητός": {
+      "occurrences": 1,
+      "candidats": [
+        "G4767 στυγνητός — hated, i.e. odious"
+      ]
+    },
+    "συγγενίς": {
+      "occurrences": 1,
+      "candidats": [
+        "G4773 συγγενής — a relative (by blood); by extension, a f",
+        "G4772 συγγένεια — relationship, i.e. (concretely) relative"
+      ]
+    },
+    "συκομορέα": {
+      "occurrences": 1,
+      "candidats": [
+        "G4927 συνομορέω — to border together, i.e. adjoin"
+      ]
+    },
+    "συμμορφίζομαι": {
+      "occurrences": 1,
+      "candidats": [
+        "G4829 συμμερίζομαι — to share jointly, i.e. participate in"
+      ]
+    },
+    "συμπίπτω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1706 ἐμπίπτω — to fall on, i.e. (literally) to be entra",
+        "G4844 συμπίνω — to partake a beverage in company"
+      ]
+    },
+    "συναλλάσσω": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "συναπόλλυμαι": {
+      "occurrences": 1,
+      "candidats": [
+        "G4881 συναπόλλυμι — to destroy (middle voice or passively, b"
+      ]
+    },
+    "συνεπιτίθεμαι": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "συνιστάνω": {
+      "occurrences": 1,
+      "candidats": [
+        "G4921 συνιστάω — to set together, i.e. (by implication) t"
+      ]
+    },
+    "σφυδρόν": {
+      "occurrences": 1,
+      "candidats": [
+        "G4974 σφυρόν — compare the feminine , a hammer); the an"
+      ]
+    },
+    "ταπεινόφρων": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "τετράμηνος": {
+      "occurrences": 1,
+      "candidats": [
+        "G5072 τετράμηνον — a four months' space",
+        "G5068 τετράγωνος — four-cornered, i.e. square"
+      ]
+    },
+    "τετραπλοῦς": {
+      "occurrences": 1,
+      "candidats": [
+        "G5073 τετραπλόος — quadruple",
+        "G5074 τετράπους — a quadruped"
+      ]
+    },
+    "τρίτον": {
+      "occurrences": 1,
+      "candidats": [
+        "G5154 τρίτος — third; neuter (as noun) a third part, or",
+        "G2053 ἔριον — wool",
+        "G2918 κρίνον — a lily"
+      ]
+    },
+    "τρῆμα": {
+      "occurrences": 1,
+      "candidats": [
+        "G4487 ῥῆμα — an utterance (individually, collectively",
+        "G5536 χρῆμα — something useful or needed, i.e. wealth,",
+        "G1033 βρῶμα — food (literally or figuratively), especi"
+      ]
+    },
+    "τυπικῶς": {
+      "occurrences": 1,
+      "candidats": [
+        "G5190 Τυχικός — fortuitous, i.e. fortunate; Tychicus, a ",
+        "G5447 φυσικῶς — \"physically\", i.e. (by implication) inst"
+      ]
+    },
+    "φάρμακον": {
+      "occurrences": 1,
+      "candidats": [
+        "G5333 φάρμακος — ?"
+      ]
+    },
+    "φαιλόνης": {
+      "occurrences": 1,
+      "candidats": [
+        "G5341 φελόνης — a mantle (surtout)"
+      ]
+    },
+    "χαλκοῦς": {
+      "occurrences": 1,
+      "candidats": [
+        "G5471 χαλκεύς — a copper-worker or brazier",
+        "G5475 χαλκός — copper (the substance, or some implement",
+        "G5470 χάλκεος — coppery"
+      ]
+    },
+    "χρήσιμον": {
+      "occurrences": 1,
+      "candidats": [
+        "G5539 χρήσιμος — serviceable",
+        "G5553 χρυσίον — a golden article, i.e. gold plating, orn"
+      ]
+    },
+    "ἀγαθουργέω": {
+      "occurrences": 1,
+      "candidats": [
+        "G14 ἀγαθοεργέω — to work good"
+      ]
+    },
+    "ἀγγέλλω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1229 διαγγέλλω — to herald thoroughly",
+        "G1804 ἐξαγγέλλω — to publish, i.e. celebrate",
+        "G1861 ἐπαγγέλλω — to announce upon (reflexively), i.e. (by"
+      ]
+    },
+    "ἀθροίζω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1865 ἐπαθροίζω — to accumulate",
+        "G875 ἀφρίζω — to froth at the mouth (in epilepsy)"
+      ]
+    },
+    "ἀκριβής": {
+      "occurrences": 1,
+      "candidats": [
+        "G199 ἀκριβῶς — exactly",
+        "G186 ἀκλινής — not leaning, i.e. (figuratively) firm",
+        "G193 ἀκρατής — powerless, i.e. without self-control"
+      ]
+    },
+    "ἀλλαχοῦ": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "ἀμφιάζω": {
+      "occurrences": 1,
+      "candidats": [
+        "G3662 ὁμοιάζω — to resemble",
+        "G37 ἁγιάζω — to make holy, i.e. (ceremonially) purify"
+      ]
+    },
+    "ἀμφιβάλλω": {
+      "occurrences": 1,
+      "candidats": [
+        "G474 ἀντιβάλλω — to bandy"
+      ]
+    },
+    "ἀνάλημψις": {
+      "occurrences": 1,
+      "candidats": [
+        "G354 ἀνάληψις — ascension"
+      ]
+    },
+    "ἀνέλεος": {
+      "occurrences": 1,
+      "candidats": [
+        "G1656 ἔλεος — compassion (human or divine, especially ",
+        "G358 ἄναλος — saltless, i.e. insipid",
+        "G417 ἄνεμος — wind; (plural) by implication, (the four"
+      ]
+    },
+    "ἀναπηδάω": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "ἀνεξεραύνητος": {
+      "occurrences": 1,
+      "candidats": [
+        "G419 ἀνεξερεύνητος — not searched out, i.e. (by implication) "
+      ]
+    },
+    "ἀντίλημψις": {
+      "occurrences": 1,
+      "candidats": [
+        "G484 ἀντίληψις — relief"
+      ]
+    },
+    "ἀντιπέρα": {
+      "occurrences": 1,
+      "candidats": [
+        "G495 ἀντιπέραν — on the opposite side"
+      ]
+    },
+    "ἀνώτερον": {
+      "occurrences": 1,
+      "candidats": [
+        "G511 ἀνώτερος — upper, i.e. (neuter as adverb) to a more",
+        "G508 ἀνώγεον — above the ground, i.e. (properly) the se"
+      ]
+    },
+    "ἀπεῖπον": {
+      "occurrences": 1,
+      "candidats": [
+        "G1896 ἐπεῖδον — to regard (favorably or otherwise)",
+        "G550 ἀπειπόμην — to say off for oneself, i.e. disown",
+        "G552 ἄπειρος — inexperienced, i.e. ignorant"
+      ]
+    },
+    "ἀπογίνομαι": {
+      "occurrences": 1,
+      "candidats": [
+        "G1920 ἐπιγίνομαι — to arrive upon, i.e. spring up (as a win",
+        "G4266 προγίνομαι — to be already, i.e. have previousy trans",
+        "G611 ἀποκρίνομαι — to conclude for oneself, i.e. (by implic"
+      ]
+    },
+    "ἀπροσωπολήμπτως": {
+      "occurrences": 1,
+      "candidats": [
+        "G678 ἀπροσωπολήπτως — in a way not accepting the person, i.e. "
+      ]
+    },
+    "ἀφθορία": {
+      "occurrences": 1,
+      "candidats": [
+        "G5356 φθορά — decay, i.e. ruin (spontaneous or inflict",
+        "G640 ἀπορία — a (state of) quandary",
+        "G861 ἀφθαρσία — incorruptibility; genitive, unending exi"
+      ]
+    },
+    "ἀφυστερέω": {
+      "occurrences": 1,
+      "candidats": [
+        "G5302 ὑστερέω — to be later, i.e. (by implication) to be",
+        "G650 ἀποστερέω — to despoil"
+      ]
+    },
+    "ἄγγος": {
+      "occurrences": 1,
+      "candidats": [
+        "G40 ἅγιος — sacred (physically, pure, morally blamel",
+        "G53 ἁγνός — properly, clean, i.e. (figuratively) inn",
+        "G68 ἀγρός — a field (as a drive for cattle); genitiv"
+      ]
+    },
+    "ἄμωμον": {
+      "occurrences": 1,
+      "candidats": [
+        "G299 ἄμωμος — unblemished (literally or figuratively)",
+        "G285 ἄμμος — sand (as heaped on the beach)",
+        "G300 Ἀμών — Amon, an Israelite"
+      ]
+    },
+    "ἄντικρυς": {
+      "occurrences": 1,
+      "candidats": [
+        "G481 ἀντικρύ — opposite"
+      ]
+    },
+    "ἄρκος": {
+      "occurrences": 1,
+      "candidats": [
+        "G3138 Μάρκος — Marcus, a Christian",
+        "G3727 ὅρκος — perhaps akin to G3725 (ὅριον)); a limit,",
+        "G692 ἀργός — inactive, i.e. unemployed; (by implicati"
+      ]
+    },
+    "Ἀδμίν": {
+      "occurrences": 1,
+      "candidats": [
+        "G188 ἀκμήν — adverbially, just now, i.e. still",
+        "G2254 ἡμῖν — to (or for, with, by) us",
+        "G281 ἀμήν — properly, firm, i.e. (figuratively) trus"
+      ]
+    },
+    "Ἀμπλιᾶτος": {
+      "occurrences": 1,
+      "candidats": [
+        "G291 Ἀμπλίας — Amplias, a Roman Christian"
+      ]
+    },
+    "Ἀππίου": {
+      "occurrences": 1,
+      "candidats": [
+        "G675 Ἄππιος — (in the genitive, i.e. possessive case) "
+      ]
+    },
+    "Ἀρνί": {
+      "occurrences": 1,
+      "candidats": [
+        "G737 ἄρτι — just now",
+        "G104 ἀεί — \"ever,\" by qualification regularly; by i",
+        "G1762 ἔνι — impersonally, there is in or among"
+      ]
+    },
+    "Ἁκελδαμάχ": {
+      "occurrences": 1,
+      "candidats": [
+        "G184 Ἀκελδαμά — corresponding to H02506 and H01818); Ake"
+      ]
+    },
+    "Ἁρμαγεδών": {
+      "occurrences": 1,
+      "candidats": [
+        "G717 Ἀρμαγεδδών — Armageddon (or Har-Meggiddon), a symboli"
+      ]
+    },
+    "ἐγκαυχάομαι": {
+      "occurrences": 1,
+      "candidats": [
+        "G2744 καυχάομαι — to vaunt (in a good or a bad sense)"
+      ]
+    },
+    "ἐκβαίνω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1684 ἐμβαίνω — to walk on, i.e. embark (aboard a vessel",
+        "G1544 ἐκβάλλω — to eject (literally or figuratively)",
+        "G1572 ἐκκαίω — to inflame deeply"
+      ]
+    },
+    "ἐκζήτησις": {
+      "occurrences": 1,
+      "candidats": [
+        "G2214 ζήτησις — a searching (properly, the act), i.e. a ",
+        "G4803 συζήτησις — mutual questioning, i.e. discussion"
+      ]
+    },
+    "ἐκθαυμάζω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2296 θαυμάζω — to wonder; by implication, to admire"
+      ]
+    },
+    "ἐκπερισσῶς": {
+      "occurrences": 1,
+      "candidats": [
+        "G4057 περισσῶς — superabundantly"
+      ]
+    },
+    "ἐκπηδάω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1530 εἰσπηδάω — to rush in"
+      ]
+    },
+    "ἐλεγμός": {
+      "occurrences": 1,
+      "candidats": [
+        "G1650 ἔλεγχος — proof, conviction",
+        "G1649 ἔλεγξις — refutation, i.e. reproof",
+        "G1656 ἔλεος — compassion (human or divine, especially "
+      ]
+    },
+    "ἐμπίμπρημι": {
+      "occurrences": 1,
+      "candidats": [
+        "G1705 ἐμπίπλημι — to fill in (up), i.e. (by implication) t",
+        "G4092 πίμπρημι — to fire, i.e. burn (figuratively and pas"
+      ]
+    },
+    "ἐμπαιγμονή": {
+      "occurrences": 1,
+      "candidats": [
+        "G1701 ἐμπαιγμός — derision"
+      ]
+    },
+    "ἐνάλιον": {
+      "occurrences": 1,
+      "candidats": [
+        "G1724 ἐνάλιος — in the sea, i.e. marine",
+        "G1637 ἔλαιον — olive oil",
+        "G1726 ἐναντίον — (adverbially) in the presence (view) of"
+      ]
+    },
+    "ἐνδώμησις": {
+      "occurrences": 1,
+      "candidats": [
+        "G1739 ἐνδόμησις — a housing in (residence), i.e. structure",
+        "G1761 ἐνθύμησις — deliberation"
+      ]
+    },
+    "ἐνορκίζω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1844 ἐξορκίζω — to exact an oath, i.e. conjure",
+        "G3726 ὁρκίζω — to put on oath, i.e. make swear; by anal"
+      ]
+    },
+    "ἐξεραυνάω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1830 ἐξερευνάω — to explore (figuratively)"
+      ]
+    },
+    "ἐξολεθρεύω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1842 ἐξολοθρεύω — to extirpate"
+      ]
+    },
+    "ἐξουδενέω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1847 ἐξουδενόω — to make utterly nothing of, i.e. despise",
+        "G1848 ἐξουθενέω — ?"
+      ]
+    },
+    "ἐπάρατος": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "ἐπεισέρχομαι": {
+      "occurrences": 1,
+      "candidats": [
+        "G1525 εἰσέρχομαι — to enter (literally or figuratively)"
+      ]
+    },
+    "ἐπικέλλω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2027 ἐποκέλλω — to drive upon the shore, i.e. to beach a",
+        "G1911 ἐπιβάλλω — to throw upon (literal or figurative, tr",
+        "G1989 ἐπιστέλλω — to enjoin (by writing), i.e. (genitive c"
+      ]
+    },
+    "ἐπιλείχω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1952 ἐπιλείπω — to leave upon, i.e. (figuratively) to be",
+        "G621 ἀπολείχω — to lick clean"
+      ]
+    },
+    "ἐπισκευάζομαι": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "ἐπισπείρω": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "ἐπιφαύσκω": {
+      "occurrences": 1,
+      "candidats": [
+        "G2017 ἐπιφαύω — to illuminate (figuratively)",
+        "G2020 ἐπιφώσκω — to begin to grow light"
+      ]
+    },
+    "ἑκούσιος": {
+      "occurrences": 1,
+      "candidats": [
+        "G1595 ἑκούσιον — voluntariness",
+        "G1596 ἑκουσίως — voluntarily",
+        "G1967 ἐπιούσιος — tomorrow's; but more probably from G1909"
+      ]
+    },
+    "ἔννυχα": {
+      "occurrences": 1,
+      "candidats": [
+        "G1742 ἔνδυμα — apparel (especially the outer robe)",
+        "G1767 ἐννέα — nine",
+        "G1771 ἔννοια — thoughtfulness, i.e. moral understanding"
+      ]
+    },
+    "ἔσθω": {
+      "occurrences": 1,
+      "candidats": [
+        "G1486 ἔθω — to be used (by habit or conventionality)",
+        "G2068 ἐσθίω — used only in certain tenses, the rest be",
+        "G2077 ἔστω — be thou; also , third person of the same"
+      ]
+    },
+    "Ἐλμαδάμ": {
+      "occurrences": 1,
+      "candidats": [
+        "G1678 Ἐλμωδάμ — Elmodam, an Israelite"
+      ]
+    },
+    "Ἑμμώρ": {
+      "occurrences": 1,
+      "candidats": [
+        "G1697 Ἐμμόρ — Emmor (i.e. Chamor), a Canaanite",
+        "G1692 ἐμέω — to vomit"
+      ]
+    },
+    "Ἠλί": {
+      "occurrences": 1,
+      "candidats": [
+        "G2241 ἠλί — my God",
+        "G2242 Ἡλί — Heli (i.e. Eli), an Israelite",
+        "G104 ἀεί — \"ever,\" by qualification regularly; by i"
+      ]
+    },
+    "ἱερόθυτος": {
+      "occurrences": 1,
+      "candidats": [
+        "G2417 ἱερόσυλος — a temple-despoiler"
+      ]
+    },
+    "Ἰάρετ": {
+      "occurrences": 1,
+      "candidats": [
+        "G2391 Ἰάρεδ — Jared (i.e. Jered), an antediluvian",
+        "G5329 Φάρες — Phares (i.e. Perets), an Israelite",
+        "G703 ἀρέτη — properly, manliness (valor), i.e. excell"
+      ]
+    },
+    "Ἰανναί": {
+      "occurrences": 1,
+      "candidats": [
+        "G2388 Ἰαννά — Janna, an Israelite",
+        "G2389 Ἰαννῆς — Jannes, an Egyptian",
+        "G2390 ἰάομαι — to cure (literally or figuratively)"
+      ]
+    },
+    "Ἰουνία": {
+      "occurrences": 1,
+      "candidats": [
+        "G2456 Ἰουλία — Julia, a Christian woman",
+        "G2458 Ἰουνιᾶς — Junias, a Christian",
+        "G2448 Ἰουδά — Judah (i.e. Jehudah or Juttah), a part o"
+      ]
+    },
+    "Ἰτουραῖος": {
+      "occurrences": 1,
+      "candidats": [
+        "G2453 Ἰουδαῖος — Judæan, i.e. belonging to Jehudah",
+        "G2484 Ἰτουραΐα — Ituræa (i.e. Jetur), a region of Palesti"
+      ]
+    },
+    "Ἰωανάν": {
+      "occurrences": 1,
+      "candidats": [
+        "G2494 Ἰωνάν — Jonan, an Israelite",
+        "G2488 Ἰωάθαμ — Joatham (i.e. Jotham), an Israelite",
+        "G2489 Ἰωάννα — Joanna, a Christian"
+      ]
+    },
+    "Ἰωβήλ": {
+      "occurrences": 1,
+      "candidats": [
+        "G2493 Ἰωήλ — Joel, an Israelite",
+        "G2492 Ἰώβ — Job (i.e. Ijob), a patriarch",
+        "G2499 Ἰωσή — Jose, an Israelite"
+      ]
+    },
+    "Ἰωδά": {
+      "occurrences": 1,
+      "candidats": [
+        "G2503 ἰῶτα — \"iota\", the name of the eighth letter of",
+        "G1430 δῶμα — properly, an edifice, i.e. (specially) a",
+        "G2386 ἴαμα — a cure (the effect)"
+      ]
+    },
+    "Ἰωνάμ": {
+      "occurrences": 1,
+      "candidats": [
+        "G2494 Ἰωνάν — Jonan, an Israelite",
+        "G2495 Ἰωνᾶς — Jonas (i.e. Jonah), the name of two Isra",
+        "G2496 Ἰωράμ — Joram, an Israelite"
+      ]
+    },
+    "Ἰωσήχ": {
+      "occurrences": 1,
+      "candidats": [
+        "G2499 Ἰωσή — Jose, an Israelite",
+        "G2500 Ἰωσῆς — Joses, the name of two Israelites",
+        "G2501 Ἰωσήφ — Joseph, the name of seven Israelites"
+      ]
+    },
+    "ὀλίγως": {
+      "occurrences": 1,
+      "candidats": [
+        "G3641 ὀλίγος — puny (in extent, degree, number, duratio",
+        "G3654 ὅλως — completely, i.e. altogether; (by analogy",
+        "G3743 ὁσίως — piously"
+      ]
+    },
+    "ὀλιγοπιστία": {
+      "occurrences": 1,
+      "candidats": [
+        "G3640 ὀλιγόπιστος — incredulous, i.e. lacking confidence (in"
+      ]
+    },
+    "ὁμίχλη": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "ὁμείρομαι": {
+      "occurrences": 1,
+      "candidats": [
+        "G2442 ἱμείρομαι — of uncertain affinity); to long for"
+      ]
+    },
+    "ὑπερεκχύννομαι": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "ὑπεροράω": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "ὑποστρωννύω": {
+      "occurrences": 1,
+      "candidats": [
+        "G5291 ὑποστρώννυμι — to strew underneath (the feet as a carpe"
+      ]
+    },
+    "ὑπόλειμμα": {
+      "occurrences": 1,
+      "candidats": [
+        "G5262 ὑπόδειγμα — an exhibit for imitation or warning (fig"
+      ]
+    },
+    "ῥέδη": {
+      "occurrences": 1,
+      "candidats": [
+        "G3976 πέδη — a shackle for the feet",
+        "G4480 ῥέδα — a rheda, i.e. four-wheeled carriage (wag",
+        "G4498 Ῥόδη — Rode, a servant girl"
+      ]
+    },
+    "ῥυπαρεύω": {
+      "occurrences": 1,
+      "candidats": []
+    },
+    "ῥώννυμαι": {
+      "occurrences": 1,
+      "candidats": [
+        "G4517 ῥώννυμι — probably akin to G4506 (ῥύομαι)); to str",
+        "G2224 ζώννυμι — to bind about (especially with a belt)"
+      ]
+    },
+    "Ῥαιφάν": {
+      "occurrences": 1,
+      "candidats": [
+        "G2536 Καϊνάν — Cainan (i.e. Kenan), the name of two pat",
+        "G3104 Μαϊνάν — Mainan, an Israelite",
+        "G4481 Ῥεμφάν — Remphan (i.e. Kijun), an Egyptian idol"
+      ]
+    }
+  },
+  "ambigus": {
+    "ὦ": {
+      "occurrences": 17,
+      "homographes": [
+        "G5599 ὦ — as a sign of the vocative case, O; as a ",
+        "G5600 ὦ — (may, might, can, could, would, should, "
+      ]
+    },
+    "ἄπειμι": {
+      "occurrences": 8,
+      "homographes": [
+        "G548 ἄπειμι — to be away",
+        "G549 ἄπειμι — to go away"
+      ]
+    },
+    "βάτος": {
+      "occurrences": 6,
+      "homographes": [
+        "G942 βάτος — a brier shrub",
+        "G943 βάτος — a bath, or measure for liquids"
+      ]
+    },
+    "σύνειμι": {
+      "occurrences": 3,
+      "homographes": [
+        "G4895 σύνειμι — to be in company with, i.e. present at t",
+        "G4896 σύνειμι — to assemble"
+      ]
+    },
+    "εἴκω": {
+      "occurrences": 1,
+      "homographes": [
+        "G1502 εἴκω — properly, to be weak, i.e. yield",
+        "G1503 εἴκω — to resemble"
+      ]
+    },
+    "ῥέω": {
+      "occurrences": 1,
+      "homographes": [
+        "G4482 ῥέω — for some tenses of which a prolonged for",
+        "G4483 ῥέω — to utter, i.e. speak or say"
+      ]
+    }
+  }
+}
