@@ -1630,4 +1630,58 @@ export const it: Dictionary = {
       `Impossibile eliminare «${name}».`,
     importStructure: 'Struttura JSON non valida: manca la proprietà «data».',
   },
+
+  partage: {
+    titre: 'Condividi questo piano',
+    explication:
+      'Un piano condiviso è un piano comune: spuntare un giorno lo spunta per '
+      + 'tutti. Ognuno conserva le proprie letture e statistiche.',
+    parLien: 'Con un link',
+    parLienAide: 'Invialo come vuoi. Chi lo apre può unirsi al piano.',
+    creerLien: 'Crea un link',
+    copier: 'Copia',
+    copie: 'Link copiato',
+    parAdresse: 'Per email',
+    adressePlaceholder: 'indirizzo@esempio.it',
+    inviter: 'Invita',
+    invitationEnvoyee:
+      'Invito creato. Se questa persona ha già un account lo troverà nei suoi '
+      + 'piani; altrimenti inviale il link qui sotto.',
+    membres: 'Membri',
+    proprietaire: 'Creatore',
+    membre: 'Membro',
+    invitationsEnCours: 'Inviti in attesa',
+    revoquer: 'Ritira',
+    quitter: 'Lascia questo piano',
+    quitterConfirmation:
+      'Non vedrai più questo piano né i suoi progressi. Le letture che hai già '
+      + 'registrato restano tue.',
+    partageAvecToi: 'Condiviso con te',
+    luPar: (nom: string) => `Letto da ${nom}`,
+    jeLaiLuAussi: 'L’ho letto anch’io',
+    dejaCompte: 'L’hai già registrato',
+
+    invitationRecue: 'Invito ricevuto',
+    invitationsRecues: 'Inviti ricevuti',
+    vousInvite: (nom: string, plan: string) => `${nom} ti invita a seguire «${plan}»`,
+    quelquunVousInvite: (plan: string) => `Sei invitato a seguire «${plan}»`,
+    accepter: 'Unisciti al piano',
+    refuser: 'Rifiuta',
+    refusImpossible: 'Questo link è aperto a più persone: puoi semplicemente ignorarlo.',
+    pourRejoindre: 'Crea un account per unirti a questo piano',
+    pourRejoindreAide:
+      'Bible Ouverte è gratuita. Una volta registrato potrai unirti a questo '
+      + 'piano e condividerlo a tua volta.',
+    creerCompte: 'Crea un account',
+    seConnecter: 'Ho già un account',
+    dejaMembre: 'Segui già questo piano.',
+    voirLePlan: 'Vedi il piano',
+    erreurs: {
+      introuvable: 'Questo invito non esiste.',
+      expiree: 'Questo invito è scaduto.',
+      'deja-traitee': 'A questo invito è già stata data una risposta.',
+      'pas-pour-vous': 'Questo invito è indirizzato a qualcun altro.',
+      inconnu: 'Non è stato possibile elaborare l’invito.',
+    },
+  },
 }

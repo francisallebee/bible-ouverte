@@ -225,6 +225,61 @@ export interface ReadingPlan {
   updatedAt: string;
   /** true si la ligne existe dans Supabase (flag local uniquement) */
   synced?: boolean;
+  /**
+   * L'identifiant du compte **à qui ce plan est partagé**, quand ce n'est pas
+   * le sien. Champ local uniquement, absent de la base.
+   *
+   * Il porte un identifiant plutôt qu'un booléen, et ce n'est pas du zèle : un
+   * `partage: true` survivrait à un changement de compte sur le même appareil,
+   * et l'ancien lecteur verrait les plans du nouveau dans son cache. C'est
+   * exactement ce que le filtre `p.userId === userId` protégeait jusqu'ici, et
+   * qu'ouvrir la liste aux plans d'autrui aurait supprimé sans le dire.
+   */
+  partageA?: string;
+}
+
+/** Un membre d'un plan partagé, tel que `membres_du_plan()` le rend. */
+export interface PlanMembre {
+  userId: string;
+  nom: string;
+  role: 'proprietaire' | 'membre';
+  joinedAt: string;
+}
+
+/** Une invitation émise, telle que son auteur la voit. */
+export interface PlanInvitation {
+  id: number;
+  planId: number;
+  jeton: string;
+  /** Renseignée pour une invitation nominative, absente pour un lien ouvert. */
+  email?: string;
+  statut: 'en_attente' | 'acceptee' | 'refusee' | 'revoquee';
+  createdAt: string;
+  expiresAt: string;
+}
+
+/**
+ * Ce qu'un invité voit **avant** de décider — et rien de plus.
+ *
+ * Pas les jours, pas les autres membres, pas le document : juste de quoi
+ * répondre. C'est ce que rend `invitation_par_jeton()`, qui est ouverte à
+ * `anon` pour qu'une personne sans compte sache qui l'invite et à quoi.
+ */
+export interface InvitationVue {
+  planNom: string;
+  invitePar: string;
+  statut: PlanInvitation['statut'];
+  expiree: boolean;
+  dejaMembre: boolean;
+  /**
+   * `true` si l'invitation porte un destinataire.
+   *
+   * L'écran en a besoin pour ne proposer « Refuser » que là où c'est possible :
+   * un lien ouvert ne se refuse pas — le refuser le fermerait pour tous ceux
+   * qui l'ont reçu —, et la fonction en base lève. Un bouton qui échoue est
+   * pire que pas de bouton.
+   */
+  nominative: boolean;
 }
 
 /**

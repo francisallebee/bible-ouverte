@@ -1715,4 +1715,57 @@ export const ar: Dictionary = {
       `تعذّر حذف «${name}».`,
     importStructure: 'بنية JSON غير صالحة: الخاصية «data» مفقودة.',
   },
+
+  partage: {
+    titre: 'مشاركة هذه الخطة',
+    explication:
+      'الخطة المشتركة خطة واحدة للجميع: تعليم يوم يعلّمه للجميع. ويحتفظ كلٌّ '
+      + 'بقراءاته وإحصاءاته.',
+    parLien: 'برابط',
+    parLienAide: 'أرسله كما تشاء. من يفتحه يمكنه الانضمام إلى الخطة.',
+    creerLien: 'إنشاء رابط',
+    copier: 'نسخ',
+    copie: 'نُسخ الرابط',
+    parAdresse: 'ببريد إلكتروني',
+    adressePlaceholder: 'address@example.com',
+    inviter: 'دعوة',
+    invitationEnvoyee:
+      'أُنشئت الدعوة. إن كان لهذا الشخص حساب فسيجدها في خططه؛ وإلا فأرسل له '
+      + 'الرابط أدناه.',
+    membres: 'الأعضاء',
+    proprietaire: 'المُنشئ',
+    membre: 'عضو',
+    invitationsEnCours: 'دعوات قيد الانتظار',
+    revoquer: 'سحب',
+    quitter: 'مغادرة هذه الخطة',
+    quitterConfirmation:
+      'لن ترى هذه الخطة ولا تقدّمها بعد الآن. أما القراءات التي سجّلتها فتبقى لك.',
+    partageAvecToi: 'مشتركة معك',
+    luPar: (nom: string) => `قرأها ${nom}`,
+    jeLaiLuAussi: 'قرأتها أنا أيضًا',
+    dejaCompte: 'سجّلتها بالفعل',
+
+    invitationRecue: 'دعوة واردة',
+    invitationsRecues: 'الدعوات الواردة',
+    vousInvite: (nom: string, plan: string) => `يدعوك ${nom} إلى متابعة «${plan}»`,
+    quelquunVousInvite: (plan: string) => `أنت مدعوّ إلى متابعة «${plan}»`,
+    accepter: 'الانضمام إلى الخطة',
+    refuser: 'رفض',
+    refusImpossible: 'هذا الرابط مفتوح لعدّة أشخاص: يمكنك ببساطة تجاهله.',
+    pourRejoindre: 'أنشئ حسابًا للانضمام إلى هذه الخطة',
+    pourRejoindreAide:
+      'Bible Ouverte مجانية. بعد التسجيل ستتمكّن من الانضمام إلى هذه الخطة '
+      + 'ومشاركتها بدورك.',
+    creerCompte: 'إنشاء حساب',
+    seConnecter: 'لديّ حساب بالفعل',
+    dejaMembre: 'أنت تتابع هذه الخطة بالفعل.',
+    voirLePlan: 'عرض الخطة',
+    erreurs: {
+      introuvable: 'هذه الدعوة غير موجودة.',
+      expiree: 'انتهت صلاحية هذه الدعوة.',
+      'deja-traitee': 'سبق الردّ على هذه الدعوة.',
+      'pas-pour-vous': 'هذه الدعوة موجّهة إلى شخص آخر.',
+      inconnu: 'تعذّرت معالجة الدعوة.',
+    },
+  },
 }

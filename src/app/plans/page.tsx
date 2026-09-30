@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BookOpen, Plus, Calendar, Trash2, ListChecks, FileText, AlertTriangle, BookOpenText, ShieldCheck } from "lucide-react";
+import InvitationsRecues from "@/components/InvitationsRecues";
 import { seedIfNeeded, getEnabledVersions, getAllPlans, addPlan, deletePlan, generatePlanDays, addPlanDays, getCurrentUserId, getSettings } from "@/lib/storage";
 import { PLAN_TEMPLATES, templateDays, type PlanTemplate } from "@/lib/plans/catalog";
 import { templatePlanDays, templateDayRows, templateRealDays } from "@/lib/plans/from-template";
@@ -287,6 +288,11 @@ export default function PlansPage() {
           {t.plans.newPlan}
         </button>
       </div>
+
+      {/* Les invitations reçues, avant les plans : c'est ce qui attend une
+          réponse, et le reste peut attendre une seconde de plus. Le bloc
+          disparaît quand il n'y a rien. */}
+      <InvitationsRecues />
 
       {showForm && (
         <div className="bg-blue-50 rounded-xl border border-blue-200 p-5 mb-6 max-w-lg">

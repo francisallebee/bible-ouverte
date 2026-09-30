@@ -970,3 +970,22 @@ deux comptes réels, puis effacé et vérifié : un non-membre voit 0 plan, un
 membre invité en voit 182 jours, sa tentative de réécrire le livre d'un jour
 est annulée par le trigger (`ISA → ISA`) et sa tentative de supprimer le plan
 échoue. Les 228 jours cochés d'avant l'essai étaient toujours 228 après.
+
+### Le correctif du même jour — `compte_par_courriel`
+
+`profiles` **ne porte pas de colonne `email`** : ses 18 colonnes n'en
+comprennent aucune, l'adresse ne vivant que dans `auth.users`, que PostgREST
+n'expose pas. La route d'invitation par adresse aurait donc posé
+`invited_user` à nul **pour tout le monde**, sans lever : chaque invitation
+nominative aurait été traitée comme « cette personne n'a pas de compte », et
+n'aurait jamais paru dans l'application du destinataire.
+
+La fonction vit dans `public` et non dans `private`, contrairement aux autres
+helpers, parce qu'une route doit pouvoir l'appeler en RPC et que PostgREST
+n'expose pas `private`. La confidentialité tient donc au seul `grant`, et il
+est étroit : `service_role` et personne d'autre. Vérifié — `authenticated` et
+`anon` ne peuvent pas l'exécuter.
+
+`invitation_par_jeton()` gagne au passage `nominative`, sans quoi la page
+d'invitation aurait proposé « Refuser » sur un lien ouvert, que la base
+refuse : un bouton qui échoue est pire que pas de bouton.

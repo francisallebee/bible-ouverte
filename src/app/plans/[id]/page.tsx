@@ -6,7 +6,9 @@ import Link from "next/link";
 import {
   ArrowLeft, BookOpen, BookOpenText, CheckCircle2, Circle, ChevronLeft, ChevronRight,
   Loader2, Edit3, Download, FileText, Table, Code, FileJson, File, Trash2, ListChecks, X,
+  Users,
 } from "lucide-react";
+import PartagePlan from "@/components/PartagePlan";
 import {
   seedIfNeeded, getPlan, getPlanDays, updatePlanDay, updatePlan,
   addReading, deleteReading, getAllVersions, generatePlanDays, deletePlanDaysByPlan, addPlanDays, replacePlanDays,
@@ -52,6 +54,13 @@ export default function PlanDetailPage() {
   const planId = Number(params.id);
 
   const [plan, setPlan] = useState<ReadingPlan | null>(null);
+  /*
+    Le partage — 30 septembre 2026. `moi` sert à distinguer le créateur d'un
+    membre invité : le premier invite et supprime, le second coche et quitte.
+    Le rôle n'est pas demandé à la base ici, `plan.userId` le dit déjà.
+  */
+  const [partageOuvert, setPartageOuvert] = useState(false);
+  const [moi, setMoi] = useState<string | null>(null);
   const [days, setDays] = useState<PlanDay[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -134,6 +143,7 @@ export default function PlanDetailPage() {
       setPlan(p ?? null);
       setDays(d ?? []);
       setVersions(v);
+      setMoi(await getCurrentUserId());
       if (p) {
         setFormName(p.name);
         setFormDuration(p.duration);
@@ -496,11 +506,34 @@ export default function PlanDetailPage() {
               </button>
             </div>
           </div>
+          <button
+            onClick={() => setPartageOuvert((o) => !o)}
+            aria-expanded={partageOuvert}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 flex items-center gap-1.5"
+          >
+            <Users className="w-4 h-4" /> {t.partage.titre}
+          </button>
           <button onClick={() => setEditing(!editing)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 flex items-center gap-1.5">
             <Edit3 className="w-4 h-4" /> {t.common.edit}
           </button>
         </div>
       </div>
+
+      {/*
+        Le panneau de partage. `moi` peut être `null` le temps du premier
+        rendu : afficher le panneau avant de savoir qui l'on est proposerait
+        « Quitter ce plan » à son propre créateur, puis le remplacerait — d'où
+        l'attente.
+      */}
+      {partageOuvert && moi && plan.id !== undefined && (
+        <div className="mb-6">
+          <PartagePlan
+            planId={plan.id}
+            estProprietaire={plan.userId === moi}
+            onQuitte={() => router.push('/plans')}
+          />
+        </div>
+      )}
 
       {editing && (
         <div className="bg-blue-50 rounded-xl border border-blue-200 p-5 mb-6">

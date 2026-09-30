@@ -1603,4 +1603,58 @@ export const en: Dictionary = {
       `Could not remove “${name}”.`,
     importStructure: 'Invalid JSON structure: “data” property missing.',
   },
+
+  partage: {
+    titre: 'Share this plan',
+    explication:
+      'A shared plan is a common plan: ticking a day ticks it for everyone. '
+      + 'Each of you keeps your own readings and statistics.',
+    parLien: 'By link',
+    parLienAide: 'Send it however you like. Whoever opens it can join the plan.',
+    creerLien: 'Create a link',
+    copier: 'Copy',
+    copie: 'Link copied',
+    parAdresse: 'By email address',
+    adressePlaceholder: 'address@example.com',
+    inviter: 'Invite',
+    invitationEnvoyee:
+      'Invitation created. If this person already has an account they will '
+      + 'find it in their plans; otherwise, send them the link below.',
+    membres: 'Members',
+    proprietaire: 'Creator',
+    membre: 'Member',
+    invitationsEnCours: 'Pending invitations',
+    revoquer: 'Withdraw',
+    quitter: 'Leave this plan',
+    quitterConfirmation:
+      'You will no longer see this plan or its progress. The readings you have '
+      + 'already recorded remain yours.',
+    partageAvecToi: 'Shared with you',
+    luPar: (nom: string) => `Read by ${nom}`,
+    jeLaiLuAussi: 'I read it too',
+    dejaCompte: 'You have already recorded it',
+
+    invitationRecue: 'Invitation received',
+    invitationsRecues: 'Invitations received',
+    vousInvite: (nom: string, plan: string) => `${nom} invites you to follow “${plan}”`,
+    quelquunVousInvite: (plan: string) => `You are invited to follow “${plan}”`,
+    accepter: 'Join the plan',
+    refuser: 'Decline',
+    refusImpossible: 'This link is open to several people: you can simply ignore it.',
+    pourRejoindre: 'Create an account to join this plan',
+    pourRejoindreAide:
+      'Bible Ouverte is free. Once signed up you will be able to join this '
+      + 'plan and share it in turn.',
+    creerCompte: 'Create an account',
+    seConnecter: 'I already have an account',
+    dejaMembre: 'You already follow this plan.',
+    voirLePlan: 'View the plan',
+    erreurs: {
+      introuvable: 'This invitation does not exist.',
+      expiree: 'This invitation has expired.',
+      'deja-traitee': 'This invitation has already been answered.',
+      'pas-pour-vous': 'This invitation is addressed to someone else.',
+      inconnu: 'The invitation could not be processed.',
+    },
+  },
 }

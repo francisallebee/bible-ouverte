@@ -27,10 +27,15 @@ function safeParseArray(val: any): any[] {
   return [];
 }
 
-function rowToPlan(r: PlanRow): ReadingPlan {
+/**
+ * @param pourQui Le compte qui vient de recevoir cette ligne. Quand le plan
+ *   n'est pas le sien, c'est qu'il lui est **partagé** — voir `partageA`.
+ */
+function rowToPlan(r: PlanRow, pourQui?: string): ReadingPlan {
   return {
     id: r.id,
     userId: r.user_id,
+    partageA: pourQui && r.user_id !== pourQui ? pourQui : undefined,
     name: r.name,
     versionId: r.versionId,
     // Les plans antérieurs à la migration `free_plans` sont tous datés.
@@ -175,7 +180,18 @@ async function pushLocalPlans(userId: string): Promise<void> {
   }
 }
 
-/** Récupère les plans distants, purge les plans supprimés ailleurs. */
+/**
+ * Récupère les plans distants, purge les plans supprimés **ou quittés**.
+ *
+ * La purge ne porte plus sur les seuls plans dont on est propriétaire : depuis
+ * le 30 septembre 2026 le distant rend aussi ceux qu'on a rejoints, et quitter
+ * un plan doit le faire disparaître du cache. Restreindre la purge au
+ * propriétaire aurait laissé un plan quitté visible hors ligne, indéfiniment —
+ * un défaut muet, puisque tout le reste continue de fonctionner.
+ *
+ * Les plans **non synchronisés** sont épargnés : ce sont ceux créés hors
+ * ligne, qui n'ont pas encore d'existence distante.
+ */
 async function pullPlans(userId: string): Promise<void> {
   const rows = await fetchPlans();
   if (rows === null) return;
@@ -183,13 +199,14 @@ async function pullPlans(userId: string): Promise<void> {
   const remoteIds = new Set(rows.map(r => r.id));
   const all = await db.getAll('plans');
   for (const p of all) {
-    if (p.userId === userId && p.synced && p.id !== undefined && !remoteIds.has(p.id)) {
+    const aMoi = p.userId === userId || p.partageA === userId;
+    if (aMoi && p.synced && p.id !== undefined && !remoteIds.has(p.id)) {
       await db.delete('plans', p.id);
       await deleteLocalDays(p.id);
     }
   }
   for (const r of rows) {
-    await db.put('plans', rowToPlan(r));
+    await db.put('plans', rowToPlan(r, userId));
   }
 }
 
@@ -205,8 +222,11 @@ export async function getAllPlans(): Promise<ReadingPlan[]> {
   }
   const db = await getDB();
   const all = await db.getAll('plans');
+  // « Les miens, et ceux qu'on m'a partagés » — `partageA` porte l'identifiant
+  // et non un booléen, pour qu'un changement de compte sur le même appareil ne
+  // laisse pas voir les plans du précédent.
   return all
-    .filter(p => p.userId === userId)
+    .filter(p => p.userId === userId || p.partageA === userId)
     .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
 }
 

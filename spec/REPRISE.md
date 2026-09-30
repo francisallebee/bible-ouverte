@@ -624,12 +624,17 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
 
 ## Pièges vérifiés, à ne pas réintroduire
 
-- **Une couleur se mesure après l'arrêt des transitions, jamais pendant.**
+- **Une couleur se mesure transitions désactivées, pas après une attente.**
   Le 30 septembre 2026, un balayage de contraste a rendu **2,56 sur un élément
   qui en tenait 5,71** : la sonde échantillonnait 300 ms après avoir basculé le
-  thème, et `transition-colors` dure précisément 300 ms par défaut. La page
-  était juste, la mesure ne l'était pas. Une sonde qui ment coûte plus cher
-  qu'une absence de sonde, parce qu'on la croit.
+  thème, et `transition-colors` dure précisément 300 ms par défaut. Attendre
+  plus longtemps ne suffit pas — le même jour, à **800 ms**, une seconde sonde
+  a rendu 3,03 sur un élément qui en tenait 5,71, la variable `--surface`
+  cascadant sur toute une carte. Le remède n'est donc pas une attente plus
+  longue mais **poser `* { transition: none !important }` le temps de la
+  mesure**, et le retirer ensuite. Une sonde qui ment coûte plus cher qu'une
+  absence de sonde, parce qu'on la croit — et deux fois dans la même journée,
+  elle a failli faire « corriger » deux couleurs parfaitement justes.
 
 - **Un chiffre affiché à l'écran se croise par un test contre sa source.**
   Les poids de `public/` sont relevés sur les fichiers et comparés à leur

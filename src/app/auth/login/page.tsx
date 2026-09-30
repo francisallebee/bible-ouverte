@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, Suspense } from 'react'
+import { retourApresConnexion } from '@/lib/auth/retour'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -50,7 +51,10 @@ function LoginForm() {
     // Ancien commentaire, conservé pour la mémoire du raisonnement : `/` sert
     // la page de présentation, dont le
     // middleware renverrait aussitôt quelqu'un de connecté.
-    router.push('/')
+    // Sauf retour d'invitation : c'est le seul cas où pousser une destination
+    // est justifié, et `retourApresConnexion` le borne par une liste blanche —
+    // un `next` rendu sans filtre est une redirection ouverte.
+    router.push(retourApresConnexion(searchParams.get('next')))
     router.refresh()
   }
 

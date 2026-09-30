@@ -1634,4 +1634,58 @@ export const es: Dictionary = {
       `No se ha podido eliminar «${name}».`,
     importStructure: 'Estructura JSON no válida: falta la propiedad «data».',
   },
+
+  partage: {
+    titre: 'Compartir este plan',
+    explication:
+      'Un plan compartido es un plan común: marcar un día lo marca para todos. '
+      + 'Cada uno conserva sus propias lecturas y estadísticas.',
+    parLien: 'Por enlace',
+    parLienAide: 'Envíalo como quieras. Quien lo abra podrá unirse al plan.',
+    creerLien: 'Crear un enlace',
+    copier: 'Copiar',
+    copie: 'Enlace copiado',
+    parAdresse: 'Por correo electrónico',
+    adressePlaceholder: 'direccion@ejemplo.es',
+    inviter: 'Invitar',
+    invitationEnvoyee:
+      'Invitación creada. Si esta persona ya tiene cuenta, la encontrará en '
+      + 'sus planes; si no, envíale el enlace de abajo.',
+    membres: 'Miembros',
+    proprietaire: 'Creador',
+    membre: 'Miembro',
+    invitationsEnCours: 'Invitaciones pendientes',
+    revoquer: 'Retirar',
+    quitter: 'Salir de este plan',
+    quitterConfirmation:
+      'Ya no verás este plan ni su avance. Las lecturas que ya registraste '
+      + 'siguen siendo tuyas.',
+    partageAvecToi: 'Compartido contigo',
+    luPar: (nom: string) => `Leído por ${nom}`,
+    jeLaiLuAussi: 'Yo también lo leí',
+    dejaCompte: 'Ya lo has registrado',
+
+    invitationRecue: 'Invitación recibida',
+    invitationsRecues: 'Invitaciones recibidas',
+    vousInvite: (nom: string, plan: string) => `${nom} te invita a seguir «${plan}»`,
+    quelquunVousInvite: (plan: string) => `Te invitan a seguir «${plan}»`,
+    accepter: 'Unirme al plan',
+    refuser: 'Rechazar',
+    refusImpossible: 'Este enlace está abierto a varias personas: puedes simplemente ignorarlo.',
+    pourRejoindre: 'Crea una cuenta para unirte a este plan',
+    pourRejoindreAide:
+      'Bible Ouverte es gratuita. Una vez registrado podrás unirte a este '
+      + 'plan y compartirlo a tu vez.',
+    creerCompte: 'Crear una cuenta',
+    seConnecter: 'Ya tengo una cuenta',
+    dejaMembre: 'Ya sigues este plan.',
+    voirLePlan: 'Ver el plan',
+    erreurs: {
+      introuvable: 'Esta invitación no existe.',
+      expiree: 'Esta invitación ha caducado.',
+      'deja-traitee': 'Esta invitación ya ha sido respondida.',
+      'pas-pour-vous': 'Esta invitación está dirigida a otra persona.',
+      inconnu: 'No se ha podido procesar la invitación.',
+    },
+  },
 }

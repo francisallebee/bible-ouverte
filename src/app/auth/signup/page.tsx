@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { retourApresConnexion } from '@/lib/auth/retour'
 import Link from 'next/link'
 import { MailCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -25,9 +26,19 @@ export default function SignupPage() {
   // envelopper la page dans un <Suspense> pour que le build passe. La lecture a
   // lieu après le montage : le rendu serveur et le premier rendu client restent
   // identiques.
+  /*
+    `next` suit le même chemin que `email`, et pour la même raison : il vient
+    d'une URL. L'inscription passant par une confirmation de courriel, il doit
+    survivre jusqu'au lien « Aller à la connexion » — sans quoi quelqu'un qui
+    s'inscrit depuis une invitation reviendrait sur son écran d'accueil et ne
+    retrouverait jamais l'invitation.
+  */
+  const [retour, setRetour] = useState('/')
   useEffect(() => {
-    const fromLanding = new URLSearchParams(window.location.search).get('email')
+    const params = new URLSearchParams(window.location.search)
+    const fromLanding = params.get('email')
     if (fromLanding) setEmail(fromLanding)
+    setRetour(retourApresConnexion(params.get('next')))
   }, [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -100,7 +111,10 @@ export default function SignupPage() {
             {t.authScreens.mailSentAfter}
           </p>
         </div>
-        <Link href="/auth/login" className={`${authButton} mt-5`}>
+        <Link
+          href={retour === '/' ? '/auth/login' : `/auth/login?next=${encodeURIComponent(retour)}`}
+          className={`${authButton} mt-5`}
+        >
           {t.authScreens.goToLogin}
         </Link>
       </AuthCard>

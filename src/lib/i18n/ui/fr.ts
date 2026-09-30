@@ -1703,6 +1703,73 @@ export const fr = {
       `Suppression de « ${name} » impossible.`,
     importStructure: 'Structure JSON invalide : propriété « data » manquante.',
   },
+
+  /**
+   * Le partage d'un plan de lecture — 30 septembre 2026.
+   *
+   * Le vocabulaire est celui du produit et non celui de la base : on ne dit
+   * pas « invitation nominative » ni « jeton » à un lecteur. « Par lien » et
+   * « par adresse », c'est tout ce qu'il a besoin de distinguer.
+   */
+  partage: {
+    titre: 'Partager ce plan',
+    explication:
+      'Un plan partagé est un plan commun : cocher un jour le coche pour tout '
+      + 'le monde. Chacun garde ses propres lectures et ses statistiques.',
+    parLien: 'Par un lien',
+    parLienAide: 'À transmettre comme tu veux. Qui l’ouvre peut rejoindre le plan.',
+    creerLien: 'Créer un lien',
+    copier: 'Copier',
+    copie: 'Lien copié',
+    parAdresse: 'Par adresse courriel',
+    adressePlaceholder: 'adresse@exemple.fr',
+    inviter: 'Inviter',
+    /*
+      Le même message que l'adresse ait un compte ou non : répondre « cette
+      adresse n'est pas inscrite » serait un test d'existence, et permettrait
+      à quiconque de savoir qui utilise l'application.
+    */
+    invitationEnvoyee:
+      'Invitation créée. Si cette personne a déjà un compte, elle la trouvera '
+      + 'dans ses plans ; sinon, transmets-lui le lien ci-dessous.',
+    membres: 'Membres',
+    proprietaire: 'Créateur',
+    membre: 'Membre',
+    invitationsEnCours: 'Invitations en attente',
+    revoquer: 'Retirer',
+    quitter: 'Quitter ce plan',
+    quitterConfirmation:
+      'Tu ne verras plus ce plan ni son avancement. Les lectures que tu as '
+      + 'déjà enregistrées restent les tiennes.',
+    partageAvecToi: 'Partagé avec toi',
+    luPar: (nom: string) => `Lu par ${nom}`,
+    jeLaiLuAussi: 'Je l’ai lu aussi',
+    dejaCompte: 'Tu l’as déjà enregistré',
+
+    invitationRecue: 'Invitation reçue',
+    invitationsRecues: 'Invitations reçues',
+    vousInvite: (nom: string, plan: string) => `${nom} t’invite à suivre « ${plan} »`,
+    quelquunVousInvite: (plan: string) => `Tu es invité à suivre « ${plan} »`,
+    accepter: 'Rejoindre le plan',
+    refuser: 'Refuser',
+    /* Un lien ouvert ne se refuse pas : le refuser le fermerait pour tous. */
+    refusImpossible: 'Ce lien est ouvert à plusieurs personnes : tu peux simplement l’ignorer.',
+    pourRejoindre: 'Crée un compte pour rejoindre ce plan',
+    pourRejoindreAide:
+      'Bible Ouverte est gratuite. Une fois inscrit, tu pourras rejoindre ce '
+      + 'plan et le partager à ton tour.',
+    creerCompte: 'Créer un compte',
+    seConnecter: 'J’ai déjà un compte',
+    dejaMembre: 'Tu suis déjà ce plan.',
+    voirLePlan: 'Voir le plan',
+    erreurs: {
+      introuvable: 'Cette invitation n’existe pas.',
+      expiree: 'Cette invitation a expiré.',
+      'deja-traitee': 'Cette invitation a déjà reçu une réponse.',
+      'pas-pour-vous': 'Cette invitation est adressée à quelqu’un d’autre.',
+      inconnu: 'L’invitation n’a pas pu être traitée.',
+    },
+  },
 }
 
 /**

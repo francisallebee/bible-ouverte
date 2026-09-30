@@ -194,9 +194,32 @@ export interface PlanRow {
   updatedAt: string
 }
 
+/**
+ * Les plans visibles : les siens **et ceux qu'on a rejoints**.
+ *
+ * Sans `.eq('user_id', …)`, et c'est tout l'objet de cette fonction. Depuis le
+ * 30 septembre 2026, la policy de `select` sur `plans` rend aussi les plans
+ * dont on est membre — mais `select()` filtrait **dans la requête**, si bien
+ * qu'un plan partagé n'arrivait jamais au navigateur. La RLS a beau s'ouvrir,
+ * un filtre client la referme, et rien ne le signale : la liste est juste
+ * vide, exactement comme avant.
+ *
+ * `plan_days` est dans le même cas et suit la même règle, plus bas.
+ */
 export async function fetchPlans(): Promise<PlanRow[] | null> {
   return tryAuthenticated(
-    (uid) => select<PlanRow>('plans', uid),
+    async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('plans')
+        .select('*')
+        .order('id', { ascending: false })
+      if (error) {
+        console.warn('supabase select plans:', error.message)
+        return null
+      }
+      return (data as PlanRow[]) ?? []
+    },
     null,
   )
 }
@@ -258,12 +281,15 @@ export interface PlanDayRow {
 
 export async function fetchPlanDays(planId: number): Promise<PlanDayRow[] | null> {
   const supabase = createClient()
-  return tryAuthenticated(async (uid) => {
+  // Le `.eq('user_id', uid)` est retiré pour la même raison que sur `plans` :
+  // les jours d'un plan rejoint portent le `user_id` de son **créateur**, et
+  // le filtre client les faisait disparaître alors que la RLS les rend.
+  // Le `plan_id` suffit à borner, et la policy fait le reste.
+  return tryAuthenticated(async () => {
     const { data, error } = await supabase
       .from('plan_days')
       .select('*')
       .eq('plan_id', planId)
-      .eq('user_id', uid)
       .order('day', { ascending: true })
     if (error) {
       console.warn('supabase fetchPlanDays:', error.message)

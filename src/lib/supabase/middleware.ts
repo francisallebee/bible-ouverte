@@ -9,8 +9,26 @@ import { pageAccueil } from '@/lib/accueil'
  * présentation : c'est la seule page que voit un visiteur qui n'a pas encore de
  * compte, elle ne peut donc pas renvoyer vers /auth/login.
  */
+/**
+ * Les chemins servis sans session.
+ *
+ * `/invitation/…` s'y ajoute le 30 septembre 2026, et ce n'est pas une
+ * commodité : la page doit pouvoir dire « Marie vous invite à suivre *Les
+ * Évangiles en 90 jours* » à quelqu'un qui n'a **pas encore de compte**, et lui
+ * proposer de s'inscrire. Sans elle dans cette liste, le middleware
+ * redirigerait vers `/auth/login` et le jeton serait perdu en route : l'invité
+ * s'inscrirait, arriverait sur une application vide, et ne trouverait jamais
+ * l'invitation — ce qui est précisément ce que le propriétaire a demandé
+ * d'éviter.
+ *
+ * Elle ne donne accès à rien : la page n'appelle qu'`invitation_par_jeton()`,
+ * qui ne rend que le nom du plan et celui de l'hôte, et le bouton d'acceptation
+ * exige une session — c'est la fonction en base qui le vérifie, pas l'écran.
+ */
 function isPublicPath(pathname: string): boolean {
-  return pathname === '/' || pathname.startsWith('/auth')
+  return pathname === '/'
+    || pathname.startsWith('/auth')
+    || pathname.startsWith('/invitation/')
 }
 
 export async function updateSession(request: NextRequest) {
