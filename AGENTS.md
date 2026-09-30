@@ -130,6 +130,8 @@ coûterait une passe complète sur les 19 écrans.
 | `src/lib/lectures/` | Regrouper les lectures d'un même enregistrement — un fait d'affichage, jamais de base |
 | `src/lib/progression/chapitres.ts` | **La** règle qui dit si un chapitre est entamé ou lu en entier — une seule, pour tous les écrans |
 | `src/lib/storage/occupation.ts` | Ce que le cache occupe, et les deux seuils qui déclenchent l'avertissement |
+| `src/lib/plans/partage.ts` | Le partage d'un plan : invitations, membres, lecture personnelle d'un jour collectif |
+| `src/app/invitation/[jeton]/` | Le seul écran hors `/` et `/auth` servi sans session — l'invité non inscrit doit pouvoir lire qui l'invite |
 | `src/lib/i18n/` | Langues, dictionnaires, noms de livres et de contextes, dates |
 | `src/contexts/` | Fournisseurs React : session (`AuthContext`), langue (`I18nContext`) |
 | `src/features/bible/` | Livres, classification, import des versions |
@@ -314,6 +316,32 @@ coûterait une passe complète sur les 19 écrans.
     après une bascule de thème échantillonne le milieu de l'animation, dont la
     durée par défaut est précisément 300 ms. Une sonde qui ment coûte plus
     cher qu'une absence de sonde, parce qu'on la croit.
+
+21. **Ouvrir une policy n'ouvre pas le client.** Le 30 septembre 2026, la RLS
+    de `plans` et `plan_days` s'est élargie aux membres d'un plan partagé — et
+    rien n'est arrivé au navigateur, parce que `select()` filtrait
+    `.eq('user_id', …)` **dans la requête** et que `fetchPlanDays` faisait de
+    même. Le défaut n'a aucun symptôme : la liste est vide, exactement comme
+    avant. Un filtre client double la policy sans le dire, et c'est la policy
+    qui doit filtrer — elle seule est la barrière.
+    Le cache local a le même piège à l'envers : `getAllPlans` refiltrait par
+    `p.userId === userId`. Il distingue désormais « mon plan » de « un plan
+    qu'on m'a partagé » par un **identifiant de compte** et non un booléen, qui
+    survivrait à un changement de compte sur le même appareil.
+
+22. **Une colonne neuve se pose dans chaque écrivain, pas seulement dans le
+    mappeur.** `updatePlanDay` n'envoie pas `dayToRow(day)` mais une **liste
+    explicite** de colonnes, et c'est voulu : cocher ne doit pas réécrire la
+    structure du jour. Conséquence, compléter `dayToRow` ne suffit pas — le
+    30 septembre 2026, `luPar` a été ajouté à la table, au type et au mappeur,
+    et le jour se cochait sans jamais le porter.
+    Le même oubli dormait **en production** sur `passages` : mesuré ce jour-là,
+    trois jours à plusieurs passages étaient cochés et **aucun** ne portait ses
+    `readingId` en base. Les décocher depuis un autre appareil n'aurait effacé
+    que la première lecture.
+    Aucun des deux ne lève, ne se voit au typage, ni ne casse l'écran d'où l'on
+    coche. **Après avoir ajouté une colonne, cocher une fois et relire la
+    ligne en base** — c'est la seule vérification qui les attrape.
 
 ## Commandes
 

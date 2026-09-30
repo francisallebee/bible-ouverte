@@ -624,6 +624,14 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
 
 ## Pièges vérifiés, à ne pas réintroduire
 
+- **Une explication qui met la faute ailleurs mérite d'être éprouvée avant
+  d'être crue.** Le 30 septembre 2026, trois jours cochés par le propriétaire
+  ne portaient pas la colonne `luPar` que je venais d'ajouter. J'ai supposé un
+  ancien paquet resté dans son navigateur — hypothèse commode, cohérente avec
+  l'horaire, et fausse. Cocher un jour moi-même et relire la ligne en base a
+  montré que `updatePlanDay` ne l'envoyait tout simplement pas. Le réflexe
+  coûte peu quand on a tort ; le garder coûte un défaut livré.
+
 - **Une couleur se mesure transitions désactivées, pas après une attente.**
   Le 30 septembre 2026, un balayage de contraste a rendu **2,56 sur un élément
   qui en tenait 5,71** : la sonde échantillonnait 300 ms après avoir basculé le
@@ -5512,3 +5520,91 @@ que les transitions se sont arrêtées**, sinon on mesure l'animation.
 
 C'est le pendant de la leçon de la veille : la mesure dément le raisonnement,
 mais une mauvaise mesure dément aussi la vérité.
+
+## Le 30 septembre au soir : partager un plan de lecture
+
+Demande du propriétaire : « pouvoir partager un plan de lecture », l'invité
+devant pouvoir **accepter ou refuser**. Deux questions commandaient tout le
+schéma, et il a tranché les deux : **les deux chemins** (lien et adresse), et
+un **plan réellement commun** — cocher un jour le coche pour tout le monde.
+
+C'est l'option la plus lourde des trois proposées, et elle change le sens du
+mot « plan » : `plans.user_id` désignait jusque-là le créateur **et** l'unique
+lecteur.
+
+### Le schéma, et ce qu'il refuse de faire
+
+| Table | Ce qu'elle porte |
+|---|---|
+| `plan_members` | qui appartient à quel plan, avec son rôle |
+| `plan_invitations` | jeton de 64 caractères, adresse facultative, expiration à 30 jours |
+| `plan_day_readings` | la lecture **personnelle** d'un jour coché collectivement |
+
+**`plan_invitations` n'a aucune policy de `select` pour l'invité**, et ce n'est
+pas un oubli : une policy « lisible si on connaît le jeton » n'existe pas.
+PostgREST applique le filtre **après** la policy, si bien qu'un `select *`
+rendrait tous les jetons de la table. Le jeton est une capacité, pas un critère
+de recherche — d'où six fonctions `security definer` qui ne rendent que ce
+qu'il faut voir.
+
+**`private.est_membre()` existe contre une récursion**, pas par élégance : la
+policy de `plans` interroge `plan_members`, dont la policy interrogerait
+`plans`. Postgres refuse à l'exécution.
+
+**`plan_day_readings` est la conséquence directe du choix du propriétaire.**
+`readings` n'est jamais partagée : un jour coché par Marie ne crée aucune
+lecture chez Paul, qui n'a rien lu. Sans cette table, un plan partagé ferait
+disparaître la moitié de l'activité de chaque compte de ses statistiques, de
+ses séries et de ses objectifs.
+
+### Six défauts, et aucun trouvé par relecture
+
+**`profiles` n'a pas de colonne `email`.** Ses 18 colonnes n'en comprennent
+aucune ; l'adresse ne vit que dans `auth.users`, que PostgREST n'expose pas. La
+route aurait posé `invited_user` à nul **pour tout le monde**, sans lever :
+chaque invitation par adresse traitée comme « cette personne n'a pas de
+compte », et jamais reçue. Trouvé en interrogeant `information_schema` avant
+d'écrire la requête, pas après.
+
+**Ouvrir une policy n'ouvre pas le client.** `select()` filtrait
+`.eq('user_id', …)` dans la requête, `fetchPlanDays` aussi. La RLS s'élargit,
+et rien n'arrive — la liste est vide exactement comme avant. C'est la règle 21.
+
+**Le trigger annulait la date d'un plan libre.** Sur un plan libre, la date du
+jour *est* celle de la lecture (ticket 32). La figer aurait cassé en silence
+tout jour coché par un membre, visible seulement aux statistiques des semaines
+plus tard.
+
+**Mon premier garde sur le décochage créait un orphelin.** J'épargnais les
+lectures de l'autre mais vidais quand même `readingId` : le jour paraissait
+décoché, et l'autre compte gardait des lignes rattachées à rien. La seule règle
+qui tienne est **on ne décoche que ce qu'on a coché soi-même**.
+
+**`updatePlanDay` taisait trois colonnes.** Elle n'envoie pas `dayToRow(day)`
+mais une liste explicite — voulu, cocher ne doit pas réécrire la structure du
+jour. Compléter le mappeur ne suffisait donc pas. C'est la règle 22, et
+`passages` y dormait **déjà en production** : trois jours à plusieurs passages
+cochés, aucun ne portant ses `readingId`.
+
+**Et j'ai failli attribuer ce défaut au navigateur du propriétaire.** Trois
+lectures d'Ésaïe cochées pendant mes essais portaient un `luPar` nul ; j'ai
+d'abord supposé un ancien paquet resté dans sa session. C'était commode et
+c'était faux. Cocher un jour moi-même et relire la ligne en base a montré que
+le défaut était le mien. **Une explication qui met la faute ailleurs mérite
+d'être éprouvée avant d'être crue.**
+
+### Ce qui a été éprouvé, et comment
+
+Sur la production, en se faisant passer pour deux comptes réels puis en
+effaçant : un non-membre voit **0 plan**, un membre invité en voit **182
+jours**, sa tentative de réécrire le livre d'un jour est annulée par le trigger
+(`ISA → ISA`), sa tentative de supprimer le plan échoue, il peut déclarer **sa**
+lecture et ne peut pas la déclarer **pour un autre**.
+
+À l'écran, déconnecté : la page d'invitation s'affiche sans redirection, nomme
+l'hôte et le plan, et porte le jeton dans les deux liens d'inscription.
+Connecté : lien créé, invitation par adresse avec son message neutre, retrait
+d'invitation, « Tu suis déjà ce plan » sur son propre lien.
+
+Les 228 jours cochés d'avant les essais étaient toujours 228 après — les trois
+de plus sont les lectures d'Ésaïe du propriétaire, faites pendant ce temps.
