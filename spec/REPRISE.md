@@ -624,6 +624,30 @@ d'être récupéré. Sur trois navigations, cela donne `contexts` ×8, `readings
 
 ## Pièges vérifiés, à ne pas réintroduire
 
+- **Une couleur se mesure après l'arrêt des transitions, jamais pendant.**
+  Le 30 septembre 2026, un balayage de contraste a rendu **2,56 sur un élément
+  qui en tenait 5,71** : la sonde échantillonnait 300 ms après avoir basculé le
+  thème, et `transition-colors` dure précisément 300 ms par défaut. La page
+  était juste, la mesure ne l'était pas. Une sonde qui ment coûte plus cher
+  qu'une absence de sonde, parce qu'on la croit.
+
+- **Un chiffre affiché à l'écran se croise par un test contre sa source.**
+  Les poids de `public/` sont relevés sur les fichiers et comparés à leur
+  taille réelle par `poids.test.ts`. Le piège n'est pas théorique :
+  `sblgnt.json` a changé de taille le 30 septembre 2026, le matin même où ces
+  poids ont été écrits. Un poids périmé n'a **aucun symptôme** — ni `tsc`, ni
+  `eslint`, ni le téléchargement, qui réussit parfaitement avec un fichier
+  d'une autre taille. Seul le lecteur voit le mensonge, et il ne peut pas
+  savoir que c'en est un.
+
+- **Ranger n'est pas ranger si la pile remplace le vrac.** Les cinq filtres en
+  désordre de « Mes lectures » ont été mis en carte le 30 septembre 2026 ; à
+  375 px, les sept contrôles empilés occupaient *tout* l'écran et repoussaient
+  la première lecture sous la ligne de flottaison. Le défaut était pire que
+  celui qu'il corrigeait, et il ne se voyait pas à la largeur où le correctif
+  avait été écrit. **Toute mise en ordre d'une barre d'outils se revoit à
+  375 px avant d'être crue.**
+
 - **Une valeur de repli inventée finit par être lue comme une mesure.**
   `FALLBACK_VERSES = 200` était documenté comme tel dans `PassagePicker`, cité
   comme tel dans le commentaire de `lib/objectifs`, et relevé comme tel en base
@@ -5326,3 +5350,160 @@ départagerait, et **10 écartés après examen** : `ἀλλαχοῦ` n'a pas d
 chez Strong, `εὖγε` y est deux mots, `θά` est la moitié de « marana tha ». Le
 fichier les sépare en trois sections pour cette raison — `a_faire` est une liste
 de travail, `ambigus` et `ecartes` n'en sont pas.
+
+## La séance du 30 septembre 2026 : quatre chantiers, et sept mesures qui démentent
+
+Quatre demandes du propriétaire, dans l'ordre : finir ce qui restait ouvert,
+avertir quand la mémoire se remplit, distinguer partout ce qui est entamé de ce
+qui est lu en entier, et rendre « Mes lectures » moins austère.
+
+`16064a2..b4da1f6`, quatre commits, 1 026 → **1 047 tests**.
+
+### Les 130 derniers lemmes grecs : 99,84 % → 99,91 %
+
+Ils n'étaient pas un travail d'appoint mais un **tri**, et le tri s'est fait en
+nommant les classes plutôt qu'en mesurant des ressemblances — la leçon de la
+veille, où trois heuristiques plausibles s'étaient effondrées à la mesure.
+
+| Classe | Ce qui l'autorise | Exemple |
+|---|---|---|
+| Nasale devant occlusive | orthographe régulière du texte critique | `ἀνεπίλημπτος` → G423 |
+| Byforme du même mot | même racine, même sens, même verset | `χοῦς` → G5522 `χόος` |
+| Flexion que Strong décrit | **son entrée porte la forme** | `πυκνά` → G4437, « neuter plural (as adverb) » |
+| Nom propre, autre graphie | même personnage | `Βόες` → G1003 `Βοόζ` |
+
+La troisième est la plus sûre et la moins évidente : **le lexique se décrit
+lui-même**. Le `kjvDef` de G2115 `εὔθυμος` porte « the more cheerfully », qui
+n'est pas la traduction de l'adjectif mais celle de l'adverbe `εὐθύμως` en
+Actes 24,10. La preuve du raccord était dans le champ, pas dans la
+ressemblance.
+
+**La sonde a rattrapé ce qu'une relecture n'aurait pas vu.** Le candidat G1768
+pour `ἐνενήκοντα` « quatre-vingt-dix » était plausible et faux : G1768 est
+`ἐννενηκονταεννέα`, quatre-vingt-dix-**neuf**. Le nombre seul n'existe pas chez
+Strong. Trois raccords de plus sont sortis en **relisant la liste des absents**
+au lieu de la croire — `εἵνεκεν` → G1752, `ῥέδη` → G4480, `ἀμφιάζω` → G294 — et
+un faux ami a été écarté : `ἄμωμον` (Ap 18,13) est **l'épice amomum**, non
+`ἄμωμος` « sans tache ».
+
+Résultat mesuré sur le fichier produit : **129 occurrences sur 137 554**, et
+aucune hors des listes décidées. `a_faire` est vide, ce qui n'est pas un oubli
+mais l'état juste. Le fichier manuel, qui n'avait **aucun test**, en a quatre :
+ses deux pièges sont muets — un numéro fantôme laisse le mot cliquable et le
+panneau vide, pire qu'un mot sans numéro qui au moins se dit tel.
+
+### La mémoire occupée : deux signaux, parce que les deux risques diffèrent
+
+Rien n'avertissait le lecteur. Douze traductions, deux lexiques, deux textes
+originaux — **115,7 Mio** — et aucun écran ne disait ce qu'il occupait. Le
+plafond avait grandi de moitié depuis la seule mesure du 9 août 2026.
+
+Le piège était de n'en garder qu'un :
+
+| Signal | Le risque | Où il se déclenche |
+|---|---|---|
+| `utilise / quota` | l'éviction par le navigateur | Safari, iOS — quota de l'ordre du gigaoctet |
+| volume absolu | la lenteur, le disque | partout, Chrome compris |
+
+Garder le seul ratio aurait fait une alerte qui **ne se déclenche jamais** sur
+Chrome, dont le quota est une part du disque libre : 116 Mio y font moins d'un
+pour cent, et le lecteur aurait eu un panneau vert avec une base saturée.
+Garder le seul volume aurait raté l'iPhone presque plein, où le quota tombe et
+où 40 Mio suffisent. **Un test tient les deux cas**, chacun avec le chiffre qui
+le rend réel.
+
+Les poids par ligne sont relevés sur les fichiers et **croisés par un test
+contre leur taille réelle** : `sblgnt.json` a changé de taille le matin même en
+gagnant 71 correspondances, et une table figée dans un commentaire aurait
+survécu à la régénération sans que rien ne le dise.
+
+Trois défauts trouvés **à l'écran**, pas à la relecture :
+
+- **0,59 % s'affichait « 1 % »** — `maximumFractionDigits: 0` gonflait de
+  presque le double le seul chiffre censé rassurer ;
+- **l'icône d'alerte tenait 2,08 de contraste** sur son fond en mode clair, la
+  barre 1,99, sous le 3:1 que WCAG 1.4.11 demande aux éléments non textuels.
+  `--warning` et `--danger` sont faites pour **teindre un fond**, pas pour s'en
+  détacher ; d'où `--alerte-attention` et `--alerte-danger`, remappées pour le
+  mode sombre comme le veut la règle 15 ;
+- **deux phrases arabes accordaient un participe féminin à un compte
+  d'octets** — le même piège qu'« Activée » au féminin, trouvé la veille.
+  Corrigé en phrase nominale : « المستخدَم على هذا الجهاز ».
+
+Et un qu'aucun œil n'aurait vu : le module **promettait « MiB » en anglais tout
+en rendant « Mio » partout**. C'est un test qui l'a trouvé, en comparant le
+commentaire au code. Le symbole d'unité est du texte visible, il appartient
+donc aux dictionnaires — règle 10.
+
+### Entamé et lu en entier : deux définitions du mot « lu » sur un même écran
+
+L'écran Progression en portait **deux**, et personne ne l'avait vu. Sa carte du
+haut distinguait les deux depuis le 9 septembre 2026 ; ses testaments, ses
+catégories et sa liste de livres comptaient encore par `Set<livre:chapitre>`
+sans jamais regarder les versets. Jean 3:16-18 — trois versets sur trente-six —
+remplissait la barre comme une lecture complète.
+
+Mesuré sur le compte du propriétaire : **146 des 260 chapitres du Nouveau
+Testament entamés, dont 19 seulement lus en entier.** La barre en annonçait
+146.
+
+La règle n'a pas été réécrite mais **sortie d'un cran** : `statutsParChapitre`
+rend l'état de chaque chapitre, `compterChapitres` n'en est plus qu'un résumé.
+C'est le piège 5, et il était déjà là — quatre calculs locaux pour une seule
+question.
+
+Deux points de conception qui comptent :
+
+- **Les segments se suivent, ils ne s'additionnent pas.** `entames` comprend
+  `entiers`, si bien que le second segment ne mesure que la différence. Un test
+  fige la garantie, puisque c'est l'erreur qu'une barre à deux couleurs invite
+  à faire.
+- **La distinction ne tient pas qu'à la couleur** : le segment partiel est
+  rayé. Sur douze pixels, deux teintes d'une même couleur se confondent pour un
+  lecteur daltonien, et les dix chartes changent la teinte quand aucune ne
+  change la rayure.
+
+Défaut trouvé en mesurant : **`--primary` ne tient que 1,27 sur `--piste` en
+mode sombre**, si bien que la barre des Statistiques y était quasi invisible.
+C'est la séparation des deux rôles décrite dans `themes.ts` — un fond n'est pas
+un premier plan. Portée à **4,67**.
+
+### « Mes lectures » : l'austérité avait une cause mesurable
+
+L'écran n'était pas austère par manque de décoration mais parce qu'**il
+n'affichait aucune lecture**. 465 lignes en base, et la première chose qu'on
+voyait était une barre de cinq champs gris puis « 2026 — 465 lectures »,
+replié. Trois clics pour prouver que le journal contenait quelque chose.
+
+La branche la plus récente s'ouvre désormais d'elle-même. **La garde porte sur
+l'axe *et* les filtres**, non sur l'axe seul : une recherche reconstruit
+l'arbre avec des clés que `expanded` ne connaît pas, et l'écran serait redevenu
+entièrement replié **au moment précis où l'on cherche** — pire que le défaut
+d'origine. Replier à la main tient, puisque aucun filtre ne bouge alors.
+
+Le compte des lignes passe de `text-gray-400`, **2,45 de contraste**, à une
+pastille `--primary-light` / `--primary` — et c'est pourtant le seul chiffre
+qui dise ce que contient une ligne repliée.
+
+Les deux champs de date portent enfin un `<label>` visible. Leur `placeholder`
+n'était **jamais rendu** — le navigateur affiche son propre format sur
+`<input type="date">` — si bien qu'ils paraissaient anonymes ; l'audit du
+2 septembre les rangeait pourtant parmi les champs « qui portent tous un
+intitulé visible ».
+
+**Et une correction de ma propre correction, trouvée à 375 px** : mis en carte,
+les sept contrôles occupaient *tout* l'écran d'un téléphone et repoussaient la
+première lecture sous la ligne de flottaison. Ranger n'est pas ranger si la
+pile remplace le vrac. Les filtres fins se replient donc derrière un bouton qui
+affiche leur nombre.
+
+### Une leçon sur la sonde elle-même
+
+Un balayage de contraste a rendu **2,56 sur un élément qui en tenait 5,71**. La
+cause n'était pas la page mais la mesure : j'échantillonnais 300 ms après avoir
+basculé le thème, c'est-à-dire **au milieu de la transition CSS**, dont la
+durée par défaut est précisément 300 ms. **Une mesure de couleur se prend après
+que les transitions se sont arrêtées**, sinon on mesure l'animation.
+
+C'est le pendant de la leçon de la veille : la mesure dément le raisonnement,
+mais une mauvaise mesure dément aussi la vérité.

@@ -128,6 +128,8 @@ coûterait une passe complète sur les 19 écrans.
 | `src/lib/supabase/store.ts` | Accès Supabase depuis le navigateur |
 | `src/lib/storage/` | Cache IndexedDB et logique métier par domaine |
 | `src/lib/lectures/` | Regrouper les lectures d'un même enregistrement — un fait d'affichage, jamais de base |
+| `src/lib/progression/chapitres.ts` | **La** règle qui dit si un chapitre est entamé ou lu en entier — une seule, pour tous les écrans |
+| `src/lib/storage/occupation.ts` | Ce que le cache occupe, et les deux seuils qui déclenchent l'avertissement |
 | `src/lib/i18n/` | Langues, dictionnaires, noms de livres et de contextes, dates |
 | `src/contexts/` | Fournisseurs React : session (`AuthContext`), langue (`I18nContext`) |
 | `src/features/bible/` | Livres, classification, import des versions |
@@ -283,6 +285,36 @@ coûterait une passe complète sur les 19 écrans.
     les posent ensemble. Mesurer les combinaisons existantes fait partie du
     correctif, pas de sa relecture.
 
+19. **Un chiffre montré au lecteur se croise par un test contre sa source.**
+    Les poids de `public/` vivent dans les tables de chemins (`VERSIONS`,
+    `LEXIQUES`, `ORIGINAUX`) et `poids.test.ts` les compare à la taille réelle
+    des fichiers. Le piège n'est pas théorique : `sblgnt.json` a changé de
+    taille le 30 septembre 2026, le matin même où ces poids ont été écrits.
+    Un poids périmé n'a **aucun symptôme** — ni `tsc`, ni `eslint`, ni le
+    téléchargement, qui réussit parfaitement avec un fichier d'une autre
+    taille. Seul le lecteur voit le mensonge, et il ne peut pas savoir que
+    c'en est un.
+    Même raison pour `strong-manuel.test.ts` : un numéro Strong qui ne désigne
+    aucune entrée laisse le mot cliquable et le panneau vide, ce qui est pire
+    qu'un mot sans numéro, lequel au moins se dit tel.
+
+20. **Un élément non textuel demande 3:1, et `--warning` n'est pas faite pour
+    ça.** WCAG 1.4.11 couvre les icônes, les barres, les bordures porteuses de
+    sens — pas 4,5, mais pas rien non plus. `--warning` et `--danger` sont des
+    teintes de **fond** : mesuré le 30 septembre 2026, `--warning` ne tient que
+    **2,08** sur `--warning-light` et **1,99** sur `--piste` en mode clair.
+    L'icône d'alerte et la barre de mémoire étaient donc presque invisibles —
+    un avertissement qu'on ne voit pas n'avertit pas. D'où `--alerte-attention`
+    et `--alerte-danger`, remappées pour le mode sombre selon la règle 15.
+    Le même piège existe sur `--primary`, et `themes.ts` le décrit depuis le
+    1er septembre : elle ne tient que **1,27** sur `--piste` en sombre, ce qui
+    a rendu la barre des Statistiques quasi invisible le 30 septembre. Un fond
+    n'est pas un premier plan ; `--primary-clair` est là pour l'autre rôle.
+    **Et la mesure se prend après l'arrêt des transitions** : sonder 300 ms
+    après une bascule de thème échantillonne le milieu de l'animation, dont la
+    durée par défaut est précisément 300 ms. Une sonde qui ment coûte plus
+    cher qu'une absence de sonde, parce qu'on la croit.
+
 ## Commandes
 
 ```bash
@@ -344,17 +376,20 @@ npm test           # vitest
   ont été vérifiées livre par livre et sont complètes — seul Malachie compte
   3 chapitres au lieu de 4 dans Crampon et Darby, ce qui est une différence de
   versification légitime et non un manque.
-- Un appareil qui activait les **sept** versions d'alors gardait environ
-  216 000 versets et 42 Mo en cache — mesuré le 9 août 2026. Elles sont
-  **douze** depuis le 16 août et `public/bibles/` pèse 82 Mo : le plafond a
-  donc grandi de moitié sans être remesuré, et l'arabe y compte double
-  (10 Mo à lui seul). C'est un choix de l'utilisateur et non le comportement
-  par défaut, mais rien ne l'avertit du volume au-delà de la mention
-  « environ 6 Mo chacune » dans les réglages — qui sous-estime la Van Dyck.
+- ~~Rien n'avertit du volume~~ — **réglé le 30 septembre 2026.** Les Réglages
+  disent ce que chaque case coûte (poids relevé sur le fichier, croisé par
+  `poids.test.ts`) et ce que le cache occupe (`navigator.storage.estimate`).
+  Le catalogue entier pèse **115,7 Mio** : douze traductions, deux lexiques,
+  deux textes originaux. Reste vrai que c'est un choix de l'utilisateur, et que
+  la mesure du 9 août 2026 — sept versions, 216 000 versets, 42 Mo — n'a jamais
+  été refaite à douze ; `estimate()` la remplace désormais à l'écran, appareil
+  par appareil, ce qui vaut mieux qu'une moyenne.
 - **L'espace n'est pas rendu tout de suite** quand une version est désactivée.
   Les lignes sont bien supprimées — vérifiable au compteur — mais le navigateur
   ne récupère les octets qu'à sa prochaine compaction, qu'on ne peut ni
-  déclencher ni observer. Ne pas promettre à l'utilisateur un gain immédiat.
+  déclencher ni observer. Ne pas promettre à l'utilisateur un gain immédiat :
+  **le panneau de mémoire le lui dit lui-même** depuis le 30 septembre 2026,
+  plutôt que de le laisser revenir constater que le chiffre n'a pas bougé.
 - L'écran **Administration a enfin été vu fonctionner**, le 15 août 2026, et par
   l'agent cette fois : 101 comptes, 111 lectures, 7 plans, 808 contextes, les
   deux onglets et le tableau. Tous les écrans de l'application ont donc
