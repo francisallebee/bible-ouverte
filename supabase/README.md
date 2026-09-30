@@ -47,6 +47,7 @@ aucune donnée.
 | `20260928180000_user_themes.sql` | `user_themes` : les thèmes que le lecteur écrit lui-même, à côté des quinze du code. Jumeau de `contexts` — table de référence dans le code, entrées personnelles en base ; `id` en `text` engendré par le client, pour qu'un thème puisse naître hors ligne ; `passages` en `jsonb`, comme `plan_days.passages`. Quatre policies sur `auth.uid() = user_id`, aucun `grant` de colonne |
 | `20260928120000_plan_readings_date_de_lecture.sql` | **Réparation de données** : les 242 lectures de plan (sur 362, 8 comptes) datées du jour **prévu** par le plan reçoivent celle de leur création — le jour où le lecteur a réellement coché. Ticket 32 ; le code est corrigé par `lib/plans/cochage.ts`. Fuseau `Europe/Paris` assumé, faute d'en stocker un par compte. Idempotente, aucune ligne supprimée, **non réversible** |
 | `20260917210000_plan_documents.sql` | **Le premier fichier stocké** : seau `documents` (privé, 20 Mo, PDF seul) créé par la migration, trois policies — lecture et suppression au propriétaire du préfixe, **dépôt réservé à l'administrateur** par `private.is_admin()` —, `plans.document` et `plan_days.page_debut`/`page_fin`, nulles. Additive, aucun `grant` |
+| `20260930120000_plans_partages.sql` | **Les plans partagés : un plan, plusieurs lecteurs.** `plan_members` (reprise : les 27 plans existants reçoivent leur créateur comme propriétaire — sans elle la nouvelle RLS les rendrait invisibles à leur auteur **sans rien lever**, la liste revenant simplement vide), `plan_invitations` (jeton de 64 caractères par défaut, **aucune policy de `select`** : une policy « lisible si on connaît le jeton » n'existe pas, PostgREST filtrant après coup) et `plan_day_readings` (chacun déclare sa propre lecture d'un jour coché par un autre — sans quoi un plan partagé ferait disparaître la moitié de l'activité de chaque compte). `private.est_membre()` en `security definer` **contre la récursion** : la policy de `plans` interroge `plan_members`, dont la policy interrogerait `plans`. `guard_plan_day_update` borne ce qu'un membre écrit — la policy dit qui, le trigger dit quoi —, en laissant passer `date` **pendant la seule bascule d'`isRead`**, parce que sur un plan libre c'est la date de la lecture (ticket 32). Six fonctions `security definer` forment l'API : `invitation_par_jeton` (ouverte à `anon`, pour qu'un non-inscrit sache qui l'invite), `accepter_invitation`, `refuser_invitation`, `quitter_plan`, `membres_du_plan` (parce que `profiles` reste verrouillé et qu'une policy ne sait pas se restreindre à deux colonnes) et `private.rattacher_invitations` |
 
 Ces fichiers remplacent l'ancien `supabase-schema.sql`, qui commençait par sept
 `drop table … cascade` : le rejouer effaçait toutes les données utilisateurs.
@@ -939,3 +940,33 @@ les tickets des autres, avec le nom de leur auteur. C'est le fonctionnement
 voulu de la page Support, pas un défaut de configuration — mais si un jour un
 ticket doit pouvoir contenir quelque chose de confidentiel, c'est la policy
 `authenticated can read tickets` qu'il faudra revoir.
+
+## Les plans partagés — 30 septembre 2026
+
+Ce qu'il faut savoir avant d'y toucher, parce que ces règles ne se lisent pas
+dans le schéma :
+
+**`plans.user_id` n'est plus « le lecteur », c'est « le créateur ».** Lui seul
+renomme, restructure et supprime. Tout le reste passe par `plan_members`.
+
+**Le jeton est la capacité.** `plan_invitations` n'a aucune policy de `select`
+pour l'invité, et ce n'est pas un oubli : une policy « lisible si on connaît le
+jeton » n'existe pas, PostgREST appliquant le filtre **après** la policy — un
+`select *` rendrait donc tous les jetons de la table. L'accès passe par
+`invitation_par_jeton()`, qui ne rend que le nom du plan, celui de l'hôte et
+l'état de l'invitation.
+
+**Un lien ouvert ne se referme pas au premier accepté**, une invitation
+nominative si. Et l'on ne refuse qu'une invitation nominative : refuser un lien
+ouvert le fermerait pour tous ceux qui l'ont reçu.
+
+**Ce qui reste personnel le reste.** `readings` n'est jamais partagée. Un jour
+coché par quelqu'un d'autre ne crée aucune lecture chez vous — vous n'avez rien
+lu. `plan_day_readings` existe pour que vous puissiez déclarer la vôtre et
+qu'elle compte dans vos statistiques.
+
+**Éprouvé le 30 septembre 2026 sur la production**, en se faisant passer pour
+deux comptes réels, puis effacé et vérifié : un non-membre voit 0 plan, un
+membre invité en voit 182 jours, sa tentative de réécrire le livre d'un jour
+est annulée par le trigger (`ISA → ISA`) et sa tentative de supprimer le plan
+échoue. Les 228 jours cochés d'avant l'essai étaient toujours 228 après.
