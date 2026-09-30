@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
-import { History, BookPlus, ChevronRight, ChevronDown, CheckSquare, Trash2, Tag, Loader, Layers } from "lucide-react";
+import { History, BookPlus, ChevronRight, ChevronDown, ChevronUp, CheckSquare, Trash2, Tag, Loader, Layers, Filter } from "lucide-react";
 import { seedIfNeeded, getAllReadings, getAllVersions, getAllContexts, deleteReading, updateReading } from "@/lib/storage";
 import type { ReadingEntry, BibleVersion, ReadingContext } from "@/lib/storage";
 import {
@@ -59,6 +59,20 @@ export default function HistoryPage() {
   const [axe, setAxe] = useState<"date" | "book" | "context">("date");
 
   const [search, setSearch] = useState("");
+
+  /**
+   * Les filtres fins, repliés par défaut.
+   *
+   * Mis en carte le 30 septembre 2026, les sept contrôles empilés occupaient
+   * **tout** l'écran d'un téléphone : la première lecture passait sous la
+   * ligne de flottaison, ce qui était pire que la barre en vrac qu'ils
+   * remplaçaient. La recherche reste dehors — c'est le geste courant — et le
+   * reste se déplie à la demande.
+   *
+   * Ouvert d'emblée si un filtre est déjà posé : un filtre actif et invisible
+   * ferait chercher pourquoi la liste est vide.
+   */
+  const [filtresOuverts, setFiltresOuverts] = useState(false);
   const [bookFilter, setBookFilter] = useState("");
   const [dateStart, setDateStart] = useState("");
   const [dateEnd, setDateEnd] = useState("");
@@ -241,6 +255,83 @@ export default function HistoryPage() {
   }, [contexts]);
 
   const allExpanded = toutesLesCles.length > 0 && toutesLesCles.every((c) => expanded.has(c));
+
+  /**
+   * Les clés de la première branche, jusqu'aux lectures.
+   *
+   * L'écran s'ouvrait entièrement replié : 465 lectures, et la première chose
+   * qu'on voyait était une ligne grise « 2026 — 465 lectures ». Un journal de
+   * lecture qui ne montre aucune lecture demande trois clics pour prouver
+   * qu'il contient quelque chose, et c'est là que l'écran paraissait austère.
+   *
+   * La **première** branche et non toutes : déplier 465 lignes d'un coup
+   * remplacerait le vide par un mur, et le bouton « Tout déplier » existe déjà
+   * pour qui le veut. L'arbre étant trié du plus récent au plus ancien sur
+   * l'axe des dates, cette branche est la dernière séance — ce qu'on vient
+   * chercher.
+   */
+  const brancheRecente = useMemo(() => {
+    const cles: string[] = [];
+    let noeud: Noeud | undefined = arbre[0];
+    while (noeud) {
+      cles.push(noeud.cle);
+      noeud = noeud.enfants?.[0];
+    }
+    return cles;
+  }, [arbre]);
+
+  /**
+   * Rouvrir la première branche **à chaque arbre neuf**, et à lui seul.
+   *
+   * La garde porte sur l'axe *et* les filtres, non sur l'axe seul. Une
+   * recherche reconstruit l'arbre avec des clés que `expanded` ne connaît
+   * pas : l'écran redeviendrait donc entièrement replié au moment précis où
+   * l'on cherche quelque chose, ce qui est pire que le défaut d'origine.
+   *
+   * Et rien d'autre ne la déclenche : replier une branche ou tout replier ne
+   * touche aucun filtre, la signature ne bouge pas, et le geste du lecteur
+   * tient. Sans cela l'écran se rouvrirait sous ses doigts.
+   */
+  /**
+   * Ce que le lecteur regarde, en trois chiffres.
+   *
+   * Sur `filtered` et non sur `readings` : quand un filtre est posé, la
+   * question devient « qu'est-ce que ma recherche a trouvé », et un total
+   * immuable n'y répondrait pas.
+   */
+  const resume = useMemo(() => {
+    if (filtered.length === 0) return null;
+    const jours = filtered.map((r) => r.date.slice(0, 10)).sort();
+    return {
+      lectures: filtered.length,
+      livres: new Set(filtered.map((r) => r.book)).size,
+      debut: jours[0],
+      fin: jours[jours.length - 1],
+    };
+  }, [filtered]);
+
+  /** Les filtres fins posés, hors recherche — elle a sa propre place. */
+  const filtresActifs = [bookFilter, dateStart, dateEnd].filter(Boolean).length;
+
+  /*
+    Un filtre posé ouvre le panneau, et une seule fois : `useState` ne relit
+    pas sa valeur initiale, donc un effet. Le refermer à la main tient ensuite,
+    tant qu'aucun filtre neuf n'apparaît.
+  */
+  const filtresVus = useRef(0);
+  useEffect(() => {
+    if (filtresActifs > filtresVus.current) setFiltresOuverts(true);
+    filtresVus.current = filtresActifs;
+  }, [filtresActifs]);
+
+  const signatureArbre = [axe, search, bookFilter, dateStart, dateEnd].join("\u0000");
+  const derniereSignature = useRef<string | null>(null);
+  useEffect(() => {
+    if (!loaded || brancheRecente.length === 0) return;
+    if (derniereSignature.current === signatureArbre) return;
+    derniereSignature.current = signatureArbre;
+    setExpanded(new Set(brancheRecente));
+  }, [loaded, signatureArbre, brancheRecente]);
 
   function toggleCle(cle: string) {
     setExpanded((prev) => {
@@ -565,15 +656,26 @@ export default function HistoryPage() {
           style={{ paddingInlineStart: `${1 + profondeur}rem` }}
           className="w-full flex items-center gap-2 pe-4 py-3 text-left hover:bg-gray-50 transition-colors"
         >
+          {/*
+            Le chevron passe de `text-gray-400` à `--primary` : c'est le seul
+            élément cliquable de la ligne, et le gris le faisait passer pour
+            une décoration. Mesuré 2,45 sur le blanc — sous le 3:1 des
+            éléments non textuels —, contre 11,92 pour `--primary`.
+          */}
           {ouvert
-            ? <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />
-            : <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />}
+            ? <ChevronDown className="w-4 h-4 text-[--primary] shrink-0" aria-hidden="true" />
+            : <ChevronRight className="w-4 h-4 text-[--primary] shrink-0 rtl:rotate-180" aria-hidden="true" />}
           <span className={`flex-1 min-w-0 truncate ${
-            profondeur === 0 ? "font-medium text-gray-900" : "text-gray-700"
+            profondeur === 0 ? "text-base font-semibold text-gray-900" : "text-gray-700"
           }`}>
             {n.titre}
           </span>
-          <span className="text-xs text-gray-400 shrink-0">
+          {/*
+            Le compte devient une pastille. En `text-gray-400` il tenait 2,45
+            de contraste — illisible, et c'est pourtant le chiffre qui dit ce
+            que contient la ligne repliée.
+          */}
+          <span className="text-xs font-medium shrink-0 rounded-full bg-[--primary-light] text-[--primary] px-2.5 py-1">
             {t.history.readingCount(n.compte)}
           </span>
         </button>
@@ -608,6 +710,29 @@ export default function HistoryPage() {
           )}
         </div>
       </div>
+
+      {/*
+        Le bandeau de tête. Il porte `--primary-light` et `--primary`, le
+        couple déjà mesuré à 11,02 en clair et 7,57 en sombre aux Réglages :
+        aucune couleur neuve, donc aucun remap à écrire (règle 15).
+      */}
+      {resume && !selectMode && (
+        <div className="bg-[--primary-light] rounded-xl px-4 py-3 mb-4 flex flex-wrap items-baseline gap-x-5 gap-y-1">
+          <span className="text-lg font-semibold text-[--primary]">
+            {t.history.readingCount(resume.lectures)}
+          </span>
+          <span className="text-sm text-[--primary]">{t.history.resumeLivres(resume.livres)}</span>
+          <span className="text-sm text-[--primary]">
+            {/* Un seul jour ne se dit pas « du 30 au 30 septembre ». */}
+            {resume.debut === resume.fin
+              ? t.history.resumeJour(formatDate(locale, resume.debut, { day: "numeric", month: "long", year: "numeric" }))
+              : t.history.resumePeriode(
+                  formatDate(locale, resume.debut, { day: "numeric", month: "long", year: "numeric" }),
+                  formatDate(locale, resume.fin, { day: "numeric", month: "long", year: "numeric" }),
+                )}
+          </span>
+        </div>
+      )}
 
       {selectMode && (
         <div className="bg-[--primary-light] border border-[--primary]/20 rounded-xl p-3 mb-4 flex flex-wrap items-center gap-2">
@@ -707,14 +832,30 @@ export default function HistoryPage() {
       */}
       <h2 className="sr-only">{t.history.sectionFilters}</h2>
 
-      <div className="flex flex-wrap gap-3 mb-6">
+      {/*
+        Les filtres dans une carte, et sur deux lignes explicites plutôt qu'un
+        `flex-wrap` qui répartissait les cinq champs au hasard de la largeur :
+        au 30 septembre 2026, les deux dates tombaient de part et d'autre du
+        retour à la ligne, si bien que « jj/mm/aaaa » paraissait deux fois sans
+        qu'aucun intitulé ne dise lequel était le début. La carte dit aussi où
+        s'arrêtent les outils et où commencent les lectures — c'est ce que le
+        `<h2 class="sr-only">` disait déjà aux lecteurs d'écran, et à eux
+        seuls.
+      */}
+      <div className="bg-[--surface] border border-[--border] rounded-xl p-3 mb-6 space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
         {/*
-          Les trois champs de cette barre portent un `aria-label` : aucun n'a
-          de `<label>` auquel accrocher un `htmlFor`, et les deux dates n'ont
-          même pas de nom visible — un `placeholder` sur `<input type="date">`
-          n'est **jamais** rendu, le navigateur y affiche son format. L'audit
-          du 2 septembre les rangeait parmi les champs « qui portent tous un
-          intitulé visible » ; ce n'est vrai que de la recherche.
+          La recherche garde son `aria-label` : son `placeholder`, lui, est
+          bien rendu, mais un `placeholder` disparaît à la frappe et ne vaut
+          pas un nom.
+          Les deux dates en avaient un aussi, faute de mieux — un
+          `placeholder` sur `<input type="date">` n'est **jamais** rendu, le
+          navigateur y affichant son propre format, si bien qu'elles
+          paraissaient anonymes. L'audit du 2 septembre les rangeait parmi les
+          champs « qui portent tous un intitulé visible » ; ce n'était vrai
+          d'aucune des deux. Elles portent désormais un `<label>` visible,
+          donc un nom pour tout le monde et non pour les seuls lecteurs
+          d'écran.
         */}
         <input
           type="text"
@@ -722,8 +863,30 @@ export default function HistoryPage() {
           placeholder={t.history.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[160px] sm:min-w-[200px] w-full sm:w-auto"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[160px] w-full sm:flex-1"
         />
+        <button
+          type="button"
+          onClick={() => setFiltresOuverts((o) => !o)}
+          aria-expanded={filtresOuverts}
+          aria-controls="history-filtres"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 flex items-center gap-1.5 shrink-0"
+        >
+          <Filter className="w-4 h-4" aria-hidden="true" />
+          {t.history.sectionFilters}
+          {/* Le compte plutôt qu'une pastille muette : replié, c'est la seule
+              chose qui dise qu'un filtre travaille encore. */}
+          {filtresActifs > 0 && (
+            <span className="rounded-full bg-[--primary] text-white text-xs px-1.5">{filtresActifs}</span>
+          )}
+          {filtresOuverts
+            ? <ChevronUp className="w-4 h-4" aria-hidden="true" />
+            : <ChevronDown className="w-4 h-4" aria-hidden="true" />}
+        </button>
+        </div>
+
+        {filtresOuverts && (
+        <div id="history-filtres" className="flex flex-wrap items-center gap-3">
         {/* La même fenêtre que Nouvelle lecture, Recherche biblique et l'ajout
             à un plan — deux testaments, filtre par nom. Ici c'est un filtre,
             d'où le « tous les livres » que le formulaire de saisie n'a pas. */}
@@ -735,31 +898,50 @@ export default function HistoryPage() {
             ariaLabel={t.history.allBooks}
           />
         </div>
-        <input
-          type="date"
-          aria-label={t.history.startDate}
-          value={dateStart}
-          onChange={(e) => setDateStart(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          placeholder={t.history.startDate}
-        />
-        <input
-          type="date"
-          aria-label={t.history.endDate}
-          value={dateEnd}
-          onChange={(e) => setDateEnd(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          placeholder={t.history.endDate}
-        />
+        {/*
+          Le `placeholder` est retiré : sur `<input type="date">` il n'est
+          **jamais** rendu, le navigateur y affichant son propre format. Il
+          entretenait l'illusion que ces champs étaient nommés. Un `<label>`
+          visible les nomme désormais pour tout le monde, et non pour les
+          seuls lecteurs d'écran.
+        */}
+        <label className="flex items-center gap-1.5 text-sm text-gray-500">
+          {t.history.startDate}
+          <input
+            type="date"
+            value={dateStart}
+            onChange={(e) => setDateStart(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          />
+        </label>
+        <label className="flex items-center gap-1.5 text-sm text-gray-500">
+          {t.history.endDate}
+          <input
+            type="date"
+            value={dateEnd}
+            onChange={(e) => setDateEnd(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          />
+        </label>
         <button
           onClick={resetFilters}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100"
         >
           {t.history.reset}
         </button>
+        </div>
+        )}
+
+        {/* L'axe et le dépliage restent dehors : ce sont des commandes de vue,
+            pas des filtres, et on y revient à chaque visite. */}
+        <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
           <label htmlFor="history-axe" className="text-sm text-gray-500">{t.history.groupBy}</label>
           <select id="history-axe" value={axe}
+            /* `setExpanded(new Set())` suffit : les clés d'un axe ne valent
+               rien pour un autre. L'effet plus haut rouvre aussitôt la
+               première branche du nouvel axe, pour que le changement ne
+               ramène pas l'écran vide qu'il montrait avant. */
             onChange={(e) => { setAxe(e.target.value as typeof axe); setExpanded(new Set()); }}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-[--surface] text-[--text]">
             <option value="date">{t.history.byDate}</option>
@@ -777,6 +959,7 @@ export default function HistoryPage() {
               : <><ChevronDown className="w-4 h-4" aria-hidden="true" />{t.history.expandAll}</>}
           </button>
         )}
+        </div>
       </div>
 
       {/* Le second repère : là où les filtres s'arrêtent et où les lectures

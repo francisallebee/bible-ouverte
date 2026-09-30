@@ -295,6 +295,11 @@ export const ar: Dictionary = {
     expandAll: 'فتح الكل',
     empty: 'لم يُعثر على أي قراءة.',
     readingCount: (n: number) => `${n} ${lectures(n)}`,
+    resumeLivres: (n: number) => `${n} ${pluriel(n, {
+      zero: 'سفر', un: 'سفر واحد', deux: 'سفران', peu: 'أسفار', beaucoup: 'سفرًا', autre: 'سفر',
+    })}`,
+    resumePeriode: (debut: string, fin: string) => `من ${debut} إلى ${fin}`,
+    resumeJour: (jour: string) => `في ${jour}`,
     passageCount: (n: number) => `${n} ${maqati(n)}`,
     andMore: (n: number) => `و${n} غير ذلك`,
     selectGroup: 'تحديد كل القراءات في هذا التسجيل',

@@ -184,6 +184,17 @@ export const fr = {
     empty: 'Aucune lecture trouvée.',
     readingCount: (n: number) => `${n} lecture${n > 1 ? 's' : ''}`,
     /**
+     * Le bandeau de tête, né le 30 septembre 2026.
+     *
+     * L'écran n'avait pas de sujet : il commençait par cinq champs de filtre
+     * puis une ligne repliée. Ces trois chiffres disent ce qu'on regarde
+     * **avant** de proposer de le trier, et ils suivent les filtres — c'est
+     * leur intérêt quand on cherche.
+     */
+    resumeLivres: (n: number) => `${n} livre${n > 1 ? 's' : ''}`,
+    resumePeriode: (debut: string, fin: string) => `du ${debut} au ${fin}`,
+    resumeJour: (jour: string) => `le ${jour}`,
+    /**
      * Un enregistrement qui a produit plusieurs lectures.
      *
      * Ces entrées viennent de l'empilement de passages, retiré le 28 août
