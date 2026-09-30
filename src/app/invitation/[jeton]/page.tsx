@@ -120,9 +120,23 @@ export default function InvitationPage() {
         {vue.dejaMembre ? (
           <>
             <p className="text-sm text-[--text-secondary] mb-3">{t.partage.dejaMembre}</p>
-            <Link href="/plans" className={`${bouton} bg-[--primary] text-white hover:bg-[--primary-hover]`}>
+            {/*
+              « Voir le plan » menait à la **liste** des plans : le libellé
+              promettait plus que le lien ne tenait, vu à l'écran le
+              30 septembre 2026. La page ne connaît pas l'identifiant du plan —
+              `invitation_par_jeton()` ne le rend pas, et à dessein : un
+              inconnu n'a pas à l'apprendre. Mais `accepter_invitation()` le
+              rend, et **sort aussitôt** quand on est déjà membre, sans rien
+              écrire. C'est le retour anticipé prévu pour ce cas exact, et il
+              évite une migration pour un numéro.
+            */}
+            <button
+              type="button" onClick={rejoindre} disabled={busy}
+              className={`${bouton} bg-[--primary] text-white hover:bg-[--primary-hover] disabled:opacity-60`}
+            >
+              {busy ? <Loader className="w-4 h-4 animate-spin" /> : null}
               {t.partage.voirLePlan}
-            </Link>
+            </button>
           </>
         ) : inutilisable ? (
           <p className="text-sm text-[--text-secondary]">

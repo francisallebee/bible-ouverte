@@ -358,6 +358,25 @@ export async function updatePlanDay(day: PlanDay): Promise<void> {
   const db = await getDB();
   await db.put('plan_days', day);
   if (isOnline() && day.id && day.synced) {
+    /*
+      La liste est explicite et non `dayToRow(day)` : cette fonction ne doit
+      écrire que ce que cocher change, jamais la structure du jour — sur un
+      plan partagé, le trigger `guard_plan_day_update` la remettrait de toute
+      façon en place, mais l'envoyer serait déjà dire une chose fausse.
+
+      Elle a coûté deux oublis, tous deux muets, tous deux trouvés en relisant
+      la base le 30 septembre 2026 plutôt qu'en relisant le code :
+
+      `passages` — les identifiants de lecture par passage ne partaient pas.
+      Mesuré ce jour-là : **3 jours à plusieurs passages étaient cochés, aucun
+      ne portait ses `readingId` en base**. Sur un autre appareil, les décocher
+      n'aurait effacé que la première lecture et laissé les autres dans
+      l'historique, rattachées à rien. Le défaut était en production.
+
+      `luPar` et `luLe` — ajoutés le même jour pour les plans partagés, et
+      absents de cette liste : le jour se cochait, et « Lu par Marie » ne
+      paraissait jamais. Vu à l'écran, pas déduit.
+    */
     supabaseUpdatePlanDay(day.id, {
       // `date` fait partie de la mise à jour depuis les plans libres : c'est au
       // moment de cocher qu'on choisit la date de lecture. L'omettre rendait
@@ -365,6 +384,9 @@ export async function updatePlanDay(day: PlanDay): Promise<void> {
       date: day.date,
       isRead: day.isRead,
       readingId: day.readingId ?? null,
+      passages: day.passages && day.passages.length > 0 ? day.passages : null,
+      luPar: day.luPar ?? null,
+      luLe: day.luLe ?? null,
     }).catch(() => {});
   }
 }
