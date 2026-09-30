@@ -5,1078 +5,299 @@
     "le lexique de Strong suit le Textus Receptus de 1890.",
     "",
     "« faites » est la SEULE partie lue par scripts/download-originaux.mjs.",
-    "Chaque entrée y a été confirmée une par une, jamais par ressemblance. Trois",
-    "sortes de preuve ont servi, et aucune n'est un souvenir :",
-    "  — la glose anglaise du lexique, comparée au sens du lemme ;",
-    "  — une concordance sur la King James, qui est au dépôt : le champ kjvDef",
-    "    liste les rendus d'une entrée, et l'on vérifie qu'ils paraissent dans les",
-    "    versets où le lemme figure, pondérés par leur fréquence de fond ;",
-    "  — la morphologie du MorphGNT, qui tranche seule certains cas : τετραάρχης",
-    "    est marqué N-, donc le nom G5076 et non le verbe G5075.",
+    "Chaque entrée y a été confirmée une par une, jamais par ressemblance. Quatre",
+    "classes seulement y donnent droit, et aucune n'est un souvenir :",
+    "  — la nasale devant occlusive, orthographe du texte critique : ἀνεπίλημπτος",
+    "    pour ἀνεπίληπτος, Μαθθάτ pour Ματθάτ ;",
+    "  — la byforme du même mot : ἀροτριάω / ἀροτριόω, χοῦς / χόος, αὔξω / αὐξάνω ;",
+    "  — la flexion que Strong porte lui-même : πυκνά et τρίτον sont décrits dans",
+    "    leur propre entrée comme « neuter as adverb », et le kjvDef de G2115 porte",
+    "    « the more cheerfully », qui EST εὐθύμως en Ac 24,10 ;",
+    "  — le nom propre du même personnage sous une autre graphie : Βόες / Βοόζ.",
+    "",
+    "Ce qui a servi à trancher : la glose anglaise comparée au sens du lemme, une",
+    "concordance sur la King James (le champ kjvDef liste les rendus d'une entrée,",
+    "et l'on vérifie qu'ils paraissent dans les versets où le lemme figure), et la",
+    "morphologie du MorphGNT, qui tranche seule certains cas : τετραάρχης est marqué",
+    "N-, donc le nom G5076 et non le verbe G5075.",
     "",
     "Ces méthodes ne s'acceptent PAS en bloc. Mesuré le 29 septembre 2026 : le",
     "raccord par distance d'édition se trompe dans 20 % des cas, la substitution de",
     "lettre dans 4 %, la concordance dans 13 %. Les 147 candidats qu'elle a",
     "proposés ont donc été relus un par un ; 19 ont été écartés, 9 corrigés.",
-    "Une définition fausse est pire qu'une absente.",
+    "Une définition fausse est pire qu'une absente — et le 30 septembre 2026, la",
+    "sonde a rattrapé G1768 « ἐννενηκονταεννέα », que j'allais prendre pour",
+    "« quatre-vingt-dix » : c'est quatre-vingt-DIX-NEUF.",
     "",
-    "« a_faire » n'est pas lue par le script : ces mots resteront sans numéro tant",
-    "que quelqu'un ne les aura pas confirmés. Les candidats listés aident à",
-    "décider ; ils ne sont pas à recopier.",
+    "« a_faire » est VIDE depuis le 30 septembre 2026, et ce n'est pas un oubli :",
+    "les 130 lemmes qui y restaient ont été tranchés un par un — 71 retenus,",
+    "2 ambigus, 57 écartés. Tout mot du grec encore sans numéro relève donc",
+    "désormais d'« ambigus » ou d'« ecartes », vérifié en relisant le fichier",
+    "produit : 129 occurrences sur 137 554, soit 99,91 % de couverture, et aucune",
+    "hors de ces deux listes. Y remettre une entrée est possible, mais ce sera une",
+    "décision, pas une file d'attente.",
     "",
     "« ambigus » et « ecartes » ne sont pas des listes de travail. Les premiers",
     "sont de vrais homographes que seul le contexte départagerait ; les seconds ont",
-    "été examinés et n'ont pas de correspondance honnête chez Strong. Les laisser",
-    "sans numéro est le comportement juste, non un manque à combler."
+    "été examinés et n'ont pas de correspondance honnête chez Strong — soit le mot",
+    "est absent, soit Strong le rend par deux entrées (εἰ δὲ μήγε), soit un faux ami",
+    "guette (ἄμωμον est l'épice amomum, non ἄμωμος « sans tache »). Les laisser",
+    "sans numéro est le comportement juste, non un manque à combler.",
+    "",
+    "src/features/bible/strong-manuel.test.ts croise ce fichier avec le lexique :",
+    "aucun numéro fantôme, aucun lemme rangé deux fois, aucun écart sans motif."
   ],
   "faites": {
+    "ἀγαθουργέω": "G14",
+    "ἄγγος": "G30",
+    "αἱμορροέω": "G131",
+    "αἰτίωμα": "G157",
+    "Ἁκελδαμάχ": "G184",
+    "ἀκριβής": "G196",
+    "ἀλάβαστρος": "G211",
+    "Ἄλφα": "G1",
+    "Ἀμπλιᾶτος": "G291",
+    "ἀμφιάζω": "G294",
+    "ἀμφότεροι": "G297",
+    "ἀνάγαιον": "G508",
+    "ἀνακεφαλαιόω": "G346",
+    "ἀνάλημψις": "G354",
+    "ἀνεκτός": "G414",
+    "ἀνέλεος": "G448",
+    "ἀνεξεραύνητος": "G419",
+    "ἀνεπίλημπτος": "G423",
+    "ἄντικρυς": "G481",
+    "ἀντίλημψις": "G484",
+    "ἀντιπέρα": "G495",
+    "ἀντίτυπος": "G499",
+    "ἀνώτερον": "G511",
+    "ἀπεῖπον": "G550",
+    "Ἀππίου": "G675",
+    "ἀπροσωπολήμπτως": "G678",
+    "ἀργυροῦς": "G693",
+    "Ἄρειος": "G697",
+    "ἄρκος": "G715",
+    "Ἁρμαγεδών": "G717",
+    "ἀροτριάω": "G722",
+    "ἄρσην": "G730",
+    "Ἀσάφ": "G760",
+    "αὔξω": "G837",
+    "ἀφίσταμαι": "G868",
+    "ἀφυστερέω": "G650",
+    "ἄχρις": "G891",
+    "Βαριωνᾶ": "G920",
+    "βατταλογέω": "G945",
     "Βελιάρ": "G955",
     "Βηθσαϊδάν": "G966",
-    "Βόος": "G1003",
-    "Γεθσημανί": "G1068",
-    "Γερασηνός": "G1046",
-    "Δαυίδ": "G1138",
-    "Καναναῖος": "G2581",
-    "Καφαρναούμ": "G2584",
-    "Καῦδα": "G2802",
-    "Μαγαδάν": "G3093",
-    "Μαδιάμ": "G3099",
-    "Μαθθίας": "G3159",
-    "Μαθθαῖος": "G3156",
-    "Μαριάμ": "G3137",
-    "Μωϋσῆς": "G3475",
-    "Ναζαρά": "G3478",
-    "Ναζαρέτ": "G3478",
-    "Ναθάμ": "G3481",
-    "Ναιμάν": "G3497",
-    "Νύμφα": "G3564",
-    "Σάπφιρα": "G4551",
-    "Σεμεΐν": "G4584",
-    "Σερούχ": "G4562",
-    "Στοϊκός": "G4770",
-    "Συροφοινίκισσα": "G4949",
-    "Ταβέρνη": "G4999",
-    "Χαναναῖος": "G5478",
-    "Χεροῦβ": "G5502",
-    "αἰτίωμα": "G157",
-    "αἱμορροέω": "G131",
-    "βατταλογέω": "G945",
     "βιβλαρίδιον": "G974",
+    "Βόες": "G1003",
+    "Βόος": "G1003",
     "βραχύ": "G1024",
     "γαμίζω": "G1061",
+    "Γεθσημανί": "G1068",
+    "Γερασηνός": "G1046",
     "γυμνιτεύω": "G1130",
     "δάκρυον": "G1144",
+    "Δαυίδ": "G1138",
     "δείκνυμι": "G1166",
+    "δεισιδαίμων": "G1174",
     "δεσμός": "G1199",
+    "διακαθαίρω": "G1245",
     "διαρρήγνυμι": "G1284",
     "διαυγής": "G1307",
     "διαχλευάζω": "G5512",
-    "δισμυριάς": "G3461",
     "διόρθωμα": "G2735",
+    "δισμυριάς": "G3461",
     "δοκιμασία": "G1381",
     "δυσεντέριον": "G1420",
+    "ἐγκακέω": "G1573",
+    "ἐγκαυχάομαι": "G2744",
+    "εἵνεκεν": "G1752",
     "εἴπερ": "G1512",
     "εἴωθα": "G1486",
+    "ἑκατόνταρχος": "G1543",
+    "ἐκζήτησις": "G2214",
+    "ἐκθαυμάζω": "G2296",
+    "ἑκούσιος": "G1595",
+    "ἐλεάω": "G1653",
+    "ἐλεγμός": "G1650",
+    "ἕλκω": "G1670",
+    "Ἐλμαδάμ": "G1678",
+    "ἐλωΐ": "G1682",
+    "Ἑμμώρ": "G1697",
+    "ἐμπαιγμονή": "G1701",
+    "ἐμπίμπλημι": "G1705",
+    "ἐμπίμπρημι": "G1714",
+    "ἐνάλιον": "G1724",
+    "ἐνδώμησις": "G1739",
+    "ἕνεκεν": "G1752",
+    "ἔννυχα": "G1773",
+    "ἐνορκίζω": "G3726",
+    "ἐξεραυνάω": "G1830",
+    "ἐξολεθρεύω": "G1842",
+    "ἐξουδενέω": "G1847",
+    "ἔοικα": "G1503",
+    "ἐπικέλλω": "G2027",
+    "ἐπιλείχω": "G621",
+    "ἐπιφαύσκω": "G2017",
+    "ἐραυνάω": "G2045",
+    "ἔσθω": "G2068",
+    "εὐθύμως": "G2115",
+    "ἐχθές": "G5504",
+    "ζηλεύω": "G2206",
+    "ἥμισυς": "G2255",
+    "ἥσσων": "G2276",
     "θανάσιμον": "G2286",
+    "θεμέλιον": "G2310",
+    "θορυβάζω": "G2350",
     "θυμιατήριον": "G2369",
-    "κέλευσμα": "G2752",
+    "Ἰανναί": "G2388",
+    "Ἰάρετ": "G2391",
+    "Ἰουνία": "G2458",
+    "Ἰσκαριώθ": "G2469",
+    "Ἰτουραῖος": "G2484",
+    "Ἰωανάν": "G2490",
+    "Ἰωβήδ": "G5601",
+    "Ἰωβήλ": "G5601",
+    "Ἰωνάμ": "G2494",
+    "Ἰωσήχ": "G2499",
+    "καθώσπερ": "G2509",
+    "Καϊνάμ": "G2536",
+    "Καναναῖος": "G2581",
+    "καταβαρύνομαι": "G2599",
+    "κατάθεμα": "G2652",
     "καταθεματίζω": "G2653",
     "κατακληρονομέω": "G2624",
     "κατασφάζω": "G2695",
     "καταφρονητής": "G2707",
+    "κατήγωρ": "G2725",
     "κατοικίζω": "G2730",
+    "κατωτέρω": "G2737",
+    "Καῦδα": "G2802",
     "καυστηριάζω": "G2743",
+    "Καφαρναούμ": "G2584",
+    "κέλευσμα": "G2752",
+    "κεφαλιόω": "G2775",
     "κημόω": "G5392",
+    "κόπριον": "G2874",
     "κορβανᾶς": "G2878",
     "κουμ": "G2891",
     "κράβαττος": "G2895",
     "κρυφαῖος": "G2927",
     "κυκλεύω": "G2944",
     "κυλίομαι": "G2947",
-    "κόπριον": "G2874",
+    "κυλισμός": "G2946",
     "λακάω": "G2997",
     "λεγιών": "G3003",
     "λεμά": "G2982",
     "λοιπός": "G3062",
+    "Μαγαδάν": "G3093",
+    "Μαδιάμ": "G3099",
+    "Μαθθαῖος": "G3156",
+    "Μαθθάτ": "G3158",
+    "Μαθθίας": "G3159",
     "μαράνα": "G3134",
+    "Μαριάμ": "G3137",
+    "μεγιστάν": "G3175",
+    "Μελεά": "G3190",
+    "Μεννά": "G3104",
     "μενοῦν": "G3304",
+    "μητρολῴας": "G3389",
+    "μύλινος": "G3457",
+    "Μωϋσῆς": "G3475",
+    "Ναζαρά": "G3478",
+    "Ναζαρέτ": "G3478",
+    "Ναθάμ": "G3481",
+    "Ναιμάν": "G3497",
     "νηφάλιος": "G3524",
     "νοέω": "G3539",
+    "Νύμφα": "G3564",
+    "οἶδα": "G1492",
     "οἰκετεία": "G3610",
     "οἰκοδόμος": "G3618",
     "οἰκουργός": "G3626",
-    "οἶδα": "G1492",
+    "οἶμαι": "G3633",
+    "ὀλιγοπιστία": "G3640",
+    "ὀλίγως": "G3641",
+    "ὁμείρομαι": "G2442",
     "οὔ": "G3756",
-    "πίμπλημι": "G4130",
+    "ὀψία": "G3798",
+    "Πάγος": "G697",
     "πανταχῇ": "G3837",
     "παραβολεύομαι": "G3851",
     "παραρρέω": "G3901",
     "παρεισδύω": "G3921",
+    "πατρολῴας": "G3964",
+    "περικρύβω": "G4032",
     "περίψημα": "G4067",
+    "πίμπλημι": "G4130",
     "πλοῦς": "G4144",
+    "πορρώτερον": "G4208",
     "προθεσμία": "G4287",
-    "προσωπολημπτέω": "G4380",
-    "προσωπολημψία": "G4382",
+    "πρόϊμος": "G4406",
     "πρόσλημψις": "G4356",
+    "προσωπολημπτέω": "G4380",
+    "προσωπολήμπτης": "G4381",
+    "προσωπολημψία": "G4382",
+    "πυκνά": "G4437",
+    "ραββουνι": "G4462",
+    "Ῥαιφάν": "G4481",
+    "ῥέδη": "G4480",
+    "ῥώννυμαι": "G4517",
+    "Σάπφιρα": "G4551",
+    "σάρδιον": "G4556",
+    "Σεμεΐν": "G4584",
+    "Σερούχ": "G4562",
     "σιδηροῦς": "G4603",
+    "σιρικός": "G4596",
     "σιτίον": "G4621",
     "σιτομέτριον": "G4620",
+    "σκῦλα": "G4661",
     "στάδιος": "G4712",
     "στασιαστής": "G4955",
     "στεῖρα": "G4723",
     "στιβάς": "G4746",
+    "Στοϊκός": "G4770",
     "στυγητός": "G4767",
     "συγγενίς": "G4773",
     "συκομορέα": "G4809",
-    "συνίστημι": "G4921",
+    "συμμορφίζομαι": "G4833",
+    "σύμφορον": "G4851",
     "συναπόλλυμαι": "G4881",
     "συνεπιτίθεμαι": "G4934",
     "συνιστάνω": "G4921",
+    "συνίστημι": "G4921",
+    "σύνοιδα": "G4894",
+    "Συροφοινίκισσα": "G4949",
     "σφυδρόν": "G4974",
     "σωτήριος": "G4992",
-    "σύμφορον": "G4851",
-    "σύνοιδα": "G4894",
+    "Ταβέρνη": "G4999",
     "τεσσεράκοντα": "G5062",
     "τεσσερακονταετής": "G5063",
-    "τετράμηνος": "G5072",
+    "τετρααρχέω": "G5075",
     "τετραάρχης": "G5076",
+    "τετράμηνος": "G5072",
     "τετραπλοῦς": "G5073",
     "τις": "G5100",
+    "τρίτον": "G5154",
+    "ὑπερεκχύννομαι": "G5240",
+    "ὑπεροράω": "G5237",
+    "ὑπόλειμμα": "G3005",
+    "ὑποστρωννύω": "G5291",
     "φαιλόνης": "G5341",
     "φιλοξενία": "G5381",
-    "χρήσιμον": "G5539",
+    "χαλκοῦς": "G5470",
+    "Χαναναῖος": "G5478",
+    "Χεροῦβ": "G5502",
+    "χοῦς": "G5522",
     "χρεοφειλέτης": "G5533",
+    "χρήσιμον": "G5539",
     "χρυσοῦς": "G5552",
-    "ψίξ": "G5589",
-    "ἀγαθουργέω": "G14",
-    "ἀλάβαστρος": "G211",
-    "ἀμφότεροι": "G297",
-    "ἀνάγαιον": "G508",
-    "ἀνακεφαλαιόω": "G346",
-    "ἀνεκτός": "G414",
-    "ἀνεξεραύνητος": "G419",
-    "ἀντίλημψις": "G484",
-    "ἀντίτυπος": "G499",
-    "ἀπεῖπον": "G550",
-    "ἀφίσταμαι": "G868",
-    "ἀφυστερέω": "G650",
-    "ἄγγος": "G30",
-    "ἄντικρυς": "G481",
-    "ἄρσην": "G730",
-    "Ἀμπλιᾶτος": "G291",
-    "Ἁκελδαμάχ": "G184",
-    "Ἁρμαγεδών": "G717",
-    "Ἄλφα": "G1",
-    "ἐγκακέω": "G1573",
-    "ἐγκαυχάομαι": "G2744",
-    "ἐκζήτησις": "G2214",
-    "ἐκθαυμάζω": "G2296",
-    "ἐλεάω": "G1653",
-    "ἐλεγμός": "G1650",
-    "ἐλωΐ": "G1682",
-    "ἐμπίμπλημι": "G1705",
-    "ἐνάλιον": "G1724",
-    "ἐνδώμησις": "G1739",
-    "ἐνορκίζω": "G3726",
-    "ἐπικέλλω": "G2027",
-    "ἐπιλείχω": "G621",
-    "ἐραυνάω": "G2045",
-    "ἐχθές": "G5504",
-    "ἑκατόνταρχος": "G1543",
-    "ἔννυχα": "G1773",
-    "ἔοικα": "G1503",
-    "ἔσθω": "G2068",
-    "ἕλκω": "G1670",
-    "ἕνεκεν": "G1752",
-    "Ἐλμαδάμ": "G1678",
-    "Ἑμμώρ": "G1697",
-    "ἥμισυς": "G2255",
-    "Ἰάρετ": "G2391",
-    "Ἰανναί": "G2388",
-    "Ἰσκαριώθ": "G2469",
-    "Ἰτουραῖος": "G2484",
-    "Ἰωανάν": "G2490",
-    "Ἰωβήδ": "G5601",
-    "Ἰωβήλ": "G5601",
-    "ὀλίγως": "G3641",
-    "ὀλιγοπιστία": "G3640",
-    "ὀψία": "G3798",
-    "ὁμείρομαι": "G2442",
-    "ὑπεροράω": "G5237",
-    "ὑποστρωννύω": "G5291",
-    "ὑπόλειμμα": "G3005",
-    "Ῥαιφάν": "G4481"
+    "ψευδόμαρτυς": "G5575",
+    "ψίξ": "G5589"
   },
-  "a_faire": {
-    "μήγε": {
-      "occurrences": 5,
-      "candidats": [
-        "G3366 μηδέ — neither, nor (yet), (no) not (once, so m",
-        "G3383 μήτε — neither, (n-)or, so as much",
-        "G1065 γέ — and besides, doubtless, at least, yet"
-      ]
-    },
-    "ἔπειμι": {
-      "occurrences": 5,
-      "candidats": [
-        "G1751 ἔνειμι — such things as … have",
-        "G1826 ἔξειμι — depart, get (to land), go out",
-        "G548 ἄπειμι — be absent"
-      ]
-    },
-    "ἐνενήκοντα": {
-      "occurrences": 4,
-      "candidats": []
-    },
-    "μεγιστάν": {
-      "occurrences": 3,
-      "candidats": [
-        "G3175 μεγιστᾶνες — great men, lords",
-        "G3176 μέγιστος — exceeding great"
-      ]
-    },
-    "οἶμαι": {
-      "occurrences": 3,
-      "candidats": [
-        "G3633 οἴομαι — suppose, think",
-        "G129 αἷμα — blood",
-        "G1510 εἰμί — am, have been, X it is I, was"
-      ]
-    },
-    "τετρααρχέω": {
-      "occurrences": 3,
-      "candidats": [
-        "G5075 τετραρχέω — (be) tetrarch"
-      ]
-    },
-    "ἀνεπίλημπτος": {
-      "occurrences": 3,
-      "candidats": [
-        "G423 ἀνεπίληπτος — blameless, unrebukeable"
-      ]
-    },
-    "ἀργυροῦς": {
-      "occurrences": 3,
-      "candidats": [
-        "G696 ἄργυρος — silver",
-        "G693 ἀργύρεος — (of) silver"
-      ]
-    },
-    "ἀροτριάω": {
-      "occurrences": 3,
-      "candidats": [
-        "G722 ἀροτριόω — plough"
-      ]
-    },
-    "ὑπερεκπερισσοῦ": {
-      "occurrences": 3,
-      "candidats": []
-    },
-    "Ὦ": {
-      "occurrences": 3,
-      "candidats": [
-        "G5598 Ω — Omega",
-        "G5599 ὦ — O",
-        "G5600 ὦ — + appear, are, (may, might, should) be, "
-      ]
-    },
-    "Βόες": {
-      "occurrences": 2,
-      "candidats": [
-        "G1016 βοῦς — ox",
-        "G1000 βολή — cast",
-        "G1002 βολίς — dart"
-      ]
-    },
-    "Καϊνάμ": {
-      "occurrences": 2,
-      "candidats": [
-        "G2536 Καϊνάν — Cainan",
-        "G2535 Κάϊν — Cain",
-        "G2537 καινός — new"
-      ]
-    },
-    "Μαθθάτ": {
-      "occurrences": 2,
-      "candidats": [
-        "G3158 Ματθάτ — Mathat",
-        "G3136 Μάρθα — Martha",
-        "G3157 Ματθάν — Matthan"
-      ]
-    },
-    "Πάγος": {
-      "occurrences": 2,
-      "candidats": [
-        "G3097 μάγος — sorcerer, wise man",
-        "G3803 παγίς — snare",
-        "G3806 πάθος — (inordinate) affection, lust"
-      ]
-    },
-    "αὔξω": {
-      "occurrences": 2,
-      "candidats": [
-        "G103 ᾄδω — sing",
-        "G1416 δύνω — set",
-        "G142 αἴρω — away with, bear (up), carry, lift up, lo"
-      ]
-    },
-    "δεκαοκτώ": {
-      "occurrences": 2,
-      "candidats": []
-    },
-    "εἵνεκεν": {
-      "occurrences": 2,
-      "candidats": []
-    },
-    "προσαίτης": {
-      "occurrences": 2,
-      "candidats": [
-        "G4319 προσαιτέω — beg",
-        "G4375 προσφιλής — lovely"
-      ]
-    },
-    "ραββουνι": {
-      "occurrences": 2,
-      "candidats": [
-        "G4462 ῥαββονί — Lord, Rabboni"
-      ]
-    },
-    "σάρδιον": {
-      "occurrences": 2,
-      "candidats": [
-        "G4556 σάρδιος — sardius",
-        "G3813 παιδίον — (little, young) child, damsel",
-        "G4555 σάρδινος — sardine"
-      ]
-    },
-    "συνοράω": {
-      "occurrences": 2,
-      "candidats": [
-        "G4917 συνθλάω — break"
-      ]
-    },
-    "χοῦς": {
-      "occurrences": 2,
-      "candidats": [
-        "G1016 βοῦς — ox",
-        "G3563 νοῦς — mind, understanding",
-        "G3775 οὖς — ear"
-      ]
-    },
-    "ψευδόμαρτυς": {
-      "occurrences": 2,
-      "candidats": [
-        "G5575 ψευδομάρτυρ — false witness"
-      ]
-    },
-    "ἄχρις": {
-      "occurrences": 2,
-      "candidats": [
-        "G200 ἀκρίς — locust",
-        "G891 ἄχρι — as far as, for, in(-to), till, (even, un",
-        "G2054 ἔρις — contention, debate, strife, variance"
-      ]
-    },
-    "Ἀσάφ": {
-      "occurrences": 2,
-      "candidats": [
-        "G760 Ἀσά — Asa",
-        "G217 ἅλας — salt",
-        "G2269 Ἠσαῦ — Esau"
-      ]
-    },
-    "Ἄρειος": {
-      "occurrences": 2,
-      "candidats": [
-        "G739 ἄρτιος — perfect",
-        "G888 ἀχρεῖος — unprofitable",
-        "G1025 βρέφος — babe, (young) child, infant"
-      ]
-    },
-    "ἐάνπερ": {
-      "occurrences": 2,
-      "candidats": [
-        "G1512 εἴ περ — if so be (that), seeing, though",
-        "G2539 καίπερ — and yet, although"
-      ]
-    },
-    "ἐπίστασις": {
-      "occurrences": 2,
-      "candidats": [
-        "G1611 ἔκστασις — + be amazed, amazement, astonishment, tr",
-        "G1988 ἐπιστάτης — master",
-        "G1999 ἐπισύστασις — that which cometh upon, + raising up"
-      ]
-    },
-    "ἐφοράω": {
-      "occurrences": 2,
-      "candidats": [
-        "G872 ἀφοράω — look",
-        "G2164 εὐφορέω — bring forth abundantly",
-        "G3708 ὁράω — behold, perceive, see, take heed"
-      ]
-    },
-    "ἔνθεν": {
-      "occurrences": 2,
-      "candidats": [
-        "G1767 ἐννέα — nine",
-        "G1855 ἔξωθεν — out(-side, -ward, - wardly), (from) with",
-        "G2070 ἐσμέν — are, be, have our being, X have hope, + "
-      ]
-    },
-    "ἥσσων": {
-      "occurrences": 2,
-      "candidats": [
-        "G2257 ἡμῶν — our (company), us, we",
-        "G2394 Ἰάσων — Jason",
-        "G4622 Σιών — Sion"
-      ]
-    },
-    "ὑπερλίαν": {
-      "occurrences": 2,
-      "candidats": []
-    },
-    "ὠτάριον": {
-      "occurrences": 2,
-      "candidats": [
-        "G3678 ὀνάριον — young ass",
-        "G3795 ὀψάριον — fish",
-        "G4712 στάδιον — furlong, race"
-      ]
-    },
-    "Βαριωνᾶ": {
-      "occurrences": 1,
-      "candidats": [
-        "G920 Βαριωνᾶς — Bar-jona"
-      ]
-    },
-    "Μελεά": {
-      "occurrences": 1,
-      "candidats": [
-        "G3190 Μελεᾶς — Meleas",
-        "G1074 γενεά — age, generation, nation, time",
-        "G272 ἀμελέω — make light of, neglect, be negligent, no"
-      ]
-    },
-    "Μεννά": {
-      "occurrences": 1,
-      "candidats": [
-        "G3131 μάννα — manna",
-        "G1067 γέεννα — hell",
-        "G1074 γενεά — age, generation, nation, time"
-      ]
-    },
-    "Νέα": {
-      "occurrences": 1,
-      "candidats": [
-        "G1436 ἔα — let alone",
-        "G2299 θεά — goddess",
-        "G1 Α — --Alpha"
-      ]
-    },
-    "αὐχέω": {
-      "occurrences": 1,
-      "candidats": [
-        "G832 αὐλέω — pipe",
-        "G118 ἀθλέω — strive",
-        "G120 ἀθυμέω — be dismayed"
-      ]
-    },
-    "βελόνη": {
-      "occurrences": 1,
-      "candidats": [
-        "G4582 σελήνη — moon",
-        "G5341 φελόνης — cloke",
-        "G956 βέλος — dart"
-      ]
-    },
-    "δέος": {
-      "occurrences": 1,
-      "candidats": [
-        "G2316 θεός — X exceeding, God, god(-ly, -ward)",
-        "G3501 νέος — new, young",
-        "G105 ἀετός — eagle"
-      ]
-    },
-    "δεισιδαίμων": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "διακαθαίρω": {
-      "occurrences": 1,
-      "candidats": [
-        "G1245 διακαθαρίζω — thoroughly purge"
-      ]
-    },
-    "διαπαρατριβή": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "διενθυμέομαι": {
-      "occurrences": 1,
-      "candidats": [
-        "G1760 ἐνθυμέομαι — think"
-      ]
-    },
-    "δύσις": {
-      "occurrences": 1,
-      "candidats": [
-        "G1394 δόσις — gift, giving",
-        "G3080 λύσις — to be loosed",
-        "G4511 ῥύσις — issue"
-      ]
-    },
-    "εὐθύμως": {
-      "occurrences": 1,
-      "candidats": [
-        "G2115 εὔθυμος — of good cheer, the more cheerfully",
-        "G2112 εὐθέως — anon, as soon as, forthwith, immediately",
-        "G2114 εὐθυμέω — be of good cheer (merry)"
-      ]
-    },
-    "εὐπάρεδρον": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "εὐρακύλων": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "ζηλεύω": {
-      "occurrences": 1,
-      "candidats": [
-        "G2206 ζηλόω — affect, covet (earnestly), (have) desire",
-        "G2212 ζητέω — be (go) about, desire, endeavour, enquir",
-        "G2340 θηρεύω — catch"
-      ]
-    },
-    "θεμέλιον": {
-      "occurrences": 1,
-      "candidats": [
-        "G2310 θεμέλιος — foundation",
-        "G2311 θεμελιόω — (lay the) found(- ation), ground, settle"
-      ]
-    },
-    "θορυβάζω": {
-      "occurrences": 1,
-      "candidats": [
-        "G2350 θορυβέω — make ado (a noise), trouble self, set on"
-      ]
-    },
-    "καθώσπερ": {
-      "occurrences": 1,
-      "candidats": [
-        "G2509 καθάπερ — (even, as well) as"
-      ]
-    },
-    "κατάθεμα": {
-      "occurrences": 1,
-      "candidats": [
-        "G2646 κατάλυμα — guestchamber, inn",
-        "G2652 κατανάθεμα — curse",
-        "G331 ἀνάθεμα — accused, anathema, curse, X great"
-      ]
-    },
-    "κατήγωρ": {
-      "occurrences": 1,
-      "candidats": [
-        "G2609 κατάγω — bring (down, forth), (bring to) land, to",
-        "G2935 κτήτωρ — possessor"
-      ]
-    },
-    "καταβαρύνομαι": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "καταδίκη": {
-      "occurrences": 1,
-      "candidats": [
-        "G2614 καταδιώκω — follow after"
-      ]
-    },
-    "κατευλογέω": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "κατωτέρω": {
-      "occurrences": 1,
-      "candidats": [
-        "G2702 καταφέρω — fall, give, sink down",
-        "G2737 κατώτερος — lower"
-      ]
-    },
-    "κεφαλιόω": {
-      "occurrences": 1,
-      "candidats": [
-        "G2775 κεφαλαιόω — wound in the head",
-        "G2774 κεφάλαιον — sum",
-        "G2777 κεφαλίς — volume"
-      ]
-    },
-    "κλινάριον": {
-      "occurrences": 1,
-      "candidats": [
-        "G2826 κλινίδιον — bed",
-        "G2952 κυνάριον — dog"
-      ]
-    },
-    "κυλισμός": {
-      "occurrences": 1,
-      "candidats": [
-        "G2946 κύλισμα — wallowing"
-      ]
-    },
-    "μετατρέπω": {
-      "occurrences": 1,
-      "candidats": [
-        "G3344 μεταστρέφω — pervert, turn"
-      ]
-    },
-    "μητρολῴας": {
-      "occurrences": 1,
-      "candidats": [
-        "G3389 μητραλῴας — murderer of mothers"
-      ]
-    },
-    "μύλινος": {
-      "occurrences": 1,
-      "candidats": [
-        "G3457 μυλικός — mill(-stone)",
-        "G3585 ξύλινος — of wood",
-        "G2367 θύϊνος — thyine"
-      ]
-    },
-    "παρακαθέζομαι": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "παρεδρεύω": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "πατρολῴας": {
-      "occurrences": 1,
-      "candidats": [
-        "G3964 πατραλῴας — murderer of fathers",
-        "G3969 Πατροβᾶς — Patrobas"
-      ]
-    },
-    "περαιτέρω": {
-      "occurrences": 1,
-      "candidats": [
-        "G4064 περιφέρω — bear (carry) about"
-      ]
-    },
-    "περιάπτω": {
-      "occurrences": 1,
-      "candidats": [
-        "G4013 περιάγω — compass, go (round) about, lead about",
-        "G4045 περιπίπτω — fall among (into)",
-        "G4049 περισπάω — cumber"
-      ]
-    },
-    "περικρύβω": {
-      "occurrences": 1,
-      "candidats": [
-        "G4032 περικρύπτω — hide"
-      ]
-    },
-    "πορρώτερον": {
-      "occurrences": 1,
-      "candidats": [
-        "G4208 ποῤῥωτέρω — farther"
-      ]
-    },
-    "πραϋπαθία": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "προσκλίνομαι": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "προσωπολήμπτης": {
-      "occurrences": 1,
-      "candidats": [
-        "G4381 προσωπολήπτης — respecter of persons"
-      ]
-    },
-    "πρόϊμος": {
-      "occurrences": 1,
-      "candidats": [
-        "G4406 πρώϊμος — early",
-        "G1408 δρόμος — course",
-        "G2092 ἕτοιμος — prepared, (made) ready(-iness, to our ha"
-      ]
-    },
-    "πρώτως": {
-      "occurrences": 1,
-      "candidats": [
-        "G4413 πρῶτος — before, beginning, best, chief(-est), fi",
-        "G3843 πάντως — by all means, altogether, at all, needs,",
-        "G4412 πρῶτον — before, at the beginning, chiefly (at, a"
-      ]
-    },
-    "πυκνά": {
-      "occurrences": 1,
-      "candidats": [
-        "G3073 Λυκία — Lycia",
-        "G4403 πρύμνα — hinder part, stern",
-        "G4437 πυκνός — often(-er)"
-      ]
-    },
-    "σιρικός": {
-      "occurrences": 1,
-      "candidats": [
-        "G4596 σηρικός — silk",
-        "G4559 σαρκικός — carnal, fleshly",
-        "G4770 Στωϊκός — Stoick"
-      ]
-    },
-    "σκῦλα": {
-      "occurrences": 1,
-      "candidats": [
-        "G207 Ἀκύλας — Aquila",
-        "G2949 κῦμα — wave",
-        "G4527 Σαλά — Sala"
-      ]
-    },
-    "συμμορφίζομαι": {
-      "occurrences": 1,
-      "candidats": [
-        "G4829 συμμερίζομαι — be partaker with"
-      ]
-    },
-    "συμπίπτω": {
-      "occurrences": 1,
-      "candidats": [
-        "G1706 ἐμπίπτω — fall among (into)",
-        "G4844 συμπίνω — drink with"
-      ]
-    },
-    "συναλλάσσω": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "ταπεινόφρων": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "τρίτον": {
-      "occurrences": 1,
-      "candidats": [
-        "G5154 τρίτος — third(-ly)",
-        "G2053 ἔριον — wool",
-        "G2918 κρίνον — lily"
-      ]
-    },
-    "τυπικῶς": {
-      "occurrences": 1,
-      "candidats": [
-        "G5190 Τυχικός — Tychicus",
-        "G5447 φυσικῶς — naturally"
-      ]
-    },
-    "φάρμακον": {
-      "occurrences": 1,
-      "candidats": [
-        "G5333 φάρμακος — sorcerer"
-      ]
-    },
-    "χαλκοῦς": {
-      "occurrences": 1,
-      "candidats": [
-        "G5471 χαλκεύς — coppersmith",
-        "G5475 χαλκός — brass, money",
-        "G5470 χάλκεος — brass"
-      ]
-    },
-    "ἀγγέλλω": {
-      "occurrences": 1,
-      "candidats": [
-        "G1229 διαγγέλλω — declare, preach, signify",
-        "G1804 ἐξαγγέλλω — shew forth",
-        "G1861 ἐπαγγέλλω — profess, (make) promise"
-      ]
-    },
-    "ἀθροίζω": {
-      "occurrences": 1,
-      "candidats": [
-        "G1865 ἐπαθροίζω — gather thick together",
-        "G875 ἀφρίζω — foam"
-      ]
-    },
-    "ἀκριβής": {
-      "occurrences": 1,
-      "candidats": [
-        "G199 ἀκριβῶς — circumspectly, diligently, perfect(-ly)",
-        "G186 ἀκλινής — without wavering",
-        "G193 ἀκρατής — incontinent"
-      ]
-    },
-    "ἀμφιάζω": {
-      "occurrences": 1,
-      "candidats": [
-        "G3662 ὁμοιάζω — agree",
-        "G37 ἁγιάζω — hallow, be holy, sanctify"
-      ]
-    },
-    "ἀμφιβάλλω": {
-      "occurrences": 1,
-      "candidats": [
-        "G474 ἀντιβάλλω — have"
-      ]
-    },
-    "ἀνάλημψις": {
-      "occurrences": 1,
-      "candidats": [
-        "G354 ἀνάληψις — taking up"
-      ]
-    },
-    "ἀνέλεος": {
-      "occurrences": 1,
-      "candidats": [
-        "G1656 ἔλεος — (+ tender) mercy",
-        "G358 ἄναλος — X lose saltness",
-        "G417 ἄνεμος — wind"
-      ]
-    },
-    "ἀναπηδάω": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "ἀντιπέρα": {
-      "occurrences": 1,
-      "candidats": [
-        "G495 ἀντιπέραν — over against"
-      ]
-    },
-    "ἀνώτερον": {
-      "occurrences": 1,
-      "candidats": [
-        "G511 ἀνώτερος — above, higher",
-        "G508 ἀνώγεον — upper room"
-      ]
-    },
-    "ἀπογίνομαι": {
-      "occurrences": 1,
-      "candidats": [
-        "G1920 ἐπιγίνομαι — blow",
-        "G4266 προγίνομαι — be past",
-        "G611 ἀποκρίνομαι — answer"
-      ]
-    },
-    "ἀπροσωπολήμπτως": {
-      "occurrences": 1,
-      "candidats": [
-        "G678 ἀπροσωπολήπτως — without respect of persons"
-      ]
-    },
-    "ἀφθορία": {
-      "occurrences": 1,
-      "candidats": [
-        "G5356 φθορά — corruption, destroy, perish",
-        "G640 ἀπορία — perplexity",
-        "G861 ἀφθαρσία — immortality, incorruption, sincerity"
-      ]
-    },
-    "ἄμωμον": {
-      "occurrences": 1,
-      "candidats": [
-        "G299 ἄμωμος — without blame (blemish, fault, spot), fa",
-        "G285 ἄμμος — sand",
-        "G300 Ἀμών — Amon"
-      ]
-    },
-    "ἄρκος": {
-      "occurrences": 1,
-      "candidats": [
-        "G3138 Μάρκος — Marcus, Mark",
-        "G3727 ὅρκος — oath",
-        "G692 ἀργός — barren, idle, slow"
-      ]
-    },
-    "Ἀππίου": {
-      "occurrences": 1,
-      "candidats": [
-        "G675 Ἄππιος — Appii"
-      ]
-    },
-    "Ἀρνί": {
-      "occurrences": 1,
-      "candidats": [
-        "G737 ἄρτι — this day (hour), hence(-forth), here(-af",
-        "G104 ἀεί — always, ever",
-        "G1762 ἔνι — be, (there) is"
-      ]
-    },
-    "ἐκβαίνω": {
-      "occurrences": 1,
-      "candidats": [
-        "G1684 ἐμβαίνω — come (get) into, enter (into), go (up) i",
-        "G1544 ἐκβάλλω — bring forth, cast (forth, out), drive (o",
-        "G1572 ἐκκαίω — burn"
-      ]
-    },
-    "ἐκπερισσῶς": {
-      "occurrences": 1,
-      "candidats": [
-        "G4057 περισσῶς — exceedingly, out of measure, the more"
-      ]
-    },
-    "ἐκπηδάω": {
-      "occurrences": 1,
-      "candidats": [
-        "G1530 εἰσπηδάω — run (spring) in"
-      ]
-    },
-    "ἐμπίμπρημι": {
-      "occurrences": 1,
-      "candidats": [
-        "G1705 ἐμπίπλημι — fill",
-        "G4092 πίμπρημι — be (X should have) swollen"
-      ]
-    },
-    "ἐμπαιγμονή": {
-      "occurrences": 1,
-      "candidats": [
-        "G1701 ἐμπαιγμός — mocking"
-      ]
-    },
-    "ἐξεραυνάω": {
-      "occurrences": 1,
-      "candidats": [
-        "G1830 ἐξερευνάω — search diligently"
-      ]
-    },
-    "ἐξολεθρεύω": {
-      "occurrences": 1,
-      "candidats": [
-        "G1842 ἐξολοθρεύω — destroy"
-      ]
-    },
-    "ἐξουδενέω": {
-      "occurrences": 1,
-      "candidats": [
-        "G1847 ἐξουδενόω — set at nought",
-        "G1848 ἐξουθενέω — contemptible, despise, least esteemed, s"
-      ]
-    },
-    "ἐπάρατος": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "ἐπεισέρχομαι": {
-      "occurrences": 1,
-      "candidats": [
-        "G1525 εἰσέρχομαι — X arise, come (in, into), enter in(-to),"
-      ]
-    },
-    "ἐπισκευάζομαι": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "ἐπισπείρω": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "ἐπιφαύσκω": {
-      "occurrences": 1,
-      "candidats": [
-        "G2017 ἐπιφαύω — give light",
-        "G2020 ἐπιφώσκω — begin to dawn, X draw on"
-      ]
-    },
-    "ἑκούσιος": {
-      "occurrences": 1,
-      "candidats": [
-        "G1595 ἑκούσιον — willingly",
-        "G1596 ἑκουσίως — wilfully, willingly",
-        "G1967 ἐπιούσιος — daily"
-      ]
-    },
-    "Ἠλί": {
-      "occurrences": 1,
-      "candidats": [
-        "G2241 ἠλί — Eli",
-        "G2242 Ἡλί — Heli",
-        "G104 ἀεί — always, ever"
-      ]
-    },
-    "ἱερόθυτος": {
-      "occurrences": 1,
-      "candidats": [
-        "G2417 ἱερόσυλος — robber of churches"
-      ]
-    },
-    "Ἰουνία": {
-      "occurrences": 1,
-      "candidats": [
-        "G2456 Ἰουλία — Julia",
-        "G2458 Ἰουνιᾶς — Junias",
-        "G2448 Ἰουδά — Judah"
-      ]
-    },
-    "Ἰωδά": {
-      "occurrences": 1,
-      "candidats": [
-        "G2503 ἰῶτα — jot",
-        "G1430 δῶμα — housetop",
-        "G2386 ἴαμα — healing"
-      ]
-    },
-    "Ἰωνάμ": {
-      "occurrences": 1,
-      "candidats": [
-        "G2494 Ἰωνάν — Jonan",
-        "G2495 Ἰωνᾶς — Jonas",
-        "G2496 Ἰωράμ — Joram"
-      ]
-    },
-    "Ἰωσήχ": {
-      "occurrences": 1,
-      "candidats": [
-        "G2499 Ἰωσή — Jose",
-        "G2500 Ἰωσῆς — Joses",
-        "G2501 Ἰωσήφ — Joseph"
-      ]
-    },
-    "ὁμίχλη": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "ὑπερεκχύννομαι": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "ῥέδη": {
-      "occurrences": 1,
-      "candidats": [
-        "G3976 πέδη — fetter",
-        "G4480 ῥέδα — chariot",
-        "G4498 Ῥόδη — Rhoda"
-      ]
-    },
-    "ῥυπαρεύω": {
-      "occurrences": 1,
-      "candidats": []
-    },
-    "ῥώννυμαι": {
-      "occurrences": 1,
-      "candidats": [
-        "G4517 ῥώννυμι — farewell",
-        "G2224 ζώννυμι — gird"
-      ]
-    }
-  },
+  "a_faire": {},
   "ambigus": {
-    "ὦ": {
-      "occurrences": 17,
-      "homographes": [
-        "G5599 ὦ — O",
-        "G5600 ὦ — + appear, are, (may, might, should) be, "
-      ]
-    },
     "ἄπειμι": {
       "occurrences": 8,
       "homographes": [
@@ -1091,18 +312,18 @@
         "G943 βάτος — measure"
       ]
     },
-    "σύνειμι": {
-      "occurrences": 3,
-      "homographes": [
-        "G4895 σύνειμι — be with",
-        "G4896 σύνειμι — gather together"
-      ]
-    },
     "εἴκω": {
       "occurrences": 1,
       "homographes": [
         "G1502 εἴκω — give place",
         "G1503 εἴκω — be like"
+      ]
+    },
+    "Ἠλί": {
+      "occurrences": 1,
+      "homographes": [
+        "G2241 ἠλί — « mon Dieu » (Mt 27,46)",
+        "G2242 Ἡλί — Héli, un Israélite (Lc 3,23)"
       ]
     },
     "ῥέω": {
@@ -1111,48 +332,297 @@
         "G4482 ῥέω — flow",
         "G4483 ῥέω — command, make, say, speak (of)"
       ]
+    },
+    "σύνειμι": {
+      "occurrences": 3,
+      "homographes": [
+        "G4895 σύνειμι — be with",
+        "G4896 σύνειμι — gather together"
+      ]
+    },
+    "ὦ": {
+      "occurrences": 17,
+      "homographes": [
+        "G5599 ὦ — O",
+        "G5600 ὦ — + appear, are, (may, might, should) be, "
+      ]
+    },
+    "Ὦ": {
+      "occurrences": 3,
+      "homographes": [
+        "G5599 ὦ — O",
+        "G5600 ὦ — subjonctif d’εἰμί"
+      ]
     }
   },
   "ecartes": {
-    "Τίτιος": {
+    "ἀγγέλλω": {
       "occurrences": 1,
-      "raison": "Titius Justus (Ac 18,7) apparié à δίκαιος « juste » par le mot Justus"
+      "raison": "Strong ne porte que les composés (ἀπ-, δι-, ἐξ-, ἐπ-αγγέλλω)"
     },
-    "δυσφημέω": {
+    "Ἀδμίν": {
       "occurrences": 1,
-      "raison": "variante du texte critique là où le Textus Receptus lit βλασφημέω — autre mot"
+      "raison": "nom propre (Lc 3,33) apparié à διό « c'est pourquoi » — collision fortuite"
     },
-    "εὖγε": {
+    "ἀθροίζω": {
       "occurrences": 1,
-      "raison": "« c'est bien » : deux mots chez Strong (εὖ + γέ), donc pas un numéro"
-    },
-    "θά": {
-      "occurrences": 1,
-      "raison": "seconde moitié de « marana tha » ; ne porte pas de numéro à elle seule"
-    },
-    "κίχρημι": {
-      "occurrences": 1,
-      "raison": "« prêter » (Lc 11,5) apparié à πίμπρημι « enfler »"
-    },
-    "παρεμβάλλω": {
-      "occurrences": 1,
-      "raison": "« dresser un retranchement » (Lc 19,43) apparié à περιβάλλω « revêtir »"
-    },
-    "προπάτωρ": {
-      "occurrences": 1,
-      "raison": "« ancêtre » (Rm 4,1) apparié à ἀπάτωρ « sans père »"
-    },
-    "τρῆμα": {
-      "occurrences": 1,
-      "raison": "le chas d'une aiguille ; Strong porte ῥαφίς (l'aiguille) et τρυμαλιά, pas τρῆμα"
+      "raison": "Strong ne porte que les composés ἐπαθροίζω et συναθροίζω"
     },
     "ἀλλαχοῦ": {
       "occurrences": 1,
       "raison": "« ailleurs » ; Strong ne porte qu'ἀλλαχόθεν, « d'ailleurs », qui est un autre mot"
     },
-    "Ἀδμίν": {
+    "ἀμφιβάλλω": {
       "occurrences": 1,
-      "raison": "nom propre (Lc 3,33) apparié à διό « c'est pourquoi » — collision fortuite"
+      "raison": "G293 ἀμφίβληστρον est le filet, non le geste de le jeter"
+    },
+    "ἄμωμον": {
+      "occurrences": 1,
+      "raison": "homographe : l’épice amomum (Ap 18,13), et non ἄμωμος « sans tache »"
+    },
+    "ἀναπηδάω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἀπογίνομαι": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "Ἀρνί": {
+      "occurrences": 1,
+      "raison": "G721 ἀρνίον « agneau » est un faux ami ; le Textus Receptus lit Ἀράμ, autre nom"
+    },
+    "αὐχέω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἀφθορία": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "βελόνη": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "δεκαοκτώ": {
+      "occurrences": 2,
+      "raison": "δέκα et ὀκτώ sont deux entrées chez Strong, donc deux numéros"
+    },
+    "δέος": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "διαπαρατριβή": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "διενθυμέομαι": {
+      "occurrences": 1,
+      "raison": "le préfixe δι- disparaîtrait ; G1760 ἐνθυμέομαι est un autre mot"
+    },
+    "δύσις": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "δυσφημέω": {
+      "occurrences": 1,
+      "raison": "variante du texte critique là où le Textus Receptus lit βλασφημέω — autre mot"
+    },
+    "ἐάνπερ": {
+      "occurrences": 2,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἐκβαίνω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἐκπερισσῶς": {
+      "occurrences": 1,
+      "raison": "le préfixe ἐκ- disparaîtrait ; G4057 περισσῶς est un autre mot"
+    },
+    "ἐκπηδάω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἐνενήκοντα": {
+      "occurrences": 4,
+      "raison": "G1768 est ἐννενηκονταεννέα « quatre-vingt-dix-neuf », non « quatre-vingt-dix »"
+    },
+    "ἔνθεν": {
+      "occurrences": 2,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἐπάρατος": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἔπειμι": {
+      "occurrences": 5,
+      "raison": "absent de Strong ; ἔνειμι, ἔξειμι et ἄπειμι sont d’autres verbes"
+    },
+    "ἐπεισέρχομαι": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἐπισκευάζομαι": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἐπισπείρω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἐπίστασις": {
+      "occurrences": 2,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "εὖγε": {
+      "occurrences": 1,
+      "raison": "« c'est bien » : deux mots chez Strong (εὖ + γέ), donc pas un numéro"
+    },
+    "εὐπάρεδρον": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "εὐρακύλων": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ἐφοράω": {
+      "occurrences": 2,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "θά": {
+      "occurrences": 1,
+      "raison": "seconde moitié de « marana tha » ; ne porte pas de numéro à elle seule"
+    },
+    "ἱερόθυτος": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "Ἰωδά": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "καταδίκη": {
+      "occurrences": 1,
+      "raison": "Strong ne porte que le verbe καταδικάζω, pas la sentence"
+    },
+    "κατευλογέω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "κίχρημι": {
+      "occurrences": 1,
+      "raison": "« prêter » (Lc 11,5) apparié à πίμπρημι « enfler »"
+    },
+    "κλινάριον": {
+      "occurrences": 1,
+      "raison": "Strong porte κλίνη et l’autre diminutif κλινίδιον, pas celui-ci"
+    },
+    "μετατρέπω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "μήγε": {
+      "occurrences": 5,
+      "raison": "εἰ δὲ μήγε : deux mots chez Strong (μή + γέ), donc pas un numéro"
+    },
+    "Νέα": {
+      "occurrences": 1,
+      "raison": "Νέαν πόλιν : Strong n’a que le composé G3496 Νεάπολις"
+    },
+    "ὁμίχλη": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "παρακαθέζομαι": {
+      "occurrences": 1,
+      "raison": "le préfixe παρα- disparaîtrait ; G2516 καθέζομαι est un autre mot"
+    },
+    "παρεδρεύω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "παρεμβάλλω": {
+      "occurrences": 1,
+      "raison": "« dresser un retranchement » (Lc 19,43) apparié à περιβάλλω « revêtir »"
+    },
+    "περαιτέρω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "περιάπτω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "πραϋπαθία": {
+      "occurrences": 1,
+      "raison": "composé absent de Strong ; le Textus Receptus lit πραότης, autre mot"
+    },
+    "προπάτωρ": {
+      "occurrences": 1,
+      "raison": "« ancêtre » (Rm 4,1) apparié à ἀπάτωρ « sans père »"
+    },
+    "προσαίτης": {
+      "occurrences": 2,
+      "raison": "Strong ne porte que le verbe προσαιτέω « mendier », pas le mendiant"
+    },
+    "προσκλίνομαι": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "πρώτως": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ῥυπαρεύω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "συμπίπτω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "συναλλάσσω": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "συνοράω": {
+      "occurrences": 2,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ταπεινόφρων": {
+      "occurrences": 1,
+      "raison": "Strong ne porte que le nom ταπεινοφροσύνη, pas l’adjectif"
+    },
+    "Τίτιος": {
+      "occurrences": 1,
+      "raison": "Titius Justus (Ac 18,7) apparié à δίκαιος « juste » par le mot Justus"
+    },
+    "τρῆμα": {
+      "occurrences": 1,
+      "raison": "le chas d'une aiguille ; Strong porte ῥαφίς (l'aiguille) et τρυμαλιά, pas τρῆμα"
+    },
+    "τυπικῶς": {
+      "occurrences": 1,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
+    },
+    "ὑπερεκπερισσοῦ": {
+      "occurrences": 3,
+      "raison": "ὑπέρ, ἐκ et περισσός sont trois entrées chez Strong"
+    },
+    "ὑπερλίαν": {
+      "occurrences": 2,
+      "raison": "ὑπέρ et λίαν sont deux entrées chez Strong, donc deux numéros"
+    },
+    "φάρμακον": {
+      "occurrences": 1,
+      "raison": "G5333 φάρμακος est le sorcier et G5331 φαρμακεία la sorcellerie ; la drogue n’y est pas"
+    },
+    "ὠτάριον": {
+      "occurrences": 2,
+      "raison": "absent de Strong : aucune entrée ne porte cette forme"
     }
   }
 }

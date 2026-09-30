@@ -557,11 +557,10 @@ Tout est relevé. Ce qui reste n'est plus de l'enquête mais des décisions :
 
 1. ~~La CC BY-SA~~ — **acceptée par le propriétaire le 29 septembre 2026**,
    voir ci-dessous. Les 4,0 Mio de `public/strong/` sont versionnés.
-2. ~~Les 484 lemmes grecs sans raccord~~ — **réglé le 29 septembre 2026** :
-   les règles sûres en résolvent 177, la table manuelle 38 de plus. Restent
-   **278 lemmes / 916 occurrences** dans `a_faire` de
-   `scripts/strong-grec-manuel.json`, à confirmer au fil de l'eau. Ce n'est
-   plus une décision mais un travail d'appoint, et il ne bloque rien.
+2. ~~Les 484 lemmes grecs sans raccord~~ — **réglé le 29 septembre 2026**, et
+   **clos le 30** : les règles sûres en résolvent 177, la table manuelle 247.
+   `a_faire` est vide ; 129 occurrences sur 137 554 restent sans numéro, toutes
+   dans `ambigus` ou `ecartes` avec leur motif.
 3. ~~Les onze lemmes ambigus~~ — **six en réalité**, une fois les accents
    respectés : `ὦ`, `ἄπειμι`, `βάτος`, `σύνειμι`, `ῥέω`, `εἴκω`. Ce sont de
    vrais homographes que seul le contexte départagerait ; ils restent **sans
@@ -579,10 +578,52 @@ bloquante :
 
 | | |
 |---|---|
-| 130 lemmes grecs sans numéro | **0,13 %** du texte, à confirmer au fil de l'eau dans `a_faire` |
-| Six homographes | resteront sans numéro : seul le contexte les départagerait |
-| Dix lemmes écartés | examinés, sans correspondance honnête chez Strong — `ἀλλαχοῦ` n'y est pas, `εὖγε` y est deux mots |
+| ~~130 lemmes grecs sans numéro~~ | **tranchés le 30 septembre 2026**, voir ci-dessous : `a_faire` est vide |
+| Huit homographes | resteront sans numéro : seul le contexte les départagerait |
+| 67 lemmes écartés | examinés, sans correspondance honnête chez Strong, chacun avec son motif |
 | Définitions en anglais | l'œuvre de Strong l'est ; les traduire serait un chantier éditorial de 14 197 entrées |
+
+### Les 130 derniers lemmes grecs — 30 septembre 2026
+
+Ils n'étaient pas un travail d'appoint mais un tri, et le tri s'est fait en
+nommant les classes plutôt qu'en mesurant des ressemblances. **Quatre classes
+donnent droit à un numéro**, et aucune ne repose sur la distance entre deux
+mots :
+
+| Classe | Ce qui l'autorise | Exemple |
+|---|---|---|
+| Nasale devant occlusive | orthographe du texte critique, régulière | `ἀνεπίλημπτος` → G423 `ἀνεπίληπτος` |
+| Byforme du même mot | même racine, même sens, même verset | `χοῦς` → G5522 `χόος` |
+| Flexion que Strong décrit | **son entrée porte la forme** | `πυκνά` → G4437, dont la glose dit « neuter plural (as adverb) » |
+| Nom propre, autre graphie | même personnage | `Βόες` → G1003 `Βοόζ` |
+
+La troisième classe est la plus sûre des quatre, et c'est la moins évidente :
+le lexique se décrit lui-même. Le `kjvDef` de **G2115 `εὔθυμος` porte « the
+more cheerfully »**, qui n'est pas la traduction de l'adjectif mais celle de
+l'adverbe `εὐθύμως` en Actes 24,10 — la preuve du raccord était dans le champ,
+pas dans la ressemblance.
+
+**La sonde a rattrapé une erreur que la relecture n'aurait pas vue.** Le
+candidat `G1768` pour `ἐνενήκοντα` « quatre-vingt-dix » était plausible et
+faux : G1768 est `ἐννενηκονταεννέα`, **quatre-vingt-dix-NEUF**. Le nombre
+« quatre-vingt-dix » seul n'existe pas chez Strong. Trois autres cas se sont
+révélés en relisant la liste des absents plutôt qu'en la croyant :
+`εἵνεκεν` → G1752 (forme ionienne d'`ἕνεκα`, que l'entrée liste),
+`ῥέδη` → G4480 `ῥέδα`, `ἀμφιάζω` → G294 `ἀμφιέννυμι`.
+
+Et un faux ami écarté : **`ἄμωμον` (Ap 18,13) est l'épice amomum**, non
+`ἄμωμος` « sans tache ». La ressemblance était parfaite, le sens étranger.
+
+Résultat mesuré sur le fichier produit, non déduit : **129 occurrences sans
+numéro sur 137 554, soit 99,91 %** — et **aucune hors des listes décidées**.
+`a_faire` est vide, ce qui n'est pas un oubli mais l'état juste : tout mot
+encore sans numéro relève d'`ambigus` ou d'`ecartes`, avec son motif.
+
+**Le fichier manuel est désormais croisé par un test**,
+`src/features/bible/strong-manuel.test.ts` : aucun numéro fantôme, aucun lemme
+rangé dans deux sections, aucun écart sans motif. Il n'en avait aucun jusque-là,
+et ses pièges sont muets — un numéro inexistant laisse le mot cliquable et le
+panneau vide, ce qui est pire qu'un mot sans numéro, lequel au moins se dit tel.
 
 ### La CC BY-SA acceptée — 29 septembre 2026
 
@@ -616,6 +657,7 @@ qu'après coup.
 
 | Date | Fait |
 |---|---|
+| 30 sept. 2026 | **Les 130 derniers lemmes grecs tranchés : couverture de 99,84 % à 99,91 %.** 71 retenus, 2 ambigus, 57 écartés — `a_faire` est vide, et les 129 occurrences encore sans numéro sont toutes dans `ambigus` ou `ecartes` avec leur motif, vérifié en relisant le fichier produit. Le tri s'est fait par **quatre classes nommées**, pas par ressemblance ; la plus sûre est celle où **l'entrée de Strong décrit elle-même la forme** — le `kjvDef` de G2115 porte « the more cheerfully », qui est `εὐθύμως` en Ac 24,10. La sonde a rattrapé **G1768 `ἐννενηκονταεννέα`**, que j'allais prendre pour « quatre-vingt-dix » : c'est quatre-vingt-dix-**neuf**. Trois raccords trouvés en relisant les absents (`εἵνεκεν` → G1752, `ῥέδη` → G4480, `ἀμφιάζω` → G294) et un faux ami écarté (`ἄμωμον` est l'épice amomum). Le fichier manuel est enfin **croisé par un test**, `strong-manuel.test.ts`. |
 | 29 sept. 2026 | **Les 278 lemmes grecs repris : couverture de 99,31 % à 99,84 %.** 176 lemmes confirmés contre 38, 226 occurrences sans numéro contre 952. Trois preuves : une **concordance sur la King James** pondérée par la fréquence de fond, la **morphologie** (`τετραάρχης` marqué `N-` donne le nom et non le verbe), et l'**élimination** (`τίς` accentué étant résolu, le `τις` nu est l'indéfini `G5100` — 530 occurrences d'un coup). La concordance se trompant dans **13 %** des cas, les 147 candidats ont été relus un par un : 19 écartés, 9 corrigés. Retiré aussi les **marques d'apparat** du SBLGNT, présentes sur un mot sur seize et illisibles sans l'apparat. |
 | 29 sept. 2026 | **Le clic sur un mot rend sa définition — la chaîne est bouclée.** `TexteOriginal`, base en version 13, `LEXIQUES_VISIBLES` allumé. Une case commande le lexique **et** son texte (19 Mo hébreu, 11 Mo grec). **La mention de licence s'affiche avec la définition : la dette de la CC BY-SA est éteinte.** Trois défauts trouvés à l'écran et nulle part ailleurs : `textDirection` ignorait l'hébreu et rendait la Genèse à l'envers, un défaut de bidi désordonnait l'étymologie en arabe, et un sélecteur approximatif a activé une version biblique par erreur. Limite assumée : **les définitions restent en anglais**, le lexique étant une œuvre de 1890. |
 | 29 sept. 2026 | **Textes originaux convertis et versionnés.** OSHB et SBLGNT dans `public/originaux/` — 306 785 + 137 554 mots, 16,5 + 9,1 Mo ; `public/` passe à 119 Mo. Couverture Strong **98,05 %** (hébreu) et **99,31 %** (grec). Deux mesures ont écarté mes raccourcis : le raccord par distance d'édition se trompe dans **20 %** des cas (Βόες → « bœuf », Καῦδα → « chaleur »), la substitution de lettre dans **4 %** (γαμίζω → γεμίζω). Et plier les accents **avant** la correspondance exacte perdait **6 010 occurrences**, `εἰς` et `εἷς` ne différant que par l'esprit. Table manuelle : **38 lemmes confirmés un par un contre la glose**, 885 occurrences ; 278 en attente, 6 homographes laissés sans numéro à dessein. |
