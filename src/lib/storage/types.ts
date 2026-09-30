@@ -381,6 +381,14 @@ export interface PlanDay {
   titre?: string;
   isRead: boolean;
   readingId?: number;
+  /**
+   * Qui a coché ce jour, sur un plan partagé.
+   *
+   * Absent sur les jours cochés avant le 30 septembre 2026, et sur un plan
+   * qu'on ne partage avec personne — où la question ne se pose pas.
+   */
+  luPar?: string;
+  luLe?: string;
   /** true si la ligne existe dans Supabase (flag local uniquement) */
   synced?: boolean;
 }

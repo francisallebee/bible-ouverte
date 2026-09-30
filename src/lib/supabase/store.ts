@@ -277,6 +277,16 @@ export interface PlanDayRow {
   page_fin?: number | null
   /** Le nom de la portion lue ce jour (migration `20260917220000`). */
   titre?: string | null
+  /**
+   * Qui a coché ce jour, et quand (migration `20260930120000`).
+   *
+   * Nuls sur les jours cochés avant les plans partagés : on ne peut pas le
+   * reconstituer, et l'inventer serait pire. Un `luPar` absent sur un jour lu
+   * veut donc dire « le créateur, probablement », et l'écran s'abstient de
+   * nommer quelqu'un plutôt que de deviner.
+   */
+  luPar?: string | null
+  luLe?: string | null
 }
 
 export async function fetchPlanDays(planId: number): Promise<PlanDayRow[] | null> {

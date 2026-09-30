@@ -88,6 +88,8 @@ function rowToDay(r: PlanDayRow): PlanDay {
     pageDebut: r.page_debut ?? undefined,
     pageFin: r.page_fin ?? undefined,
     titre: r.titre ?? undefined,
+    luPar: r.luPar ?? undefined,
+    luLe: r.luLe ?? undefined,
     synced: true,
   };
 }
@@ -114,6 +116,8 @@ function dayToRow(d: PlanDay, userId: string): Omit<PlanDayRow, 'id'> {
     page_debut: d.pageDebut ?? null,
     page_fin: d.pageFin ?? null,
     titre: d.titre || null,
+    luPar: d.luPar ?? null,
+    luLe: d.luLe ?? null,
   };
 }
 

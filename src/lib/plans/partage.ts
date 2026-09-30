@@ -224,3 +224,50 @@ export function lienDInvitation(jeton: string): string {
   const base = typeof window === 'undefined' ? '' : window.location.origin
   return `${base}/invitation/${jeton}`
 }
+
+/**
+ * Les jours d'un plan que **j'ai** personnellement lus.
+ *
+ * Sur un plan commun, cocher est un geste collectif : le jour est fait pour le
+ * plan. Mais `readings` n'est jamais partagée — un jour coché par Marie ne
+ * crée aucune lecture chez Paul, qui n'a rien lu. Paul qui l'a lu aussi doit
+ * pouvoir l'inscrire chez lui, sans quoi ses statistiques, ses séries et ses
+ * objectifs ignorent la moitié de son activité.
+ *
+ * Rend les identifiants de jours, pas les lectures : l'écran n'a besoin que de
+ * savoir lesquels sont déjà déclarés.
+ */
+export async function mesJoursLus(planId: number): Promise<Set<number>> {
+  const supabase = createClient()
+  const { data: session } = await supabase.auth.getUser()
+  const uid = session.user?.id
+  if (!uid) return new Set()
+
+  const { data, error } = await supabase
+    .from('plan_day_readings')
+    .select('plan_day_id, plan_days!inner(plan_id)')
+    .eq('user_id', uid)
+    .eq('plan_days.plan_id', planId)
+  if (error) {
+    console.warn('mesJoursLus:', error.message)
+    return new Set()
+  }
+  return new Set((data as { plan_day_id: number }[]).map((r) => r.plan_day_id))
+}
+
+/** Déclare que j'ai lu ce jour moi aussi, sans toucher à son état collectif. */
+export async function declarerLecture(planDayId: number, readingId?: number): Promise<boolean> {
+  const supabase = createClient()
+  const { data: session } = await supabase.auth.getUser()
+  const uid = session.user?.id
+  if (!uid) return false
+
+  const { error } = await supabase
+    .from('plan_day_readings')
+    .insert({ plan_day_id: planDayId, user_id: uid, reading_id: readingId ?? null })
+  if (error) {
+    console.warn('declarerLecture:', error.message)
+    return false
+  }
+  return true
+}

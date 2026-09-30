@@ -9,6 +9,8 @@ import {
   Users,
 } from "lucide-react";
 import PartagePlan from "@/components/PartagePlan";
+import { membresDuPlan, mesJoursLus, declarerLecture } from "@/lib/plans/partage";
+import type { PlanMembre } from "@/lib/storage/types";
 import {
   seedIfNeeded, getPlan, getPlanDays, updatePlanDay, updatePlan,
   addReading, deleteReading, getAllVersions, generatePlanDays, deletePlanDaysByPlan, addPlanDays, replacePlanDays,
@@ -61,6 +63,20 @@ export default function PlanDetailPage() {
   */
   const [partageOuvert, setPartageOuvert] = useState(false);
   const [moi, setMoi] = useState<string | null>(null);
+  /*
+    Les membres, pour nommer qui a coché. Chargés une fois et non par ligne :
+    `membres_du_plan()` est un aller-retour, et un appel par jour affiché en
+    ferait cinquante — le piège du comptage dans une boucle, encore.
+    Vide sur un plan que personne ne partage, et la ligne « Lu par » ne paraît
+    alors jamais.
+  */
+  const [membres, setMembres] = useState<PlanMembre[]>([]);
+  const nomDuMembre = useCallback(
+    (id: string) => membres.find((m) => m.userId === id)?.nom ?? '',
+    [membres],
+  );
+  /** Les jours que j'ai déclaré avoir lus, parmi ceux cochés par un autre. */
+  const [mesLectures, setMesLectures] = useState<Set<number>>(new Set());
   const [days, setDays] = useState<PlanDay[]>([]);
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -144,6 +160,10 @@ export default function PlanDetailPage() {
       setDays(d ?? []);
       setVersions(v);
       setMoi(await getCurrentUserId());
+      // Après le reste : nommer qui a coché n'est pas ce qui fait apparaître
+      // l'écran, et rien ne doit attendre cet appel.
+      setMembres(await membresDuPlan(planId));
+      setMesLectures(await mesJoursLus(planId));
       if (p) {
         setFormName(p.name);
         setFormDuration(p.duration);
@@ -228,6 +248,11 @@ export default function PlanDetailPage() {
         // celle de la lecture.
         ...(dates.jour !== null ? { date: dates.jour } : {}),
         isRead: true,
+        // Qui a coché, sur un plan partagé — la ligne « Lu par Marie ». Posé
+        // même sur un plan que personne ne partage : le jour où il le sera,
+        // l'historique ne se reconstituera pas.
+        luPar: await getCurrentUserId(),
+        luLe: new Date().toISOString(),
         // La colonne garde la première : c'est ce que lit un appareil resté
         // sur l'ancienne version. Un jour sans passage — une portion de
         // document — n'a rien à garder : coché, c'est tout.
@@ -245,9 +270,12 @@ export default function PlanDetailPage() {
   async function unmarkRead(day: PlanDay) {
     setTogglingDay(day.day);
     try {
-      // Toutes les lectures du jour, et pas seulement celle de la colonne.
+      // `peutDecocher` a déjà écarté le cas où le jour a été coché par
+      // quelqu'un d'autre : les lectures effacées ici sont donc les miennes.
       for (const id of readingIdsOf(day)) await deleteReading(id);
       const updatedDay: PlanDay = { ...day, isRead: false };
+      delete updatedDay.luPar;
+      delete updatedDay.luLe;
       delete updatedDay.readingId;
       if (updatedDay.passages) {
         updatedDay.passages = updatedDay.passages.map(({ readingId, ...reste }) => {
@@ -266,8 +294,67 @@ export default function PlanDetailPage() {
     setTogglingDay(null);
   }
 
+  /**
+   * On ne décoche que ce qu'on a coché soi-même.
+   *
+   * La règle paraît restrictive sur un plan **commun**, et c'est pourtant la
+   * seule qui tienne. `readingId` désigne une ligne de `readings` créée par
+   * celui qui a coché, et `readings` n'est jamais partagée : un membre qui
+   * décocherait le jour d'un autre laisserait derrière lui des lectures que
+   * plus rien ne rattache au plan — la RLS refusant de les effacer **sans
+   * lever**, puisqu'un `delete` qui ne touche aucune ligne n'est pas une
+   * erreur. Le jour paraîtrait décoché et le compte de l'autre garderait ses
+   * lignes.
+   *
+   * `luPar` absent veut dire « coché avant le 30 septembre 2026 », donc par le
+   * créateur du jour : c'est `userId` qui tranche alors.
+   */
+  /**
+   * « Je l'ai lu aussi » : la lecture personnelle d'un jour collectif.
+   *
+   * Elle crée mes propres lignes de `readings` — sans quoi ce que j'ai lu ne
+   * compterait dans aucune de mes statistiques — et laisse l'état du jour
+   * intact : il est déjà fait pour le plan, et le recocher n'aurait pas de
+   * sens.
+   */
+  async function declarerMaLecture(day: PlanDay) {
+    if (day.id === undefined) return;
+    setTogglingDay(day.day);
+    try {
+      let premiere: number | undefined;
+      for (const passage of dayPassages(day)) {
+        const readingId = await addReading({
+          // Le jour où **je** l'ai lu, et non le jour prévu par le plan ni
+          // celui où l'autre a coché : c'est la règle du ticket 32.
+          date: aujourdhui(),
+          book: passage.book,
+          chapterStart: passage.chapterStart,
+          chapterEnd: passage.chapterEnd,
+          ...bornesReelles(passage),
+          passageText: "",
+          translationId: plan!.versionId,
+          tags: ["general"],
+          contextId: PLAN_CONTEXT_ID,
+          sessionTitle: "",
+          notes: plan!.kind === "free" ? `Plan : ${plan!.name}` : `Plan : ${plan!.name} (jour ${day.day})`,
+        });
+        premiere ??= readingId as number;
+      }
+      if (await declarerLecture(day.id, premiere)) {
+        setMesLectures((prev) => new Set(prev).add(day.id as number));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setTogglingDay(null);
+  }
+
+  function peutDecocher(day: PlanDay): boolean {
+    return day.luPar ? day.luPar === moi : day.userId === moi;
+  }
+
   function handleToggleDay(day: PlanDay) {
-    if (day.isRead) return unmarkRead(day);
+    if (day.isRead) return peutDecocher(day) ? unmarkRead(day) : undefined;
     // Un plan daté enregistre la lecture **au jour où on coche**, et non au
     // jour qu'il avait prévu : c'est le ticket 32, et `datesDuCochage` porte
     // la règle. Un plan libre, lui, demande la date.
@@ -676,7 +763,13 @@ export default function PlanDetailPage() {
               day.isRead ? "border-green-200 bg-green-50/30" : "border-gray-200"
             } ${togglingDay === day.day ? "opacity-60" : ""}`}>
             <div className="flex items-center">
-              <button onClick={() => handleToggleDay(day)} disabled={togglingDay === day.day}
+              {/* Décocher est réservé à qui a coché — voir `peutDecocher`. Le
+                  bouton est donc désactivé plutôt que muet : un clic sans
+                  effet ferait croire à une panne. « Je l'ai lu aussi » prend
+                  le relais juste après, pour que la lecture compte quand même
+                  chez celui qui n'a pas coché. */}
+              <button onClick={() => handleToggleDay(day)}
+                disabled={togglingDay === day.day || (day.isRead && !peutDecocher(day))}
                 aria-pressed={day.isRead}
                 className="flex-1 min-w-0 text-left px-4 py-3 flex items-center gap-3 select-none">
                 {togglingDay === day.day ? <Loader2 className="w-5 h-5 text-gray-400 animate-spin shrink-0" />
@@ -694,6 +787,43 @@ export default function PlanDetailPage() {
                       </span>
                     ) : (
                       <span className="text-xs text-gray-400">{t.planDetail.notReadYet}</span>
+                    )}
+                    {/*
+                      « Lu par Marie », et seulement quand ce n'est pas moi :
+                      se voir attribuer ses propres coches serait du bruit. Le
+                      nom vient de `membres_du_plan()`, faute de quoi la ligne
+                      afficherait un UUID — `profiles` restant verrouillé sur
+                      son propre profil.
+                    */}
+                    {day.isRead && day.luPar && day.luPar !== moi && nomDuMembre(day.luPar) && (
+                      <span className="text-xs text-[--primary] shrink-0">
+                        {t.partage.luPar(nomDuMembre(day.luPar))}
+                      </span>
+                    )}
+                    {/*
+                      « Je l'ai lu aussi », sur un jour coché par quelqu'un
+                      d'autre. Hors du bouton de bascule — c'en est un autre,
+                      et l'imbriquer donnerait un bouton dans un bouton, que
+                      le HTML interdit et que le clavier ne saurait pas
+                      atteindre.
+                    */}
+                    {day.isRead && day.luPar && day.luPar !== moi && day.id !== undefined && (
+                      mesLectures.has(day.id) ? (
+                        <span className="text-xs text-[--text-secondary] shrink-0">{t.partage.dejaCompte}</span>
+                      ) : (
+                        <span
+                          role="button" tabIndex={0}
+                          onClick={(e) => { e.stopPropagation(); void declarerMaLecture(day); }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault(); e.stopPropagation(); void declarerMaLecture(day);
+                            }
+                          }}
+                          className="text-xs text-[--primary] underline cursor-pointer shrink-0"
+                        >
+                          {t.partage.jeLaiLuAussi}
+                        </span>
+                      )
                     )}
                   </div>
                   {/* Tous les passages du jour : un plan classique en fait lire
