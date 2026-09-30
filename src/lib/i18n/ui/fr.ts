@@ -303,13 +303,49 @@ export const fr = {
       `→ ${target} ${chapters ? 'chapitres' : 'versets'} par jour`,
 
     versions: 'Versions bibliques',
+    /*
+      Plus de fourchette « de 6 à 10 Mo » depuis le 30 septembre 2026 : chaque
+      ligne porte son poids exact, et le panneau de mémoire le total. Répéter
+      un ordre de grandeur au-dessus d'un chiffre juste ne fait que du bruit.
+    */
     versionsHint:
       'Une version activée est téléchargée sur cet appareil pour la lecture '
-      + 'hors ligne — de 6 à 10 Mo selon la langue. La désactiver libère cette place.',
+      + 'hors ligne. La désactiver libère cette place.',
     versionDefault: 'Par défaut',
     versionDeleting: 'Suppression…',
     versionDownloading: 'Téléchargement…',
     versionEnabled: 'Activée',
+
+    /**
+     * La mémoire occupée, dite au moment du choix.
+     *
+     * Trois chaînes prennent un texte déjà formaté et non un nombre : les
+     * octets passent par `formaterOctets`, qui connaît la locale et les unités
+     * binaires. Leur mettre un `n` ici obligerait chaque dictionnaire à refaire
+     * la conversion.
+     */
+    stockage: {
+      /** Symboles binaires français. Voir `formaterOctets` : ce texte est visible. */
+      unites: ['o', 'Kio', 'Mio', 'Gio'],
+      titre: 'Mémoire occupée',
+      utilise: (u: string) => `${u} occupés sur cet appareil.`,
+      utiliseSurQuota: (u: string, q: string, p: string) =>
+        `${u} occupés sur les ${q} que ce navigateur accorde, soit ${p}.`,
+      inconnu: 'Ce navigateur ne dit pas quelle place il accorde.',
+      choisi: (c: string) => `Textes cochés : ${c} à télécharger.`,
+      attention:
+        'La mémoire se remplit. Désactive les textes que tu ne lis pas : '
+        + 'quand la place manque, le navigateur vide le cache sans prévenir et '
+        + 'tout est à retélécharger.',
+      critique:
+        'La mémoire est presque pleine. Désactive des textes maintenant — '
+        + 'sinon le navigateur videra le cache de lui-même, et la lecture hors '
+        + 'ligne cessera.',
+      differe:
+        'Désactiver un texte supprime ses versets aussitôt, mais le navigateur '
+        + 'ne rend les octets qu’à sa prochaine compaction : le chiffre '
+        + 'ci-dessus peut mettre un moment à baisser.',
+    },
 
     strongTitle: 'Lexiques Strong',
     strongHint:

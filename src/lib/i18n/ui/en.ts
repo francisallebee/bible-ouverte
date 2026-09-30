@@ -275,12 +275,34 @@ export const en: Dictionary = {
 
     versions: 'Bible versions',
     versionsHint:
-      'An enabled version is downloaded to this device for offline reading — '
-      + '6 to 10 MB depending on the language. Disabling it frees that space.',
+      'An enabled version is downloaded to this device for offline reading. '
+      + 'Disabling it frees that space.',
     versionDefault: 'Default',
     versionDeleting: 'Removing…',
     versionDownloading: 'Downloading…',
     versionEnabled: 'Enabled',
+
+    stockage: {
+      unites: ['B', 'KiB', 'MiB', 'GiB'],
+      titre: 'Storage used',
+      utilise: (u: string) => `${u} used on this device.`,
+      utiliseSurQuota: (u: string, q: string, p: string) =>
+        `${u} used of the ${q} this browser allows, or ${p}.`,
+      inconnu: 'This browser does not say how much room it allows.',
+      choisi: (c: string) => `Texts enabled: ${c} to download.`,
+      attention:
+        'Storage is filling up. Turn off the texts you do not read: when room '
+        + 'runs short, the browser clears the cache without warning and '
+        + 'everything has to be downloaded again.',
+      critique:
+        'Storage is almost full. Turn some texts off now — otherwise the '
+        + 'browser will clear the cache on its own, and offline reading will '
+        + 'stop.',
+      differe:
+        'Turning a text off deletes its verses at once, but the browser only '
+        + 'hands the bytes back at its next compaction: the figure above may '
+        + 'take a while to drop.',
+    },
 
     strongTitle: 'Strong’s lexicons',
     strongHint:

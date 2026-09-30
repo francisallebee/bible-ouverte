@@ -45,9 +45,9 @@ interface FichierOriginal {
  * `LEXIQUES_STRONG` ne serait jamais téléchargé, faute de case pour le
  * demander — `originaux.test.ts` croise les deux tables.
  */
-export const ORIGINAUX: { langue: string; file: string; lexiqueId: string }[] = [
-  { langue: 'he', file: 'oshb.json', lexiqueId: 'strong-hebreu' },
-  { langue: 'el', file: 'sblgnt.json', lexiqueId: 'strong-grec' },
+export const ORIGINAUX: { langue: string; file: string; lexiqueId: string; octets: number }[] = [
+  { langue: 'he', file: 'oshb.json', lexiqueId: 'strong-hebreu', octets: 16517461 },
+  { langue: 'el', file: 'sblgnt.json', lexiqueId: 'strong-grec', octets: 9081632 },
 ];
 
 /** Le texte original attaché à un lexique, s'il y en a un. */

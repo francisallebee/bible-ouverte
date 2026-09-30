@@ -64,9 +64,9 @@ interface FichierLexique {
  * l'activation levait « Version inconnue ». `strong.test.ts` compare les deux
  * tables dans les deux sens, comme `import.test.ts` le fait pour les versions.
  */
-export const LEXIQUES: { id: string; file: string }[] = [
-  { id: 'strong-hebreu', file: 'hebreu.json' },
-  { id: 'strong-grec', file: 'grec.json' },
+export const LEXIQUES: { id: string; file: string; octets: number }[] = [
+  { id: 'strong-hebreu', file: 'hebreu.json', octets: 2653192 },
+  { id: 'strong-grec', file: 'grec.json', octets: 1542301 },
 ];
 
 async function chargerLexique(lexiqueId: string): Promise<FichierLexique> {

@@ -47,19 +47,37 @@ interface SourceBible {
  * déployées quand le manque a été trouvé. `import.test.ts` compare désormais
  * cette table à `TEXT_VERSIONS` : un oubli ne compile plus jusqu'aux tests.
  */
-export const VERSIONS: { id: string; file: string }[] = [
-  { id: 'ls1910', file: 'ls1910.json' },
-  { id: 'darby', file: 'darby.json' },
-  { id: 'martin1744', file: 'martin.json' },
-  { id: 'ostervald', file: 'ostervald.json' },
-  { id: 'cramp23', file: 'cramp23.json' },
-  { id: 'sacc', file: 'sacc.json' },
-  { id: 'perret', file: 'perret.json' },
-  { id: 'kjv', file: 'kjv.json' },
-  { id: 'diodati', file: 'diodati.json' },
-  { id: 'svd', file: 'svd.json' },
-  { id: 'rv1909', file: 'rv1909.json' },
-  { id: 'annotee', file: 'annotee.json' },
+/**
+ * Le troisième geste de la règle 13 — et depuis le 30 septembre 2026, le poids.
+ *
+ * `octets` est la taille **du fichier servi**, relevée sur le disque et non
+ * estimée. Elle sert à dire au lecteur ce qu'une case va lui coûter avant
+ * qu'il ne la coche, ce que « environ 6 Mo chacune » sous-estimait de 4 Mo
+ * pour la Van Dyck.
+ *
+ * Ce n'est **pas** la place prise en cache : IndexedDB range des lignes, pas
+ * un fichier. Les deux se sont trouvées du même ordre à la mesure du 9 août
+ * 2026 (sept versions, 42 Mo pour 43 Mo de fichiers), mais le chiffre honnête
+ * pour l'occupation réelle vient de `navigator.storage.estimate()` — voir
+ * `lib/storage/occupation.ts`.
+ *
+ * `import.test.ts` croise ces valeurs avec la taille réelle des fichiers : un
+ * retéléchargement qui changerait un poids sans toucher cette table le
+ * périmerait en silence, et le lecteur lirait un chiffre faux.
+ */
+export const VERSIONS: { id: string; file: string; octets: number }[] = [
+  { id: 'ls1910', file: 'ls1910.json', octets: 6786199 },
+  { id: 'darby', file: 'darby.json', octets: 7083903 },
+  { id: 'martin1744', file: 'martin.json', octets: 7261437 },
+  { id: 'ostervald', file: 'ostervald.json', octets: 6879550 },
+  { id: 'cramp23', file: 'cramp23.json', octets: 6841729 },
+  { id: 'sacc', file: 'sacc.json', octets: 7034956 },
+  { id: 'perret', file: 'perret.json', octets: 6911011 },
+  { id: 'kjv', file: 'kjv.json', octets: 6715375 },
+  { id: 'diodati', file: 'diodati.json', octets: 6902927 },
+  { id: 'svd', file: 'svd.json', octets: 10028474 },
+  { id: 'rv1909', file: 'rv1909.json', octets: 6516751 },
+  { id: 'annotee', file: 'annotee.json', octets: 6825983 },
 ];
 
 async function loadData(versionId: string): Promise<SourceBible> {

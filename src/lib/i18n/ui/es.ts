@@ -286,11 +286,33 @@ export const es: Dictionary = {
     versions: 'Versiones bíblicas',
     versionsHint:
       'Una versión activada se descarga en este dispositivo para leerla sin '
-      + 'conexión — de 6 a 10 MB según el idioma. Desactivarla libera ese espacio.',
+      + 'conexión. Desactivarla libera ese espacio.',
     versionDefault: 'Por defecto',
     versionDeleting: 'Eliminando…',
     versionDownloading: 'Descargando…',
     versionEnabled: 'Activada',
+
+    stockage: {
+      unites: ['B', 'KiB', 'MiB', 'GiB'],
+      titre: 'Memoria ocupada',
+      utilise: (u: string) => `${u} ocupados en este dispositivo.`,
+      utiliseSurQuota: (u: string, q: string, p: string) =>
+        `${u} ocupados de los ${q} que permite este navegador, es decir ${p}.`,
+      inconnu: 'Este navegador no dice cuánto espacio permite.',
+      choisi: (c: string) => `Textos activados: ${c} por descargar.`,
+      attention:
+        'La memoria se está llenando. Desactiva los textos que no leas: cuando '
+        + 'falta espacio, el navegador vacía la caché sin avisar y hay que '
+        + 'descargarlo todo de nuevo.',
+      critique:
+        'La memoria está casi llena. Desactiva textos ahora: si no, el '
+        + 'navegador vaciará la caché por su cuenta y la lectura sin conexión '
+        + 'dejará de funcionar.',
+      differe:
+        'Desactivar un texto borra sus versículos de inmediato, pero el '
+        + 'navegador solo devuelve los bytes en su próxima compactación: la '
+        + 'cifra de arriba puede tardar en bajar.',
+    },
 
     strongTitle: 'Léxicos Strong',
     strongHint:

@@ -22,6 +22,11 @@ import { TOUR_START } from "@/lib/tour";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SyncButton from "@/components/SyncButton";
+import OccupationCache from "@/components/Occupation";
+import {
+  mesurerOccupation, poidsActif, poidsRessource, formaterOctets,
+  type Occupation,
+} from "@/lib/storage/occupation";
 import { exportData, importData } from "@/lib/storage/export-import";
 import type { AppSettings, BibleVersion, LexiqueStrong, ReadingPlan } from "@/lib/storage";
 import { COLOR_THEMES, applyColorTheme, applyTheme, CUSTOM_THEME_ID, DEFAULT_CUSTOM } from "@/lib/themes";
@@ -101,6 +106,25 @@ export default function SettingsPage() {
   const [lexiques, setLexiques] = useState<LexiqueStrong[]>([]);
   const [busyLexique, setBusyLexique] = useState<string | null>(null);
   const [lexiqueError, setLexiqueError] = useState("");
+
+  /**
+   * La mémoire occupée, telle que le navigateur la mesure.
+   *
+   * `null` a deux sens distincts et l'écran les dit autrement : avant la
+   * première mesure, et quand l'API manque. C'est pourquoi l'état part de
+   * `undefined` — confondre les deux afficherait « ce navigateur ne le dit
+   * pas » le temps d'un aller-retour, à un navigateur qui le dit très bien.
+   */
+  const [occupation, setOccupation] = useState<Occupation | null | undefined>(undefined);
+
+  /*
+    Remesurée après chaque activation ou désactivation, et non une seule fois
+    au montage : c'est précisément le geste qui change le chiffre, et un
+    panneau figé donnerait l'impression que cocher n'occupe rien.
+  */
+  async function relireOccupation() {
+    setOccupation(await mesurerOccupation());
+  }
 
   // Lu au montage seulement : `Notification.permission` n'existe pas au rendu
   // serveur, et l'état de départ doit donc être neutre.
@@ -191,6 +215,7 @@ export default function SettingsPage() {
       );
     }
     setBusyLexique(null);
+    await relireOccupation();
   }
 
   async function handleSetDefault(versionId: string) {
@@ -238,7 +263,21 @@ export default function SettingsPage() {
       );
     }
     setBusyVersion(null);
+    await relireOccupation();
   }
+
+  /**
+   * Le poids annoncé de tout ce qui est coché, versions et lexiques ensemble.
+   *
+   * Ensemble et non séparément : le lecteur n'a qu'une mémoire, et lui donner
+   * deux totaux à additionner de tête serait lui refiler le travail. La case
+   * d'un lexique compte pour le lexique **et** son texte original — voir
+   * `poidsRessource`.
+   */
+  const poidsChoisi = poidsActif([
+    ...versions.filter((v) => v.isEnabled).map((v) => v.id),
+    ...lexiques.filter((l) => l.isEnabled).map((l) => l.id),
+  ]);
 
   /** Le passage obligé n'est en cours que pour un compte neuf qui n'a pas validé. */
   const personnalisationEnCours = shouldForceSetup(user?.created_at, settings);
@@ -417,6 +456,7 @@ export default function SettingsPage() {
       setLoaded(true);
       await loadVersions();
       await loadLexiques();
+      await relireOccupation();
       // Après le premier rendu, comme les versions : les plans ne servent qu'au
       // choix de la portée de l'objectif, et rien ne doit attendre cet appel.
       setPlans(await getAllPlans());
@@ -894,6 +934,20 @@ export default function SettingsPage() {
           <p className="text-sm text-[--text-secondary] mb-3">
             {t.settings.versionsHint}
           </p>
+          {/*
+            Le panneau de mémoire est ici, en tête du choix, et non dans une
+            carte à lui en bas d'écran : c'est au moment de cocher que le
+            chiffre sert. Il compte **aussi** les lexiques de la carte
+            suivante, parce que le lecteur n'a qu'une mémoire et qu'il n'a pas
+            à additionner deux totaux de tête.
+
+            `undefined` — avant la première mesure — n'affiche rien du tout.
+            Montrer « ce navigateur ne le dit pas » le temps d'un aller-retour
+            mentirait à un navigateur qui le dit très bien.
+          */}
+          {occupation !== undefined && (
+            <OccupationCache occupation={occupation} poidsChoisi={poidsChoisi} className="mb-3" />
+          )}
           {versionError && (
             <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">
               {versionError}
@@ -910,7 +964,17 @@ export default function SettingsPage() {
                     <input type="radio" name="defaultVersion" checked={isDefault}
                       onChange={() => handleSetDefault(v.id)}
                       className="accent-[--primary] w-4 h-4 shrink-0" />
-                    <span className="text-sm truncate">{v.name}</span>
+                    {/*
+                      Le poids sous le nom et non à côté : sur un écran étroit,
+                      les deux sur une ligne se disputeraient la place avec le
+                      `truncate`, et c'est le nom qui serait coupé.
+                    */}
+                    <span className="min-w-0">
+                      <span className="text-sm truncate block">{v.name}</span>
+                      <span className={`text-xs ${isDefault ? 'text-[--primary]' : 'text-[--text-secondary]'}`}>
+                        {formaterOctets(locale, poidsRessource(v.id), t.settings.stockage.unites)}
+                      </span>
+                    </span>
                   </label>
                   {isDefault && <span className="text-xs bg-[--primary] text-white px-2 py-0.5 rounded-full font-medium">{t.settings.versionDefault}</span>}
                   {/*
@@ -980,7 +1044,13 @@ export default function SettingsPage() {
           <div className="space-y-2">
             {lexiques.map(l => (
               <div key={l.id} className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg border border-[--border] hover:border-gray-300 transition-colors">
-                <span className="text-sm text-[--text] flex-1 min-w-0 truncate">{nomLexique(l)}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="text-sm text-[--text] truncate block">{nomLexique(l)}</span>
+                  {/* Lexique + texte original : une case, deux fichiers. */}
+                  <span className="text-xs text-[--text-secondary]">
+                    {formaterOctets(locale, poidsRessource(l.id), t.settings.stockage.unites)}
+                  </span>
+                </span>
                 <label className={`flex items-center gap-1.5 text-xs shrink-0 text-[--text-secondary] ${
                   busyLexique ? 'cursor-default' : 'cursor-pointer'
                 }`}>

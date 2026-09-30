@@ -40,6 +40,19 @@
   --warning-light: #fef9e7;
   --danger: #e74c3c;
   --danger-light: #fdecea;
+  /* Les accents d'alerte, distincts de `--warning` et `--danger`.
+
+     Ces deux-là sont faits pour teinter un fond, pas pour se détacher d'un
+     fond clair : mesuré le 30 septembre 2026, `--warning` ne tient que **2,08**
+     sur `--warning-light` et **1,99** sur `--piste`, quand un élément non
+     textuel demande 3:1 (WCAG 1.4.11). L'icône du triangle et le remplissage
+     de la barre de mémoire étaient donc presque invisibles en mode clair —
+     un avertissement qu'on ne voit pas n'avertit pas.
+
+     Ils sont remappés plus bas pour le mode sombre, où le fond s'inverse :
+     c'est la règle 15, et une valeur unique ne peut pas tenir des deux côtés. */
+  --alerte-attention: #8a5a00;
+  --alerte-danger: #b3261e;
   --bg: #f8f9fb;
   --surface: #ffffff;
   --border: #e5e7eb;
@@ -281,6 +294,11 @@ html.dark {
   --success-light: #0a2e1a;
   --warning-light: #2a2208;
   --danger-light: #2a0a0a;
+  /* Le pendant sombre des accents d'alerte. `#fcd34d` est déjà la teinte du
+     remap de la famille ambre, écrit le 29 septembre 2026 : une couleur de
+     moins à mesurer. */
+  --alerte-attention: #fcd34d;
+  --alerte-danger: #f87171;
   --bg: #0f172a;
   --surface: #1e293b;
   --border: #334155;

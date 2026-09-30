@@ -286,12 +286,32 @@ export const it: Dictionary = {
     versions: 'Versioni bibliche',
     versionsHint:
       'Una versione attivata viene scaricata su questo dispositivo per la '
-      + 'lettura offline — da 6 a 10 MB a seconda della lingua. Disattivarla libera quello '
-      + 'spazio.',
+      + 'lettura offline. Disattivarla libera quello spazio.',
     versionDefault: 'Predefinita',
     versionDeleting: 'Eliminazione…',
     versionDownloading: 'Download…',
     versionEnabled: 'Attivata',
+
+    stockage: {
+      unites: ['B', 'KiB', 'MiB', 'GiB'],
+      titre: 'Memoria occupata',
+      utilise: (u: string) => `${u} occupati su questo dispositivo.`,
+      utiliseSurQuota: (u: string, q: string, p: string) =>
+        `${u} occupati sui ${q} che questo browser concede, ossia ${p}.`,
+      inconnu: 'Questo browser non dice quanto spazio concede.',
+      choisi: (c: string) => `Testi attivati: ${c} da scaricare.`,
+      attention:
+        'La memoria si sta riempiendo. Disattiva i testi che non leggi: quando '
+        + 'lo spazio manca, il browser svuota la cache senza avvisare e tutto '
+        + 'va scaricato di nuovo.',
+      critique:
+        'La memoria è quasi piena. Disattiva dei testi ora, altrimenti il '
+        + 'browser svuoterà la cache da sé e la lettura offline si fermerà.',
+      differe:
+        'Disattivare un testo cancella subito i suoi versetti, ma il browser '
+        + 'restituisce i byte solo alla prossima compattazione: la cifra qui '
+        + 'sopra può metterci un po’ a scendere.',
+    },
 
     strongTitle: 'Lessici Strong',
     strongHint:

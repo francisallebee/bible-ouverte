@@ -397,12 +397,38 @@ export const ar: Dictionary = {
 
     versions: 'ترجمات الكتاب المقدس',
     versionsHint:
-      'تُنزَّل الترجمة المفعّلة على هذا الجهاز للقراءة دون اتصال — من 6 إلى 10 ميغابايت '
-      + 'لكل واحدة. تعطيلها يحرّر تلك المساحة.',
+      'تُنزَّل الترجمة المفعّلة على هذا الجهاز للقراءة دون اتصال. تعطيلها يحرّر '
+      + 'تلك المساحة.',
     versionDefault: 'افتراضية',
     versionDeleting: 'جارٍ الحذف…',
     versionDownloading: 'جارٍ التنزيل…',
     versionEnabled: 'مفعّلة',
+
+    stockage: {
+      unites: ['بايت', 'كيلوبايت', 'ميغابايت', 'غيغابايت'],
+      titre: 'الذاكرة المستخدمة',
+      /*
+        Une phrase nominale plutôt qu'un participe accordé : « المستخدَم » est
+        le sujet, et le nombre le suit. Écrire « ${u} مستخدمة » aurait accordé
+        un participe féminin à un compte d'octets — le même piège qu'« Activée »
+        au féminin pour un nom masculin, trouvé le 29 septembre 2026 en
+        basculant la langue.
+      */
+      utilise: (u: string) => `المستخدَم على هذا الجهاز: ${u}.`,
+      utiliseSurQuota: (u: string, q: string, p: string) =>
+        `المستخدَم: ${u} من ${q} يسمح بها هذا المتصفّح، أي ${p}.`,
+      inconnu: 'لا يُفصح هذا المتصفّح عن المساحة التي يسمح بها.',
+      choisi: (c: string) => `النصوص المفعّلة: ${c} للتنزيل.`,
+      attention:
+        'الذاكرة تمتلئ. عطّل النصوص التي لا تقرأها: عندما تنقص المساحة يُفرِغ '
+        + 'المتصفّح الذاكرة المؤقتة دون إشعار، فيلزم تنزيل كل شيء من جديد.',
+      critique:
+        'الذاكرة تكاد تمتلئ. عطّل بعض النصوص الآن، وإلا أفرغ المتصفّح الذاكرة '
+        + 'المؤقتة من تلقاء نفسه وتوقّفت القراءة دون اتصال.',
+      differe:
+        'تعطيل نصّ يحذف آياته فورًا، لكن المتصفّح لا يُعيد البايتات إلا عند '
+        + 'الضغط التالي: قد يتأخّر الرقم أعلاه في الانخفاض.',
+    },
 
     strongTitle: 'معاجم سترونغ',
     strongHint:
