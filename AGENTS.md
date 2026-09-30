@@ -134,6 +134,7 @@ coûterait une passe complète sur les 19 écrans.
 | `src/components/BookPicker.tsx`, `PassagePicker.tsx` | Le choix d'un livre, d'un chapitre et d'un verset — mêmes fenêtres partout |
 | `public/bibles/` | 12 versions libres de droits : 8 fr, 1 en, 1 it, 1 ar, 1 es (82 Mo) |
 | `public/strong/` | Les deux lexiques Strong, hébreu et grec (4 Mo). CC BY-SA — la mention voyage dans le fichier |
+| `public/originaux/` | L'Ancien Testament hébreu (OSHB) et le Nouveau Testament grec (SBLGNT), balisés mot à mot (25 Mo) |
 | `supabase/migrations/` | Schéma et RLS, appliqués dans l'ordre des noms |
 | `scripts/` | Téléchargement et conversion des textes bibliques, mesure du poids en mots et de la versification |
 
@@ -219,20 +220,6 @@ coûterait une passe complète sur les 19 écrans.
     autre explication — c'est arrivé le 16 août 2026, en production.
     `import.test.ts` compare désormais les deux tables dans les deux sens.
 
-17. **Les lexiques Strong suivent les trois gestes de la règle 13**, avec leurs
-    propres tables : `scripts/download-strong.mjs`, `LEXIQUES_STRONG`
-    (`lib/storage/seed.ts`) et `LEXIQUES` (`features/bible/strong.ts`).
-    `strong.test.ts` croise les deux dernières dans les deux sens.
-    Leur registre est **volontairement séparé** de `bible_versions` : un
-    lexique n'est pas une version et n'a rien à faire dans le sélecteur de
-    version, ni dans l'Historique, ni dans les Statistiques.
-    Ni `strong_lexicons` ni `strong_entries` ne partent vers Supabase — comme
-    `bible_versions`, ce sont des préférences d'appareil. **C'est pourquoi
-    cette fonctionnalité n'a pas de migration**, et c'est la seule raison qui
-    le justifie : la faire suivre le compte en demanderait une.
-    `LEXIQUES_VISIBLES` garde la section des Réglages **masquée** tant qu'aucun
-    écran n'affiche de définition, et un test fige ce drapeau.
-
 14. **Un nom de classe Tailwind écrit hors des dossiers scannés n'existe pas.**
     `tailwind.config.ts` liste `src/app`, `src/components`, `src/features` — et
     `src/lib` depuis le 18 août 2026, parce que la table des couleurs de statut
@@ -252,18 +239,6 @@ coûterait une passe complète sur les 19 écrans.
     1,01. Toute classe grise ajoutée à un composant doit être vérifiée dans ce
     bloc, **y compris ses variantes `hover:`**.
 
-18. **Vérifier un écran, c'est basculer deux fois : la langue et le thème.**
-    La règle 10 impose la première. La seconde a manqué jusqu'au 29 septembre
-    2026, et le prix en était lourd : `bg-amber-50`, jamais remappé, laissait
-    le **texte biblique lui-même** à **1,06** de contraste en mode sombre sur
-    le Détail d'une lecture — 251 éléments sur 295 sous le seuil, depuis le
-    commit initial. Une couleur de fond posée en Tailwind et non remappée ne se
-    voit ni au typage, ni au lint, ni aux tests, ni en mode clair.
-    **Et un fond ne se remappe jamais seul** : remapper `bg-amber-50` sans
-    `text-amber-700/800/900` aurait rendu illisibles les quatre bandeaux qui
-    les posent ensemble. Mesurer les combinaisons existantes fait partie du
-    correctif, pas de sa relecture.
-
 16. **Un écran ajouté à la barre latérale demande trois gestes, comme une
     version de la Bible.** L'entrée dans `Sidebar.tsx`, une étape dans
     `TOUR_STEPS` (`lib/tour.ts`) avec son texte dans les **cinq**
@@ -274,6 +249,39 @@ coûterait une passe complète sur les 19 écrans.
     tests n'en disent rien. Le test ne protège que du 404, pas de l'oubli.
     Le typage, lui, fait son travail dès l'étape déclarée : une étape sans
     traduction ne compile pas.
+
+17. **Les lexiques Strong suivent les trois gestes de la règle 13**, avec leurs
+    propres tables : `scripts/download-strong.mjs`, `LEXIQUES_STRONG`
+    (`lib/storage/seed.ts`) et `LEXIQUES` (`features/bible/strong.ts`).
+    `strong.test.ts` croise les deux dernières dans les deux sens.
+    Leur registre est **volontairement séparé** de `bible_versions` : un
+    lexique n'est pas une version et n'a rien à faire dans le sélecteur de
+    version, ni dans l'Historique, ni dans les Statistiques.
+    Ni `strong_lexicons` ni `strong_entries` ne partent vers Supabase — comme
+    `bible_versions`, ce sont des préférences d'appareil. **C'est pourquoi
+    cette fonctionnalité n'a pas de migration**, et c'est la seule raison qui
+    le justifie : la faire suivre le compte en demanderait une.
+    Le texte original suit les mêmes gestes avec `ORIGINAUX`
+    (`features/bible/originaux.ts`), croisé par `originaux.test.ts` : une langue
+    en demande donc **quatre**, le script compris.
+    `LEXIQUES_VISIBLES` vaut `true` depuis que le clic sur un mot affiche une
+    définition ; un test fige le drapeau, et le remettre à `false` reste la
+    façon de rétracter la fonctionnalité d'un seul geste.
+    **Cette règle prolonge la 13** ; elle en est séparée par le numéro seul,
+    les renvois existants interdisant de renuméroter la liste.
+
+18. **Vérifier un écran, c'est basculer deux fois : la langue et le thème.**
+    À lire avec la **règle 15**, dont elle est la contrepartie à l'écran.
+    La règle 10 impose la première. La seconde a manqué jusqu'au 29 septembre
+    2026, et le prix en était lourd : `bg-amber-50`, jamais remappé, laissait
+    le **texte biblique lui-même** à **1,06** de contraste en mode sombre sur
+    le Détail d'une lecture — 251 éléments sur 295 sous le seuil, depuis le
+    commit initial. Une couleur de fond posée en Tailwind et non remappée ne se
+    voit ni au typage, ni au lint, ni aux tests, ni en mode clair.
+    **Et un fond ne se remappe jamais seul** : remapper `bg-amber-50` sans
+    `text-amber-700/800/900` aurait rendu illisibles les quatre bandeaux qui
+    les posent ensemble. Mesurer les combinaisons existantes fait partie du
+    correctif, pas de sa relecture.
 
 ## Commandes
 
