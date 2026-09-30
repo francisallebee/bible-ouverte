@@ -445,6 +445,15 @@ npm test           # vitest
   `false` : `pg_cron` n'envoie pas d'en-tête `Authorization`, et la passerelle
   rejetterait l'appel par un `401` impossible à distinguer d'un mauvais secret.
   `config.toml` fige le réglage pour les deux.
+- **La protection contre les mots de passe compromis est désactivée** côté
+  Supabase Auth, signalée par l'avertisseur de sécurité au 30 septembre 2026.
+  Elle compare chaque mot de passe choisi à la base HaveIBeenPwned, ce que
+  `describePasswordProblems` ne peut pas faire : celui-ci mesure la **forme**
+  d'un mot de passe, pas son **histoire**, et un mot de passe irréprochable
+  peut être déjà publié. Aucun agent ne peut l'activer — le réglage vit dans
+  GoTrue et non dans la base, `supabase config push` est interdit, et l'API de
+  gestion demande un jeton personnel. C'est une commande pour le propriétaire :
+  Auth → Providers → Email → Password Security. Voir `supabase/README.md`.
 - L'**alerte d'inscription** (`notify-new-user`, Brevo) n'attend plus qu'un seul
   secret : **`BREVO_API_KEY`**. `NEW_USER_ALERT_FROM`, `NEW_USER_ALERT_TO` et le
   planificateur `alerte-nouvel-utilisateur` sont en place. En attendant, le cron

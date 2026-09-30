@@ -888,6 +888,36 @@ réessayer sans fin. Trois tentatives, puis on renonce.
 
 ## Ce qui reste hors du dépôt
 
+### La protection contre les mots de passe compromis
+
+**À activer dans le dashboard, et à ne jamais laisser retomber.** L'avertisseur
+de sécurité Supabase la signale désactivée depuis au moins le 30 septembre
+2026 :
+
+```
+Auth → Providers → Email → Password Security
+« Prevent use of leaked passwords »
+```
+
+Activée, GoTrue compare chaque mot de passe choisi à la base
+HaveIBeenPwned — par empreinte partielle, le mot de passe ne quittant jamais
+les serveurs de Supabase. C'est la seule barrière qui attrape un mot de passe
+solide en apparence mais déjà publié dans une fuite, ce que
+`describePasswordProblems` du dépôt ne peut pas savoir : il mesure la forme,
+pas l'histoire.
+
+**Aucun agent ne peut l'activer**, et ce n'est pas un manque d'outil mais trois
+portes fermées, chacune pour une bonne raison :
+
+| Voie | Pourquoi elle est fermée |
+|---|---|
+| SQL | le réglage vit dans GoTrue, pas dans la base — aucune requête ne l'atteint |
+| `supabase config push` | **interdit** : la section `[auth]` de `config.toml` garde les défauts de `supabase init`, dont un `site_url` en localhost |
+| API de gestion | demande un jeton d'accès personnel, qu'un agent ne manipule pas |
+
+C'est donc une commande pour le propriétaire, au même titre que
+`BREVO_API_KEY` et les gabarits de courriel.
+
 Les buckets de stockage `photos` et `audio` sont créés depuis le dashboard et ne
 sont pas décrits ici — `documents`, lui, l'est : sa migration le crée. Leurs policies méritent le même audit que les tables : la
 route `/api/admin/users/[id]` y range les fichiers sous un préfixe `{user_id}/`,
