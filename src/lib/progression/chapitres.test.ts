@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { compterChapitres, versetsDuChapitre } from './chapitres'
+import { compterChapitres, statutsParChapitre, versetsDuChapitre } from './chapitres'
 import type { EtendueLue } from './chapitres'
 
 /** Une lecture, avec des bornes par défaut pour ne pas les répéter. */
@@ -116,5 +116,65 @@ describe('compterChapitres', () => {
       for (let ch = r.chapterStart; ch <= r.chapterEnd; ch++) ancien.add(`${r.book}:${ch}`)
     }
     expect(compterChapitres(lectures).entames).toBe(ancien.size)
+  })
+})
+
+/**
+ * Le découpage par livre, né le 30 septembre 2026.
+ *
+ * L'écran Progression portait **quatre** comptages locaux par `Set<livre:ch>`
+ * qui ignoraient les versets — testaments, catégories, liste des livres — à
+ * côté d'un compteur qui, lui, distinguait les deux depuis le 9 septembre.
+ * Deux définitions du mot « lu » sur un même écran, et personne pour le voir :
+ * les barres se remplissaient à trois versets sur trente-six.
+ */
+describe('le comptage restreint à un sous-ensemble de livres', () => {
+  const lectures: EtendueLue[] = [
+    // Jean 3 entier (36 versets), Jean 4 effleuré.
+    { book: 'JHN', chapterStart: 3, chapterEnd: 3, verseStart: 1, verseEnd: 36 },
+    { book: 'JHN', chapterStart: 4, chapterEnd: 4, verseStart: 16, verseEnd: 18 },
+    // Genèse 1 entier (31 versets).
+    { book: 'GEN', chapterStart: 1, chapterEnd: 1, verseStart: 1, verseEnd: 31 },
+  ]
+
+  it('ne retient que les livres demandés', () => {
+    expect(compterChapitres(lectures, ['JHN'])).toEqual({ entames: 2, entiers: 1 })
+    expect(compterChapitres(lectures, ['GEN'])).toEqual({ entames: 1, entiers: 1 })
+  })
+
+  it('rend le même total que sans filtre quand tous les livres y sont', () => {
+    // Le garde-fou contre un filtre qui perdrait des chapitres en chemin.
+    expect(compterChapitres(lectures, ['JHN', 'GEN'])).toEqual(compterChapitres(lectures))
+  })
+
+  it('ne compte rien pour un livre jamais lu', () => {
+    expect(compterChapitres(lectures, ['REV'])).toEqual({ entames: 0, entiers: 0 })
+  })
+
+  it('accorde ses statuts détaillés avec le total, chapitre par chapitre', () => {
+    // La seule chose qui garantit qu'une barre par livre et le compteur du
+    // haut racontent la même histoire : ils sortent du même calcul.
+    const statuts = statutsParChapitre(lectures)
+    const global = compterChapitres(lectures)
+    expect(statuts.length).toBe(global.entames)
+    expect(statuts.filter((c) => c.entier).length).toBe(global.entiers)
+
+    const jean4 = statuts.find((c) => c.livre === 'JHN' && c.chapitre === 4)
+    expect(jean4, 'Jean 4 doit être présent, il a été entamé').toBeDefined()
+    expect(jean4!.entier, 'trois versets sur trente-six ne font pas un chapitre lu').toBe(false)
+  })
+
+  /**
+   * `entames` **comprend** `entiers` — les additionner dépasserait le total.
+   *
+   * C'est l'erreur qu'une barre à deux couleurs invite à faire, et le
+   * commentaire de `BarreLecture` s'appuie sur cette garantie pour ne mesurer
+   * son second segment que sur la différence.
+   */
+  it('compte les entiers parmi les entamés, et non à côté', () => {
+    const global = compterChapitres(lectures)
+    expect(global.entiers).toBeLessThanOrEqual(global.entames)
+    expect(global.entames).toBe(3)
+    expect(global.entiers).toBe(2)
   })
 })

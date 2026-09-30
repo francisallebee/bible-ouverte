@@ -95,7 +95,27 @@ function fusionner(intervalles: Intervalle[]): Intervalle[] {
  * vaut sous-estimer que d'annoncer une lecture complète qu'on ne peut pas
  * vérifier.
  */
-export function compterChapitres(lectures: readonly EtendueLue[]): ComptageChapitres {
+export interface StatutChapitre {
+  livre: string
+  chapitre: number
+  /** `true` si tous ses versets ont été lus. */
+  entier: boolean
+}
+
+/**
+ * L'état de **chaque** chapitre touché, et non plus seulement leur total.
+ *
+ * C'est la même règle que `compterChapitres`, sortie d'un cran pour que
+ * n'importe quel découpage — par livre, par testament, par catégorie, par
+ * contexte — en dérive au lieu de la réécrire. L'écran Progression portait
+ * jusqu'au 30 septembre 2026 **quatre** comptages locaux par `Set<livre:ch>`
+ * qui ignoraient les versets : les testaments, les catégories et la liste des
+ * livres annonçaient donc « lu » là où un seul verset avait été coché, quand
+ * le compteur en tête du même écran, lui, distinguait les deux depuis le
+ * 9 septembre. Deux définitions sur un même écran finissent toujours par se
+ * contredire — c'est le piège 5 du dépôt, et il était déjà là.
+ */
+export function statutsParChapitre(lectures: readonly EtendueLue[]): StatutChapitre[] {
   const parChapitre = new Map<string, Intervalle[]>()
 
   for (const lecture of lectures) {
@@ -110,21 +130,45 @@ export function compterChapitres(lectures: readonly EtendueLue[]): ComptageChapi
     }
   }
 
-  let entiers = 0
-  for (const [cle, intervalles] of Array.from(parChapitre)) {
+  return Array.from(parChapitre).map(([cle, intervalles]) => {
     const separateur = cle.lastIndexOf(':')
     const livre = cle.slice(0, separateur)
     const chapitre = Number(cle.slice(separateur + 1))
     const longueur = versetsDuChapitre(livre, chapitre)
-    if (longueur === null) continue
+    // Longueur inconnue : entamé, jamais entier. Mieux vaut sous-estimer que
+    // d'annoncer une lecture complète qu'on ne peut pas vérifier.
+    if (longueur === null) return { livre, chapitre, entier: false }
 
     const fusion = fusionner(intervalles)
     // Entier si le premier intervalle part de 1 et atteint la fin. Les
     // lectures hors bornes — `PSA 1:1-200`, héritées des anciennes listes —
     // sont donc traitées comme complètes, ce qui est le comportement voulu :
     // leur auteur a bien lu tout le chapitre.
-    if (fusion.length > 0 && fusion[0][0] === 1 && fusion[0][1] >= longueur) entiers++
-  }
+    const entier = fusion.length > 0 && fusion[0][0] === 1 && fusion[0][1] >= longueur
+    return { livre, chapitre, entier }
+  })
+}
 
-  return { entames: parChapitre.size, entiers }
+/**
+ * Compte les chapitres entamés et ceux lus en entier.
+ *
+ * `livres` restreint le comptage à un sous-ensemble — un testament, une
+ * catégorie, un livre. Sans lui, tout est compté.
+ *
+ * `entames` inclut les entiers : un chapitre lu en entier a bien été entamé.
+ * Les additionner donnerait donc un total faux, et c'est exactement ce qu'une
+ * barre à deux couleurs ne doit pas faire — voir `BarreLecture`.
+ */
+export function compterChapitres(
+  lectures: readonly EtendueLue[],
+  livres?: readonly string[],
+): ComptageChapitres {
+  const retenus = livres ? new Set(livres) : null
+  const statuts = statutsParChapitre(lectures)
+    .filter((c) => !retenus || retenus.has(c.livre))
+
+  return {
+    entames: statuts.length,
+    entiers: statuts.filter((c) => c.entier).length,
+  }
 }

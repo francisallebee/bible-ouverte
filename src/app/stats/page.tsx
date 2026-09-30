@@ -12,6 +12,9 @@ import { formatDate } from "@/lib/i18n/format";
 import { localeInfo, type Locale } from "@/lib/i18n/locales";
 import { teintesDe } from "@/lib/themes";
 import { PALETTE as COLORS } from "@/lib/statistiques/palette";
+import { compterChapitres } from "@/lib/progression/chapitres";
+import { BOOKS } from "@/features/bible";
+import BarreLecture from "@/components/BarreLecture";
 
 
 function getWeekRange() {
@@ -50,6 +53,22 @@ export default function StatsPage() {
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [contexts, setContexts] = useState<ReadingContext[]>([]);
   const [loaded, setLoaded] = useState(false);
+
+  /**
+   * Les chapitres de la Bible entière, entamés et achevés.
+   *
+   * Les autres cartes de cet écran comptent des **lectures**, pas des
+   * chapitres : « Top 10 livres » dit combien de fois un livre a été ouvert,
+   * ce qui est une autre question. La distinction entamé / entier n'a donc de
+   * sens ici que sur une carte à elle, et c'est la seule que cet écran n'avait
+   * pas — le chiffre que le lecteur cherche d'abord.
+   *
+   * La règle vient de `lib/progression/chapitres`, la même que l'écran
+   * Progression : deux définitions du mot « lu » sur deux écrans voisins
+   * finiraient par se contredire.
+   */
+  const chapitres = useMemo(() => compterChapitres(readings), [readings]);
+  const totalChapitres = useMemo(() => BOOKS.reduce((n, b) => n + b.chapters, 0), []);
 
   useEffect(() => {
     (async () => {
@@ -223,6 +242,25 @@ export default function StatsPage() {
           <p className="text-sm text-gray-500 mb-1">{t.stats.thisMonth}</p>
           <p className="text-3xl font-bold text-[--primary]">{monthCount}</p>
         </div>
+      </div>
+
+      {/*
+        La carte des chapitres, en pleine largeur sous les trois compteurs :
+        elle porte une barre, que 106 px de colonne n'auraient pas laissé lire.
+      */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 mb-8">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+          <p className="text-sm text-gray-500">{t.stats.chapitresTitre}</p>
+          <p className="text-sm text-[--text-secondary]">
+            {t.stats.chapitresDetail(chapitres.entames, chapitres.entiers, totalChapitres)}
+          </p>
+        </div>
+        <BarreLecture
+          entames={chapitres.entames} entiers={chapitres.entiers}
+          total={totalChapitres}
+          couleur="var(--primary)" couleurSombre="var(--primary-clair)" hauteur="h-4"
+          libelle={t.stats.chapitresTitre}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

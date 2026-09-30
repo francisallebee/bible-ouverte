@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import type { CSSProperties } from "react";
 import {
   Trophy, Flame, BookOpen, Target, BarChart3, Star, Award,
   ScrollText, BookMarked, Sparkles, Gem, Layers,
@@ -18,7 +19,8 @@ import {
 } from "@/lib/objectifs/objectifs";
 import { useI18n, useBookName, useContextName } from "@/contexts/I18nContext";
 import { formatPart } from "@/lib/progression/rapport";
-import { compterChapitres } from "@/lib/progression/chapitres";
+import { compterChapitres, statutsParChapitre } from "@/lib/progression/chapitres";
+import BarreLecture from "@/components/BarreLecture";
 import { teintesDe } from "@/lib/themes";
 import { localeInfo } from "@/lib/i18n/locales";
 import type { Dictionary } from "@/lib/i18n/ui/fr";
@@ -32,7 +34,10 @@ interface CategoryProgress {
   name: string;
   books: string[];
   totalChapters: number;
+  /** Chapitres touchés, entiers compris. */
   readChapters: number;
+  /** Ceux dont tous les versets ont été lus. */
+  entiers: number;
 }
 
 interface Badge {
@@ -118,62 +123,73 @@ export default function ProgressPage() {
   }, [readings]);
 
   const totalBibleChapters = BOOKS.reduce((s, b) => s + b.chapters, 0);
+  /*
+    Les statuts sont calculés **une fois** et regroupés ensuite, plutôt qu'un
+    appel par catégorie : `statutsParChapitre` parcourt toutes les lectures, et
+    le refaire dix fois multiplierait ce parcours par dix pour le même
+    résultat. Le piège du comptage dans une boucle, à une autre échelle que
+    celui de l'écran Administration, mais le même.
+  */
+  const statuts = useMemo(() => statutsParChapitre(readings), [readings]);
+
   const booksReadList = useMemo(() => {
-    const chaptersPerBook: Record<string, Set<number>> = {};
-    for (const r of readings) {
-      if (!chaptersPerBook[r.book]) chaptersPerBook[r.book] = new Set();
-      for (let ch = r.chapterStart; ch <= r.chapterEnd; ch++) {
-        chaptersPerBook[r.book].add(ch);
-      }
+    const parLivre: Record<string, { entames: number; entiers: number }> = {};
+    for (const c of statuts) {
+      const compte = (parLivre[c.livre] ??= { entames: 0, entiers: 0 });
+      compte.entames += 1;
+      if (c.entier) compte.entiers += 1;
     }
-    return Object.entries(chaptersPerBook).map(([book, chapters]) => {
+    return Object.entries(parLivre).map(([book, compte]) => {
       const bookInfo = BOOKS.find((b) => b.abbreviation === book);
-      return { book, name: getBookName(book), readChapters: chapters.size, totalChapters: bookInfo?.chapters ?? 0 };
-    }).sort((a, b) => b.readChapters / Math.max(b.totalChapters, 1) - a.readChapters / Math.max(a.totalChapters, 1));
+      return {
+        book, name: getBookName(book),
+        readChapters: compte.entames, entiers: compte.entiers,
+        totalChapters: bookInfo?.chapters ?? 0,
+      };
+    })
+      /*
+        Le tri suit les chapitres **entiers** d'abord, les entamés ensuite.
+        Un livre lu en entier doit passer devant un livre effleuré partout :
+        trier sur les seuls entamés remontait en tête des livres dont aucun
+        chapitre n'était achevé.
+      */
+      .sort((a, b) => {
+        const part = (x: typeof a, n: number) => n / Math.max(x.totalChapters, 1);
+        return (part(b, b.entiers) - part(a, a.entiers))
+          || (part(b, b.readChapters) - part(a, a.readChapters));
+      });
     // `getBookName` change avec la langue : sans lui ici, la liste garderait
     // les noms de la langue précédente jusqu'à la prochaine lecture.
-  }, [readings, getBookName]);
+  }, [statuts, getBookName]);
 
-  const otChapters = useMemo(() => {
-    const s = new Set<string>();
-    for (const r of readings) {
-      if (OLD_TESTAMENT.includes(r.book)) {
-        for (let ch = r.chapterStart; ch <= r.chapterEnd; ch++) s.add(`${r.book}:${ch}`);
-      }
-    }
-    return s.size;
-  }, [readings]);
-
-  const ntChapters = useMemo(() => {
-    const s = new Set<string>();
-    for (const r of readings) {
-      if (NEW_TESTAMENT.includes(r.book)) {
-        for (let ch = r.chapterStart; ch <= r.chapterEnd; ch++) s.add(`${r.book}:${ch}`);
-      }
-    }
-    return s.size;
-  }, [readings]);
+  /*
+    Les deux testaments passent par la même règle que le compteur du haut.
+    Le `Set<livre:ch>` qui vivait ici ignorait les versets : il annonçait Jean 3
+    lu pour trois versets sur trente-six, alors que la carte « Chapitres lus »
+    du même écran faisait la différence depuis le 9 septembre 2026. Deux
+    définitions sur un écran finissent par se contredire, et celles-ci le
+    faisaient déjà.
+  */
+  const ancienTestament = useMemo(() => compterChapitres(readings, OLD_TESTAMENT), [readings]);
+  const nouveauTestament = useMemo(() => compterChapitres(readings, NEW_TESTAMENT), [readings]);
 
   const otTotal = useMemo(() => getCategoryChapters(OLD_TESTAMENT), []);
   const ntTotal = useMemo(() => getCategoryChapters(NEW_TESTAMENT), []);
 
   const categories: CategoryProgress[] = useMemo(() => {
     return BIBLE_CATEGORIES.map((cat) => {
-      const s = new Set<string>();
-      for (const r of readings) {
-        if (cat.books.includes(r.book)) {
-          for (let ch = r.chapterStart; ch <= r.chapterEnd; ch++) s.add(`${r.book}:${ch}`);
-        }
-      }
+      const dedans = new Set(cat.books);
+      const siens = statuts.filter((c) => dedans.has(c.livre));
       return {
         id: cat.id,
         name: cat.name,
         books: cat.books,
         totalChapters: getCategoryChapters(cat.books),
-        readChapters: s.size,
+        readChapters: siens.length,
+        entiers: siens.filter((c) => c.entier).length,
       };
     });
-  }, [readings]);
+  }, [statuts]);
 
   const categoriesWithReads = categories.filter((c) => c.readChapters > 0).length;
 
@@ -470,6 +486,43 @@ export default function ProgressPage() {
         </div>
       )}
 
+      {/*
+        La légende, une fois et en tête : sans elle, la rayure serait un motif
+        décoratif que rien n'explique. Elle porte des pastilles et non du
+        texte coloré — c'est la distinction elle-même qu'il faut montrer, et
+        `--teinte` y est posée à la main puisque ces deux pastilles ne sont pas
+        des barres.
+      */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[--text-secondary] mb-3">
+        {/*
+          Les pastilles portent `barre-lecture` pour hériter de `--teinte`, et
+          la paire claire/sombre est posée à la main : `--primary` ne tient que
+          1,27 sur la piste en mode sombre, et la légende aurait disparu là où
+          les barres, elles, restent visibles.
+        */}
+        <span
+          className="barre-lecture inline-flex items-center gap-1.5"
+          style={{ '--teinte-claire': 'var(--primary)', '--teinte-sombre': 'var(--primary-clair)' } as CSSProperties}
+        >
+          <span className="w-4 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--teinte)' }} />
+          {t.progress.legendeEntiers}
+        </span>
+        <span
+          className="barre-lecture inline-flex items-center gap-1.5"
+          style={{ '--teinte-claire': 'var(--primary)', '--teinte-sombre': 'var(--primary-clair)' } as CSSProperties}
+        >
+          <span
+            className="w-4 h-2.5 rounded-sm"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(135deg, var(--teinte) 0 4px, '
+                + 'color-mix(in srgb, var(--teinte) 28%, transparent) 4px 8px)',
+            }}
+          />
+          {t.progress.legendeEntames}
+        </span>
+      </div>
+
       {/* Testaments — deux cartes courtes, même raison que la grille du haut. */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -477,24 +530,34 @@ export default function ProgressPage() {
             <ScrollText className="w-5 h-5 text-amber-700" />
             <h2 className="font-semibold">{t.progress.oldTestament}</h2>
           </div>
-          <div className="h-4 bg-[--piste] rounded-full overflow-hidden">
-            <div className="h-full bg-amber-600 rounded-full transition-[width]" style={{ width: `${otTotal > 0 ? (otChapters / otTotal) * 100 : 0}%` }} />
-          </div>
+          <BarreLecture
+            entames={ancienTestament.entames} entiers={ancienTestament.entiers}
+            total={otTotal} couleur="#d97706" hauteur="h-4"
+            libelle={t.progress.oldTestament}
+          />
           <p className="text-xs text-gray-500 mt-1">
-            {enPourcentage ? rapport(otChapters, otTotal) : t.progress.chaptersOfTotal(otChapters, otTotal)}
+            {enPourcentage
+              ? rapport(ancienTestament.entames, otTotal)
+              : t.progress.chaptersOfTotal(ancienTestament.entames, otTotal)}
           </p>
+          <p className="text-xs text-[--text-secondary]">{t.progress.dontEntiers(ancienTestament.entiers)}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-3">
             <BookMarked className="w-5 h-5 text-blue-600" />
             <h2 className="font-semibold">{t.progress.newTestament}</h2>
           </div>
-          <div className="h-4 bg-[--piste] rounded-full overflow-hidden">
-            <div className="h-full bg-blue-600 rounded-full transition-[width]" style={{ width: `${ntTotal > 0 ? (ntChapters / ntTotal) * 100 : 0}%` }} />
-          </div>
+          <BarreLecture
+            entames={nouveauTestament.entames} entiers={nouveauTestament.entiers}
+            total={ntTotal} couleur="#2563eb" hauteur="h-4"
+            libelle={t.progress.newTestament}
+          />
           <p className="text-xs text-gray-500 mt-1">
-            {enPourcentage ? rapport(ntChapters, ntTotal) : t.progress.chaptersOfTotal(ntChapters, ntTotal)}
+            {enPourcentage
+              ? rapport(nouveauTestament.entames, ntTotal)
+              : t.progress.chaptersOfTotal(nouveauTestament.entames, ntTotal)}
           </p>
+          <p className="text-xs text-[--text-secondary]">{t.progress.dontEntiers(nouveauTestament.entiers)}</p>
         </div>
       </div>
 
@@ -544,12 +607,20 @@ export default function ProgressPage() {
                 <span className="font-medium">{t.bibleCategories[cat.id] ?? cat.name}</span>
                 <span className="text-gray-500">{rapport(cat.readChapters, cat.totalChapters)}</span>
               </div>
-              <div className="h-3 bg-[--piste] rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-[width] duration-500 remplissage-teinte" style={{
-                  width: `${cat.totalChapters > 0 ? (cat.readChapters / cat.totalChapters) * 100 : 0}%`,
-                  ...teintesDe(cat.readChapters >= cat.totalChapters ? "#16a34a" : "#4a90d9"),
-                }} />
-              </div>
+              {/*
+                Le vert ne vient plus des chapitres entamés mais des entiers :
+                une catégorie « finie » dont aucun chapitre n'est achevé serait
+                un mensonge, et c'est ce que la barre disait jusqu'ici.
+              */}
+              <BarreLecture
+                entames={cat.readChapters} entiers={cat.entiers}
+                total={cat.totalChapters}
+                couleur={cat.entiers >= cat.totalChapters ? "#16a34a" : "#4a90d9"}
+                libelle={t.bibleCategories[cat.id] ?? cat.name}
+              />
+              {cat.entiers > 0 && (
+                <p className="text-xs text-[--text-secondary] mt-0.5">{t.progress.dontEntiers(cat.entiers)}</p>
+              )}
             </div>
           ))}
         </div>
@@ -595,14 +666,19 @@ export default function ProgressPage() {
           {booksReadList.map((b) => (
             <div key={b.book} className="flex items-center gap-3">
               <span className="text-sm w-32 shrink-0 truncate font-medium">{b.name}</span>
-              <div className="flex-1 h-3 bg-[--piste] rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-[width] ${b.readChapters >= b.totalChapters ? "bg-green-500" : "bg-blue-500"}`}
-                  style={{ width: `${b.totalChapters > 0 ? (b.readChapters / b.totalChapters) * 100 : 0}%` }} />
-              </div>
-              <span className="text-xs text-gray-500 w-16 text-right shrink-0">{rapport(b.readChapters, b.totalChapters)}</span>
+              <BarreLecture
+                entames={b.readChapters} entiers={b.entiers} total={b.totalChapters}
+                couleur={b.entiers >= b.totalChapters ? "#22c55e" : "#3b82f6"}
+                className="flex-1"
+                libelle={`${b.name} — ${t.progress.dontEntiers(b.entiers)}`}
+              />
+              {/* `text-end` et non `text-right` : l'arabe renverse la ligne. */}
+              <span className="text-xs text-gray-500 w-16 text-end shrink-0">{rapport(b.readChapters, b.totalChapters)}</span>
             </div>
           ))}
-          {booksReadList.length === 0 && <p className="text-sm text-gray-400 text-center py-4">Aucune lecture pour le moment.</p>}
+          {/* Était une chaîne française en dur, restée telle dans les quatre
+                  autres langues — règle 10, trouvée en reprenant ce bloc. */}
+              {booksReadList.length === 0 && <p className="text-sm text-gray-400 text-center py-4">{t.progress.noReadings}</p>}
         </div>
       </div>
     </div>

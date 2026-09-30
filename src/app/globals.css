@@ -323,6 +323,13 @@ html.dark body { @apply bg-[--bg] text-[--text]; }
    propriété CSS bat l'attribut `fill` de présentation, qui reste en repli. */
 .remplissage-teinte { background-color: var(--teinte-claire); fill: var(--teinte-claire); }
 html.dark .remplissage-teinte { background-color: var(--teinte-sombre); fill: var(--teinte-sombre); }
+/* La barre à deux segments de Progression — même idiome, une variable de plus.
+   Son segment rayé porte la teinte dans un `repeating-linear-gradient`, qu'un
+   remap de `background-color` ne peut pas atteindre : la classe expose donc
+   `--teinte`, que le dégradé et la bande pleine lisent tous deux. Sans elle,
+   la rayure garderait sa couleur claire en mode sombre. */
+.barre-lecture { --teinte: var(--teinte-claire); }
+html.dark .barre-lecture { --teinte: var(--teinte-sombre); }
 /* Les libellés d'axe de Recharts portent `fill="#666"` par défaut : 5,74 sur
    la carte en clair, 2,55 en sombre — mesuré le 16 septembre 2026 sur les 52
    graduations de Statistiques. `--text-secondary`, la couleur de tout texte

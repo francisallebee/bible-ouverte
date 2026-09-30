@@ -624,6 +624,18 @@ export const fr = {
     oldTestament: 'Ancien Testament',
     newTestament: 'Nouveau Testament',
     chaptersOfTotal: (read: number, total: number) => `${read} / ${total} chapitres`,
+    /**
+     * Le complément d'une barre à deux segments : ce qui est *achevé*.
+     *
+     * Le chiffre principal reste celui des chapitres **entamés**, pour que
+     * personne ne voie son compte baisser — c'est la raison pour laquelle le
+     * niveau et les badges s'appuient encore sur les entamés depuis le
+     * 9 septembre 2026. Celui-ci s'ajoute à côté, il ne remplace rien.
+     */
+    dontEntiers: (n: number) => `dont ${n} lu${n > 1 ? 's' : ''} en entier`,
+    legendeEntiers: 'Lu en entier',
+    legendeEntames: 'Entamé',
+    noReadings: 'Aucune lecture pour le moment.',
     enPourcentage: 'En pourcentage',
     byContext: 'Progression par contexte',
     chapterCount: (n: number) => `${n} chapitre${n > 1 ? 's' : ''}`,
@@ -740,6 +752,9 @@ export const fr = {
     thisMonth: 'Ce mois',
     perDay: 'Lectures par jour (30 jours)',
     topBooks: 'Top 10 livres',
+    chapitresTitre: 'Chapitres de la Bible',
+    chapitresDetail: (entames: number, entiers: number, total: number) =>
+      `${entames} sur ${total} entamés, dont ${entiers} lu${entiers > 1 ? 's' : ''} en entier`,
     byContext: 'Répartition par contexte',
     byVersion: 'Répartition par version',
     noContext: 'Sans contexte',

@@ -681,6 +681,15 @@ export const ar: Dictionary = {
     oldTestament: 'العهد القديم',
     newTestament: 'العهد الجديد',
     chaptersOfTotal: (read: number, total: number) => `${read} / ${total} إصحاحًا`,
+    /* Le participe s'accorde avec le nombre : six formes, comme partout
+       ailleurs en arabe. « 2 مقروءان » au duel, « 3 مقروءة » au petit nombre. */
+    dontEntiers: (n: number) => `${n} ${pluriel(n, {
+      zero: 'مقروء بالكامل', un: 'مقروء بالكامل', deux: 'مقروءان بالكامل',
+      peu: 'مقروءة بالكامل', beaucoup: 'مقروءًا بالكامل', autre: 'مقروء بالكامل',
+    })}`,
+    legendeEntiers: 'مقروء بالكامل',
+    legendeEntames: 'مبدوء',
+    noReadings: 'لا توجد قراءات بعد.',
     enPourcentage: 'كنسبة مئوية',
     byContext: 'التقدم بحسب السياق',
     chapterCount: (n: number) => `${n} ${isahat(n)}`,
@@ -796,6 +805,12 @@ export const ar: Dictionary = {
     thisMonth: 'هذا الشهر',
     perDay: 'القراءات يوميًا (30 يومًا)',
     topBooks: 'أفضل 10 أسفار',
+    chapitresTitre: 'إصحاحات الكتاب المقدس',
+    chapitresDetail: (entames: number, entiers: number, total: number) =>
+      `${entames} من ${total} مبدوءة، منها ${entiers} ${pluriel(entiers, {
+        zero: 'مقروء بالكامل', un: 'مقروء بالكامل', deux: 'مقروءان بالكامل',
+        peu: 'مقروءة بالكامل', beaucoup: 'مقروءًا بالكامل', autre: 'مقروء بالكامل',
+      })}`,
     byContext: 'التوزيع بحسب السياق',
     byVersion: 'التوزيع بحسب الترجمة',
     noContext: 'بلا سياق',
