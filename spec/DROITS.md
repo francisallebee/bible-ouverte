@@ -251,3 +251,77 @@ pas un ajout de version.
 
 La base n'est **pas versionnée** (`.gitignore`) : 498 Mo, quand GitHub refuse
 au-delà de 100 Mo, et un commit l'emporterait dans l'historique pour toujours.
+
+## Biblica, la page enfin lue — 13 octobre 2026
+
+`biblica.com/permissions` rendait `403` le 2 septembre, et la piste reposait
+donc sur un résumé de recherche. **La page se lit maintenant**, et elle dit
+autre chose. Relevé à la source, au navigateur.
+
+### L'« Express Licensing » existe — et ne permet pas ce que nous faisons
+
+Le texte est exact sur les deux conditions que le résumé rapportait : usage
+**véritablement non commercial**, et **aucune fonction d'intelligence
+artificielle ou d'apprentissage automatique**. Mais la phrase ne s'arrête pas
+là, et c'est la fin qui compte :
+
+> « you may begin using the Bible text and audio Bibles immediately **through
+> one of the following Biblica ministry partners** : api.bible by the American
+> Bible Society, platform.youversion.com by YouVersion »
+
+Ce n'est donc **pas** l'autorisation d'héberger le texte : c'est l'autorisation
+de le servir **par ces deux plateformes**. Or le relevé du 16 août 2026 note
+déjà qu'api.bible plafonne le cache à **500 versets consécutifs, purgés à
+14 jours**. La copie intégrale hors ligne, qui est l'architecture même de Bible
+Ouverte, en sort.
+
+### Le don disqualifie probablement l'application
+
+La page définit le non-commercial, et la définition est plus étroite que
+« gratuit » :
+
+> « Non-commercial use … **does not include** resale or use in connection with
+> **fundraising, contributions, donor gifts**, or promotional premiums. »
+
+La réserve posée le 2 septembre — « le don n'est ni une vente, ni un abonnement,
+ni une publicité, mais c'est à eux de le dire » — **est levée, et pas dans le
+sens espéré**. Biblica l'a dit. La page `/soutenir` place vraisemblablement
+l'application hors du cadre de l'express license.
+
+C'est un arbitrage à poser, pas une fatalité : les dons ou cette version.
+
+### Une licence de Bible entière ne va pas à une personne
+
+> « Licenses for the full Bible text or complete New Testament … may only be
+> granted to **registered legal entities and not to individuals**. Documentation
+> verifying the legal entity will be required. »
+
+Ôappliday devra donc produire une pièce justifiant son existence légale. À
+vérifier avant d'écrire : une demande au nom d'une personne sera refusée sur la
+forme.
+
+### Les délais, et une raison possible au silence
+
+> 10 jours ouvrés pour un premier examen, 10 de plus pour préparer la lettre
+> d'autorisation, **4 à 6 semaines** pour un accord de licence complet.
+
+**Biblica demande un formulaire, pas une lettre** : « Please submit a Permission
+Request Form ». Les demandes envoyées par courrier sans passer par ce formulaire
+peuvent n'être jamais entrées dans la file. C'est une hypothèse, pas un
+constat — mais elle se vérifie en dix minutes, et elle expliquerait une absence
+de réponse mieux qu'un refus tacite.
+
+**Le silence n'est pas un accord.** Une demande sans réponse laisse la situation
+où elle était : les versions restent non licenciées, et `convert-bibles-db.mjs`
+ne les convertit pas.
+
+### Ce qui reste à faire, par ordre d'utilité
+
+1. **Vérifier par quel canal les demandes sont parties.** Formulaire ou lettre ;
+   date ; accusé de réception. À consigner ici — ce document existe parce que
+   l'enquête du 16 août s'était perdue, et une démarche non datée se perd de la
+   même façon.
+2. **Relancer l'Alliance biblique française au téléphone** : +33 (0)9 72 56 15 30.
+   Six versions pour un appel, et un interlocuteur habitué.
+3. **Trancher la question du don** avant de redemander à Biblica.
+4. **Réunir la preuve d'entité légale** d'Ôappliday.
