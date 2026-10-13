@@ -136,7 +136,7 @@ coûterait une passe complète sur les 19 écrans.
 | `src/contexts/` | Fournisseurs React : session (`AuthContext`), langue (`I18nContext`) |
 | `src/features/bible/` | Livres, classification, import des versions |
 | `src/components/BookPicker.tsx`, `PassagePicker.tsx` | Le choix d'un livre, d'un chapitre et d'un verset — mêmes fenêtres partout |
-| `public/bibles/` | 13 versions libres de droits : 9 fr, 1 en, 1 it, 1 ar, 1 es (87 Mo) |
+| `public/bibles/` | 15 versions libres de droits : 11 fr, 1 en, 1 it, 1 ar, 1 es (101 Mo) |
 | `public/strong/` | Les deux lexiques Strong, hébreu et grec (4 Mo). CC BY-SA — la mention voyage dans le fichier |
 | `public/originaux/` | L'Ancien Testament hébreu (OSHB) et le Nouveau Testament grec (SBLGNT), balisés mot à mot (25 Mo) |
 | `supabase/migrations/` | Schéma et RLS, appliqués dans l'ordre des noms |
@@ -412,6 +412,13 @@ npm test           # vitest
   bord, pas une garantie. Ne pas déployer une preview par `vercel deploy`
   depuis le poste : 62,5 Mo à téléverser, l'envoi n'aboutit pas ; les previews
   passent par git.
+- **L'Ostervald 1877 manque deux chapitres** : `PSA 150` et `PHP 4`. Mesuré
+  avant de l'ajouter le 13 octobre 2026, et écrit ici plutôt que découvert dans
+  deux ans — c'est ce que la dette du Sacy a coûté. Deux chapitres sur 1 189,
+  et l'Ostervald **1996** du dépôt est complet pour qui veut ce texte entier :
+  c'est pourquoi le manque est consigné et non corrigé.
+  Le `BGNT1669` de la même base ne porte que 27 livres — un Nouveau Testament
+  seul, numéroté autrement — et n'a donc pas été repris.
 - ~~Le texte de Sacy est amputé~~ — **réglé le 13 octobre 2026**, depuis la
   base `bibles_fr.db` déposée par le propriétaire. Le compte exact était pire
   que ce qui était écrit ici : **13 chapitres manquaient**, pas quatre — GEN
@@ -428,8 +435,9 @@ npm test           # vitest
 - ~~Rien n'avertit du volume~~ — **réglé le 30 septembre 2026.** Les Réglages
   disent ce que chaque case coûte (poids relevé sur le fichier, croisé par
   `poids.test.ts`) et ce que le cache occupe (`navigator.storage.estimate`).
-  Le catalogue entier pèse **115,7 Mio** : douze traductions, deux lexiques,
-  deux textes originaux. Reste vrai que c'est un choix de l'utilisateur, et que
+  Le catalogue entier pèse **129,3 Mio** au 13 octobre 2026 : quinze
+  traductions, deux lexiques, deux textes originaux. Il grandit à chaque
+  version ajoutée, et `poids.test.ts` tient les chiffres à jour. Reste vrai que c'est un choix de l'utilisateur, et que
   la mesure du 9 août 2026 — sept versions, 216 000 versets, 42 Mo — n'a jamais
   été refaite à douze ; `estimate()` la remplace désormais à l'écran, appareil
   par appareil, ce qui vaut mieux qu'une moyenne.

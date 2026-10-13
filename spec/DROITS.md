@@ -209,12 +209,18 @@ Le propriétaire a déposé à la racine une base SQLite de **498 Mo** portant
 **33 traductions françaises**, pour les ajouter à l'application. **Deux** l'ont
 été. Ce qui suit dit pourquoi, pour que la question ne se repose pas.
 
-### Les deux retenues
+### Les quatre retenues
 
 | | Pourquoi c'est permis |
 |---|---|
 | **Sacy 1759** | Isaac Lemaître de Sacy, 1613-1684. Remplace un fichier amputé de 13 chapitres |
 | **Zadoc Kahn 1899** | Zadoc Kahn, 1839-1905. Le Tanakh en français, 39 livres — rien de tel au dépôt |
+| **Martin 1707** | David Martin, 1639-1721. 66 livres, **aucun écart** avec le canon |
+| **Ostervald 1877** | révision anonyme antérieure à 1930. Manque `PSA 150` et `PHP 4` |
+
+**Les 33 versions de cette base sont françaises.** Demander « seulement les
+françaises » ne retire donc rien : ce n'est pas la langue qui écarte les
+quinze autres, ce sont les droits.
 
 ### Les quinze écartées, et par qui
 
@@ -239,15 +245,28 @@ Le jour où l'une aboutit, la version correspondante se tire de cette base en
 une ligne dans `RETENUES` de `scripts/convert-bibles-db.mjs` — à condition que
 l'autorisation soit consignée ici, avec sa date et son interlocuteur.
 
-### Les quatre laissées de côté sans question de droits
+### Les cinq laissées de côté sans question de droits
 
 Septante (Giguet 1872), Vulgate (Glaire), Vigouroux 1902, Fillion : **du
-domaine public**, et vraiment nouvelles. Elles butent sur autre chose — leurs
-livres 67 à 84 sont deutérocanoniques et **n'ont aucun nom dans la base**, dont
-la table `book` s'arrête à 66. Les ajouter demanderait de les identifier un par
-un, puis d'étendre le canon du dépôt de 66 à environ 84 livres : `books.ts`, la
-versification, la classification et les cinq dictionnaires. C'est un chantier,
-pas un ajout de version.
+domaine public**, et vraiment nouvelles. Elles butent sur autre chose, mesuré
+le 13 octobre 2026 : **leur livre 40 est Nahum, pas Matthieu.** Ce sont des
+bibles catholiques, où les deutérocanoniques s'intercalent au milieu de
+l'Ancien Testament — et ces livres 67 à 84 **n'ont aucun nom dans la base**,
+dont la table `book` s'arrête à 66.
+
+On pourrait les convertir en ne gardant que les 66 livres connus. **Ce serait
+une faute** : une Vulgate sans Tobie, Judith, les Maccabées, la Sagesse, le
+Siracide ni Baruch n'est pas la Vulgate. Ce serait refaire délibérément
+l'amputation du Sacy qu'on vient de réparer.
+
+Les ajouter honnêtement demande donc d'étendre le canon du dépôt de 66 à
+environ 84 livres : `books.ts`, la versification, la classification et les cinq
+dictionnaires. C'est un chantier, pas un ajout de version — et il ouvrirait
+quatre traditions textuelles que l'application n'a pas du tout.
+
+La **Bible de Genève 1669** est un cas plus simple : 27 livres, un Nouveau
+Testament seul, numéroté selon son propre ordre. Incomplète pour l'usage du
+dépôt, elle n'a pas été reprise.
 
 La base n'est **pas versionnée** (`.gitignore`) : 498 Mo, quand GitHub refuse
 au-delà de 100 Mo, et un commit l'emporterait dans l'historique pour toujours.

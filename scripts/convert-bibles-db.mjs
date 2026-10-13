@@ -116,6 +116,33 @@ const RETENUES = [
     ordre: ORDRE_TANAKH,
     ecarts: ECARTS_HEBREUX,
   },
+  {
+    id: 'martin1707',
+    code: 'BM1707',
+    name: 'David Martin 1707',
+    droits: 'David Martin, 1639-1721 — domaine public',
+    // Livre 8 = Ruth, livre 40 = Matthieu, et **aucun écart** avec le canon :
+    // 66 livres, 66 comptes de chapitres justes. Le seul fichier de cette base
+    // dans ce cas.
+    remplace: false,
+    ordre: null,
+  },
+  {
+    id: 'ostervald1877',
+    code: 'OST1877',
+    name: 'Jean-Frédéric Ostervald 1877',
+    droits: 'révision de 1877, anonyme et antérieure à 1930 — domaine public',
+    /*
+      **Il manque deux chapitres** : PSA 150 et PHP 4. Mesuré avant d'écrire,
+      et dit ici plutôt que découvert dans deux ans — c'est exactement la
+      faute que la dette du Sacy a coûté, où un « et d'autres » avait avalé
+      les Lamentations à un chapitre sur cinq.
+      Deux chapitres sur 1 189 restent très au-dessus du Sacy d'avant, et
+      l'Ostervald 1996 du dépôt est complet pour qui veut ce texte entier.
+    */
+    remplace: false,
+    ordre: null,
+  },
 ];
 
 /** Les 66 abréviations USFM, dans l'ordre canonique de `features/bible/books.ts`. */

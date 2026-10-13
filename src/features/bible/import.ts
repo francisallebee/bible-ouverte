@@ -86,6 +86,10 @@ export const VERSIONS: { id: string; file: string; octets: number }[] = [
   { id: 'rv1909', file: 'rv1909.json', octets: 6516751 },
   { id: 'annotee', file: 'annotee.json', octets: 6825983 },
   { id: 'zadoc', file: 'zadoc.json', octets: 5208019 },
+  { id: 'martin1707', file: 'martin1707.json', octets: 7200579 },
+  // Manque PSA 150 et PHP 4 — voir la dette d'`AGENTS.md`. L'Ostervald 1996
+  // du dépôt, lui, est complet.
+  { id: 'ostervald1877', file: 'ostervald1877.json', octets: 7244039 },
 ];
 
 async function loadData(versionId: string): Promise<SourceBible> {

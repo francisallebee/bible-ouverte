@@ -107,14 +107,15 @@ describe('seedIfNeeded', () => {
     /*
       Sept françaises, puis l'anglais, l'italien, l'arabe et l'espagnol depuis
       le 16 août 2026 — les cinq langues que l'interface parle. Et le Zadoc
-      Kahn depuis le 13 octobre 2026, ce qui porte le compte à treize.
+      Kahn depuis le 13 octobre 2026, puis Martin 1707 et Ostervald 1877 le
+      même jour — quinze.
 
       Ce chiffre n'est pas décoratif : il a fait échouer la suite à l'ajout, et
       c'est ce qu'on lui demande. Une version qui arriverait sans que personne
       ne l'ait décidé passerait autrement inaperçue — et le dépôt distribue des
       textes dont les droits se vérifient un par un (`spec/DROITS.md`).
     */
-    expect(stores.bible_versions.size).toBe(13);
+    expect(stores.bible_versions.size).toBe(15);
   });
 
   it("n'active que la version par défaut à l'installation", async () => {

@@ -80,6 +80,8 @@ export const TEXT_VERSIONS: BibleVersion[] = [
     indisponible » sans comprendre pourquoi.
   */
   { id: 'zadoc', name: 'Zadoc Kahn 1899 (Ancien Testament)', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'martin1707', name: 'David Martin 1707', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+  { id: 'ostervald1877', name: 'Jean-Frédéric Ostervald 1877', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
 ];
 
 /**
