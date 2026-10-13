@@ -69,6 +69,17 @@ export const TEXT_VERSIONS: BibleVersion[] = [
   { id: 'svd', name: 'Smith & Van Dyck 1865', language: 'ar', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
   { id: 'rv1909', name: 'Reina-Valera 1909', language: 'es', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
   { id: 'annotee', name: 'Bible Annotée de Neuchâtel 1900', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
+
+  /*
+    Le 13 octobre 2026, tirée de la base déposée par le propriétaire.
+
+    **Le nom dit « Ancien Testament » parce que c'est le Tanakh.** Zadoc Kahn
+    était grand rabbin de France, et sa traduction s'arrête là où la Bible
+    hébraïque s'arrête : 39 livres, aucun Évangile. Ce n'est pas un manque, et
+    sans la mention le lecteur qui ouvre Matthieu y lirait « Texte
+    indisponible » sans comprendre pourquoi.
+  */
+  { id: 'zadoc', name: 'Zadoc Kahn 1899 (Ancien Testament)', language: 'fr', copyrightStatus: 'public-domain', source: 'bundled', isEnabled: false },
 ];
 
 /**

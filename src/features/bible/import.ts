@@ -71,13 +71,21 @@ export const VERSIONS: { id: string; file: string; octets: number }[] = [
   { id: 'martin1744', file: 'martin.json', octets: 7261437 },
   { id: 'ostervald', file: 'ostervald.json', octets: 6879550 },
   { id: 'cramp23', file: 'cramp23.json', octets: 6841729 },
-  { id: 'sacc', file: 'sacc.json', octets: 7034956 },
+  /*
+    Refait le 13 octobre 2026 depuis `bibles_fr.db`. L'ancien fichier manquait
+    **13 chapitres** — GEN 49/50, EXO 39/40, PSA 149/150, SNG 6/8, JER 50/52,
+    LAM 1/5, EZK 47/48, ZEC 13/14. `AGENTS.md` en nommait quatre et disait
+    « et d'autres » ; les Lamentations à un chapitre sur cinq n'y figuraient
+    pas. Celui-ci n'en manque qu'un, EZK 48.
+  */
+  { id: 'sacc', file: 'sacc.json', octets: 7374094 },
   { id: 'perret', file: 'perret.json', octets: 6911011 },
   { id: 'kjv', file: 'kjv.json', octets: 6715375 },
   { id: 'diodati', file: 'diodati.json', octets: 6902927 },
   { id: 'svd', file: 'svd.json', octets: 10028474 },
   { id: 'rv1909', file: 'rv1909.json', octets: 6516751 },
   { id: 'annotee', file: 'annotee.json', octets: 6825983 },
+  { id: 'zadoc', file: 'zadoc.json', octets: 5208019 },
 ];
 
 async function loadData(versionId: string): Promise<SourceBible> {

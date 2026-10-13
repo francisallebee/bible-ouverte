@@ -136,7 +136,7 @@ coûterait une passe complète sur les 19 écrans.
 | `src/contexts/` | Fournisseurs React : session (`AuthContext`), langue (`I18nContext`) |
 | `src/features/bible/` | Livres, classification, import des versions |
 | `src/components/BookPicker.tsx`, `PassagePicker.tsx` | Le choix d'un livre, d'un chapitre et d'un verset — mêmes fenêtres partout |
-| `public/bibles/` | 12 versions libres de droits : 8 fr, 1 en, 1 it, 1 ar, 1 es (82 Mo) |
+| `public/bibles/` | 13 versions libres de droits : 9 fr, 1 en, 1 it, 1 ar, 1 es (87 Mo) |
 | `public/strong/` | Les deux lexiques Strong, hébreu et grec (4 Mo). CC BY-SA — la mention voyage dans le fichier |
 | `public/originaux/` | L'Ancien Testament hébreu (OSHB) et le Nouveau Testament grec (SBLGNT), balisés mot à mot (25 Mo) |
 | `supabase/migrations/` | Schéma et RLS, appliqués dans l'ordre des noms |
@@ -343,6 +343,21 @@ coûterait une passe complète sur les 19 écrans.
     coche. **Après avoir ajouté une colonne, cocher une fois et relire la
     ligne en base** — c'est la seule vérification qui les attrape.
 
+23. **Vérifier au mauvais niveau, c'est ne pas vérifier.** Le 13 octobre 2026,
+    le script de conversion de `bibles_fr.db` contrôlait que la table `book` de
+    la base suivait bien le canon de `books.ts`. C'était **vrai, et sans
+    rapport** : la question n'était pas comment la table est ordonnée, mais si
+    **cette version-là** la suit. Zadoc Kahn, lui, suit l'ordre du **Tanakh** —
+    son livre 8 n'est pas Ruth mais 1 Samuel. Le script a produit un fichier
+    d'apparence normale avec Ruth à 31 chapitres, Daniel à 150 et Malachie à
+    36, et le contrôle l'a laissé passer en affichant « ordre vérifié ».
+    Le contrôle porte désormais sur ce qui est produit, livre par livre : chaque
+    livre doit avoir le nombre de chapitres que le canon lui donne, et le
+    dépassement n'est admis que nommément — les additions grecques à Esther et
+    Daniel chez Sacy, qui est une traduction de Port-Royal.
+    **Un contrôle qui ne peut pas échouer sur le défaut qu'on craint n'est pas
+    un contrôle**, et il est pire que rien : il rassure.
+
 ## Commandes
 
 ```bash
@@ -397,13 +412,19 @@ npm test           # vitest
   bord, pas une garantie. Ne pas déployer une preview par `vercel deploy`
   depuis le poste : 62,5 Mo à téléverser, l'envoi n'aboutit pas ; les previews
   passent par git.
-- **Le texte de Sacy est amputé** : Genèse 49 chapitres sur 50, Exode 39/40,
-  Psaumes 149/150, Cantique 6/8, et d'autres. Le défaut vient du fichier source
-  (`heb12/gratis.json`), pas de la conversion. Le corriger suppose de trouver
-  une meilleure source ou d'écarter cette version. Les six autres traductions
-  ont été vérifiées livre par livre et sont complètes — seul Malachie compte
+- ~~Le texte de Sacy est amputé~~ — **réglé le 13 octobre 2026**, depuis la
+  base `bibles_fr.db` déposée par le propriétaire. Le compte exact était pire
+  que ce qui était écrit ici : **13 chapitres manquaient**, pas quatre — GEN
+  49/50, EXO 39/40, PSA 149/150, SNG 6/8, JER 50/52, **LAM 1/5**, EZK 47/48,
+  ZEC 13/14. Les Lamentations à un chapitre sur cinq n'avaient jamais été
+  relevées, le « et d'autres » de l'ancienne note les ayant avalées. **Un
+  « et d'autres » dans une dette est un trou qu'on ne mesurera plus** : il
+  vaut mieux une liste longue qu'un etcetera.
+  Le fichier actuel ne manque qu'`EZK 48`. Les six autres traductions ont été
+  vérifiées livre par livre et sont complètes — seul Malachie compte
   3 chapitres au lieu de 4 dans Crampon et Darby, ce qui est une différence de
-  versification légitime et non un manque.
+  versification légitime et non un manque, comme les 4 chapitres de Joël et les
+  3 de Malachie chez Zadoc Kahn, qui suit la Bible hébraïque.
 - ~~Rien n'avertit du volume~~ — **réglé le 30 septembre 2026.** Les Réglages
   disent ce que chaque case coûte (poids relevé sur le fichier, croisé par
   `poids.test.ts`) et ce que le cache occupe (`navigator.storage.estimate`).

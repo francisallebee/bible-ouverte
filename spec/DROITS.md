@@ -202,3 +202,52 @@ La page `biblica.com/permissions` n'a jamais pu être lue — `403` à l'outil l
 2 septembre. La piste d'une autorisation immédiate pour usage non commercial
 reste donc une information de seconde main, et la lettre partie chez eux pose
 justement la question. **Leur réponse tranchera ; le résumé de recherche, non.**
+
+## La base `bibles_fr.db` — 13 octobre 2026
+
+Le propriétaire a déposé à la racine une base SQLite de **498 Mo** portant
+**33 traductions françaises**, pour les ajouter à l'application. **Deux** l'ont
+été. Ce qui suit dit pourquoi, pour que la question ne se repose pas.
+
+### Les deux retenues
+
+| | Pourquoi c'est permis |
+|---|---|
+| **Sacy 1759** | Isaac Lemaître de Sacy, 1613-1684. Remplace un fichier amputé de 13 chapitres |
+| **Zadoc Kahn 1899** | Zadoc Kahn, 1839-1905. Le Tanakh en français, 39 livres — rien de tel au dépôt |
+
+### Les quinze écartées, et par qui
+
+Elles recoupent presque exactement les interlocuteurs décrits plus haut, ce qui
+confirme le relevé du 2 septembre plutôt que de le contredire :
+
+| Ayant droit | Versions présentes dans la base |
+|---|---|
+| Société biblique de Genève | Segond 21, Nouvelle Édition de Genève 1979 |
+| Alliance biblique française | Nouvelle Bible Segond, Nouvelle Segond révisée, Parole de Vie 2017, Français courant, Nouvelle Français courant, Bible expliquée 2004 |
+| Biblica | Bible du Semeur 2015 |
+| Éditions du Cerf | Bible de Jérusalem |
+| Autres | Bible des Peuples, Pirot-Clamer, King James Française, Machaira 2012, Darby 2006/2009/2022 |
+
+**Disposer du texte n'est pas disposer du droit de le redistribuer.** C'est le
+point que ce document établissait déjà, et la base ne le change pas : ces
+fichiers existent, ils sont lisibles, et les publier resterait une mise en
+ligne sans licence sur un site public. Aucune des quatre démarches décrites
+plus haut n'a été engagée.
+
+Le jour où l'une aboutit, la version correspondante se tire de cette base en
+une ligne dans `RETENUES` de `scripts/convert-bibles-db.mjs` — à condition que
+l'autorisation soit consignée ici, avec sa date et son interlocuteur.
+
+### Les quatre laissées de côté sans question de droits
+
+Septante (Giguet 1872), Vulgate (Glaire), Vigouroux 1902, Fillion : **du
+domaine public**, et vraiment nouvelles. Elles butent sur autre chose — leurs
+livres 67 à 84 sont deutérocanoniques et **n'ont aucun nom dans la base**, dont
+la table `book` s'arrête à 66. Les ajouter demanderait de les identifier un par
+un, puis d'étendre le canon du dépôt de 66 à environ 84 livres : `books.ts`, la
+versification, la classification et les cinq dictionnaires. C'est un chantier,
+pas un ajout de version.
+
+La base n'est **pas versionnée** (`.gitignore`) : 498 Mo, quand GitHub refuse
+au-delà de 100 Mo, et un commit l'emporterait dans l'historique pour toujours.
