@@ -69,6 +69,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </I18nProvider>
         </AuthProvider>
         <Script src="/sw-register.js" strategy="afterInteractive" />
+        {/* Statistiques de visite Plausible, hébergées sur le serveur
+            d'Ôappliday : sans cookie ni donnée personnelle, donc sans bandeau
+            de consentement. Les changements de page de l'App Router sont
+            comptés par le script lui-même, qui suit l'historique du navigateur. */}
+        <Script
+          src="https://stats.oappliday.tech/js/pa-UdAeoTkNhea3PWZqDrEBC.js"
+          strategy="afterInteractive"
+        />
+        <Script id="plausible-init" strategy="afterInteractive">
+          {`window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()`}
+        </Script>
       </body>
     </html>
   );
