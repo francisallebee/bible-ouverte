@@ -37,6 +37,33 @@ statistiques, historique, messages, réglages et hors-ligne.
 Les liens vers le blog écrits dans les messages WhatsApp (`blog.oappliday.tech/<slug>`) sont
 des **suppositions** : les corriger une fois l'article publié.
 
+## Feuille de route de la série (suivi)
+
+Un épisode est **fait** quand ses quatre livrables sont dans `livrables/` (`NN-*.mp4`,
+`NN-*-couverture.png`, `NN-*-article.md`, `NN-message-whatsapp.txt`), committés et poussés.
+Le prochain épisode à faire est le premier de cette liste dont les livrables manquent.
+
+| # | Fonction | Écran / sources à lire avant d'écrire | Fait |
+|---|---|---|---|
+| 1 | Pourquoi Bible Ouverte | — | ✅ |
+| 2 | Noter une lecture | `src/app/new-reading`, `fr.ts › newReading` | ✅ |
+| 3 | Plans de lecture à plusieurs | `src/app/plans`, `fr.ts › plans, planCatalog, partage` | ✅ |
+| 4 | Recherche dans les 15 versions | `src/app/search`, `fr.ts › search` | |
+| 5 | Mots hébreux et grecs (Strong, originaux) | `features/bible/strong.ts`, `originaux.ts`, `fr.ts › strong` | |
+| 6 | Progression et badges | `src/app/progress`, `fr.ts › progress` | |
+| 7 | Verset du jour et rappels | `src/app/verset-du-jour`, `fr.ts › versetDuJour, notifications` | |
+| 8 | Quiz | `src/app/quiz`, `fr.ts › quiz` | |
+| 9 | Mémorisation | `src/app/memorisation`, `fr.ts › memorisation` | |
+| 10 | Statistiques | `src/app/stats`, `fr.ts › stats` | |
+| 11 | Historique | `src/app/history`, `fr.ts › history` | |
+| 12 | Messages | `src/app/messages`, `fr.ts › messages` | |
+| 13 | Réglages : langues, versions, thème, hors ligne | `src/app/settings`, `fr.ts › settings` | |
+
+Règles tenues sur toute la série : ne rien affirmer que le code ne fait pas (lire l'écran
+et `fr.ts` d'abord) ; vérifier les images (`hyperframes snapshot`) avant le rendu ;
+`npm run typecheck`, `npm run lint` et `npm test` avant chaque commit ; cocher la ligne
+ci-dessus dans le même commit que les livrables.
+
 ## Refaire ou modifier un épisode
 
 ### Prérequis (une fois)
