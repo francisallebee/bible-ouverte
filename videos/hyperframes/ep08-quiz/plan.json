@@ -1,0 +1,54 @@
+{
+  "id": "ep08",
+  "total": 39.64,
+  "scenes": [
+    {
+      "id": "accroche",
+      "texte": "Ce que tu as lu, t'en souviens-tu ? Le quiz de Bible Ouverte te le fait réviser, en jouant.",
+      "debut": 0.0,
+      "duree": 7.09,
+      "voix_debut": 0.35,
+      "voix_duree": 5.99
+    },
+    {
+      "id": "tirees",
+      "texte": "Dix questions, tirées uniquement de tes propres lectures. Rien sur ce que tu n'as pas encore lu.",
+      "debut": 7.09,
+      "duree": 6.95,
+      "voix_debut": 7.44,
+      "voix_duree": 5.85
+    },
+    {
+      "id": "types",
+      "texte": "De quel livre vient ce verset ? Quel mot manque ? Quelle est sa référence ? Touche ta réponse.",
+      "debut": 14.04,
+      "duree": 8.18,
+      "voix_debut": 14.39,
+      "voix_duree": 7.08
+    },
+    {
+      "id": "reponse",
+      "texte": "Juste ou pas, l'application te montre d'où vient le verset. On apprend aussi en se trompant.",
+      "debut": 22.22,
+      "duree": 6.9,
+      "voix_debut": 22.57,
+      "voix_duree": 5.8
+    },
+    {
+      "id": "resultat",
+      "texte": "À la fin, ton score, et tes statistiques : parties jouées, réussite, meilleur score.",
+      "debut": 29.12,
+      "duree": 6.44,
+      "voix_debut": 29.47,
+      "voix_duree": 5.34
+    },
+    {
+      "id": "appel",
+      "texte": "Lance une partie, et redécouvre ce que tu as lu.",
+      "debut": 35.56,
+      "duree": 4.08,
+      "voix_debut": 35.91,
+      "voix_duree": 2.98
+    }
+  ]
+}

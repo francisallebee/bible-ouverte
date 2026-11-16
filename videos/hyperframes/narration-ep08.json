@@ -1,0 +1,12 @@
+{
+  "id": "ep08",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Ce que tu as lu, t'en souviens-tu ? Le quiz de Bible Ouverte te le fait réviser, en jouant." },
+    { "id": "tirees", "texte": "Dix questions, tirées uniquement de tes propres lectures. Rien sur ce que tu n'as pas encore lu." },
+    { "id": "types", "texte": "De quel livre vient ce verset ? Quel mot manque ? Quelle est sa référence ? Touche ta réponse." },
+    { "id": "reponse", "texte": "Juste ou pas, l'application te montre d'où vient le verset. On apprend aussi en se trompant." },
+    { "id": "resultat", "texte": "À la fin, ton score, et tes statistiques : parties jouées, réussite, meilleur score." },
+    { "id": "appel", "texte": "Lance une partie, et redécouvre ce que tu as lu." }
+  ]
+}

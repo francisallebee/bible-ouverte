@@ -1,0 +1,14 @@
+📖 *Épisode 8 : t'en souviens-tu ?*
+
+Le *Quiz* de Bible Ouverte te fait réviser ce que tu as lu, en jouant 🎯
+
+✅ 10 questions tirées *uniquement de tes lectures*
+❓ De quel livre vient ce verset ? Quel mot manque ? Quelle est sa référence ?
+💡 Juste ou pas, tu vois aussitôt d'où vient le verset
+📊 Ton score, ta réussite, ton meilleur score
+
+▶️ La vidéo ci-dessus
+📝 L'article : https://blog.oappliday.tech/quiz-bible-ouverte
+📲 L'application : https://bible-ouverte.vercel.app
+
+👉 *Défi du soir :* lancez une partie et partagez votre score ici ! (Chacun sur ses propres lectures, donc personne n'est désavantagé 😉)

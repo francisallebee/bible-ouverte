@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="fr" data-resolution="portrait">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<script src="vendor/gsap.min.js"></script>
+<style>
+
+@font-face { font-family: Lora; src: url(assets/fonts/lora-latin-600-normal.woff2); font-weight: 600; }
+@font-face { font-family: Lora; src: url(assets/fonts/lora-latin-400-italic.woff2); font-weight: 400; font-style: italic; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-400-normal.woff2); font-weight: 400; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-600-normal.woff2); font-weight: 600; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-700-normal.woff2); font-weight: 700; }
+:root {
+  --nuit: #0a1626; --bleu: #1e3a5f; --or: #e9b949; --or-clair: #f0d089; --violet: #9d8dff; --violet-f: #7b68ee;
+  --vert: #2ecc71; --blanc: #fff; --t2: rgba(255,255,255,.68); --bord: rgba(255,255,255,.14);
+  --app-fond: #f8f9fb; --app-texte: #1e293b; --app-gris: #64748b; --app-bord: #e2e8f0;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit); }
+#root { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: Inter, sans-serif; color: var(--blanc); }
+.clip { position: absolute; inset: 0; }
+.tache { position: absolute; border-radius: 50%; filter: blur(140px); }
+#t1 { left: -320px; top: -260px; width: 1100px; height: 1100px; background: var(--bleu); opacity: .75; }
+#t2 { left: 520px; top: 300px; width: 900px; height: 900px; background: var(--violet-f); opacity: .28; }
+#t3 { left: 60px; top: 1350px; width: 900px; height: 900px; background: var(--or); opacity: .13; }
+#grille { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 90px 90px; -webkit-mask-image: radial-gradient(ellipse at 50% 35%, black 20%, transparent 75%); }
+.degrade { background: linear-gradient(90deg, var(--or), var(--or-clair) 45%, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+h1 { font-family: Lora, serif; font-weight: 600; font-size: 104px; line-height: 1.06; letter-spacing: -1px; text-align: center; }
+.titre-scene { position: absolute; left: 80px; right: 80px; }
+.etape { position: absolute; top: 150px; left: 80px; right: 80px; display: flex; align-items: center; justify-content: center; gap: 26px; }
+.num { width: 86px; height: 86px; border-radius: 50%; background: var(--or); color: var(--nuit); font-weight: 700; font-size: 48px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.et-titre { font-family: Lora, serif; font-weight: 600; font-size: 74px; letter-spacing: -1px; }
+#tel { position: absolute; inset: auto; left: 215px; top: 300px; width: 650px; height: 1150px; border-radius: 84px; background: #0b1220; border: 12px solid #26334a; box-shadow: 0 60px 120px -30px rgba(0,0,0,.7), 0 0 0 2px rgba(255,255,255,.08); }
+#ecran { position: absolute; inset: 0; border-radius: 72px; overflow: hidden; background: var(--app-fond); color: var(--app-texte); }
+#encoche { position: absolute; top: 18px; left: 50%; width: 150px; height: 36px; margin-left: -75px; border-radius: 20px; background: #0b1220; z-index: 20; }
+#barre { position: absolute; top: 0; left: 0; right: 0; height: 128px; padding: 66px 40px 0; background: var(--bleu); color: #fff; font-weight: 700; font-size: 30px; display: flex; gap: 16px; align-items: center; z-index: 15; }
+#barre img { width: 44px; height: 44px; border-radius: 12px; }
+.panneau { position: absolute; top: 128px; left: 0; right: 0; bottom: 0; padding: 34px 34px; background: var(--app-fond); opacity: 0; }
+.app-h { font-size: 40px; font-weight: 700; }
+.app-sous { font-size: 25px; color: var(--app-gris); margin-top: 6px; margin-bottom: 24px; }
+.champ { background: #fff; border: 2px solid var(--app-bord); border-radius: 20px; padding: 16px 22px; margin-bottom: 16px; }
+.lab { font-size: 21px; color: var(--app-gris); font-weight: 600; margin-bottom: 6px; }
+.val { font-size: 29px; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 12px; }
+.chip { font-size: 24px; font-weight: 600; padding: 10px 20px; border-radius: 999px; background: #eef2f7; color: var(--bleu); }
+.bouton { background: var(--bleu); color: #fff; font-size: 29px; font-weight: 700; text-align: center; padding: 24px; border-radius: 22px; }
+#tap { position: absolute; width: 90px; height: 90px; border-radius: 50%; background: rgba(233,185,73,.55); border: 4px solid var(--or); opacity: 0; z-index: 30; }
+#ap { position: absolute; top: 330px; left: 80px; right: 80px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+#ap-icone { width: 250px; height: 250px; border-radius: 62px; box-shadow: 0 0 140px 30px rgba(233,185,73,.35); }
+#ap h1 { margin-top: 64px; }
+#ap-sous { font-size: 44px; color: var(--t2); margin-top: 26px; line-height: 1.3; }
+#ap-url { margin-top: 80px; font-size: 50px; font-weight: 700; color: var(--nuit); background: var(--or); padding: 28px 50px; border-radius: 999px; }
+.st { display: flex; justify-content: center; align-items: flex-end; padding: 0 80px 150px; }
+.st span { font-weight: 600; font-size: 44px; line-height: 1.3; text-align: center; color: #fff; background: rgba(5,12,24,.72); border: 1px solid var(--bord); border-radius: 28px; padding: 22px 34px; }
+
+
+#bulles { position: absolute; top: 700px; left: 0; right: 0; display: flex; justify-content: center; gap: 70px; }
+.bq { width: 210px; height: 210px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Lora, serif; font-size: 150px; color: var(--nuit); background: var(--or); opacity: 0; }
+.bq:nth-child(2) { background: var(--violet); } .bq:nth-child(3) { background: #fff; }
+.depart { background: #fff; border: 2px solid var(--app-bord); border-radius: 26px; padding: 34px; text-align: center; }
+.depart .bouton { margin-top: 20px; } .depart .aide { font-size: 22px; color: var(--app-gris); margin-top: 12px; }
+.mes-lect { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.mes-lect .lab { width: 100%; }
+.q { position: absolute; top: 34px; left: 34px; right: 34px; opacity: 0; }
+.q-prog { font-size: 21px; font-weight: 700; color: var(--violet-f); text-transform: uppercase; letter-spacing: 2px; }
+.q-cons { font-size: 33px; font-weight: 700; margin-top: 10px; }
+.q-vers { font-family: Lora, serif; font-style: italic; font-size: 29px; line-height: 1.45; color: #78350f; background: #fffbeb; border: 2px solid #fde68a; border-radius: 20px; padding: 22px; margin-top: 18px; }
+.trou { font-style: normal; color: #b45309; letter-spacing: 2px; }
+.q-choix { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 22px; }
+.choix { font-size: 27px; font-weight: 600; text-align: center; padding: 26px 10px; border-radius: 20px; background: #fff; border: 3px solid var(--app-bord); color: var(--app-texte); }
+.q-fin { font-size: 25px; font-weight: 700; margin-top: 20px; text-align: center; color: #047857; opacity: 0; }
+.score { text-align: center; margin-top: 40px; } .score b { display: block; font-family: Lora, serif; font-size: 170px; color: var(--violet-f); line-height: 1; } .score span { font-size: 30px; color: var(--app-gris); }
+.bravo { text-align: center; font-size: 36px; font-weight: 700; margin-top: 16px; }
+.stats4 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 30px; }
+.s4 { background: #fff; border: 2px solid var(--app-bord); border-radius: 20px; padding: 18px; text-align: center; }
+.s4 b { display: block; font-size: 42px; color: var(--bleu); } .s4 span { font-size: 21px; color: var(--app-gris); }
+
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="39.64" data-width="1080" data-height="1920">
+<div id="fond" class="clip" data-start="0" data-duration="39.64" data-track-index="0">
+  <div class="tache" id="t1"></div><div class="tache" id="t2"></div><div class="tache" id="t3"></div><div id="grille"></div>
+</div>
+
+<section id="sc-accroche" class="clip scene" data-start="0.0" data-duration="7.09" data-track-index="1">
+  <h1 class="titre-scene" style="top:240px">T’en<br/><span class="degrade">souviens-tu ?</span></h1>
+  <div id="bulles"><span class="bq">?</span><span class="bq">?</span><span class="bq">?</span></div>
+</section>
+<section id="sc-tirees" class="clip scene" data-start="7.09" data-duration="6.95" data-track-index="1"><div class="etape"><span class="num">1</span><span class="et-titre">Tes lectures</span></div></section>
+<section id="sc-types" class="clip scene" data-start="14.04" data-duration="8.18" data-track-index="1"><div class="etape"><span class="num">2</span><span class="et-titre">Réponds</span></div></section>
+<section id="sc-reponse" class="clip scene" data-start="22.22" data-duration="6.9" data-track-index="1"><div class="etape"><span class="num">3</span><span class="et-titre">Apprends</span></div></section>
+<section id="sc-resultat" class="clip scene" data-start="29.12" data-duration="6.44" data-track-index="1"><div class="etape"><span class="num">4</span><span class="et-titre">Ton score</span></div></section>
+<div id="tel" class="clip" data-start="7.09" data-duration="28.47" data-track-index="2">
+  <div id="ecran">
+    <div id="encoche"></div>
+    <div id="barre"><img src="assets/img/icon-512.png"/>Bible Ouverte</div>
+    
+<div class="panneau" id="p-acc">
+  <div class="app-h">Quizz de révision</div>
+  <div class="app-sous">Révise ce que tu as lu, à ton rythme.</div>
+  <div class="depart"><svg width="110" height="110" viewBox="0 0 24 24" fill="none" stroke="#7b68ee" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L19 8.2l-3.8 3.4 1.1 5L12 14.1 7.7 16.6l1.1-5L5 8.2l5.1-.6z"/></svg>
+  <div class="bouton" id="b-go">Commencer une partie</div><p class="aide">10 questions tirées de tes lectures</p></div>
+  <div class="mes-lect"><div class="lab">Tes lectures</div><span class="chip">Psaumes 23</span><span class="chip">Jean 3</span><span class="chip">Matthieu 5</span><span class="chip">Jean 14</span><span class="chip">Genèse 1</span></div>
+</div>
+
+<div class="panneau" id="p-q"><div class="q" id="q1">
+    <div class="q-prog">Question 3 sur 10</div>
+    <div class="q-cons">De quel livre vient ce verset ?</div>
+    <div class="q-vers">« Vous êtes la lumière du monde. Une ville située sur une montagne ne peut être cachée ; »</div>
+    <div class="q-choix"><div class="choix" id="q1c0">Jean</div><div class="choix" id="q1c1">Matthieu</div><div class="choix" id="q1c2">Psaumes</div><div class="choix" id="q1c3">Romains</div></div>
+    <div class="q-fin" id="q1-fin"></div>
+  </div><div class="q" id="q2">
+    <div class="q-prog">Question 4 sur 10</div>
+    <div class="q-cons">Quel mot manque ?</div>
+    <div class="q-vers">« L’Eternel est mon <span class="trou">______</span> : je ne manquerai de rien. »</div>
+    <div class="q-choix"><div class="choix" id="q2c0">rocher</div><div class="choix" id="q2c1">roi</div><div class="choix" id="q2c2">berger</div><div class="choix" id="q2c3">salut</div></div>
+    <div class="q-fin" id="q2-fin"></div>
+  </div><div class="q" id="q3">
+    <div class="q-prog">Question 5 sur 10</div>
+    <div class="q-cons">Quelle est sa référence ?</div>
+    <div class="q-vers">« Je vous laisse la paix, je vous donne ma paix. Je ne vous donne pas comme le monde donne. »</div>
+    <div class="q-choix"><div class="choix" id="q3c0">Jean 3:16</div><div class="choix" id="q3c1">Jean 14:27</div><div class="choix" id="q3c2">Matthieu 5:14</div><div class="choix" id="q3c3">Psaumes 23:1</div></div>
+    <div class="q-fin" id="q3-fin"></div>
+  </div></div>
+
+<div class="panneau" id="p-res">
+  <div class="app-h">Résultat</div>
+  <div class="score"><b>8</b><span>bonnes réponses sur 10</span></div>
+  <div class="bravo">Très bien joué !</div>
+  <div class="stats4"><div class="s4"><b>5</b><span>Parties</span></div><div class="s4"><b>78 %</b><span>Réussite</span></div><div class="s4"><b>90 %</b><span>Meilleur</span></div><div class="s4"><b>4</b><span>Jours joués</span></div></div>
+  <div class="bouton" style="margin-top:22px">Rejouer</div>
+</div>
+
+    <div id="tap"></div>
+  </div>
+</div>
+<section id="sc-appel" class="clip scene" data-start="35.56" data-duration="4.08" data-track-index="1">
+  <div id="ap"><img id="ap-icone" src="assets/img/icon-512.png"/>
+  <h1>Lance <span class="degrade">une partie</span></h1>
+  <div id="ap-sous">Dix questions, rien que sur ce que tu as lu.</div>
+  <div id="ap-url">bible-ouverte.vercel.app</div></div></section>
+
+<div class="clip st" id="st0" data-start="0.35" data-duration="2.33" data-track-index="5"><span>Ce que tu as lu, t&#x27;en souviens-tu ?</span></div>
+<div class="clip st" id="st1" data-start="2.68" data-duration="4.26" data-track-index="5"><span>Le quiz de Bible Ouverte te le fait réviser, en jouant.</span></div>
+<div class="clip st" id="st2" data-start="7.44" data-duration="3.51" data-track-index="5"><span>Dix questions, tirées uniquement de tes propres lectures.</span></div>
+<div class="clip st" id="st3" data-start="10.95" data-duration="2.94" data-track-index="5"><span>Rien sur ce que tu n&#x27;as pas encore lu.</span></div>
+<div class="clip st" id="st4" data-start="14.39" data-duration="2.41" data-track-index="5"><span>De quel livre vient ce verset ?</span></div>
+<div class="clip st" id="st5" data-start="16.8" data-duration="1.32" data-track-index="5"><span>Quel mot manque ?</span></div>
+<div class="clip st" id="st6" data-start="18.12" data-duration="1.95" data-track-index="5"><span>Quelle est sa référence ?</span></div>
+<div class="clip st" id="st7" data-start="20.07" data-duration="2.0" data-track-index="5"><span>Touche ta réponse.</span></div>
+<div class="clip st" id="st8" data-start="22.57" data-duration="3.76" data-track-index="5"><span>Juste ou pas, l&#x27;application te montre d&#x27;où vient le verset.</span></div>
+<div class="clip st" id="st9" data-start="26.33" data-duration="2.64" data-track-index="5"><span>On apprend aussi en se trompant.</span></div>
+<div class="clip st" id="st10" data-start="29.47" data-duration="5.94" data-track-index="5"><span>À la fin, ton score, et tes statistiques : parties jouées, réussite, meilleur score.</span></div>
+<div class="clip st" id="st11" data-start="35.91" data-duration="3.58" data-track-index="5"><span>Lance une partie, et redécouvre ce que tu as lu.</span></div>
+<audio id="voix-accroche" class="clip" src="assets/voix/accroche.wav" data-start="0.35" data-duration="5.99" data-track-index="10"></audio>
+<audio id="voix-tirees" class="clip" src="assets/voix/tirees.wav" data-start="7.44" data-duration="5.85" data-track-index="10"></audio>
+<audio id="voix-types" class="clip" src="assets/voix/types.wav" data-start="14.39" data-duration="7.08" data-track-index="10"></audio>
+<audio id="voix-reponse" class="clip" src="assets/voix/reponse.wav" data-start="22.57" data-duration="5.8" data-track-index="10"></audio>
+<audio id="voix-resultat" class="clip" src="assets/voix/resultat.wav" data-start="29.47" data-duration="5.34" data-track-index="10"></audio>
+<audio id="voix-appel" class="clip" src="assets/voix/appel.wav" data-start="35.91" data-duration="2.98" data-track-index="10"></audio>
+<audio id="musique" class="clip" src="assets/musique.wav" data-start="0" data-duration="39.64" data-volume="0.11" data-fade-out="2" data-track-index="11"></audio>
+</div>
+<script>
+
+const tl = gsap.timeline({ paused: true });
+const E = "power3.out";
+tl.to("#t1", { x: 70, y: 90, duration: 39.64, ease: "sine.inOut" }, 0);
+tl.to("#t2", { x: -80, y: -60, duration: 39.64, ease: "sine.inOut" }, 0);
+tl.to("#t3", { x: 60, y: -70, duration: 39.64, ease: "sine.inOut" }, 0);
+document.querySelectorAll(".st span").forEach((el) => {
+  tl.fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.25, ease: E }, parseFloat(el.parentElement.dataset.start));
+});
+["tirees", "types", "reponse", "resultat"].forEach((id) => {
+  const t0 = parseFloat(document.getElementById("sc-" + id).dataset.start);
+  tl.fromTo("#sc-" + id + " .etape, #sc-" + id + " .titre-scene", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, t0 + 0.05);
+});
+const tap = (x, y, t) => {
+  tl.set("#tap", { left: x - 45, top: y - 45, scale: 0.5 }, t);
+  tl.to("#tap", { opacity: 1, scale: 1, duration: 0.18, ease: E }, t);
+  tl.to("#tap", { opacity: 0, scale: 1.5, duration: 0.35, ease: "power1.out" }, t + 0.22);
+};
+const montre = (sel, t) => tl.fromTo(sel, { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.45, ease: E }, t);
+const cache = (sel, t) => tl.to(sel, { opacity: 0, x: -60, duration: 0.35, ease: "power2.in" }, t);
+tl.fromTo("#ap-icone", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.6)" }, 35.660000000000004);
+tl.fromTo("#ap h1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 36.06);
+tl.fromTo("#ap-sous", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 36.660000000000004);
+tl.fromTo("#ap-url", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 37.96);
+
+const VERT = { backgroundColor: "#dcfce7", borderColor: "#22c55e", color: "#14532d", duration: 0.2 };
+const ROUGE = { backgroundColor: "#fee2e2", borderColor: "#ef4444", color: "#7f1d1d", duration: 0.2 };
+// 0. accroche
+tl.fromTo("#sc-accroche h1", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 0.15);
+tl.fromTo(".bq", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.5, stagger: 0.35, ease: "back.out(2)" }, 1.2);
+tl.to(".bq", { y: -30, duration: 0.8, stagger: 0.2, yoyo: true, repeat: 3, ease: "sine.inOut" }, 2.6);
+
+// 1. départ : les lectures sont la matière
+tl.fromTo("#tel", { opacity: 0, y: 120 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 7.09);
+tl.set("#p-acc", { opacity: 1 }, 7.09);
+tl.fromTo(".mes-lect .chip", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.18, ease: E }, 9.24);
+tap(313, 511, 13.04);
+
+// 2. trois questions, trois consignes
+cache("#p-acc", 14.04);
+tl.set("#p-q", { opacity: 1 }, 14.04);
+tl.to("#q1", { opacity: 1, duration: 0.3 }, 14.139999999999999);
+tap(453, 523, 15.79);
+tl.to("#q1c1", VERT, 15.89);
+tl.to("#q1", { opacity: 0, duration: 0.25 }, 16.59);
+tl.to("#q2", { opacity: 1, duration: 0.3 }, 16.79);
+tl.to("#q2", { opacity: 0, duration: 0.25 }, 18.79);
+tl.to("#q3", { opacity: 1, duration: 0.3 }, 18.99);
+tap(453, 523, 21.29);
+tl.to("#q3c1", VERT, 21.39);
+tl.set("#q3-fin", { textContent: "Bonne réponse — c’était Jean 14:27" }, 21.49);
+tl.to("#q3-fin", { opacity: 1, duration: 0.25 }, 21.49);
+
+// 3. se tromper, et apprendre
+tl.to("#q3", { opacity: 0, duration: 0.25 }, 22.22);
+tl.to("#q2", { opacity: 1, duration: 0.3 }, 22.419999999999998);
+tap(167, 523, 23.37);
+tl.to("#q2c0", ROUGE, 23.47);
+tl.to("#q2c2", VERT, 23.97);
+tl.set(".trou", { textContent: "berger" }, 23.97);
+tl.set("#q2-fin", { textContent: "C’était Psaumes 23:1" }, 24.37);
+tl.to("#q2-fin", { opacity: 1, duration: 0.25 }, 24.37);
+tl.fromTo("#q2-fin", { scale: 1 }, { scale: 1.1, duration: 0.25, yoyo: true, repeat: 1 }, 24.77);
+
+// 4. résultat
+tl.set("#p-q", { opacity: 0 }, 29.12);
+montre("#p-res", 29.220000000000002);
+tl.fromTo(".score b", { scale: 0.5 }, { scale: 1, duration: 0.6, ease: "back.out(2)", immediateRender: false }, 29.52);
+tl.fromTo(".s4", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.25, ease: E }, 31.67);
+tl.to("#tel", { opacity: 0, y: 60, duration: 0.45 }, 35.11);
+
+window.__timelines = window.__timelines || {};
+window.__timelines["main"] = tl;
+tl.seek(0);
+</script>
+</body>
+</html>
