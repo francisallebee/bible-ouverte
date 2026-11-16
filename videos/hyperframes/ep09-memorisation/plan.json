@@ -1,0 +1,54 @@
+{
+  "id": "ep09",
+  "total": 43.91,
+  "scenes": [
+    {
+      "id": "accroche",
+      "texte": "Apprendre un verset par cœur, et le garder longtemps : c'est le rôle de la Mémorisation.",
+      "debut": 0.0,
+      "duree": 5.91,
+      "voix_debut": 0.35,
+      "voix_duree": 4.81
+    },
+    {
+      "id": "choisir",
+      "texte": "Choisis un verset parmi tes lectures, un passage de ton choix, ou laisse le hasard décider.",
+      "debut": 5.91,
+      "duree": 6.36,
+      "voix_debut": 6.26,
+      "voix_duree": 5.26
+    },
+    {
+      "id": "masquer",
+      "texte": "Au premier passage, tu le lis en entier. Puis, à chaque révision, des mots disparaissent. Touche un mot caché pour le révéler.",
+      "debut": 12.27,
+      "duree": 9.95,
+      "voix_debut": 12.62,
+      "voix_duree": 8.85
+    },
+    {
+      "id": "espacer",
+      "texte": "Réussis, et le verset revient plus tard : un jour, trois, une semaine, trois semaines, deux mois. Le cerveau retient ce qu'on retrouve.",
+      "debut": 22.22,
+      "duree": 10.27,
+      "voix_debut": 22.57,
+      "voix_duree": 9.17
+    },
+    {
+      "id": "aujourdhui",
+      "texte": "Chaque jour, l'application te dit quels versets sont à revoir. Quelques minutes suffisent.",
+      "debut": 32.49,
+      "duree": 6.78,
+      "voix_debut": 32.84,
+      "voix_duree": 5.68
+    },
+    {
+      "id": "appel",
+      "texte": "Choisis ton premier verset, et garde la Parole dans ton cœur.",
+      "debut": 39.27,
+      "duree": 4.64,
+      "voix_debut": 39.62,
+      "voix_duree": 3.54
+    }
+  ]
+}
