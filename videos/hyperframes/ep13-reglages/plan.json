@@ -1,0 +1,54 @@
+{
+  "id": "ep13",
+  "total": 45.13,
+  "scenes": [
+    {
+      "id": "accroche",
+      "texte": "Bible Ouverte s'adapte à toi. Tout se règle au même endroit : les Réglages.",
+      "debut": 0.0,
+      "duree": 6.69,
+      "voix_debut": 0.35,
+      "voix_duree": 5.59
+    },
+    {
+      "id": "langue",
+      "texte": "Choisis ta langue : français, anglais, espagnol, italien ou arabe. Le texte biblique existe dans les cinq.",
+      "debut": 6.69,
+      "duree": 9.32,
+      "voix_debut": 7.04,
+      "voix_duree": 8.22
+    },
+    {
+      "id": "apparence",
+      "texte": "Clair, sombre, ou selon ton appareil. Une charte de couleurs, et la taille du texte biblique.",
+      "debut": 16.01,
+      "duree": 7.56,
+      "voix_debut": 16.36,
+      "voix_duree": 6.46
+    },
+    {
+      "id": "versions",
+      "texte": "Active les versions que tu lis : elles se téléchargent sur ton appareil. La mémoire occupée est affichée, pour garder la main.",
+      "debut": 23.57,
+      "duree": 8.45,
+      "voix_debut": 23.92,
+      "voix_duree": 7.35
+    },
+    {
+      "id": "horsligne",
+      "texte": "Et tout fonctionne hors ligne. Ce que tu notes sans réseau rejoint ton compte dès qu'il revient, sur tous tes appareils.",
+      "debut": 32.02,
+      "duree": 7.88,
+      "voix_debut": 32.37,
+      "voix_duree": 6.78
+    },
+    {
+      "id": "appel",
+      "texte": "Règle Bible Ouverte à ton image, et emporte la Parole partout.",
+      "debut": 39.9,
+      "duree": 5.23,
+      "voix_debut": 40.25,
+      "voix_duree": 4.13
+    }
+  ]
+}

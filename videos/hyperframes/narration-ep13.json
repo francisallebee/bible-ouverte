@@ -1,0 +1,12 @@
+{
+  "id": "ep13",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Bible Ouverte s'adapte à toi. Tout se règle au même endroit : les Réglages." },
+    { "id": "langue", "texte": "Choisis ta langue : français, anglais, espagnol, italien ou arabe. Le texte biblique existe dans les cinq." },
+    { "id": "apparence", "texte": "Clair, sombre, ou selon ton appareil. Une charte de couleurs, et la taille du texte biblique." },
+    { "id": "versions", "texte": "Active les versions que tu lis : elles se téléchargent sur ton appareil. La mémoire occupée est affichée, pour garder la main." },
+    { "id": "horsligne", "texte": "Et tout fonctionne hors ligne. Ce que tu notes sans réseau rejoint ton compte dès qu'il revient, sur tous tes appareils." },
+    { "id": "appel", "texte": "Règle Bible Ouverte à ton image, et emporte la Parole partout." }
+  ]
+}

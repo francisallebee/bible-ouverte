@@ -54,7 +54,7 @@ ecrans = f'''
   <div class="zone" id="z-theme">
     <div class="lab" style="margin-bottom:10px">Chercher par thème</div>
     <div class="chips">{themes_html}</div>
-    <div class="compte" id="th-compte">6 passages · Louis Segond 1910</div>
+    <div class="compte" id="th-compte">Paix — 5 passages</div>
     <div class="res" id="tp0"><div class="res-ref">Jean 14:27<span class="plus" id="plus-ajout">+ Ajouter</span></div><div class="res-txt">Je vous laisse la paix, je vous donne ma paix. Je ne vous donne pas comme le monde donne. Que votre cœur ne se trouble point…</div></div>
     <div class="res" id="tp1"><div class="res-ref">Ésaïe 26:3<span class="plus">+ Ajouter</span></div><div class="res-txt">A celui qui est ferme dans ses sentiments Tu assures la paix, la paix, Parce qu’il se confie en toi.</div></div>
   </div>

@@ -1,0 +1,13 @@
+📖 *Épisode 13 (le dernier !) : Bible Ouverte à ton image*
+
+⚙️ Dans les *Réglages* :
+🌍 5 langues : français, anglais, espagnol, italien, arabe — et le texte biblique existe dans les 5
+🌗 Clair, sombre ou selon ton téléphone, une charte de couleurs, la taille du texte
+📚 Active les versions que tu lis (elles se téléchargent sur ton appareil)
+✈️ Tout marche hors ligne, et se synchronise sur tous tes appareils dès que le réseau revient
+
+▶️ La vidéo ci-dessus
+📝 L'article : https://blog.oappliday.tech/reglages-bible-ouverte
+📲 L'application : https://bible-ouverte.vercel.app
+
+🙏 *Merci d'avoir suivi la série !* Elle est née de vos réponses au sondage. Une fonction vous manque ? Dites-le ici, ou dans Support & Suggestions.

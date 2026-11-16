@@ -38,8 +38,9 @@ plus que les écrans et le minutage de l'épisode.
 | 10 | Ta façon de lire, en chiffres | HyperFrames | `livrables/10-*` |
 | 11 | Tout est gardé : tes lectures | HyperFrames | `livrables/11-*` |
 | 12 | Ta voix compte | HyperFrames | `livrables/12-*` |
+| 13 | Bible Ouverte, à ton image | HyperFrames | `livrables/13-*` |
 
-Ordre convenu pour la suite : recherche dans les 15 versions,
+Ordre suivi : recherche dans les 15 versions,
 mots hébreux et grecs, progression et badges, verset du jour et rappels, quiz, mémorisation,
 statistiques, historique, messages, réglages et hors-ligne.
 
@@ -66,7 +67,7 @@ Le prochain épisode à faire est le premier de cette liste dont les livrables m
 | 10 | Statistiques | `src/app/stats`, `fr.ts › stats` | ✅ |
 | 11 | Historique | `src/app/history`, `fr.ts › history` | ✅ |
 | 12 | Ta voix compte : Messages, Support & Suggestions, Feuille de route | `src/app/messages`, `support`, `roadmap`, `fr.ts › messages, support, roadmap` | ✅ |
-| 13 | Réglages : langues, versions, thème, hors ligne | `src/app/settings`, `fr.ts › settings` | |
+| 13 | Réglages : langues, versions, thème, hors ligne | `src/app/settings`, `fr.ts › settings` | ✅ |
 
 Raccourcis : `hyperframes/nouvel-episode.sh NN dossier graine style` prépare un épisode (ressources,
 voix, musique) une fois `narration-epNN.json` écrit ; `hyperframes/couverture.sh NN "Titre," "accent" sortie.png`
@@ -76,6 +77,27 @@ Règles tenues sur toute la série : ne rien affirmer que le code ne fait pas (l
 et `fr.ts` d'abord) ; vérifier les images (`hyperframes snapshot`) avant le rendu ;
 `npm run typecheck`, `npm run lint` et `npm test` avant chaque commit ; cocher la ligne
 ci-dessus dans le même commit que les livrables.
+
+## À relire avant publication (notes de fin de série)
+
+Tous les épisodes ont été faits d'après le code de l'application (écrans, `fr.ts`, seuils,
+textes des notifications), mais **personne ne les a encore regardés ni écoutés en entier**.
+Points à connaître :
+
+- **Les chiffres affichés sont des exemples** (niveaux, séries, statistiques, scores) : ils se
+  tiennent entre eux et respectent les seuils réels, mais ce ne sont pas les données d'un compte.
+- **Épisode 1** (Remotion) : la carte hébreu/grec donne une traduction française (« au
+  commencement », « la parole ») ; dans l'application, les définitions du lexique Strong sont **en
+  anglais**. L'épisode 5 le dit explicitement.
+- **Épisode 12** réunit Messages, Support & Suggestions et la Feuille de route : l'écran Messages
+  seul ne sert qu'aux messages de l'équipe. Dans la feuille de route montrée, les trois lignes
+  « Terminé » sont des fonctionnalités réellement livrées ; « Ta prochaine idée ? » est une
+  invitation, pas un élément réel.
+- **Les liens du blog** dans les messages WhatsApp (`blog.oappliday.tech/<slug>`) sont des
+  suppositions, à corriger une fois les articles publiés.
+- **Deux défauts de l'application** trouvés en chemin, proposés en tâches séparées : l'aide
+  française du déclencheur « Longue absence » affiche le texte de l'import de document ; le thème
+  « Paix » cite Psaume 4:9, absent de la Louis Segond (le thème y montre 5 passages au lieu de 6).
 
 ## Refaire ou modifier un épisode
 
