@@ -37,6 +37,7 @@ plus que les écrans et le minutage de l'épisode.
 | 9 | Garder la Parole dans son cœur | HyperFrames | `livrables/09-*` |
 | 10 | Ta façon de lire, en chiffres | HyperFrames | `livrables/10-*` |
 | 11 | Tout est gardé : tes lectures | HyperFrames | `livrables/11-*` |
+| 12 | Ta voix compte | HyperFrames | `livrables/12-*` |
 
 Ordre convenu pour la suite : recherche dans les 15 versions,
 mots hébreux et grecs, progression et badges, verset du jour et rappels, quiz, mémorisation,
@@ -64,7 +65,7 @@ Le prochain épisode à faire est le premier de cette liste dont les livrables m
 | 9 | Mémorisation | `src/app/memorisation`, `fr.ts › memorisation` | ✅ |
 | 10 | Statistiques | `src/app/stats`, `fr.ts › stats` | ✅ |
 | 11 | Historique | `src/app/history`, `fr.ts › history` | ✅ |
-| 12 | Messages | `src/app/messages`, `fr.ts › messages` | |
+| 12 | Ta voix compte : Messages, Support & Suggestions, Feuille de route | `src/app/messages`, `support`, `roadmap`, `fr.ts › messages, support, roadmap` | ✅ |
 | 13 | Réglages : langues, versions, thème, hors ligne | `src/app/settings`, `fr.ts › settings` | |
 
 Raccourcis : `hyperframes/nouvel-episode.sh NN dossier graine style` prépare un épisode (ressources,

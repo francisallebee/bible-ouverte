@@ -1,0 +1,13 @@
+📖 *Épisode 12 : ta voix compte*
+
+Cette série est née de *votre* sondage 🙏 Bible Ouverte se construit avec ses lecteurs, et 3 écrans servent à ça :
+
+✉️ *Messages* : l'équipe t'écrit, tu peux répondre
+💡 *Support & Suggestions* : signale un bug ou propose une idée — les autres peuvent commenter, et tu es prévenu quand on te répond
+🗺️ *Feuille de route* : ce qui se prépare, ce qui est terminé — avec une notification quand une fonctionnalité arrive
+
+▶️ La vidéo ci-dessus
+📝 L'article : https://blog.oappliday.tech/ta-voix-bible-ouverte
+📲 L'application : https://bible-ouverte.vercel.app
+
+👉 *Quelle fonctionnalité vous manque le plus ?* Répondez ici, ou mieux : postez-la dans Support & Suggestions !
