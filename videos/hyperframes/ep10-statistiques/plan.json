@@ -1,0 +1,54 @@
+{
+  "id": "ep10",
+  "total": 35.04,
+  "scenes": [
+    {
+      "id": "accroche",
+      "texte": "Combien as-tu lu ce mois-ci ? Les Statistiques te le disent, d'un coup d'œil.",
+      "debut": 0.0,
+      "duree": 5.92,
+      "voix_debut": 0.35,
+      "voix_duree": 4.82
+    },
+    {
+      "id": "totaux",
+      "texte": "Le total de tes lectures, celles de la semaine et du mois. Et les chapitres de la Bible que tu as entamés.",
+      "debut": 5.92,
+      "duree": 7.77,
+      "voix_debut": 6.27,
+      "voix_duree": 6.67
+    },
+    {
+      "id": "jours",
+      "texte": "Les trente derniers jours, en barres : tu vois ton rythme, et les jours de creux.",
+      "debut": 13.69,
+      "duree": 5.42,
+      "voix_debut": 14.04,
+      "voix_duree": 4.32
+    },
+    {
+      "id": "livres",
+      "texte": "Tes dix livres les plus lus, et la répartition par contexte : méditation, culte, prédication, podcast…",
+      "debut": 19.11,
+      "duree": 7.56,
+      "voix_debut": 19.46,
+      "voix_duree": 6.46
+    },
+    {
+      "id": "versions",
+      "texte": "Et la part de chaque version de la Bible dans tes lectures.",
+      "debut": 26.67,
+      "duree": 4.03,
+      "voix_debut": 27.02,
+      "voix_duree": 2.93
+    },
+    {
+      "id": "appel",
+      "texte": "Ouvre les Statistiques, et découvre ta manière de lire.",
+      "debut": 30.7,
+      "duree": 4.34,
+      "voix_debut": 31.05,
+      "voix_duree": 3.24
+    }
+  ]
+}

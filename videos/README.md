@@ -35,6 +35,7 @@ plus que les écrans et le minutage de l'épisode.
 | 7 | Un verset chaque jour, et un rappel | HyperFrames | `livrables/07-*` |
 | 8 | T'en souviens-tu ? Le quiz de tes lectures | HyperFrames | `livrables/08-*` |
 | 9 | Garder la Parole dans son cœur | HyperFrames | `livrables/09-*` |
+| 10 | Ta façon de lire, en chiffres | HyperFrames | `livrables/10-*` |
 
 Ordre convenu pour la suite : recherche dans les 15 versions,
 mots hébreux et grecs, progression et badges, verset du jour et rappels, quiz, mémorisation,
@@ -60,7 +61,7 @@ Le prochain épisode à faire est le premier de cette liste dont les livrables m
 | 7 | Verset du jour et rappels | `src/app/verset-du-jour`, `fr.ts › versetDuJour, notifications` | ✅ |
 | 8 | Quiz | `src/app/quiz`, `fr.ts › quiz` | ✅ |
 | 9 | Mémorisation | `src/app/memorisation`, `fr.ts › memorisation` | ✅ |
-| 10 | Statistiques | `src/app/stats`, `fr.ts › stats` | |
+| 10 | Statistiques | `src/app/stats`, `fr.ts › stats` | ✅ |
 | 11 | Historique | `src/app/history`, `fr.ts › history` | |
 | 12 | Messages | `src/app/messages`, `fr.ts › messages` | |
 | 13 | Réglages : langues, versions, thème, hors ligne | `src/app/settings`, `fr.ts › settings` | |
