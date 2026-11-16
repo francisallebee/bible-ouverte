@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 .hyperframes/
 out/
 build/
@@ -7,3 +7,4 @@ build/
 *.onnx.json
 # Musiques de fond : régénérées à l'identique par outils/musique.py (graine fixe).
 musique.wav
+__pycache__/

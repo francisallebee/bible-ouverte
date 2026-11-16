@@ -18,14 +18,19 @@ d'ESLint, n'est pas servi par Next.js et a ses propres dépendances.
 | `remotion/` | L'épisode 1, fait avec **Remotion** avant que HyperFrames ne soit en place |
 | `outils/` | Musique de fond, mixage, normalisation, téléchargement de la voix |
 
+À partir de l'épisode 3, les épisodes HyperFrames s'appuient sur `hyperframes/commun.py` (fond,
+téléphone, titres d'étape, sous-titres, audio, scène finale) : `construire-epXX.py` ne décrit
+plus que les écrans et le minutage de l'épisode.
+
 ## Les épisodes
 
 | # | Titre | Outil | Fichiers |
 |---|---|---|---|
 | 1 | Pourquoi ouvrir Bible Ouverte ? | Remotion | `livrables/01-*` |
 | 2 | Ta première lecture, en moins d'une minute | HyperFrames | `livrables/02-*` |
+| 3 | Un plan de lecture, à lire ensemble | HyperFrames | `livrables/03-*` |
 
-Ordre convenu pour la suite : plans de lecture à plusieurs, recherche dans les 15 versions,
+Ordre convenu pour la suite : recherche dans les 15 versions,
 mots hébreux et grecs, progression et badges, verset du jour et rappels, quiz, mémorisation,
 statistiques, historique, messages, réglages et hors-ligne.
 
@@ -48,6 +53,8 @@ videos/outils/telecharger-voix.sh          # voix française siwis, ≈ 63 Mo
 
 ```bash
 cd videos/hyperframes && npm ci
+# chaque projet d'épisode utilise ce node_modules :
+ln -s ../node_modules ep03-plans/node_modules
 # 1. la voix : un WAV par scène + plan.json (minutage)
 ../../.venv/bin/python voix.py narration-ep02.json ep02-premiere-lecture
 # 2. la musique (déterministe : même graine, même musique)

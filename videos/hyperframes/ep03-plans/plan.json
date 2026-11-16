@@ -1,0 +1,62 @@
+{
+  "id": "ep03",
+  "total": 51.58,
+  "scenes": [
+    {
+      "id": "accroche",
+      "texte": "Lire toute la Bible, ça paraît loin. Avec un plan, il ne reste que le passage d'aujourd'hui.",
+      "debut": 0.0,
+      "duree": 7.13,
+      "voix_debut": 0.35,
+      "voix_duree": 6.03
+    },
+    {
+      "id": "catalogue",
+      "texte": "Dans « Plans de lecture », pioche un plan prêt à l'emploi : le Nouveau Testament, un proverbe par jour, les Évangiles et les Psaumes…",
+      "debut": 7.13,
+      "duree": 8.73,
+      "voix_debut": 7.48,
+      "voix_duree": 7.63
+    },
+    {
+      "id": "creer",
+      "texte": "Ou crée le tien : choisis les livres, la durée, de un mois à un an, et la date de début.",
+      "debut": 15.86,
+      "duree": 6.16,
+      "voix_debut": 16.21,
+      "voix_duree": 5.06
+    },
+    {
+      "id": "jour",
+      "texte": "Chaque jour, ton passage t'attend. Lis-le, coche-le, et ton plan avance.",
+      "debut": 22.02,
+      "duree": 6.62,
+      "voix_debut": 22.37,
+      "voix_duree": 5.52
+    },
+    {
+      "id": "partager",
+      "texte": "Et surtout, ne lis pas seul. Touche « Partager ce plan », crée un lien, et envoie-le dans ton groupe.",
+      "debut": 28.64,
+      "duree": 7.58,
+      "voix_debut": 28.99,
+      "voix_duree": 6.48
+    },
+    {
+      "id": "ensemble",
+      "texte": "Un plan partagé est un plan commun : quand l'un de vous coche un jour, tout le monde voit qui l'a lu. Et chacun garde ses propres lectures.",
+      "debut": 36.22,
+      "duree": 9.38,
+      "voix_debut": 36.57,
+      "voix_duree": 8.28
+    },
+    {
+      "id": "appel",
+      "texte": "Lance un plan ce soir, partage le lien dans le groupe, et lisez ensemble dès demain.",
+      "debut": 45.6,
+      "duree": 5.98,
+      "voix_debut": 45.95,
+      "voix_duree": 4.88
+    }
+  ]
+}
