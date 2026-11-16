@@ -1,0 +1,16 @@
+📖 *Épisode 5 : lis la Bible au plus près de sa source*
+
+Derrière « la Parole » de Jean 1:1, il y a un mot grec : *λόγος*. Derrière « Au commencement », un mot hébreu : *בְּרֵאשִׁית* ✨
+
+Dans *Bible Ouverte* :
+⚙️ Réglages → active le lexique *grec* ou *hébreu*
+📜 Ouvre une lecture → *Voir le texte original*
+👆 Touche un mot → sa fiche Strong : numéro, prononciation, définition
+
+ℹ️ Les définitions du lexique Strong sont en anglais, mais les numéros (G3056, H7225…) se retrouvent dans tous les dictionnaires bibliques.
+
+▶️ La vidéo ci-dessus
+📝 L'article : https://blog.oappliday.tech/hebreu-grec-bible-ouverte
+📲 L'application : https://bible-ouverte.vercel.app
+
+👉 *Quel mot hébreu ou grec aimeriez-vous découvrir ?*
