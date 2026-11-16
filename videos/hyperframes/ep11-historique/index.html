@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="fr" data-resolution="portrait">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<script src="vendor/gsap.min.js"></script>
+<style>
+
+@font-face { font-family: Lora; src: url(assets/fonts/lora-latin-600-normal.woff2); font-weight: 600; }
+@font-face { font-family: Lora; src: url(assets/fonts/lora-latin-400-italic.woff2); font-weight: 400; font-style: italic; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-400-normal.woff2); font-weight: 400; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-600-normal.woff2); font-weight: 600; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-700-normal.woff2); font-weight: 700; }
+:root {
+  --nuit: #0a1626; --bleu: #1e3a5f; --or: #e9b949; --or-clair: #f0d089; --violet: #9d8dff; --violet-f: #7b68ee;
+  --vert: #2ecc71; --blanc: #fff; --t2: rgba(255,255,255,.68); --bord: rgba(255,255,255,.14);
+  --app-fond: #f8f9fb; --app-texte: #1e293b; --app-gris: #64748b; --app-bord: #e2e8f0;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit); }
+#root { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: Inter, sans-serif; color: var(--blanc); }
+.clip { position: absolute; inset: 0; }
+.tache { position: absolute; border-radius: 50%; filter: blur(140px); }
+#t1 { left: -320px; top: -260px; width: 1100px; height: 1100px; background: var(--bleu); opacity: .75; }
+#t2 { left: 520px; top: 300px; width: 900px; height: 900px; background: var(--violet-f); opacity: .28; }
+#t3 { left: 60px; top: 1350px; width: 900px; height: 900px; background: var(--or); opacity: .13; }
+#grille { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 90px 90px; -webkit-mask-image: radial-gradient(ellipse at 50% 35%, black 20%, transparent 75%); }
+.degrade { background: linear-gradient(90deg, var(--or), var(--or-clair) 45%, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+h1 { font-family: Lora, serif; font-weight: 600; font-size: 104px; line-height: 1.06; letter-spacing: -1px; text-align: center; }
+.titre-scene { position: absolute; left: 80px; right: 80px; }
+.etape { position: absolute; top: 150px; left: 80px; right: 80px; display: flex; align-items: center; justify-content: center; gap: 26px; }
+.num { width: 86px; height: 86px; border-radius: 50%; background: var(--or); color: var(--nuit); font-weight: 700; font-size: 48px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.et-titre { font-family: Lora, serif; font-weight: 600; font-size: 74px; letter-spacing: -1px; }
+#tel { position: absolute; inset: auto; left: 215px; top: 300px; width: 650px; height: 1150px; border-radius: 84px; background: #0b1220; border: 12px solid #26334a; box-shadow: 0 60px 120px -30px rgba(0,0,0,.7), 0 0 0 2px rgba(255,255,255,.08); }
+#ecran { position: absolute; inset: 0; border-radius: 72px; overflow: hidden; background: var(--app-fond); color: var(--app-texte); }
+#encoche { position: absolute; top: 18px; left: 50%; width: 150px; height: 36px; margin-left: -75px; border-radius: 20px; background: #0b1220; z-index: 20; }
+#barre { position: absolute; top: 0; left: 0; right: 0; height: 128px; padding: 66px 40px 0; background: var(--bleu); color: #fff; font-weight: 700; font-size: 30px; display: flex; gap: 16px; align-items: center; z-index: 15; }
+#barre img { width: 44px; height: 44px; border-radius: 12px; }
+.panneau { position: absolute; top: 128px; left: 0; right: 0; bottom: 0; padding: 34px 34px; background: var(--app-fond); opacity: 0; }
+.app-h { font-size: 40px; font-weight: 700; }
+.app-sous { font-size: 25px; color: var(--app-gris); margin-top: 6px; margin-bottom: 24px; }
+.champ { background: #fff; border: 2px solid var(--app-bord); border-radius: 20px; padding: 16px 22px; margin-bottom: 16px; }
+.lab { font-size: 21px; color: var(--app-gris); font-weight: 600; margin-bottom: 6px; }
+.val { font-size: 29px; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 12px; }
+.chip { font-size: 24px; font-weight: 600; padding: 10px 20px; border-radius: 999px; background: #eef2f7; color: var(--bleu); }
+.bouton { background: var(--bleu); color: #fff; font-size: 29px; font-weight: 700; text-align: center; padding: 24px; border-radius: 22px; }
+#tap { position: absolute; width: 90px; height: 90px; border-radius: 50%; background: rgba(233,185,73,.55); border: 4px solid var(--or); opacity: 0; z-index: 30; }
+#ap { position: absolute; top: 330px; left: 80px; right: 80px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+#ap-icone { width: 250px; height: 250px; border-radius: 62px; box-shadow: 0 0 140px 30px rgba(233,185,73,.35); }
+#ap h1 { margin-top: 64px; }
+#ap-sous { font-size: 44px; color: var(--t2); margin-top: 26px; line-height: 1.3; }
+#ap-url { margin-top: 80px; font-size: 50px; font-weight: 700; color: var(--nuit); background: var(--or); padding: 28px 50px; border-radius: 999px; }
+.st { display: flex; justify-content: center; align-items: flex-end; padding: 0 80px 150px; }
+.st span { font-weight: 600; font-size: 44px; line-height: 1.3; text-align: center; color: #fff; background: rgba(5,12,24,.72); border: 1px solid var(--bord); border-radius: 28px; padding: 22px 34px; }
+
+
+#pile { position: absolute; top: 640px; left: 190px; right: 190px; height: 420px; }
+.fiche { position: absolute; inset: 0; border-radius: 34px; background: #fff; box-shadow: 0 40px 80px -20px rgba(0,0,0,.6); }
+.f3 { transform: rotate(-7deg) translateY(30px); opacity: .5; } .f2 { transform: rotate(4deg) translateY(14px); opacity: .75; }
+.f1 { padding: 44px; color: var(--app-texte); } .f1 b { font-size: 44px; color: var(--bleu); } .f1 p { font-family: Lora, serif; font-style: italic; font-size: 40px; line-height: 1.45; color: #78350f; margin-top: 20px; }
+.resume { margin-top: 12px; font-size: 23px; color: var(--app-gris); background: #f1f5f9; border-radius: 14px; padding: 12px 16px; }
+.resume b { color: var(--app-texte); }
+.rech { position: relative; margin-top: 14px; background: #fff; border: 2px solid var(--app-bord); border-radius: 16px; padding: 14px 16px 14px 54px; font-size: 24px; height: 62px; }
+.loupe { position: absolute; left: 18px; top: 17px; width: 22px; height: 22px; border: 3px solid #94a3b8; border-radius: 50%; }
+.rech-ph { color: #94a3b8; position: absolute; left: 54px; top: 15px; } .rech-t { position: absolute; left: 54px; top: 15px; font-weight: 600; overflow: hidden; white-space: nowrap; width: 0; }
+.grp { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
+.grp .chip { font-size: 21px; padding: 8px 14px; } .chip.sel { background: var(--bleu); color: #fff; }
+.barre-sel { display: flex; align-items: center; gap: 10px; background: #eef2ff; border: 2px solid #c7d2fe; border-radius: 16px; padding: 10px 14px; margin-bottom: 12px; opacity: 0; height: 0; overflow: hidden; }
+.barre-sel b { font-size: 21px; flex: 1; } .mini { font-size: 20px; padding: 10px 16px; }
+.lec { position: relative; background: #fff; border: 2px solid var(--app-bord); border-radius: 18px; padding: 16px 18px 16px 18px; margin-bottom: 10px; }
+.lec-h { display: flex; justify-content: space-between; } .lec-h b { font-size: 25px; } .d { font-size: 20px; color: var(--app-gris); }
+.ctx { display: inline-block; font-size: 18px; font-weight: 700; padding: 4px 12px; border-radius: 999px; margin-top: 6px; }
+.note { font-size: 20px; color: #475569; margin-top: 6px; line-height: 1.35; }
+.coche { position: absolute; right: 18px; bottom: 16px; width: 30px; height: 30px; border-radius: 8px; border: 3px solid #cbd5e1; opacity: 0; }
+mark { background: #fde68a; color: inherit; border-radius: 4px; padding: 0 2px; }
+.retour { font-size: 22px; color: var(--bleu); font-weight: 600; }
+.texte-b { font-family: Lora, serif; font-size: 23px; line-height: 1.45; color: #78350f; background: #fffbeb; border: 2px solid #fde68a; border-radius: 18px; padding: 16px 18px; }
+.texte-b .lab { display: block; font-family: Inter; } .texte-b sup { font-family: Inter; font-size: 14px; color: #b45309; margin-right: 3px; }
+.bloc { background: #fff; border: 2px solid var(--app-bord); border-radius: 18px; padding: 14px 18px; margin-top: 10px; opacity: 0; }
+.bloc p { font-size: 22px; line-height: 1.4; margin-top: 2px; }
+.photo { display: flex; gap: 8px; margin-top: 4px; } .photo i { width: 110px; height: 76px; border-radius: 10px; background: linear-gradient(135deg, #fde68a, #e9d5ff); }
+.photo i:nth-child(2) { background: linear-gradient(135deg, #bfdbfe, #fef3c7); } .photo i:nth-child(3) { background: linear-gradient(135deg, #bbf7d0, #fde68a); } .photo i:nth-child(4) { background: linear-gradient(135deg, #fecaca, #ddd6fe); }
+.audio { display: flex; align-items: center; gap: 12px; margin-top: 4px; font-size: 20px; color: var(--app-gris); }
+.play { width: 44px; height: 44px; border-radius: 50%; background: var(--bleu); position: relative; flex-shrink: 0; }
+.play::after { content: ""; position: absolute; left: 17px; top: 13px; border-left: 14px solid #fff; border-top: 9px solid transparent; border-bottom: 9px solid transparent; }
+.onde { flex: 1; display: flex; align-items: center; gap: 4px; height: 44px; } .onde i { flex: 1; background: #93c5fd; border-radius: 3px; }
+.lien { color: var(--bleu); text-decoration: underline; }
+
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="41.55" data-width="1080" data-height="1920">
+<div id="fond" class="clip" data-start="0" data-duration="41.55" data-track-index="0">
+  <div class="tache" id="t1"></div><div class="tache" id="t2"></div><div class="tache" id="t3"></div><div id="grille"></div>
+</div>
+
+<section id="sc-accroche" class="clip scene" data-start="0.0" data-duration="6.23" data-track-index="1">
+  <h1 class="titre-scene" style="top:240px">Tout est<br/><span class="degrade">gardé</span></h1>
+  <div id="pile"><div class="fiche f3"></div><div class="fiche f2"></div><div class="fiche f1"><b>Psaumes 23:1-6</b><p>Il me conduit près des eaux paisibles : je n’ai pas à tout porter seul.</p></div></div>
+</section>
+<section id="sc-liste" class="clip scene" data-start="6.23" data-duration="10.71" data-track-index="1"><div class="etape"><span class="num">1</span><span class="et-titre">Mes lectures</span></div></section>
+<section id="sc-chercher" class="clip scene" data-start="16.94" data-duration="7.58" data-track-index="1"><div class="etape"><span class="num">2</span><span class="et-titre">Retrouve</span></div></section>
+<section id="sc-detail" class="clip scene" data-start="24.52" data-duration="7.73" data-track-index="1"><div class="etape"><span class="num">3</span><span class="et-titre">Tout y est</span></div></section>
+<section id="sc-plusieurs" class="clip scene" data-start="32.25" data-duration="5.13" data-track-index="1"><div class="etape"><span class="num">4</span><span class="et-titre">D’un seul geste</span></div></section>
+<div id="tel" class="clip" data-start="6.23" data-duration="31.15" data-track-index="2">
+  <div id="ecran">
+    <div id="encoche"></div>
+    <div id="barre"><img src="assets/img/icon-512.png"/>Bible Ouverte</div>
+    
+<div class="panneau" id="p-liste" style="opacity:1">
+  <div class="app-h">Mes lectures</div>
+  <div class="resume" id="resume"><b id="r-n">12 lectures</b> · <span id="r-l">6 livres</span> · <span id="r-p">du 1 nov. au 16 nov.</span></div>
+  <div class="rech"><span class="loupe"></span><span class="rech-ph" id="rech-ph">Rechercher dans les notes ou le texte…</span><span class="rech-t" id="rech-t">berger</span></div>
+  <div class="grp"><span class="lab" style="margin:0">Regrouper par</span><span class="chip sel" id="g-date">Date</span><span class="chip" id="g-livre">Livre</span><span class="chip" id="g-ctx">Contexte</span></div>
+  <div class="barre-sel" id="barre-sel"><b id="nsel">0 sélectionnée</b><span class="chip sel">Méditation</span><span class="bouton mini">Appliquer</span></div>
+  <div id="liste"><div class="lec" id="l0"><div class="lec-h"><b>Psaumes 23:1-6</b><span class="d">16 nov.</span></div>
+    <div class="lec-m"><span class="ctx" style="background:#2ecc7122;color:#2ecc71">Méditation</span></div>
+    <p class="note">Il me conduit près des eaux paisibles : je n’ai pas à tout porter seul.</p><span class="coche" id="l0-c"></span></div><div class="lec" id="l1"><div class="lec-h"><b>Jean 14:27</b><span class="d">15 nov.</span></div>
+    <div class="lec-m"><span class="ctx" style="background:#2ecc7122;color:#2ecc71">Méditation</span></div>
+    <p class="note">La paix qu’il donne n’est pas celle du monde.</p><span class="coche" id="l1-c"></span></div><div class="lec" id="l2"><div class="lec-h"><b>Matthieu 5:13-16</b><span class="d">15 nov.</span></div>
+    <div class="lec-m"><span class="ctx" style="background:#9b59b622;color:#9b59b6">Prédication</span></div>
+    <p class="note">Sel et lumière : être, pas seulement faire.</p><span class="coche" id="l2-c"></span></div><div class="lec" id="l3"><div class="lec-h"><b>Jean 10:1-18</b><span class="d">14 nov.</span></div>
+    <div class="lec-m"><span class="ctx" style="background:#7b68ee22;color:#7b68ee">Église</span></div>
+    <p class="note">Le bon berger connaît ses brebis.</p><span class="coche" id="l3-c"></span></div><div class="lec" id="l4"><div class="lec-h"><b>Psaumes 119:105</b><span class="d">12 nov.</span></div>
+    <div class="lec-m"><span class="ctx" style="background:#6d4c4122;color:#6d4c41">Bible</span></div>
+    <span class="coche" id="l4-c"></span></div></div>
+</div>
+
+<div class="panneau" id="p-detail">
+  <div class="retour">← Retour à l’historique</div>
+  <div class="app-h" style="margin-top:8px">Psaumes 23:1-6</div>
+  <div class="app-sous">16 novembre · Version : Louis Segond 1910 · <span style="color:#16a34a;font-weight:700">Méditation</span></div>
+  <div class="texte-b"><span class="lab">Texte biblique</span><sup>1</sup>Cantique de David. L’Eternel est mon berger : je ne manquerai de rien. <sup>2</sup>Il me fait reposer dans de verts pâturages, Il me dirige près des eaux paisibles…</div>
+  <div class="bloc" id="d-notes"><span class="lab">Notes</span><p>Il me conduit près des eaux paisibles : je n’ai pas à tout porter seul.</p></div>
+  <div class="bloc" id="d-photo"><span class="lab">Photos</span><div class="photo"><i></i><i></i><i></i><i></i></div></div>
+  <div class="bloc" id="d-audio"><span class="lab">Audio</span><div class="audio"><span class="play"></span><div class="onde"><i style="height:10px"></i><i style="height:22px"></i><i style="height:34px"></i><i style="height:18px"></i><i style="height:40px"></i><i style="height:28px"></i><i style="height:14px"></i><i style="height:36px"></i><i style="height:24px"></i><i style="height:12px"></i><i style="height:30px"></i><i style="height:20px"></i><i style="height:38px"></i><i style="height:16px"></i><i style="height:26px"></i><i style="height:10px"></i><i style="height:32px"></i><i style="height:22px"></i></div><span>0:42</span></div></div>
+  <div class="bloc" id="d-lien"><span class="lab">Liens</span><p class="lien">Prédication du dimanche — Psaume 23</p></div>
+</div>
+
+    <div id="tap"></div>
+  </div>
+</div>
+<section id="sc-appel" class="clip scene" data-start="37.38" data-duration="4.17" data-track-index="1">
+  <div id="ap"><img id="ap-icone" src="assets/img/icon-512.png"/>
+  <h1>Relis <span class="degrade">ton chemin</span></h1>
+  <div id="ap-sous">Toutes tes lectures, et ce qu’elles t’ont laissé.</div>
+  <div id="ap-url">bible-ouverte.vercel.app</div></div></section>
+
+<div class="clip st" id="st0" data-start="0.35" data-duration="2.84" data-track-index="5"><span>Où avais-tu noté cette pensée sur les Psaumes ?</span></div>
+<div class="clip st" id="st1" data-start="3.19" data-duration="2.89" data-track-index="5"><span>Dans « Mes lectures », tout est gardé.</span></div>
+<div class="clip st" id="st2" data-start="6.58" data-duration="4.6" data-track-index="5"><span>Toutes tes lectures, regroupées par date, par livre, ou par contexte.</span></div>
+<div class="clip st" id="st3" data-start="11.18" data-duration="5.61" data-track-index="5"><span>En tête, un résumé : combien de lectures, de livres, et sur quelle période.</span></div>
+<div class="clip st" id="st4" data-start="17.29" data-duration="3.69" data-track-index="5"><span>Cherche un mot dans tes notes, ou dans le texte : « berger ».</span></div>
+<div class="clip st" id="st5" data-start="20.98" data-duration="3.39" data-track-index="5"><span>Tu peux aussi filtrer par livre, ou par dates.</span></div>
+<div class="clip st" id="st6" data-start="24.87" data-duration="7.23" data-track-index="5"><span>Touche une lecture : tu retrouves le texte biblique, tes notes, tes photos, ton mémo vocal et tes liens.</span></div>
+<div class="clip st" id="st7" data-start="32.6" data-duration="4.63" data-track-index="5"><span>Sélectionne-en plusieurs pour leur appliquer un contexte d&#x27;un seul geste.</span></div>
+<div class="clip st" id="st8" data-start="37.73" data-duration="3.67" data-track-index="5"><span>Ouvre « Mes lectures », et relis le chemin parcouru.</span></div>
+<audio id="voix-accroche" class="clip" src="assets/voix/accroche.wav" data-start="0.35" data-duration="5.13" data-track-index="10"></audio>
+<audio id="voix-liste" class="clip" src="assets/voix/liste.wav" data-start="6.58" data-duration="9.61" data-track-index="10"></audio>
+<audio id="voix-chercher" class="clip" src="assets/voix/chercher.wav" data-start="17.29" data-duration="6.48" data-track-index="10"></audio>
+<audio id="voix-detail" class="clip" src="assets/voix/detail.wav" data-start="24.87" data-duration="6.63" data-track-index="10"></audio>
+<audio id="voix-plusieurs" class="clip" src="assets/voix/plusieurs.wav" data-start="32.6" data-duration="4.03" data-track-index="10"></audio>
+<audio id="voix-appel" class="clip" src="assets/voix/appel.wav" data-start="37.73" data-duration="3.07" data-track-index="10"></audio>
+<audio id="musique" class="clip" src="assets/musique.wav" data-start="0" data-duration="41.55" data-volume="0.11" data-fade-out="2" data-track-index="11"></audio>
+</div>
+<script>
+
+const tl = gsap.timeline({ paused: true });
+const E = "power3.out";
+tl.to("#t1", { x: 70, y: 90, duration: 41.55, ease: "sine.inOut" }, 0);
+tl.to("#t2", { x: -80, y: -60, duration: 41.55, ease: "sine.inOut" }, 0);
+tl.to("#t3", { x: 60, y: -70, duration: 41.55, ease: "sine.inOut" }, 0);
+document.querySelectorAll(".st span").forEach((el) => {
+  tl.fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.25, ease: E }, parseFloat(el.parentElement.dataset.start));
+});
+["liste", "chercher", "detail", "plusieurs"].forEach((id) => {
+  const t0 = parseFloat(document.getElementById("sc-" + id).dataset.start);
+  tl.fromTo("#sc-" + id + " .etape, #sc-" + id + " .titre-scene", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, t0 + 0.05);
+});
+const tap = (x, y, t) => {
+  tl.set("#tap", { left: x - 45, top: y - 45, scale: 0.5 }, t);
+  tl.to("#tap", { opacity: 1, scale: 1, duration: 0.18, ease: E }, t);
+  tl.to("#tap", { opacity: 0, scale: 1.5, duration: 0.35, ease: "power1.out" }, t + 0.22);
+};
+const montre = (sel, t) => tl.fromTo(sel, { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.45, ease: E, immediateRender: false }, t);
+const cache = (sel, t) => tl.to(sel, { opacity: 0, x: -60, duration: 0.35, ease: "power2.in" }, t);
+tl.fromTo("#ap-icone", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.6)" }, 37.480000000000004);
+tl.fromTo("#ap h1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 37.88);
+tl.fromTo("#ap-sous", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 38.480000000000004);
+tl.fromTo("#ap-url", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 39.78);
+
+// 0. accroche
+tl.fromTo("#sc-accroche h1", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 0.15);
+tl.fromTo("#pile .fiche", { opacity: 0, y: 80 }, { opacity: (i) => [0.5, 0.75, 1][i], y: 0, duration: 0.6, stagger: 0.25, ease: E }, 1.2);
+
+// 1. la liste, ses regroupements, son résumé
+tl.fromTo("#tel", { opacity: 0, y: 120 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 6.23);
+tl.fromTo(".lec", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.12, ease: E }, 6.73);
+const regroupe = (on, t) => { ["#g-date", "#g-livre", "#g-ctx"].forEach((id) => tl.set(id, { className: "chip" + (id === on ? " sel" : "") }, t)); };
+tap(330, 360, 9.58); regroupe("#g-livre", 9.68);
+tap(470, 360, 10.48); regroupe("#g-ctx", 10.58);
+regroupe("#g-date", 11.98);
+tl.fromTo("#resume", { backgroundColor: "#f1f5f9" }, { backgroundColor: "#fde68a", duration: 0.4, yoyo: true, repeat: 1 }, 13.18);
+
+// 2. chercher « berger »
+tl.to("#rech-ph", { opacity: 0, duration: 0.1 }, 19.29);
+tl.to("#rech-t", { width: 110, duration: 0.7, ease: "steps(6)" }, 19.29);
+tl.to("#l1, #l2, #l4", { opacity: 0, duration: 0.25 }, 20.19);
+tl.set("#l1, #l2, #l4", { display: "none" }, 20.44);
+tl.set("#r-n", { textContent: "2 lectures" }, 20.19);
+tl.set("#r-p", { textContent: "du 14 nov. au 16 nov." }, 20.19);
+tl.set("#r-l", { textContent: "2 livres" }, 20.19);
+tl.set("#l3 .note", { innerHTML: "Le bon <mark>berger</mark> connaît ses brebis." }, 20.39);
+
+// 3. le détail
+tap(313, 470, 25.17);
+cache("#p-liste", 25.37);
+montre("#p-detail", 25.57);
+tl.fromTo(".texte-b", { boxShadow: "0 0 0 0 rgba(233,185,73,0)" }, { boxShadow: "0 0 0 6px rgba(233,185,73,.4)", duration: 0.35, yoyo: true, repeat: 1 }, 26.47);
+["#d-notes", "#d-photo", "#d-audio", "#d-lien"].forEach((id, k) => tl.fromTo(id, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: E }, 27.47 + k * [0, 0.9, 1.7, 2.6][k] / Math.max(k, 1)));
+tl.fromTo(".onde i", { scaleY: 0.3 }, { scaleY: 1, duration: 0.25, stagger: 0.03, yoyo: true, repeat: 3 }, 29.47);
+
+// 4. sélection multiple
+cache("#p-detail", 32.25);
+tl.set("#rech-t", { width: 0 }, 32.25);
+tl.set("#rech-ph", { opacity: 1 }, 32.25);
+tl.set("#l1, #l2, #l4", { display: "block", opacity: 1 }, 32.25);
+tl.set("#r-n", { textContent: "12 lectures" }, 32.25);
+tl.set("#r-l", { textContent: "6 livres" }, 32.25);
+tl.set("#r-p", { textContent: "du 1 nov. au 16 nov." }, 32.25);
+montre("#p-liste", 32.45);
+tl.to(".coche", { opacity: 1, duration: 0.2 }, 32.9);
+tl.to("#barre-sel", { opacity: 1, height: 64, duration: 0.3 }, 32.9);
+["#l2", "#l3", "#l4"].forEach((id, k) => {
+  tl.to(id + "-c", { backgroundColor: "#1e3a5f", borderColor: "#1e3a5f", duration: 0.15 }, 33.5 + k * 0.5);
+  tl.to(id, { borderColor: "#93c5fd", duration: 0.15 }, 33.5 + k * 0.5);
+  tl.set("#nsel", { textContent: (k + 1) + " sélectionnée" + (k ? "s" : "") }, 33.5 + k * 0.5);
+});
+tap(560, 470, 35.8);
+["#l2", "#l3", "#l4"].forEach((id) => tl.set(id + " .ctx", { textContent: "Méditation", color: "#2ecc71", backgroundColor: "#2ecc7122" }, 36.0));
+tl.to("#tel", { opacity: 0, y: 60, duration: 0.45 }, 36.93);
+
+window.__timelines = window.__timelines || {};
+window.__timelines["main"] = tl;
+tl.seek(0);
+</script>
+</body>
+</html>

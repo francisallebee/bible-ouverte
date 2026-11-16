@@ -98,7 +98,7 @@ const tap = (x, y, t) => {{
   tl.to("#tap", {{ opacity: 1, scale: 1, duration: 0.18, ease: E }}, t);
   tl.to("#tap", {{ opacity: 0, scale: 1.5, duration: 0.35, ease: "power1.out" }}, t + 0.22);
 }};
-const montre = (sel, t) => tl.fromTo(sel, {{ opacity: 0, x: 60 }}, {{ opacity: 1, x: 0, duration: 0.45, ease: E }}, t);
+const montre = (sel, t) => tl.fromTo(sel, {{ opacity: 0, x: 60 }}, {{ opacity: 1, x: 0, duration: 0.45, ease: E, immediateRender: false }}, t);
 const cache = (sel, t) => tl.to(sel, {{ opacity: 0, x: -60, duration: 0.35, ease: "power2.in" }}, t);
 tl.fromTo("#ap-icone", {{ opacity: 0, scale: 0.6 }}, {{ opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.6)" }}, {a + 0.1});
 tl.fromTo("#ap h1", {{ opacity: 0, y: 40 }}, {{ opacity: 1, y: 0, duration: 0.6, ease: E }}, {a + 0.5});

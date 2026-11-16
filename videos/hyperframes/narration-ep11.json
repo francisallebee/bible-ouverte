@@ -1,0 +1,12 @@
+{
+  "id": "ep11",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Où avais-tu noté cette pensée sur les Psaumes ? Dans « Mes lectures », tout est gardé." },
+    { "id": "liste", "texte": "Toutes tes lectures, regroupées par date, par livre, ou par contexte. En tête, un résumé : combien de lectures, de livres, et sur quelle période." },
+    { "id": "chercher", "texte": "Cherche un mot dans tes notes, ou dans le texte : « berger ». Tu peux aussi filtrer par livre, ou par dates." },
+    { "id": "detail", "texte": "Touche une lecture : tu retrouves le texte biblique, tes notes, tes photos, ton mémo vocal et tes liens." },
+    { "id": "plusieurs", "texte": "Sélectionne-en plusieurs pour leur appliquer un contexte d'un seul geste." },
+    { "id": "appel", "texte": "Ouvre « Mes lectures », et relis le chemin parcouru." }
+  ]
+}
