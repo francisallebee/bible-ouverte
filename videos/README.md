@@ -29,6 +29,7 @@ plus que les écrans et le minutage de l'épisode.
 | 1 | Pourquoi ouvrir Bible Ouverte ? | Remotion | `livrables/01-*` |
 | 2 | Ta première lecture, en moins d'une minute | HyperFrames | `livrables/02-*` |
 | 3 | Un plan de lecture, à lire ensemble | HyperFrames | `livrables/03-*` |
+| 4 | Retrouve n'importe quel verset, dans 15 versions | HyperFrames | `livrables/04-*` |
 
 Ordre convenu pour la suite : recherche dans les 15 versions,
 mots hébreux et grecs, progression et badges, verset du jour et rappels, quiz, mémorisation,
@@ -48,7 +49,7 @@ Le prochain épisode à faire est le premier de cette liste dont les livrables m
 | 1 | Pourquoi Bible Ouverte | — | ✅ |
 | 2 | Noter une lecture | `src/app/new-reading`, `fr.ts › newReading` | ✅ |
 | 3 | Plans de lecture à plusieurs | `src/app/plans`, `fr.ts › plans, planCatalog, partage` | ✅ |
-| 4 | Recherche dans les 15 versions | `src/app/search`, `fr.ts › search` | |
+| 4 | Recherche dans les 15 versions | `src/app/search`, `fr.ts › search` | ✅ |
 | 5 | Mots hébreux et grecs (Strong, originaux) | `features/bible/strong.ts`, `originaux.ts`, `fr.ts › strong` | |
 | 6 | Progression et badges | `src/app/progress`, `fr.ts › progress` | |
 | 7 | Verset du jour et rappels | `src/app/verset-du-jour`, `fr.ts › versetDuJour, notifications` | |
@@ -58,6 +59,10 @@ Le prochain épisode à faire est le premier de cette liste dont les livrables m
 | 11 | Historique | `src/app/history`, `fr.ts › history` | |
 | 12 | Messages | `src/app/messages`, `fr.ts › messages` | |
 | 13 | Réglages : langues, versions, thème, hors ligne | `src/app/settings`, `fr.ts › settings` | |
+
+Raccourcis : `hyperframes/nouvel-episode.sh NN dossier graine style` prépare un épisode (ressources,
+voix, musique) une fois `narration-epNN.json` écrit ; `hyperframes/couverture.sh NN "Titre," "accent" sortie.png`
+fait son image de blog.
 
 Règles tenues sur toute la série : ne rien affirmer que le code ne fait pas (lire l'écran
 et `fr.ts` d'abord) ; vérifier les images (`hyperframes snapshot`) avant le rendu ;
