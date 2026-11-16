@@ -1,0 +1,12 @@
+{
+  "id": "ep07",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Chaque jour, un verset t'attend. Et un rappel discret, pour ne pas oublier ta lecture." },
+    { "id": "verset", "texte": "Le verset du jour est tiré de tes propres lectures. Il reste le même toute la journée." },
+    { "id": "lu", "texte": "Touche « J'ai lu ce verset » : il rejoint tes lectures, et tes statistiques avancent." },
+    { "id": "rappel", "texte": "Dans les Réglages, autorise les notifications, et choisis l'heure de ton rappel quotidien." },
+    { "id": "autres", "texte": "Tu peux aussi être prévenu quand un jour de ton plan attend. Sur iPhone, ajoute d'abord l'application à ton écran d'accueil." },
+    { "id": "appel", "texte": "Active ton rappel, et laisse la Parole venir à toi, chaque jour." }
+  ]
+}

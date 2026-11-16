@@ -1,0 +1,13 @@
+📖 *Épisode 7 : un verset chaque jour*
+
+☀️ Le *verset du jour* de Bible Ouverte vient de *tes propres lectures* : une façon de revenir sur un passage déjà lu. Touche « J'ai lu ce verset » et il rejoint tes lectures.
+
+🔔 Et pour ne pas oublier : Réglages → *Notifications* → active le *Rappel quotidien* à l'heure de ton choix.
+
+📱 Sur iPhone : dans Safari, Partager → « Sur l'écran d'accueil », puis active les notifications depuis l'icône.
+
+▶️ La vidéo ci-dessus
+📝 L'article : https://blog.oappliday.tech/verset-du-jour-bible-ouverte
+📲 L'application : https://bible-ouverte.vercel.app
+
+👉 *Quel est votre verset du jour aujourd'hui ?* Partagez-le ici !

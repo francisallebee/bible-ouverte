@@ -32,6 +32,7 @@ plus que les écrans et le minutage de l'épisode.
 | 4 | Retrouve n'importe quel verset, dans 15 versions | HyperFrames | `livrables/04-*` |
 | 5 | L'hébreu et le grec, mot à mot | HyperFrames | `livrables/05-*` |
 | 6 | Chaque chapitre compte | HyperFrames | `livrables/06-*` |
+| 7 | Un verset chaque jour, et un rappel | HyperFrames | `livrables/07-*` |
 
 Ordre convenu pour la suite : recherche dans les 15 versions,
 mots hébreux et grecs, progression et badges, verset du jour et rappels, quiz, mémorisation,
@@ -54,7 +55,7 @@ Le prochain épisode à faire est le premier de cette liste dont les livrables m
 | 4 | Recherche dans les 15 versions | `src/app/search`, `fr.ts › search` | ✅ |
 | 5 | Mots hébreux et grecs (Strong, originaux) | `features/bible/strong.ts`, `originaux.ts`, `fr.ts › strong` | ✅ |
 | 6 | Progression et badges | `src/app/progress`, `fr.ts › progress` | ✅ |
-| 7 | Verset du jour et rappels | `src/app/verset-du-jour`, `fr.ts › versetDuJour, notifications` | |
+| 7 | Verset du jour et rappels | `src/app/verset-du-jour`, `fr.ts › versetDuJour, notifications` | ✅ |
 | 8 | Quiz | `src/app/quiz`, `fr.ts › quiz` | |
 | 9 | Mémorisation | `src/app/memorisation`, `fr.ts › memorisation` | |
 | 10 | Statistiques | `src/app/stats`, `fr.ts › stats` | |
