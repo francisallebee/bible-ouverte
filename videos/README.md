@@ -1,0 +1,101 @@
+# Vidéos — « Bible Ouverte, fonction par fonction »
+
+Série de vidéos courtes (verticales 1080 × 1920, ~55 s, voix off française, sous-titres
+incrustés, musique de fond) en réponse au sondage des utilisateurs du groupe WhatsApp
+**Bible-Ouverte.app** de la communauté Ôappliday. Chaque épisode est accompagné d'un
+article et d'une image pour **blog.oappliday.tech**, et d'un message prêt à poster dans
+le groupe.
+
+Ce dossier est **indépendant de l'application** : il est exclu de `tsconfig.json` et
+d'ESLint, n'est pas servi par Next.js et a ses propres dépendances.
+
+## Où trouver quoi
+
+| Dossier | Contenu |
+|---|---|
+| `livrables/` | **Ce qui se publie** : les MP4, les images de blog (1200 × 630), les articles (`.md`), les messages WhatsApp (`.txt`), les essais de voix |
+| `hyperframes/` | Les épisodes faits avec **HyperFrames** (à partir de l'épisode 2) et le gabarit de couverture de blog |
+| `remotion/` | L'épisode 1, fait avec **Remotion** avant que HyperFrames ne soit en place |
+| `outils/` | Musique de fond, mixage, normalisation, téléchargement de la voix |
+
+## Les épisodes
+
+| # | Titre | Outil | Fichiers |
+|---|---|---|---|
+| 1 | Pourquoi ouvrir Bible Ouverte ? | Remotion | `livrables/01-*` |
+| 2 | Ta première lecture, en moins d'une minute | HyperFrames | `livrables/02-*` |
+
+Ordre convenu pour la suite : plans de lecture à plusieurs, recherche dans les 15 versions,
+mots hébreux et grecs, progression et badges, verset du jour et rappels, quiz, mémorisation,
+statistiques, historique, messages, réglages et hors-ligne.
+
+Les liens vers le blog écrits dans les messages WhatsApp (`blog.oappliday.tech/<slug>`) sont
+des **suppositions** : les corriger une fois l'article publié.
+
+## Refaire ou modifier un épisode
+
+### Prérequis (une fois)
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install piper-tts numpy
+export PIPER="$PWD/.venv/bin/piper"
+videos/outils/telecharger-voix.sh          # voix française siwis, ≈ 63 Mo
+```
+
+`ffmpeg` doit être installé. HyperFrames et Remotion utilisent Chrome / Chromium.
+
+### Épisode HyperFrames (ex. épisode 2)
+
+```bash
+cd videos/hyperframes && npm ci
+# 1. la voix : un WAV par scène + plan.json (minutage)
+../../.venv/bin/python voix.py narration-ep02.json ep02-premiere-lecture
+# 2. la musique (déterministe : même graine, même musique)
+../../.venv/bin/python ../outils/musique.py "$(python3 -c "import json;print(json.load(open('ep02-premiere-lecture/plan.json'))['total'])")" ep02-premiere-lecture/assets/musique.wav 11 lumineux
+# 3. la composition, calée sur la voix
+python3 construire-ep02.py ep02-premiere-lecture
+# 4. vérifier, regarder, rendre
+cd ep02-premiere-lecture && npx hyperframes lint && npx hyperframes snapshot --at 8,17,30
+npx hyperframes render -o /tmp/ep02.mp4 --quality delivery
+# 5. volume final à -16 LUFS
+../../outils/normaliser.sh /tmp/ep02.mp4 ../../livrables/02-premiere-lecture.mp4
+```
+
+Le texte dit par la voix est dans `narration-epXX.json` : le modifier, puis refaire les
+étapes 1 à 5. La musique et la voix suivent toutes seules.
+
+### Couverture de blog
+
+`hyperframes/couverture/index.html` prend ses textes en variables :
+
+```bash
+cd videos/hyperframes/couverture
+npx hyperframes render --format png-sequence --fps 1 -o /tmp/couv \
+  --variables '{"surtitre":"Bible Ouverte · Épisode 3","titre":"Un plan,","accent":"à plusieurs"}'
+ffmpeg -f lavfi -i color=c=0x0a1626:s=1200x630 -i /tmp/couv/frame_000001.png \
+  -filter_complex "[0][1]overlay=format=auto,format=rgb24" -frames:v 1 couverture.png
+```
+
+Le fond uni passé à `ffmpeg` n'est pas décoratif : l'export PNG est en RGBA, et sans
+lui les zones semi-transparentes ressortent en couleurs parasites.
+
+### Épisode 1 (Remotion)
+
+```bash
+cd videos/remotion && npm ci
+../../.venv/bin/python outils/voix.py narration/pourquoi.json
+npx remotion render Pourquoi /tmp/ep01.mp4
+../outils/normaliser.sh /tmp/ep01.mp4 /tmp/ep01-norm.mp4
+../../.venv/bin/python ../outils/musique.py 57 /tmp/ep01-musique.wav 7 calme
+../outils/mixer.sh /tmp/ep01-norm.mp4 /tmp/ep01-musique.wav ../livrables/01-pourquoi-bible-ouverte.mp4
+```
+
+## Droits
+
+- **Musique** : composée par `outils/musique.py`, synthèse pure, sans échantillon ni
+  emprunt. Aucun droit tiers.
+- **Voix** : Piper, voix `fr_FR-siwis-medium` (licence CC BY 4.0).
+- **Polices** : Lora, Inter, Noto Serif (SIL Open Font License), via Fontsource.
+- **Texte biblique** : Louis Segond 1910, domaine public.
+- **Remotion** est gratuit pour les structures de trois personnes au plus.
+- **HyperFrames** est sous licence Apache 2.0.

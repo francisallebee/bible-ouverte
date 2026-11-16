@@ -1,0 +1,13 @@
+{
+  "id": "ep02",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Noter une lecture dans Bible Ouverte prend moins d'une minute. On essaie ensemble ?" },
+    { "id": "ouvrir", "texte": "Dans le menu, touche « Nouvelle lecture ». La date du jour est déjà remplie." },
+    { "id": "passage", "texte": "Choisis le livre, puis le chapitre et les versets. Par exemple, le Psaume vingt-trois. L'aperçu du texte s'affiche aussitôt, dans ta version." },
+    { "id": "contexte", "texte": "Indique le contexte : méditation, culte, prédication, podcast… Bible Ouverte garde aussi ce que tu as entendu." },
+    { "id": "notes", "texte": "Écris ce que le passage t'a laissé. Tu peux joindre une photo de tes notes, un mémo vocal, ou un lien." },
+    { "id": "enregistrer", "texte": "Touche « Enregistrer la lecture ». Elle rejoint ton historique, et le livre des Psaumes commence à se remplir." },
+    { "id": "appel", "texte": "Ta première lecture t'attend. Ouvre Bible Ouverte, et note le passage que tu as lu aujourd'hui." }
+  ]
+}

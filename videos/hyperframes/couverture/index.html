@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr" data-composition-variables='[
+  {"id":"surtitre","type":"string","label":"Surtitre","default":"Bible Ouverte · Épisode 2"},
+  {"id":"titre","type":"string","label":"Titre","default":"Ta première lecture,"},
+  {"id":"accent","type":"string","label":"Accent","default":"en moins d’une minute"},
+  {"id":"pied","type":"string","label":"Pied","default":"bible-ouverte.vercel.app · Gratuit · sans publicité"}
+]'>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1200, height=630" />
+<script src="vendor/gsap.min.js"></script>
+<style>
+@font-face { font-family: Lora; src: url(assets/fonts/lora-latin-600-normal.woff2); font-weight: 600; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-400-normal.woff2); font-weight: 400; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-600-normal.woff2); font-weight: 600; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1200px; height: 630px; overflow: hidden; background: #0a1626; }
+#root { position: relative; width: 1200px; height: 630px; overflow: hidden; color: #fff; font-family: Inter, sans-serif; }
+.clip { position: absolute; inset: 0; }
+.tache { position: absolute; border-radius: 50%; filter: blur(120px); }
+#halo { position:absolute; inset:0; background: radial-gradient(circle at 0% 0%, rgba(30,58,95,.95), transparent 60%), radial-gradient(circle at 82% 50%, rgba(123,104,238,.22), transparent 38%), radial-gradient(circle at 82% 50%, rgba(233,185,73,.20), transparent 26%), radial-gradient(circle at 20% 100%, rgba(233,185,73,.10), transparent 45%); }
+#grille { position: absolute; inset: 0; -webkit-mask-image: radial-gradient(ellipse at 40% 45%, black 15%, transparent 70%); background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 60px 60px; }
+#bloc { position: absolute; inset: 0; padding: 70px 80px; display: flex; align-items: center; gap: 70px; }
+#sur { font-weight: 600; font-size: 26px; letter-spacing: 4px; text-transform: uppercase; color: #9d8dff; }
+#ti { font-family: Lora, serif; font-weight: 600; font-size: 72px; line-height: 1.08; letter-spacing: -1px; margin-top: 22px; }
+#ac { background: linear-gradient(90deg, #e9b949, #f0d089 45%, #9d8dff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+#pi { font-size: 27px; color: rgba(255,255,255,.68); margin-top: 30px; }
+#ic { width: 250px; height: 250px; border-radius: 62px; box-shadow: 0 30px 60px -20px rgba(0,0,0,.5); flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="1" data-width="1200" data-height="630">
+  <div id="fond" class="clip" data-start="0" data-duration="1">
+    <div id="halo"></div><div id="grille"></div>
+  </div>
+  <div id="bloc" class="clip" data-start="0" data-duration="1">
+    <div style="flex:1"><div id="sur"></div><div id="ti"><span id="tt"></span> <span id="ac"></span></div><div id="pi"></div></div>
+    <img id="ic" src="assets/img/icon-512.png" />
+  </div>
+</div>
+<script>
+const v = window.__hyperframes.getVariables();
+document.getElementById("sur").textContent = v.surtitre;
+document.getElementById("tt").textContent = v.titre;
+document.getElementById("ac").textContent = v.accent;
+document.getElementById("pi").textContent = v.pied;
+window.__timelines = window.__timelines || {};
+window.__timelines["main"] = gsap.timeline({ paused: true });
+</script>
+</body>
+</html>

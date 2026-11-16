@@ -1,0 +1,62 @@
+{
+  "id": "ep02",
+  "total": 54.69,
+  "scenes": [
+    {
+      "id": "accroche",
+      "texte": "Noter une lecture dans Bible Ouverte prend moins d'une minute. On essaie ensemble ?",
+      "debut": 0.0,
+      "duree": 6.56,
+      "voix_debut": 0.35,
+      "voix_duree": 5.46
+    },
+    {
+      "id": "ouvrir",
+      "texte": "Dans le menu, touche « Nouvelle lecture ». La date du jour est déjà remplie.",
+      "debut": 6.56,
+      "duree": 6.31,
+      "voix_debut": 6.91,
+      "voix_duree": 5.21
+    },
+    {
+      "id": "passage",
+      "texte": "Choisis le livre, puis le chapitre et les versets. Par exemple, le Psaume vingt-trois. L'aperçu du texte s'affiche aussitôt, dans ta version.",
+      "debut": 12.87,
+      "duree": 11.67,
+      "voix_debut": 13.22,
+      "voix_duree": 10.57
+    },
+    {
+      "id": "contexte",
+      "texte": "Indique le contexte : méditation, culte, prédication, podcast… Bible Ouverte garde aussi ce que tu as entendu.",
+      "debut": 24.54,
+      "duree": 8.09,
+      "voix_debut": 24.89,
+      "voix_duree": 6.99
+    },
+    {
+      "id": "notes",
+      "texte": "Écris ce que le passage t'a laissé. Tu peux joindre une photo de tes notes, un mémo vocal, ou un lien.",
+      "debut": 32.63,
+      "duree": 7.66,
+      "voix_debut": 32.98,
+      "voix_duree": 6.56
+    },
+    {
+      "id": "enregistrer",
+      "texte": "Touche « Enregistrer la lecture ». Elle rejoint ton historique, et le livre des Psaumes commence à se remplir.",
+      "debut": 40.29,
+      "duree": 7.37,
+      "voix_debut": 40.64,
+      "voix_duree": 6.27
+    },
+    {
+      "id": "appel",
+      "texte": "Ta première lecture t'attend. Ouvre Bible Ouverte, et note le passage que tu as lu aujourd'hui.",
+      "debut": 47.66,
+      "duree": 7.03,
+      "voix_debut": 48.01,
+      "voix_duree": 5.93
+    }
+  ]
+}
