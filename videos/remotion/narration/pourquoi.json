@@ -1,0 +1,13 @@
+{
+  "id": "pourquoi",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Tu as installé Bible Ouverte… et depuis, elle dort sur ton téléphone ? Tu n'es pas le seul." },
+    { "id": "promesse", "texte": "Bible Ouverte n'est pas une Bible de plus. Elle garde la trace de ton chemin : ce que tu as lu, quand, et ce que la lecture t'a laissé." },
+    { "id": "progression", "texte": "Chaque livre se remplit à mesure que tu avances. D'un coup d'œil, tu vois ce qui reste à lire." },
+    { "id": "plans", "texte": "Choisis un plan : la Bible entière, le Nouveau Testament, ou un seul livre. Et lis-le avec ton groupe, jour après jour." },
+    { "id": "versions", "texte": "Quinze versions libres de droits, en cinq langues. Les mots hébreux et grecs d'origine, en un clic. Et tout se lit hors ligne." },
+    { "id": "outils", "texte": "Quiz, verset du jour, mémorisation, statistiques : de quoi tenir dans la durée." },
+    { "id": "appel", "texte": "C'est gratuit, et sans publicité. Ouvre-la aujourd'hui, et note ton premier chapitre." }
+  ]
+}
