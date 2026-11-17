@@ -438,7 +438,7 @@ export const es: Dictionary = {
     triggers: {
       daily: {
         label: 'Recordatorio diario',
-        hint: 'Un PDF, EPUB, Word, OpenDocument o HTML, conservado y leído tal cual, día tras día — sin referencias añadidas. Tú eliges lo que se lee cada día.',
+        hint: 'A la hora que elijas, para no olvidar tu lectura.',
       },
       'plan-late': {
         label: 'Plan de lectura atrasado',

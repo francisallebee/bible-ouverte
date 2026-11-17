@@ -321,3 +321,33 @@ describe("le sens d'écriture d'un texte biblique", () => {
     expect(textDirection('')).toBe('ltr')
   })
 })
+
+describe('les indices des déclencheurs de notification', () => {
+  // Le 17 novembre 2026, le texte de l'import de document était posé sur un
+  // déclencheur dans chacune des cinq langues — et pas toujours le même :
+  // `inactive` en français, `daily` en anglais, espagnol et arabe, `plan-late`
+  // en italien. C'était une variante de `plans.lecture.hint`, pas sa copie
+  // exacte : comparer les deux chaînes n'aurait rien attrapé. D'où trois
+  // contrôles, dont aucun ne dépend d'une égalité stricte.
+  for (const [locale, dict] of Object.entries(DICTIONARIES)) {
+    if (!dict) continue
+    const indices = Object.entries(dict.notifications.triggers).map(([cle, d]) => [cle, d.hint] as const)
+    const lecture = dict.plans.lecture.hint
+
+    it(`${locale} : aucun ne parle de formats de fichier`, () => {
+      for (const [cle, indice] of indices) {
+        expect(indice, cle).not.toMatch(/OpenDocument|EPUB|PDF/)
+      }
+    })
+
+    it(`${locale} : aucun ne commence comme l'indice d'import`, () => {
+      for (const [cle, indice] of indices) {
+        expect(lecture.startsWith(indice.slice(0, 20)), cle).toBe(false)
+      }
+    })
+
+    it(`${locale} : deux déclencheurs ne partagent pas leur indice`, () => {
+      expect(new Set(indices.map(([, i]) => i)).size).toBe(indices.length)
+    })
+  }
+})

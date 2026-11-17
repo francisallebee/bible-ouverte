@@ -420,7 +420,7 @@ export const en: Dictionary = {
     triggers: {
       daily: {
         label: 'Daily reminder',
-        hint: 'A PDF, EPUB, Word, OpenDocument or HTML file, kept and read as it is, day after day — no references added. You choose what each day reads.',
+        hint: 'At the time of your choosing, so you don’t forget your reading.',
       },
       'plan-late': {
         label: 'Reading plan behind schedule',

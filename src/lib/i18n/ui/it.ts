@@ -440,7 +440,7 @@ export const it: Dictionary = {
       },
       'plan-late': {
         label: 'Piano di lettura in ritardo',
-        hint: 'Un PDF, EPUB, Word, OpenDocument o HTML, conservato e letto così com’è, giorno dopo giorno — senza riferimenti aggiunti. Scegli tu cosa leggere ogni giorno.',
+        hint: 'Quando un giorno previsto non è stato spuntato.',
       },
       'support-reply': {
         label: 'Risposta a un messaggio di assistenza',

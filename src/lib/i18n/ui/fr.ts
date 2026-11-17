@@ -508,7 +508,7 @@ export const fr = {
       },
       inactive: {
         label: 'Longue absence',
-        hint: 'Un PDF, un EPUB, un Word, un OpenDocument ou un HTML, gardé et lu tel qu’il est, jour après jour — sans référence ajoutée. Tu choisis ce que chaque jour lit.',
+        hint: 'Un rappel après plusieurs jours sans lecture.',
       },
       birthday: {
         label: 'Anniversaire',
