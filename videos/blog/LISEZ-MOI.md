@@ -25,6 +25,17 @@ GHOST_ADMIN_KEY='<id>:<secret>' node videos/blog/ajouter-videos-ghost.mjs
 `--essai` ne modifie rien. Relancer le script ne crée pas de doublon. Les articles restent
 des brouillons.
 
+## Programmer la publication
+
+`programmer-articles-ghost.mjs` passe les 13 brouillons au statut « Programmé » : un
+article par jour à midi (heure de Paris), du 18 au 30 novembre 2026, de l'épisode 1 au 13.
+Même clé, même mode d'emploi que pour les vidéos (`--essai` d'abord). Aucune infolettre
+n'est envoyée. Un article dont la vidéo manque encore est refusé.
+
+Les messages WhatsApp ne peuvent pas être postés automatiquement (WhatsApp n'ouvre pas les
+groupes aux outils) : un rappel Google Agenda par jour, à midi, contient le message à coller
+et le nom de la vidéo à joindre.
+
 ## Avant de publier chaque article
 
 - Vérifier que la vidéo est en place (voir ci-dessus).
