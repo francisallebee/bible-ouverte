@@ -543,7 +543,7 @@ export const ar: Dictionary = {
     triggers: {
       daily: {
         label: 'تذكير يومي',
-        hint: 'ملف PDF أو EPUB أو Word أو OpenDocument أو HTML يُحتفظ به ويُقرأ كما هو، يومًا بعد يوم — بلا مراجع مضافة. أنت تختار ما يُقرأ كل يوم.',
+        hint: 'في الوقت الذي تختاره، كي لا تنسى قراءتك.',
       },
       'plan-late': {
         label: 'خطة قراءة متأخرة',
