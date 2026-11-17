@@ -14,6 +14,18 @@ import { BOOKS } from './books'
  * choisie, comme partout ailleurs. Un thème cherché depuis une application en
  * français peut donc rendre la Van Dyck, en arabe et de droite à gauche.
  *
+ * **Les numéros sont ceux de la Louis Segond 1910**, la version par défaut.
+ * La versification n'est pas universelle : Darby, Crampon et Zadoc Kahn
+ * comptent le titre d'un psaume comme verset 1, la Segond non, et le même
+ * verset s'y trouve donc un rang plus loin. Jusqu'au 17 novembre 2026, quatre
+ * psaumes étaient cités selon la numérotation hébraïque : `PSA 4:9` n'existait
+ * pas en Segond — le thème « Paix » perdait un passage sans rien dire — et
+ * `PSA 19:2`, `34:19`, `42:6` existaient bel et bien, mais affichaient le
+ * verset voisin. Le projet n'a pas de table de correspondance entre
+ * versifications ; un lecteur de Darby voit donc le verset d'à côté sur ces
+ * quatre psaumes, ce qui vaut mieux que de le faire voir au lecteur de la
+ * version par défaut. `themes.test.ts` relit le texte de ces passages.
+ *
  * **Les passages sont volontairement courts** — un à quelques versets. Un thème
  * qui renverrait des chapitres entiers ne se lirait pas d'écran : il servirait
  * de plan de lecture, ce que l'application propose déjà ailleurs.
@@ -86,21 +98,21 @@ export const THEMES: ThemeBiblique[] = [
     slug: 'esperance',
     passages: [
       p('JER', 29, 11), p('ROM', 15, 13), p('ISA', 40, 31),
-      p('LAM', 3, 22, 23), p('ROM', 5, 3, 5), p('PSA', 42, 6),
+      p('LAM', 3, 22, 23), p('ROM', 5, 3, 5), p('PSA', 42, 5),
     ],
   },
   {
     slug: 'paix',
     passages: [
       p('JHN', 14, 27), p('PHP', 4, 6, 7), p('ISA', 26, 3),
-      p('PSA', 4, 9), p('COL', 3, 15), p('MAT', 5, 9),
+      p('PSA', 4, 8), p('COL', 3, 15), p('MAT', 5, 9),
     ],
   },
   {
     slug: 'consolation',
     passages: [
       p('PSA', 23, 1, 4), p('MAT', 11, 28, 30), p('2CO', 1, 3, 4),
-      p('PSA', 34, 19), p('ISA', 41, 10), p('REV', 21, 4),
+      p('PSA', 34, 18), p('ISA', 41, 10), p('REV', 21, 4),
     ],
   },
   {
@@ -162,7 +174,7 @@ export const THEMES: ThemeBiblique[] = [
   {
     slug: 'creation',
     passages: [
-      p('GEN', 1, 1), p('PSA', 19, 2), p('PSA', 139, 13, 14),
+      p('GEN', 1, 1), p('PSA', 19, 1), p('PSA', 139, 13, 14),
       p('JOB', 12, 7, 9), p('COL', 1, 16), p('ISA', 40, 26),
     ],
   },
