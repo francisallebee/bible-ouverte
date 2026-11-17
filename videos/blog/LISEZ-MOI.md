@@ -10,11 +10,24 @@ avec leurs images à la une et leurs étiquettes. Il est produit par
 2. **Import content** → choisir `bible-ouverte-articles-ghost.zip`.
 3. Les 13 articles apparaissent dans **Posts → Drafts**. Rien n'est publié.
 
+## Ajouter les vidéos (après l'import)
+
+`ajouter-videos-ghost.mjs` envoie les 13 MP4 et leurs aperçus (`apercus/`) dans Ghost et
+remplace le paragraphe « Vidéo à insérer ici » de chaque brouillon par une carte Vidéo.
+À lancer **sur votre ordinateur** (Node 18+, aucune dépendance) avec une clé d'intégration
+Ghost (Settings → Integrations → Add custom integration → Admin API key) :
+
+```bash
+GHOST_ADMIN_KEY='<id>:<secret>' node videos/blog/ajouter-videos-ghost.mjs --essai
+GHOST_ADMIN_KEY='<id>:<secret>' node videos/blog/ajouter-videos-ghost.mjs
+```
+
+`--essai` ne modifie rien. Relancer le script ne crée pas de doublon. Les articles restent
+des brouillons.
+
 ## Avant de publier chaque article
 
-- En tête de chaque brouillon, un paragraphe « Vidéo à insérer ici » nomme le fichier MP4
-  (dans `videos/livrables/`) : ajouter une carte **Vidéo** à cet endroit, puis retirer le
-  paragraphe.
+- Vérifier que la vidéo est en place (voir ci-dessus).
 - Les adresses des articles suivent les liens des messages WhatsApp
   (`blog.oappliday.tech/<slug>/`) : ne pas changer les slugs, ou corriger les messages.
 
