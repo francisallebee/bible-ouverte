@@ -1,0 +1,12 @@
+{
+  "id": "ep05",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Derrière ta traduction, il y a des mots hébreux et grecs. Bible Ouverte te les montre, un par un." },
+    { "id": "activer", "texte": "Dans les Réglages, active le lexique grec, ou hébreu. Le texte original se télécharge sur ton appareil." },
+    { "id": "ouvrir", "texte": "Ouvre une lecture, et touche « Voir le texte original ». Jean un, verset un, apparaît en grec, mot à mot." },
+    { "id": "mot", "texte": "Touche un mot : « logos ». Sa fiche du lexique Strong s'affiche : le numéro, la prononciation, et la définition, en anglais." },
+    { "id": "hebreu", "texte": "L'Ancien Testament se lit de la même façon, en hébreu, de droite à gauche." },
+    { "id": "appel", "texte": "Active le lexique, et lis la Parole au plus près de sa source." }
+  ]
+}

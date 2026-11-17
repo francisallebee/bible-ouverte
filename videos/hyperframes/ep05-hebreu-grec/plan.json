@@ -1,0 +1,54 @@
+{
+  "id": "ep05",
+  "total": 45.73,
+  "scenes": [
+    {
+      "id": "accroche",
+      "texte": "Derrière ta traduction, il y a des mots hébreux et grecs. Bible Ouverte te les montre, un par un.",
+      "debut": 0.0,
+      "duree": 7.86,
+      "voix_debut": 0.35,
+      "voix_duree": 6.76
+    },
+    {
+      "id": "activer",
+      "texte": "Dans les Réglages, active le lexique grec, ou hébreu. Le texte original se télécharge sur ton appareil.",
+      "debut": 7.86,
+      "duree": 8.9,
+      "voix_debut": 8.21,
+      "voix_duree": 7.8
+    },
+    {
+      "id": "ouvrir",
+      "texte": "Ouvre une lecture, et touche « Voir le texte original ». Jean un, verset un, apparaît en grec, mot à mot.",
+      "debut": 16.76,
+      "duree": 8.9,
+      "voix_debut": 17.11,
+      "voix_duree": 7.8
+    },
+    {
+      "id": "mot",
+      "texte": "Touche un mot : « logos ». Sa fiche du lexique Strong s'affiche : le numéro, la prononciation, et la définition, en anglais.",
+      "debut": 25.66,
+      "duree": 9.7,
+      "voix_debut": 26.01,
+      "voix_duree": 8.6
+    },
+    {
+      "id": "hebreu",
+      "texte": "L'Ancien Testament se lit de la même façon, en hébreu, de droite à gauche.",
+      "debut": 35.36,
+      "duree": 5.5,
+      "voix_debut": 35.71,
+      "voix_duree": 4.4
+    },
+    {
+      "id": "appel",
+      "texte": "Active le lexique, et lis la Parole au plus près de sa source.",
+      "debut": 40.86,
+      "duree": 4.87,
+      "voix_debut": 41.21,
+      "voix_duree": 3.77
+    }
+  ]
+}

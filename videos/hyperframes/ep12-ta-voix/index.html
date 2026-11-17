@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="fr" data-resolution="portrait">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<script src="vendor/gsap.min.js"></script>
+<style>
+
+@font-face { font-family: Lora; src: url(assets/fonts/lora-latin-600-normal.woff2); font-weight: 600; }
+@font-face { font-family: Lora; src: url(assets/fonts/lora-latin-400-italic.woff2); font-weight: 400; font-style: italic; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-400-normal.woff2); font-weight: 400; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-600-normal.woff2); font-weight: 600; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-700-normal.woff2); font-weight: 700; }
+:root {
+  --nuit: #0a1626; --bleu: #1e3a5f; --or: #e9b949; --or-clair: #f0d089; --violet: #9d8dff; --violet-f: #7b68ee;
+  --vert: #2ecc71; --blanc: #fff; --t2: rgba(255,255,255,.68); --bord: rgba(255,255,255,.14);
+  --app-fond: #f8f9fb; --app-texte: #1e293b; --app-gris: #64748b; --app-bord: #e2e8f0;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit); }
+#root { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: Inter, sans-serif; color: var(--blanc); }
+.clip { position: absolute; inset: 0; }
+.tache { position: absolute; border-radius: 50%; filter: blur(140px); }
+#t1 { left: -320px; top: -260px; width: 1100px; height: 1100px; background: var(--bleu); opacity: .75; }
+#t2 { left: 520px; top: 300px; width: 900px; height: 900px; background: var(--violet-f); opacity: .28; }
+#t3 { left: 60px; top: 1350px; width: 900px; height: 900px; background: var(--or); opacity: .13; }
+#grille { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 90px 90px; -webkit-mask-image: radial-gradient(ellipse at 50% 35%, black 20%, transparent 75%); }
+.degrade { background: linear-gradient(90deg, var(--or), var(--or-clair) 45%, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+h1 { font-family: Lora, serif; font-weight: 600; font-size: 104px; line-height: 1.06; letter-spacing: -1px; text-align: center; }
+.titre-scene { position: absolute; left: 80px; right: 80px; }
+.etape { position: absolute; top: 150px; left: 80px; right: 80px; display: flex; align-items: center; justify-content: center; gap: 26px; }
+.num { width: 86px; height: 86px; border-radius: 50%; background: var(--or); color: var(--nuit); font-weight: 700; font-size: 48px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.et-titre { font-family: Lora, serif; font-weight: 600; font-size: 74px; letter-spacing: -1px; }
+#tel { position: absolute; inset: auto; left: 215px; top: 300px; width: 650px; height: 1150px; border-radius: 84px; background: #0b1220; border: 12px solid #26334a; box-shadow: 0 60px 120px -30px rgba(0,0,0,.7), 0 0 0 2px rgba(255,255,255,.08); }
+#ecran { position: absolute; inset: 0; border-radius: 72px; overflow: hidden; background: var(--app-fond); color: var(--app-texte); }
+#encoche { position: absolute; top: 18px; left: 50%; width: 150px; height: 36px; margin-left: -75px; border-radius: 20px; background: #0b1220; z-index: 20; }
+#barre { position: absolute; top: 0; left: 0; right: 0; height: 128px; padding: 66px 40px 0; background: var(--bleu); color: #fff; font-weight: 700; font-size: 30px; display: flex; gap: 16px; align-items: center; z-index: 15; }
+#barre img { width: 44px; height: 44px; border-radius: 12px; }
+.panneau { position: absolute; top: 128px; left: 0; right: 0; bottom: 0; padding: 34px 34px; background: var(--app-fond); opacity: 0; }
+.app-h { font-size: 40px; font-weight: 700; }
+.app-sous { font-size: 25px; color: var(--app-gris); margin-top: 6px; margin-bottom: 24px; }
+.champ { background: #fff; border: 2px solid var(--app-bord); border-radius: 20px; padding: 16px 22px; margin-bottom: 16px; }
+.lab { font-size: 21px; color: var(--app-gris); font-weight: 600; margin-bottom: 6px; }
+.val { font-size: 29px; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 12px; }
+.chip { font-size: 24px; font-weight: 600; padding: 10px 20px; border-radius: 999px; background: #eef2f7; color: var(--bleu); }
+.bouton { background: var(--bleu); color: #fff; font-size: 29px; font-weight: 700; text-align: center; padding: 24px; border-radius: 22px; }
+#tap { position: absolute; width: 90px; height: 90px; border-radius: 50%; background: rgba(233,185,73,.55); border: 4px solid var(--or); opacity: 0; z-index: 30; }
+#ap { position: absolute; top: 330px; left: 80px; right: 80px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+#ap-icone { width: 250px; height: 250px; border-radius: 62px; box-shadow: 0 0 140px 30px rgba(233,185,73,.35); }
+#ap h1 { margin-top: 64px; }
+#ap-sous { font-size: 44px; color: var(--t2); margin-top: 26px; line-height: 1.3; }
+#ap-url { margin-top: 80px; font-size: 50px; font-weight: 700; color: var(--nuit); background: var(--or); padding: 28px 50px; border-radius: 999px; }
+.st { display: flex; justify-content: center; align-items: flex-end; padding: 0 80px 150px; }
+.st span { font-weight: 600; font-size: 44px; line-height: 1.3; text-align: center; color: #fff; background: rgba(5,12,24,.72); border: 1px solid var(--bord); border-radius: 28px; padding: 22px 34px; }
+
+
+#trois { position: absolute; top: 700px; left: 110px; right: 110px; display: flex; flex-direction: column; gap: 26px; }
+.tr { padding: 34px 40px; border-radius: 30px; background: rgba(255,255,255,.07); border: 1px solid var(--bord); font-size: 50px; opacity: 0; }
+.tr b { font-weight: 600; }
+.ongl { display: flex; gap: 10px; margin: 14px 0 16px; } .chip.sel { background: var(--bleu); color: #fff; }
+.msg { background: #fff; border: 2px solid var(--app-bord); border-radius: 20px; padding: 18px 20px; margin-bottom: 12px; }
+.msg.toi { background: #eef2ff; border-color: #c7d2fe; margin-left: 60px; opacity: 0; }
+.m-h { display: flex; justify-content: space-between; align-items: center; } .m-h b { font-size: 24px; }
+.nonlu { font-size: 18px; font-weight: 700; color: #fff; background: #ef4444; padding: 4px 12px; border-radius: 999px; }
+.m-suj { font-size: 24px; font-weight: 700; margin-top: 8px; } .m-txt { font-size: 22px; color: #475569; line-height: 1.4; margin-top: 6px; }
+.ecrire { position: relative; display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid var(--app-bord); border-radius: 18px; padding: 12px 14px; font-size: 21px; min-height: 76px; }
+.ph { color: #94a3b8; flex: 1; }
+.frappe { position: absolute; left: 14px; top: 24px; overflow: hidden; white-space: nowrap; width: 0; max-width: 380px; }
+.mini { font-size: 20px; padding: 10px 14px; margin-left: auto; }
+.types { display: flex; gap: 10px; }
+.ph2 { color: #94a3b8; }
+#fr2 { position: static; display: inline-block; vertical-align: bottom; }
+.ticket { background: #fff; border: 2px solid var(--app-bord); border-radius: 20px; padding: 18px 20px; margin-top: 16px; opacity: 0; }
+.rep { font-size: 19px; color: var(--app-gris); }
+.com { font-size: 20px; color: #475569; background: #f8fafc; border-radius: 12px; padding: 10px 12px; margin-top: 8px; opacity: 0; }
+.com b { color: var(--app-texte); margin-right: 6px; } .com.admin { background: #ecfdf5; }
+.item { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #fff; border: 2px solid var(--app-bord); border-radius: 18px; padding: 16px 18px; margin-top: 12px; opacity: 0; }
+.item b { font-size: 23px; } .item p { font-size: 19px; color: var(--app-gris); margin-top: 3px; }
+.statut { font-size: 18px; font-weight: 700; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+.statut.done { background: #dcfce7; color: #166534; } .statut.projet { background: #f1f5f9; color: #475569; }
+#notif-route { display: flex; justify-content: center; align-items: flex-start; padding-top: 1420px; }
+.notif { display: flex; gap: 22px; align-items: center; width: 900px; padding: 26px 30px; border-radius: 36px; background: rgba(255,255,255,.94); color: #0f172a; box-shadow: 0 40px 80px -20px rgba(0,0,0,.6); opacity: 0; }
+.notif img { width: 86px; height: 86px; border-radius: 22px; } .notif b { font-size: 32px; } .notif p { font-size: 30px; color: #334155; margin-top: 4px; }
+
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="39.02" data-width="1080" data-height="1920">
+<div id="fond" class="clip" data-start="0" data-duration="39.02" data-track-index="0">
+  <div class="tache" id="t1"></div><div class="tache" id="t2"></div><div class="tache" id="t3"></div><div id="grille"></div>
+</div>
+
+<section id="sc-accroche" class="clip scene" data-start="0.0" data-duration="5.78" data-track-index="1">
+  <h1 class="titre-scene" style="top:240px">Ta voix<br/><span class="degrade">compte</span></h1>
+  <div id="trois"><div class="tr"><b>Messages</b></div><div class="tr"><b>Support</b></div><div class="tr"><b>Feuille de route</b></div></div>
+</section>
+<section id="sc-messages" class="clip scene" data-start="5.78" data-duration="7.82" data-track-index="1"><div class="etape"><span class="num">1</span><span class="et-titre">Messages</span></div></section>
+<section id="sc-support" class="clip scene" data-start="13.6" data-duration="10.12" data-track-index="1"><div class="etape"><span class="num">2</span><span class="et-titre">Support &amp; idées</span></div></section>
+<section id="sc-feuille" class="clip scene" data-start="23.72" data-duration="9.14" data-track-index="1"><div class="etape"><span class="num">3</span><span class="et-titre">Feuille de route</span></div></section>
+<div id="tel" class="clip" data-start="5.78" data-duration="27.08" data-track-index="2">
+  <div id="ecran">
+    <div id="encoche"></div>
+    <div id="barre"><img src="assets/img/icon-512.png"/>Bible Ouverte</div>
+    
+<div class="panneau" id="p-msg">
+  <div class="app-h">Messages</div>
+  <div class="ongl"><span class="chip sel">Actifs</span><span class="chip">Archivés</span></div>
+  <div class="msg" id="m1"><div class="m-h"><b>Bible Ouverte</b><span class="nonlu" id="nonlu">Non lu</span></div>
+    <p class="m-suj">Merci pour ta réponse au sondage !</p>
+    <p class="m-txt">Une série de vidéos arrive pour montrer chaque fonction de l’application. Dis-nous laquelle tu attends.</p></div>
+  <div class="msg toi" id="m2"><div class="m-h"><b>Toi</b></div><p class="m-txt">Les plans de lecture, pour mon groupe de maison !</p></div>
+  <div class="ecrire" id="ecrire"><span class="ph" id="ph">Écris ton message…</span><span class="frappe" id="fr">Les plans de lecture, pour mon groupe de maison !</span><span class="bouton mini">Répondre</span></div>
+</div>
+
+<div class="panneau" id="p-sup">
+  <div class="app-h">Support &amp; Suggestions</div>
+  <div class="app-sous">Signale un bug ou propose une amélioration</div>
+  <div class="form" id="form">
+    <div class="types"><span class="chip" id="t-bug">Bug</span><span class="chip" id="t-sug">Suggestion</span></div>
+    <div class="champ" style="margin:12px 0 10px"><div class="lab">Message</div><div class="val" style="font-size:24px;font-weight:400"><span class="ph2" id="ph2">Décris ton idée d’amélioration…</span><span class="frappe" id="fr2">Pouvoir écouter la Bible en audio</span></div></div>
+    <div class="bouton" id="b-env">Envoyer</div>
+  </div>
+  <div class="ticket" id="tk"><div class="m-h"><b>Suggestion · Awa</b><span class="rep" id="rep">0 réponse</span></div>
+    <p class="m-txt">Pouvoir écouter la Bible en audio</p>
+    <div class="com" id="c1"><b>Jean</b> Oui, pour le trajet en voiture !</div>
+    <div class="com admin" id="c2"><b>Admin</b> Merci, c’est noté. On en parle dans la feuille de route.</div></div>
+</div>
+
+<div class="panneau" id="p-route">
+  <div class="app-h">Feuille de route</div>
+  <div class="item"><div><b>Partager un plan de lecture</b><p>Lire à plusieurs, par un lien</p></div><span class="statut done">Terminé</span></div>
+  <div class="item"><div><b>Texte original hébreu et grec</b><p>Avec le lexique Strong</p></div><span class="statut done">Terminé</span></div>
+  <div class="item"><div><b>Cinq langues</b><p>Français, anglais, espagnol, italien, arabe</p></div><span class="statut done">Terminé</span></div>
+  <div class="item" id="it-x"><div><b>Ta prochaine idée ?</b><p>Propose-la dans Support &amp; Suggestions</p></div><span class="statut projet" id="st-x">Projet</span></div>
+</div>
+
+    <div id="tap"></div>
+  </div>
+</div>
+<div id="notif-route" class="clip" data-start="29.47" data-duration="3.39" data-track-index="3">
+  <div class="notif"><img src="assets/img/icon-512.png"/><div><b>Feuille de route</b><p>« Partager un plan de lecture » est disponible.</p></div></div>
+</div>
+<section id="sc-appel" class="clip scene" data-start="32.86" data-duration="6.16" data-track-index="1">
+  <div id="ap"><img id="ap-icone" src="assets/img/icon-512.png"/>
+  <h1>Écris-<span class="degrade">nous</span></h1>
+  <div id="ap-sous">Une idée, un souci ? C’est comme ça que l’application avance.</div>
+  <div id="ap-url">bible-ouverte.vercel.app</div></div></section>
+
+<div class="clip st" id="st0" data-start="0.35" data-duration="2.63" data-track-index="5"><span>Bible Ouverte se construit avec toi.</span></div>
+<div class="clip st" id="st1" data-start="2.98" data-duration="2.65" data-track-index="5"><span>Trois écrans pour en parler.</span></div>
+<div class="clip st" id="st2" data-start="6.13" data-duration="3.8" data-track-index="5"><span>Dans « Messages », l&#x27;équipe t&#x27;écrit, et tu peux lui répondre.</span></div>
+<div class="clip st" id="st3" data-start="9.93" data-duration="3.52" data-track-index="5"><span>Un badge te signale ce qui n&#x27;est pas encore lu.</span></div>
+<div class="clip st" id="st4" data-start="13.95" data-duration="4.61" data-track-index="5"><span>Dans « Support et Suggestions », signale un bug, ou propose une idée.</span></div>
+<div class="clip st" id="st5" data-start="18.56" data-duration="5.01" data-track-index="5"><span>Les autres peuvent commenter, et tu es prévenu quand on te répond.</span></div>
+<div class="clip st" id="st6" data-start="24.07" data-duration="4.13" data-track-index="5"><span>La « Feuille de route » montre ce qui se prépare, et ce qui est terminé.</span></div>
+<div class="clip st" id="st7" data-start="28.2" data-duration="4.51" data-track-index="5"><span>Une notification t&#x27;avertit quand une fonctionnalité attendue arrive.</span></div>
+<div class="clip st" id="st8" data-start="33.21" data-duration="1.39" data-track-index="5"><span>Une idée, un souci ?</span></div>
+<div class="clip st" id="st9" data-start="34.6" data-duration="4.27" data-track-index="5"><span>Écris-nous : c&#x27;est comme ça que l&#x27;application avance.</span></div>
+<audio id="voix-accroche" class="clip" src="assets/voix/accroche.wav" data-start="0.35" data-duration="4.68" data-track-index="10"></audio>
+<audio id="voix-messages" class="clip" src="assets/voix/messages.wav" data-start="6.13" data-duration="6.72" data-track-index="10"></audio>
+<audio id="voix-support" class="clip" src="assets/voix/support.wav" data-start="13.95" data-duration="9.02" data-track-index="10"></audio>
+<audio id="voix-feuille" class="clip" src="assets/voix/feuille.wav" data-start="24.07" data-duration="8.04" data-track-index="10"></audio>
+<audio id="voix-appel" class="clip" src="assets/voix/appel.wav" data-start="33.21" data-duration="5.06" data-track-index="10"></audio>
+<audio id="musique" class="clip" src="assets/musique.wav" data-start="0" data-duration="39.02" data-volume="0.11" data-fade-out="2" data-track-index="11"></audio>
+</div>
+<script>
+
+const tl = gsap.timeline({ paused: true });
+const E = "power3.out";
+tl.to("#t1", { x: 70, y: 90, duration: 39.02, ease: "sine.inOut" }, 0);
+tl.to("#t2", { x: -80, y: -60, duration: 39.02, ease: "sine.inOut" }, 0);
+tl.to("#t3", { x: 60, y: -70, duration: 39.02, ease: "sine.inOut" }, 0);
+document.querySelectorAll(".st span").forEach((el) => {
+  tl.fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.25, ease: E }, parseFloat(el.parentElement.dataset.start));
+});
+["messages", "support", "feuille"].forEach((id) => {
+  const t0 = parseFloat(document.getElementById("sc-" + id).dataset.start);
+  tl.fromTo("#sc-" + id + " .etape, #sc-" + id + " .titre-scene", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, t0 + 0.05);
+});
+const tap = (x, y, t) => {
+  tl.set("#tap", { left: x - 45, top: y - 45, scale: 0.5 }, t);
+  tl.to("#tap", { opacity: 1, scale: 1, duration: 0.18, ease: E }, t);
+  tl.to("#tap", { opacity: 0, scale: 1.5, duration: 0.35, ease: "power1.out" }, t + 0.22);
+};
+const montre = (sel, t) => tl.fromTo(sel, { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.45, ease: E, immediateRender: false }, t);
+const cache = (sel, t) => tl.to(sel, { opacity: 0, x: -60, duration: 0.35, ease: "power2.in" }, t);
+tl.fromTo("#ap-icone", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.6)" }, 32.96);
+tl.fromTo("#ap h1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 33.36);
+tl.fromTo("#ap-sous", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 33.96);
+tl.fromTo("#ap-url", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 35.26);
+
+// 0. accroche
+tl.fromTo("#sc-accroche h1", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 0.15);
+tl.fromTo(".tr", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.5, stagger: 0.35, ease: E }, 2.0);
+
+// 1. messages
+tl.fromTo("#tel", { opacity: 0, y: 120 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 5.78);
+tl.set("#p-msg", { opacity: 1 }, 5.78);
+tl.fromTo("#nonlu", { scale: 1 }, { scale: 1.25, duration: 0.2, yoyo: true, repeat: 3 }, 11.53);
+tl.to("#ph", { opacity: 0, duration: 0.1 }, 8.93);
+tl.to("#fr", { width: 380, duration: 1.4, ease: "steps(30)" }, 8.93);
+tap(540, 470, 10.53);
+tl.to("#ecrire", { opacity: 0, duration: 0.2 }, 10.73);
+tl.fromTo("#m2", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: E }, 10.73);
+tl.to("#nonlu", { opacity: 0, duration: 0.3 }, 12.93);
+
+// 2. support
+cache("#p-msg", 13.6);
+montre("#p-sup", 13.799999999999999);
+tl.to("#t-sug", { backgroundColor: "#1e3a5f", color: "#ffffff", duration: 0.2 }, 16.55);
+tl.to("#ph2", { opacity: 0, duration: 0.1 }, 17.15);
+tl.set("#ph2", { display: "none" }, 17.2);
+tl.to("#fr2", { width: 400, duration: 1.2, ease: "steps(32)" }, 17.25);
+tap(313, 470, 18.75);
+tl.to("#form", { opacity: 0.35, duration: 0.25 }, 18.95);
+tl.fromTo("#tk", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: E }, 18.95);
+tl.fromTo("#c1", { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.3 }, 20.15);
+tl.set("#rep", { textContent: "1 réponse" }, 20.15);
+tl.fromTo("#c2", { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.3 }, 21.95);
+tl.set("#rep", { textContent: "2 réponses" }, 21.95);
+
+// 3. feuille de route
+cache("#p-sup", 23.72);
+montre("#p-route", 23.919999999999998);
+tl.fromTo(".item", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.3, ease: E }, 24.32);
+tl.to("#tel", { y: -90, scale: 0.9, duration: 0.6, ease: "power2.inOut" }, 29.07);
+tl.fromTo("#notif-route .notif", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.5)" }, 29.47);
+tl.to("#tel", { opacity: 0, duration: 0.45 }, 32.41);
+
+window.__timelines = window.__timelines || {};
+window.__timelines["main"] = tl;
+tl.seek(0);
+</script>
+</body>
+</html>

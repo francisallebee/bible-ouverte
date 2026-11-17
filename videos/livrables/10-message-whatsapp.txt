@@ -1,0 +1,15 @@
+📖 *Épisode 10 : ta façon de lire, en chiffres*
+
+L'écran *Statistiques* de Bible Ouverte te montre comment tu lis 📊
+
+🔢 Total de lectures, cette semaine, ce mois
+📅 Ton rythme sur les 30 derniers jours
+📚 Ton Top 10 des livres
+🎧 Par contexte : méditation, culte, prédication, podcast…
+📖 Par version de la Bible
+
+▶️ La vidéo ci-dessus
+📝 L'article : https://blog.oappliday.tech/statistiques-bible-ouverte
+📲 L'application : https://bible-ouverte.vercel.app
+
+👉 *Quel est votre livre n°1 ?* Dites-le ici !

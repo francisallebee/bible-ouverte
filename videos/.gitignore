@@ -1,0 +1,10 @@
+node_modules
+.hyperframes/
+out/
+build/
+# Modèles de voix (63 à 77 Mo chacun) : outils/telecharger-voix.sh les récupère.
+*.onnx
+*.onnx.json
+# Musiques de fond : régénérées à l'identique par outils/musique.py (graine fixe).
+musique.wav
+__pycache__/

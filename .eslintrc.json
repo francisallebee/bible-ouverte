@@ -1,6 +1,6 @@
 {
   "extends": "next/core-web-vitals",
-  "ignorePatterns": ["src/data/bibles/**", "public/sw.js", ".next/**"],
+  "ignorePatterns": ["src/data/bibles/**", "public/sw.js", ".next/**", "videos/**"],
   "rules": {
     "@next/next/no-img-element": "off"
   }

@@ -1,0 +1,54 @@
+{
+  "id": "ep07",
+  "total": 39.79,
+  "scenes": [
+    {
+      "id": "accroche",
+      "texte": "Chaque jour, un verset t'attend. Et un rappel discret, pour ne pas oublier ta lecture.",
+      "debut": 0.0,
+      "duree": 7.19,
+      "voix_debut": 0.35,
+      "voix_duree": 6.09
+    },
+    {
+      "id": "verset",
+      "texte": "Le verset du jour est tiré de tes propres lectures. Il reste le même toute la journée.",
+      "debut": 7.19,
+      "duree": 6.92,
+      "voix_debut": 7.54,
+      "voix_duree": 5.82
+    },
+    {
+      "id": "lu",
+      "texte": "Touche « J'ai lu ce verset » : il rejoint tes lectures, et tes statistiques avancent.",
+      "debut": 14.11,
+      "duree": 6.01,
+      "voix_debut": 14.46,
+      "voix_duree": 4.91
+    },
+    {
+      "id": "rappel",
+      "texte": "Dans les Réglages, autorise les notifications, et choisis l'heure de ton rappel quotidien.",
+      "debut": 20.12,
+      "duree": 6.14,
+      "voix_debut": 20.47,
+      "voix_duree": 5.04
+    },
+    {
+      "id": "autres",
+      "texte": "Tu peux aussi être prévenu quand un jour de ton plan attend. Sur iPhone, ajoute d'abord l'application à ton écran d'accueil.",
+      "debut": 26.26,
+      "duree": 8.15,
+      "voix_debut": 26.61,
+      "voix_duree": 7.05
+    },
+    {
+      "id": "appel",
+      "texte": "Active ton rappel, et laisse la Parole venir à toi, chaque jour.",
+      "debut": 34.41,
+      "duree": 5.38,
+      "voix_debut": 34.76,
+      "voix_duree": 4.28
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "ep12",
+  "total": 39.02,
+  "scenes": [
+    {
+      "id": "accroche",
+      "texte": "Bible Ouverte se construit avec toi. Trois écrans pour en parler.",
+      "debut": 0.0,
+      "duree": 5.78,
+      "voix_debut": 0.35,
+      "voix_duree": 4.68
+    },
+    {
+      "id": "messages",
+      "texte": "Dans « Messages », l'équipe t'écrit, et tu peux lui répondre. Un badge te signale ce qui n'est pas encore lu.",
+      "debut": 5.78,
+      "duree": 7.82,
+      "voix_debut": 6.13,
+      "voix_duree": 6.72
+    },
+    {
+      "id": "support",
+      "texte": "Dans « Support et Suggestions », signale un bug, ou propose une idée. Les autres peuvent commenter, et tu es prévenu quand on te répond.",
+      "debut": 13.6,
+      "duree": 10.12,
+      "voix_debut": 13.95,
+      "voix_duree": 9.02
+    },
+    {
+      "id": "feuille",
+      "texte": "La « Feuille de route » montre ce qui se prépare, et ce qui est terminé. Une notification t'avertit quand une fonctionnalité attendue arrive.",
+      "debut": 23.72,
+      "duree": 9.14,
+      "voix_debut": 24.07,
+      "voix_duree": 8.04
+    },
+    {
+      "id": "appel",
+      "texte": "Une idée, un souci ? Écris-nous : c'est comme ça que l'application avance.",
+      "debut": 32.86,
+      "duree": 6.16,
+      "voix_debut": 33.21,
+      "voix_duree": 5.06
+    }
+  ]
+}

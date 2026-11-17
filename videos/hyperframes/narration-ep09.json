@@ -1,0 +1,12 @@
+{
+  "id": "ep09",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Apprendre un verset par cœur, et le garder longtemps : c'est le rôle de la Mémorisation." },
+    { "id": "choisir", "texte": "Choisis un verset parmi tes lectures, un passage de ton choix, ou laisse le hasard décider." },
+    { "id": "masquer", "texte": "Au premier passage, tu le lis en entier. Puis, à chaque révision, des mots disparaissent. Touche un mot caché pour le révéler." },
+    { "id": "espacer", "texte": "Réussis, et le verset revient plus tard : un jour, trois, une semaine, trois semaines, deux mois. Le cerveau retient ce qu'on retrouve." },
+    { "id": "aujourdhui", "texte": "Chaque jour, l'application te dit quels versets sont à revoir. Quelques minutes suffisent." },
+    { "id": "appel", "texte": "Choisis ton premier verset, et garde la Parole dans ton cœur." }
+  ]
+}

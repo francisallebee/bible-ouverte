@@ -1,0 +1,12 @@
+{
+  "id": "ep06",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Chaque chapitre lu compte. Dans « Ma progression », tu vois tout le chemin parcouru." },
+    { "id": "niveau", "texte": "Ton niveau grandit avec tes chapitres : d'Apprenti lecteur à Lecteur du dimanche, puis Fidèle… jusqu'à Maître." },
+    { "id": "serie", "texte": "Lis chaque jour, et ta série grandit. Sept jours, trente, cent, un an : chaque palier se fête." },
+    { "id": "testaments", "texte": "L'Ancien et le Nouveau Testament se remplissent, livre après livre : les chapitres entamés, et ceux lus en entier." },
+    { "id": "badges", "texte": "Et des badges récompensent ton parcours : Premiers pas, Découvreur, Persévérant… jusqu'à Légende vivante." },
+    { "id": "appel", "texte": "Ouvre « Ma progression », et regarde le chemin que tu as déjà fait." }
+  ]
+}

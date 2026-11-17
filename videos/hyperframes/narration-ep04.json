@@ -1,0 +1,12 @@
+{
+  "id": "ep04",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Un verset te revient, mais tu ne sais plus où il se trouve ? Bible Ouverte le retrouve pour toi." },
+    { "id": "libre", "texte": "En mode « Libre », tape quelques mots : « lumière du monde ». Les versets apparaissent, avec leur référence." },
+    { "id": "reference", "texte": "En mode « Référence », choisis un passage, puis change de version : Louis Segond, Darby, King James, Reina-Valera… et même l'arabe de Van Dyck." },
+    { "id": "theme", "texte": "En mode « Thème », pioche parmi quinze thèmes : la paix, l'espérance, le pardon… Les passages s'affichent dans ta version." },
+    { "id": "ajouter", "texte": "Un verset te parle ? Touche « Ajouter » : il rejoint tes lectures. Et la recherche fonctionne même hors ligne." },
+    { "id": "appel", "texte": "Ouvre la Recherche, et retrouve le verset qui t'accompagne." }
+  ]
+}

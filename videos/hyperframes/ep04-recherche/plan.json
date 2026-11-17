@@ -1,0 +1,54 @@
+{
+  "id": "ep04",
+  "total": 46.8,
+  "scenes": [
+    {
+      "id": "accroche",
+      "texte": "Un verset te revient, mais tu ne sais plus où il se trouve ? Bible Ouverte le retrouve pour toi.",
+      "debut": 0.0,
+      "duree": 7.08,
+      "voix_debut": 0.35,
+      "voix_duree": 5.98
+    },
+    {
+      "id": "libre",
+      "texte": "En mode « Libre », tape quelques mots : « lumière du monde ». Les versets apparaissent, avec leur référence.",
+      "debut": 7.08,
+      "duree": 7.95,
+      "voix_debut": 7.43,
+      "voix_duree": 6.85
+    },
+    {
+      "id": "reference",
+      "texte": "En mode « Référence », choisis un passage, puis change de version : Louis Segond, Darby, King James, Reina-Valera… et même l'arabe de Van Dyck.",
+      "debut": 15.03,
+      "duree": 10.03,
+      "voix_debut": 15.38,
+      "voix_duree": 8.93
+    },
+    {
+      "id": "theme",
+      "texte": "En mode « Thème », pioche parmi quinze thèmes : la paix, l'espérance, le pardon… Les passages s'affichent dans ta version.",
+      "debut": 25.06,
+      "duree": 8.41,
+      "voix_debut": 25.41,
+      "voix_duree": 7.31
+    },
+    {
+      "id": "ajouter",
+      "texte": "Un verset te parle ? Touche « Ajouter » : il rejoint tes lectures. Et la recherche fonctionne même hors ligne.",
+      "debut": 33.47,
+      "duree": 8.89,
+      "voix_debut": 33.82,
+      "voix_duree": 7.79
+    },
+    {
+      "id": "appel",
+      "texte": "Ouvre la Recherche, et retrouve le verset qui t'accompagne.",
+      "debut": 42.36,
+      "duree": 4.44,
+      "voix_debut": 42.71,
+      "voix_duree": 3.34
+    }
+  ]
+}

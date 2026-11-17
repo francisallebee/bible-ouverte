@@ -1,0 +1,12 @@
+{
+  "id": "ep10",
+  "voix": "fr_FR-siwis-medium",
+  "scenes": [
+    { "id": "accroche", "texte": "Combien as-tu lu ce mois-ci ? Les Statistiques te le disent, d'un coup d'œil." },
+    { "id": "totaux", "texte": "Le total de tes lectures, celles de la semaine et du mois. Et les chapitres de la Bible que tu as entamés." },
+    { "id": "jours", "texte": "Les trente derniers jours, en barres : tu vois ton rythme, et les jours de creux." },
+    { "id": "livres", "texte": "Tes dix livres les plus lus, et la répartition par contexte : méditation, culte, prédication, podcast…" },
+    { "id": "versions", "texte": "Et la part de chaque version de la Bible dans tes lectures." },
+    { "id": "appel", "texte": "Ouvre les Statistiques, et découvre ta manière de lire." }
+  ]
+}
